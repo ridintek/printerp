@@ -1,0 +1,71 @@
+/* Custom Styles */
+.status_link {
+  cursor: pointer;
+}
+.status_link td:first-child,
+.status_link td:nth-last-child(3),
+.status_link td:nth-last-child(2),
+.status_link td:last-child {
+  cursor: default;
+}
+.ajax-call-label {
+  font-weight: bold;
+  user-select: none;
+}
+.alert-danger {
+  background-color: #f2dede !important;
+}
+.alert-info {
+  background-color: #d9edf7 !important;
+}
+.alert-success {
+  background-color: #dff0d8 !important;
+}
+.alert-warning {
+  background-color: #fcf8e3 !important;
+}
+.d-inline-block {
+  display: inline-block !important;
+}
+.display-none {
+  display: none !important;
+}
+.popup-image {
+  max-height: 500px;
+}
+.link {
+  cursor: pointer;
+}
+.form-control {
+  font-size: 12px;
+  height: 30px;
+}
+.bg-yellow { background-color: yellow !important; }
+.btn {
+  font-size: 12px;
+}
+.btn-file {
+  padding: 5px;
+}
+.dropdown-menu {
+  font-size: 12px;
+  margin: 0;
+}
+.navbar-brand {
+  height: 35px;
+}
+.overflow {
+  overflow: auto;
+}
+.overflow-x {
+  overflow-x: auto;
+}
+.overflow-y {
+  overflow-y: auto;
+}
+.filemanager > li {
+  list-style: none;
+}
+.tip {
+  text-decoration: none !important;
+}

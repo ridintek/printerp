@@ -1,0 +1,28 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+html {
+  height: 100%;
+  width: 100%;
+}
+body {
+  background: linear-gradient(#404080, #4080FF);
+  height: 100%;
+  width: 100%;
+}
+button.btn-reg {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+label.token {
+  color: white;
+  font-size: 2em;
+  font-weight: bold;
+}
+#device_token {
+  font-size: 1.5em;
+  font-weight: bold;
+  max-width: 170px;
+  text-transform: uppercase;
+}

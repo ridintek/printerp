@@ -1,0 +1,24 @@
+{
+  "author": "Riyan Widiyanto",
+  "name": "Print Presence",
+  "short_name": "Presence",
+  "version": "1.0",
+  "developer": {
+    "name": "Riyan Widiyanto",
+    "url": "https://www.farrontech.com"
+  },
+  "icons": [
+    {
+      "src": "./assets/presence/images/camera-lens-512-294814.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "./",
+  "background_color": "#F0F0F0",
+  "display": "standalone",
+  "scope": "./",
+  "theme_color": "#3080FF",
+  "description": "Indoprinting Presence",
+  "manifest_version": 2
+}

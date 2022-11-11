@@ -1,0 +1,12 @@
+[Unit]
+Description=PrintERP Service
+After=mysqld.service
+Require=mysqld.service
+
+[Service]
+Type=simple
+ExecStart=/www/server/php/80/bin/php /www/wwwroot/idp/printerp_api/public/index.php service main
+User=www
+
+[Install]
+WantedBy=multi-user.target
