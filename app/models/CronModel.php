@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 class CronModel
 {
-  protected function deleteLogs()
+  public function deleteLogs()
   {
     $logs = [
       APPPATH . 'logs',
@@ -28,7 +28,7 @@ class CronModel
     }
   }
 
-  protected static function syncProducts()
+  public static function syncProducts()
   {
     $success = 0;
     $pstandard = Product::get(['type' => 'standard']);
@@ -115,7 +115,7 @@ class CronModel
     return TRUE;
   }
 
-  protected static function syncSafetyStock()
+  public static function syncSafetyStock()
   {
     $ci = &get_instance();
     $m = [];
@@ -408,7 +408,7 @@ class CronModel
     return false;
   }
 
-  private static function resetOrderRef() // OK
+  public static function resetOrderRef() // OK
   {
     $ci = &get_instance();
 

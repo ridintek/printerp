@@ -7,7 +7,6 @@ class Cron extends MY_Controller
   public function __construct()
   {
     parent::__construct();
-    $this->load->admin_model('cron_model');
 
     $this->rdlog->setFileName('cron');
   }
@@ -35,9 +34,7 @@ class Cron extends MY_Controller
     if ($mode == 'daily') {
       CronModel::runDaily();
     } else if ($mode == 'monthly') {
-      $this->cron_model->run_monthly();
     } else if ($mode == 'weekly') {
-      $this->cron_model->run_weekly();
     } else if ($mode == 'test') {
       echo "Cronjob Test\r\n";
     }
@@ -70,5 +67,42 @@ class Cron extends MY_Controller
     }
 
     mutexRelease($hMutex);
+  }
+
+  public function sync($type = 'all')
+  {
+    if ($type == 'all' || $type == 'products') {
+      if ($total = CronModel::syncProducts()) {
+        log_message('info', sprintf("%d products have been synced successfully.", $total));
+      }
+    } else if ($type == 'all' || $type == 'paymentValidations') {
+      if ($this->site->syncPaymentValidations()) {
+        log_message('info', 'Payment validations have been synced successfully.');
+      }
+    } else if ($type == 'all' || $type == 'resetOrderRef') {
+      if (CronModel::resetOrderRef()) { // OK
+        log_message('info', lang('order_ref_updated'));
+      }
+    } else if ($type == 'all' || $type == 'clearSessionStorage') {
+      if ($sess = $this->site->clearSessionStorage()) {
+        log_message('info', sprintf('%d session have been deleted.', $sess));
+      }
+    } else if ($type == 'all' || $type == 'clearOldWAJobs') {
+      if ($jobs = $this->site->clearOldWAJobs()) {
+        log_message('info', sprintf('%d WA Jobs have been deleted.', $jobs));
+      }
+    } else if ($type == 'all' || $type == 'safetyStock') {
+      if ($ss = CronModel::syncSafetyStock()) {
+        foreach ($ss as $msg) {
+          log_message('info', $msg);
+        }
+      }
+    } else if ($type == 'all' || $type == 'clearEmptyPayments') {
+      if ($stats = $this->site->clearEmptyPayments()) {
+        foreach ($stats as $stat) {
+          log_message('info', sprintf("Payment for [%s id:%d] has been deleted.", $stat['type'], $stat['id']));
+        }
+      }
+    }
   }
 }
