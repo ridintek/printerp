@@ -17,6 +17,17 @@ class Debug extends MY_Controller
     echo "Index";
   }
 
+  public function stockvalue()
+  {
+    $opt = [
+      'start_date' => '2022-10-01',
+      'end_date' => '2022-11-15'
+    ];
+    $r = getWarehouseStockValue(2, $opt);
+
+    dbgprint($r);
+  }
+
   public function daily()
   {
     $period = "2022-11";
@@ -473,9 +484,9 @@ class Debug extends MY_Controller
   public function duration_time()
   {
     $current = new DateTime();
-    $dueDate = new DateTime('2021-08-21 12:00:00');
+    $endDate = new DateTime('2022-11-16 00:00:00');
 
-    $timeleft = $current->diff($dueDate)->format('%r%H:%I:%S');
+    $timeleft = $current->diff($endDate)->format('%R');
 
     echo $timeleft;
   }

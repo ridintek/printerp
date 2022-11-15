@@ -1052,7 +1052,7 @@
                         </a>
                         <ul>
                           <?php if ($isAdmin || getPermission('reports-daily_performance')) : ?>
-                            <li id="reports_printerp">
+                            <li id="reports_daily_performance">
                               <a href="<?= admin_url('reports/daily_performance') ?>">
                                 <i class="fad fa-calendar-alt"></i><span class="text"> Daily Performance</span>
                               </a>

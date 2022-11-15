@@ -767,14 +767,13 @@ function getCurrentWeekOfMonth(): int
 }
 
 /**
- * Get daily performance report. biller_id MUST BE Array (PROGRESS)
- * @param array $opt [ biller_id[], start_date, end_date ]
+ * Get daily performance report. biller_id MUST BE Array (PROGRESS). period = yyyy-mm
+ * @param array $opt [ biller_id[], period ]
  * @return array Return daily performance data.
  */
 function getDailyPerformanceReport($opt)
 {
   // We need biller to warehouse because ONLY warehouse has 'active' column.
-
   $dailyPerformanceData = [];
   $warehouses = [];
 
@@ -788,71 +787,110 @@ function getDailyPerformanceReport($opt)
     $warehouses = Warehouse::get(['active' => '1']);
   }
 
-  $opt = getCurrentMonthPeriod($opt);
+  if ($opt['period']) {
+    $period = new DateTime($opt['period'] . '-01');
+    unset($opt['period']);
+  } else {
+    $period = new DateTime(date('Y-m-') . '01'); // Current month and date.
+  }
 
-  $startDate  = new DateTime($opt['start_date']);
-  $endDate    = new DateTime($opt['end_date']);
-  $firstDate  = intval($startDate->format('j'));
-  $lastDate   = intval($endDate->format('j'));
-  $period     = $startDate->format('Y-m');
+  $currentDate  = new DateTime();
+  $startDate    = new DateTime($period->format('Y-m-d')); // Date must be 01
+  $endDate      = new DateTime($period->format('Y-m-t')); // Date must be end of month. (28 to 31)
+
+  $firstDate  = intval($startDate->format('j')); // Date only. COUNTABLE
+  $lastDate   = intval($endDate->format('j')); // Date only. COUNTABLE
+  $ymPeriod   = $period->format('Y-m'); // 2022-11
 
   foreach ($warehouses as $warehouse) {
     if ($warehouse->active != 1) continue;
 
-    $dailyRevenue = [];
+    $dailyData = [];
     $biller = Biller::getRow(['code' => $warehouse->code]);
 
     if (!$biller) continue;
 
-    if ($biller->code == 'LUC') {
+    if ($biller->code == 'LUC') { // Lucretia method is different.
       $revenue = round(DB::table('product_transfer')
         ->selectSum('grand_total', 'total')
         ->where('warehouse_id_from', $warehouse->id)
-        ->where("created_at BETWEEN '{$opt['start_date']} 00:00:00' AND '{$opt['end_date']} 23:59:59'")
+        ->where("created_at BETWEEN '{$startDate->format('Y-m-d')} 00:00:00' AND '{$endDate->format('Y-m-d')} 23:59:59'")
         ->getRow()->total ?? 0);
 
       for ($a = $firstDate; $a <= $lastDate; $a++) {
         $dt = prependZero($a);
 
-        $dailyRevenue[] = round(DB::table('product_transfer')
+        $dailyRevenue = round(DB::table('product_transfer')
           ->selectSum('grand_total', 'total')
           ->where('warehouse_id_from', $warehouse->id)
-          ->where("created_at LIKE '{$period}-{$dt}%'")
+          ->where("created_at LIKE '{$ymPeriod}-{$dt}%'")
           ->getRow()->total ?? 0);
+
+        $stockValue = getWarehouseStockValue($warehouse->id, [
+          'start_date'  => '2022-10-01',
+          'end_date'    => "{$ymPeriod}-{$dt}"
+        ]); // sql
+
+        $piutang    = round(DB::table('product_transfer')
+          ->selectSum('(grand_total - paid)', 'total')
+          ->where('warehouse_id_from', $warehouse->id)
+          ->where("created_at LIKE '{$ymPeriod}-{$dt}%'")
+          ->getRow()->total ?? 0);
+
+        $dailyData[] = [
+          'revenue'     => $dailyRevenue,
+          'stock_value' => $stockValue,
+          'piutang'     => $piutang
+        ];
       }
-    } else {
+    } else { // All warehouses except Lucretia.
       $revenue = round(DB::table('sales')
         ->selectSum('grand_total', 'total')
         ->where('biller_id', $biller->id)
-        ->where("date BETWEEN '{$opt['start_date']} 00:00:00' AND '{$opt['end_date']} 23:59:59'")
+        ->where("date BETWEEN '{$startDate->format('Y-m-d')} 00:00:00' AND '{$endDate->format('Y-m-d')} 23:59:59'")
         ->getRow()->total ?? 0);
 
       for ($a = $firstDate; $a <= $lastDate; $a++) {
         $dt = prependZero($a);
 
-        $dailyRevenue[] = round(DB::table('sales')
+        $dailyRevenue = round(DB::table('sales')
           ->selectSum('grand_total', 'total')
           ->where('biller_id', $biller->id)
-          ->where("date LIKE '{$period}-{$dt}%'")
+          ->where("date LIKE '{$ymPeriod}-{$dt}%'")
           ->getRow()->total ?? 0);
+
+        $stockValue = getWarehouseStockValue($warehouse->id, [
+          'start_date'  => '2022-10-01',
+          'end_date'    => "{$ymPeriod}-{$dt}"
+        ]); // sql
+
+        $piutang    = round(DB::table('sales')
+          ->selectSum('balance', 'total')
+          ->where('biller_id', $biller->id)
+          ->where("date LIKE '{$ymPeriod}-{$dt}%'")
+          ->getRow()->total ?? 0);
+
+        $dailyData[] = [
+          'revenue'     => $dailyRevenue,
+          'stock_value' => $stockValue,
+          'piutang'     => $piutang
+        ];
       }
     }
 
-    $totalDays      = intval($startDate->diff($endDate)->format('%d'));
+    $activeDays     = intval($startDate->diff($currentDate)->format('%d')) + 1;
     $daysInMonth    = getDaysInMonth($startDate->format('Y'), $startDate->format('n'));
-    $totalDays      = ($totalDays > 0 ? $totalDays : 1);
-    $averageRevenue = ($revenue / $totalDays);
+    $averageRevenue = ($revenue / $activeDays);
 
     $dailyPerformanceData[] = [
-      'biller_id' => $biller->id,
-      'biller' => $warehouse->name,
-      'average_revenue' => round($averageRevenue),
-      'forecast' => round($averageRevenue * $daysInMonth),
-      'revenue' => round($revenue), // total sales even not paid.
-      'target' => 0, // set on biller
-      'total_days' => $totalDays, // 2022-11-01 - 2022-11-10 = 10 days
-      'days_in_month' => $daysInMonth, // 28, 29, 30, 31
-      'daily_revenue' => $dailyRevenue // [10000, 30000, 25405]
+      'biller_id'   => $biller->id,
+      'biller'      => $warehouse->name,
+      'avg_revenue' => round($averageRevenue),
+      'forecast'    => round($averageRevenue * $daysInMonth),
+      'revenue'     => round($revenue), // total sales even not paid.
+      'target'      => 0, // set on biller
+      'active_days' => $activeDays, // 2022-11-01 - 2022-11-10 = 10 days
+      'daily_data'  => $dailyData // [['revenue' => 100, 'stock_value' => 200, 'piutang' => 300]]
     ];
   }
 
@@ -1635,6 +1673,42 @@ function getProductStockValue($clause = [])
 
   return [];
 }
+
+
+/**
+ * Get queue date time for customer who commit ticket registration.
+ * @param string $dateTime Initial datetime string.
+ * @return string return Working date for customer who commit ticket registration.
+ */
+function getQueueDateTime($dateTime)
+{
+  $dt = new DateTime($dateTime);
+  $hour   = $dt->format('H');
+  $day    = $dt->format('D');
+  $holiday = FALSE;
+  $h = 0;
+
+  if (strcasecmp($day, 'Sun') === 0 || strcasecmp($day, 'Sat') === 0) {
+    $holiday = TRUE;
+  }
+
+  if ($hour >= 23 || $hour < 7) {
+    $h = ($holiday ? 9 : 7);
+  }
+
+  // if ($hour >= 23 && $minute <= 59) { // Off time.
+  //   $h = (24 - $hour + 8);
+  // } elseif ($hour >= 0 && $hour < 7 && $minute <= 59) { // Next day.
+  //   $h = (7 - $hour);
+  // } else {
+  //   $h = 0;
+  // }
+
+  if ($h) $dt->add(new DateInterval("PT{$h}H")); // Period Time $h Hour
+
+  return $dt->format('Y-m-d H:i:s');
+}
+
 /**
  * Get safety stock.
  * @param int $daily_qty Daily quantity.
@@ -1754,37 +1828,62 @@ function getTotalAmountIncomeStatement($data)
 }
 
 /**
- * Get queue date time for customer who commit ticket registration.
- * @param string $dateTime Initial datetime string.
- * @return string return Working date for customer who commit ticket registration.
+ * Get Warehouse stock value.
+ * @param int $warehouseId Warehouse ID.
+ * @param array $opt [ start_date, end_date ]
  */
-function getQueueDateTime($dateTime)
+function getWarehouseStockValue(int $warehouseId, array $opt = [])
 {
-  $dt = new DateTime($dateTime);
-  $hour   = $dt->format('H');
-  $day    = $dt->format('D');
-  $holiday = FALSE;
-  $h = 0;
+  $currentDate  = new DateTime();
+  $startDate    = new DateTime($opt['start_date'] ?? date('Y-m-') . '01');
+  $endDate      = new DateTime($opt['end_date'] ?? date('Y-m-t'));
+  $warehouse    = Warehouse::getRow(['id' => $warehouseId]);
 
-  if (strcasecmp($day, 'Sun') === 0 || strcasecmp($day, 'Sat') === 0) {
-    $holiday = TRUE;
+  if (!$warehouse) {
+    log_message('error', "getWarehouseStockValue(): Cannot find warehouse [id:{$warehouseId}]");
+    return NULL;
   }
 
-  if ($hour >= 23 || $hour < 7) {
-    $h = ($holiday ? 9 : 7);
+  // If end date is more than current date then 0.
+  if ($currentDate->diff($endDate)->format('%R') == '+') {
+    return 0;
   }
 
-  // if ($hour >= 23 && $minute <= 59) { // Off time.
-  //   $h = (24 - $hour + 8);
-  // } elseif ($hour >= 0 && $hour < 7 && $minute <= 59) { // Next day.
-  //   $h = (7 - $hour);
-  // } else {
-  //   $h = 0;
-  // }
+  if ($warehouse->code == 'LUC') { // Lucretai mode.
+    $in = DB::table('stocks')->selectSum('(cost * quantity)', 'total')
+      ->where('product_type', 'standard')
+      ->where('status', 'received')
+      ->where('warehouse_id', $warehouse->id)
+      ->where("created_at BETWEEN '{$startDate->format('Y-m-d')} 00:00:00' AND '{$endDate->format('Y-m-d')} 23:59:59'")
+      ->getRow()->total;
 
-  if ($h) $dt->add(new DateInterval("PT{$h}H")); // Period Time $h Hour
+    $out = DB::table('stocks')->selectSum('(cost * quantity)', 'total')
+      ->where('product_type', 'standard')
+      ->where('status', 'sent')
+      ->where('warehouse_id', $warehouse->id)
+      ->where("created_at BETWEEN '{$startDate->format('Y-m-d')} 00:00:00' AND '{$endDate->format('Y-m-d')} 23:59:59'")
+      ->getRow()->total;
 
-  return $dt->format('Y-m-d H:i:s');
+    return floatval($in - $out);
+  } else {
+    $in = DB::table('stocks')->selectSum('(stocks.cost * stocks.quantity)', 'total')
+      ->join('products', 'products.id = stocks.product_id', 'left')
+      ->where('stocks.product_type', 'standard')
+      ->where('stocks.status', 'received')
+      ->where('stocks.warehouse_id', $warehouse->id)
+      ->where("stocks.created_at BETWEEN '{$startDate->format('Y-m-d')} 00:00:00' AND '{$endDate->format('Y-m-d')} 23:59:59'")
+      ->getRow()->total;
+
+    $out = DB::table('stocks')->selectSum('(stocks.cost * stocks.quantity)', 'total')
+      ->join('products', 'products.id = stocks.product_id', 'left')
+      ->where('stocks.product_type', 'standard')
+      ->where('stocks.status', 'sent')
+      ->where('stocks.warehouse_id', $warehouse->id)
+      ->where("stocks.created_at BETWEEN '{$startDate->format('Y-m-d')} 00:00:00' AND '{$endDate->format('Y-m-d')} 23:59:59'")
+      ->getRow()->total;
+
+    return floatval($in - $out);
+  }
 }
 
 /**

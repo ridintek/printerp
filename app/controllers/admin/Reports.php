@@ -945,72 +945,26 @@ class Reports extends MY_Controller
    */
   public function getDailyPerformanceReport()
   {
-    $period = $this->input->get('period');
+    $period = $this->input->get('period'); // 2022-11
     $xls    = ($this->input->get('xls') == 1 ? TRUE : FALSE);
 
     $opt = [];
 
-    if ($period) {
-      $periodic = new DateTime($period . '-01');
-
-      $opt['start_date']  = $period . '-01';
-      $opt['end_date']    = $period . '-' . $periodic->format('t');
-    }
+    $opt['period'] = ($period ?? date('Y-m')); // Default current year and month.
     
-    $opt = getCurrentMonthPeriod($opt);
-
     if (!$xls) { // Send to DataTables.
       $this->response(200, [
-        'period' => [
-          'start_date' => $opt['start_date'],
-          'end_date'   => $opt['end_date']
-        ],
         'data' => getDailyPerformanceReport($opt) // Helper
       ]);
     } else { // Save as Excel
-      $dailyPerformanceData = getDailyPerformanceReport($opt);
+      $dpData = getDailyPerformanceReport($opt);
 
       $excel = $this->ridintek->spreadsheet();
 
-      $excel->setTitle('Income Statement');
-      $excel->setCellValue('A1', 'Reference');
+      $excel->setTitle('Daily Performance');
+      // $excel->setCellValue('A1', 'Reference');
 
-      $r = 2;
-
-      // Vertical Columns First.
-      foreach ($dailyPerformanceData as $dp) {
-        $excel->setCellValue('A' . $r, $dp['biller']);
-
-        $r++;
-      }
-
-      $excel->setColumnAutoWidth('A');
-
-      $col = 66; // 66 = B
-
-      foreach ($dailyPerformanceData as $iss) {
-        $r = 2;
-
-        $excel->setCellValue(chr($col) . ($r - 1), $iss['biller']);
-
-        foreach ($iss['data'] as $is) {
-          $excel->setCellValue(chr($col) . $r, round($is['amount']));
-
-          if (!empty($is['data']) && is_array($is['data'])) {
-            foreach ($is['data'] as $subData) {
-              $r++;
-
-              $excel->setCellValue(chr($col) . $r, round($subData['amount']));
-            }
-          }
-
-          $r++;
-        }
-
-        $excel->setColumnAutoWidth(chr($col)); // B, C, D, ...
-
-        $col++;
-      }
+      
 
       $name = $this->session->userdata('fullname');
 

@@ -89,23 +89,16 @@ $q = '';
           <table id="Table" class="table table-striped table-bordered table-condensed table-hover dfTable reports-table" style="margin-bottom:5px;">
             <thead>
               <tr class="active">
-                <th>Biller</th>
-                <th>Target</th>
-                <th>Revenue</th>
-                <th>Average Revenue</th>
-                <th>Forecast</th>
+                <th rowspan="2">Biller</th>
+                <th rowspan="2">Target</th>
+                <th rowspan="2">Revenue</th>
+                <th rowspan="2">Avg Revenue</th>
+                <th rowspan="2">Forecast</th>
               </tr>
             </thead>
             <tbody>
             </tbody>
             <tfoot class="dtFilter">
-              <tr class="active">
-                <th>Sub Total</th>
-                <th class="text-right st-target">0</th>
-                <th class="text-right st-revenue">0</th>
-                <th class="text-right st-average-revenue">0</th>
-                <th class="text-right st-forecast">0</th>
-              </tr>
             </tfoot>
           </table>
         </div>
@@ -126,15 +119,24 @@ $q = '';
           <td class="${className}">${row.biller}</td>
           <td class="text-right ${className}">${formatMoney(row.target, 'Rp')}</td>
           <td class="text-right ${className}">${formatMoney(row.revenue, 'Rp')}</td>
-          <td class="text-right ${className}">${formatMoney(row.average_revenue, 'Rp')}</td>
+          <td class="text-right ${className}">${formatMoney(row.avg_revenue, 'Rp')}</td>
           <td class="text-right ${className}">${formatMoney(row.forecast, 'Rp')}</td>`;
 
         for (let a = 0; a < 31; a++) {
-          if (a > row.daily_revenue.length) {
-            rows += `<td class="text-right ${className}"></td>`;
+          if (typeof row.daily_data[a] == 'undefined') { // Protect overflow array.
+            rows += `
+              <td class="text-right ${className}">-</td>
+              <td class="text-right ${className}">-</td>
+              <td class="text-right ${className}">-</td>
+              `;
             continue;
           }
-          rows += `<td class="text-right ${className}">${formatMoney(row.daily_revenue[a], 'Rp')}</td>`;
+
+          rows += `
+            <td class="text-right ${className}">${formatMoney(row.daily_data[a].revenue, 'Rp')}</td>
+            <td class="text-right ${className}">${formatMoney(row.daily_data[a].stock_value, 'Rp')}</td>
+            <td class="text-right ${className}">${formatMoney(row.daily_data[a].piutang, 'Rp')}</td>
+            `;
         }
 
         rows += '</tr>';
@@ -149,11 +151,12 @@ $q = '';
 
     load() {
       let data = {};
-      let rowTotal = 36;
-      
+      // colTotal(31 days * 3 sub-columns[revenue,stock value,...]) + general columns[biller,target,...].
+      let colTotal = (31 * 3) + 5;
+
       data.period = $('#period').val();
 
-      this.tbody.html(`<tr><td colspan="${rowTotal}" class="dataTables_empty">Loading data from server</td></tr>`);
+      this.tbody.html(`<tr><td colspan="${colTotal}" class="dataTables_empty">Loading data from server</td></tr>`);
 
       $.ajax({
         method: 'GET',
@@ -164,7 +167,6 @@ $q = '';
             console.log(data);
 
             for (let row of data.data) {
-              console.log(row);
               this.addRow(row);
             }
           }
@@ -180,20 +182,30 @@ $q = '';
   }
 
   $(document).ready(function() {
-    let headers = '', footers = '';
+    let headers = '',
+      tr2 = '',
+      footers = '';
     let report = new DailyPerformanceReport();
-    
+
+    tr2 = '<tr>';
+
     for (let a = 1; a <= 31; a++) {
-      headers += `<th>Day ${a}</th>`;
-      footers += `<th></th>`;
+      headers += `<th colspan="3">Day ${a}</th>`;
+      tr2 += `
+        <th class="text-center">Revenue</th>
+        <th class="text-center">Stock Value</th>
+        <th class="text-center">Piutang</th>
+        `;
     }
+
+    tr2 += '</tr>';
 
     if (headers.length > 0) {
       $('#Table thead tr').append(headers);
-      $('#Table tfoot tr').append(footers);
+      $('#Table thead').append(tr2);
     }
 
-    report.load();
+    report.load(); // First load.
 
     $('#filter_submit').on('click', function() {
       let q = '';
