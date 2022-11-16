@@ -1155,7 +1155,7 @@ class Products extends MY_Controller
 
     $this->load->library('datatables');
     $this->datatables
-      ->select("{$this->db->dbprefix('adjustments')}.id as id, date, reference, warehouses.name as wh_name, users.fullname as created_by, note, attachment")
+      ->select("adjustments.id as id, date, reference, warehouses.name as wh_name, users.fullname as created_by, note, attachment")
       ->from('adjustments')
       ->join('warehouses', 'warehouses.id=adjustments.warehouse_id', 'left')
       ->join('users', 'users.id=adjustments.created_by', 'left')
@@ -1174,7 +1174,7 @@ class Products extends MY_Controller
 
     $this->load->library('datatables');
     $this->datatables
-      ->select("{$this->db->dbprefix('categories')}.id as id, {$this->db->dbprefix('categories')}.image, {$this->db->dbprefix('categories')}.code, {$this->db->dbprefix('categories')}.name, {$this->db->dbprefix('categories')}.slug, c.name as parent", false)
+      ->select("categories.id as id, categories.image, categories.code, categories.name, categories.slug, c.name as parent", false)
       ->from('categories')
       ->join('categories c', 'c.code=categories.parent_code', 'left')
       ->group_by('categories.id')
@@ -1204,7 +1204,7 @@ class Products extends MY_Controller
 
     $this->load->library('datatables');
     $this->datatables
-      ->select("{$this->db->dbprefix('stock_counts')}.id as id, date, reference, {$this->db->dbprefix('warehouses')}.name as wh_name, type, brand_names, category_names, initial_file, final_file")
+      ->select("stock_counts.id as id, date, reference, warehouses.name as wh_name, type, brand_names, category_names, initial_file, final_file")
       ->from('stock_counts')
       ->join('warehouses', 'warehouses.id=stock_counts.warehouse_id', 'left');
     if ($warehouse_id) {

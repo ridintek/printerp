@@ -1577,17 +1577,17 @@ class system_settings extends MY_Controller
       admin_redirect('system_settings/price_groups');
     }
 
-    $pp = "( SELECT {$this->db->dbprefix('product_prices')}.product_id as product_id,
-    {$this->db->dbprefix('product_prices')}.price as price,
-    {$this->db->dbprefix('product_prices')}.price2 as price2,
-    {$this->db->dbprefix('product_prices')}.price3 as price3,
-    {$this->db->dbprefix('product_prices')}.price4 as price4,
-    {$this->db->dbprefix('product_prices')}.price5 as price5,
-    {$this->db->dbprefix('product_prices')}.price6 as price6
-    FROM {$this->db->dbprefix('product_prices')} WHERE price_group_id = {$group_id} ) PP";
+    $pp = "( SELECT product_prices.product_id as product_id,
+    product_prices.price as price,
+    product_prices.price2 as price2,
+    product_prices.price3 as price3,
+    product_prices.price4 as price4,
+    product_prices.price5 as price5,
+    product_prices.price6 as price6
+    FROM product_prices WHERE price_group_id = {$group_id} ) PP";
 
     $this->load->library('datatables');
-    $this->datatables->select("{$this->db->dbprefix('products')}.id as id, {$this->db->dbprefix('products')}.code as product_code, {$this->db->dbprefix('products')}.name as product_name,
+    $this->datatables->select("products.id as id, products.code as product_code, products.name as product_name,
     PP.price as price,
     PP.price2 as price2,
     PP.price3 as price3,

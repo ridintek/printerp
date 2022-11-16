@@ -1485,7 +1485,7 @@ class Finances extends MY_Controller
     if ($from_date) {
       $from_date = $this->sma->fsd($from_date) . ' 00:00:00';
       $to_date   = $this->sma->fsd($to_date) . ' 23:59:59';
-      $this->datatables->where($this->db->dbprefix('incomes') . '.date BETWEEN "' . $from_date . '" AND "' . $to_date . '"');
+      $this->datatables->where('incomes.date BETWEEN "' . $from_date . '" AND "' . $to_date . '"');
     }
     if (!$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
       $this->datatables->where('created_by', $this->session->userdata('user_id'));
@@ -1772,7 +1772,7 @@ class Finances extends MY_Controller
     if ($start_date) {
       $start_date = $this->sma->fsd($start_date) . ' 00:00:00';
       $end_date   = $this->sma->fsd($end_date) . ' 23:59:59';
-      $this->datatables->where($this->db->dbprefix('bank_mutations') . '.date BETWEEN "' . $start_date . '" AND "' . $end_date . '"');
+      $this->datatables->where('bank_mutations.date BETWEEN "' . $start_date . '" AND "' . $end_date . '"');
     }
     if (!$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
       $this->datatables->where('created_by', $this->session->userdata('user_id'));

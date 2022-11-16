@@ -1489,13 +1489,13 @@ class Sales extends MY_Controller
       if ($start_date) {
         $start_date = $start_date . ' 00:00:00';
         $end_date   = $end_date . ' 23:59:59';
-        $this->datatables->where("{$this->db->dbprefix('sales')}.date BETWEEN '{$start_date}' AND '{$end_date}'");
+        $this->datatables->where("sales.date BETWEEN '{$start_date}' AND '{$end_date}'");
       } else { // For optimizing Query.
         // $period = getCurrentMonthPeriod();
         $period = getLastMonthPeriod();
         $start_date = $period['start_date'] . ' 00:00:00';
         $end_date   = $period['end_date'] . ' 23:59:59';
-        $this->datatables->where("{$this->db->dbprefix('sales')}.date BETWEEN '{$start_date}' AND '{$end_date}'");
+        $this->datatables->where("sales.date BETWEEN '{$start_date}' AND '{$end_date}'");
       }
 
       if ($this->input->get('attachment') == 'yes') {
@@ -1809,15 +1809,15 @@ class Sales extends MY_Controller
     if ($warehouse_id) {
       $this->datatables
         ->select(
-          "{$this->db->dbprefix('sale_items')}.id as id,
-          {$this->db->dbprefix('sales')}.date as date,
-          {$this->db->dbprefix('sales')}.reference as reference,
-          {$this->db->dbprefix('sales')}.biller as biller,
-          {$this->db->dbprefix('sales')}.customer as customer,
-          {$this->db->dbprefix('sale_items')}.product_code as product_code,
-          {$this->db->dbprefix('sale_items')}.product_name as product_name,
-          {$this->db->dbprefix('sale_items')}.json_data as json_data,
-          {$this->db->dbprefix('sales')}.payment_status as payment_status"
+          "sale_items.id as id,
+          sales.date as date,
+          sales.reference as reference,
+          sales.biller as biller,
+          sales.customer as customer,
+          sale_items.product_code as product_code,
+          sale_items.product_name as product_name,
+          sale_items.json_data as json_data,
+          sales.payment_status as payment_status"
         )
         ->from('sale_items')
         ->join('sales', 'sale_items.sale_id=sales.id', 'left')
@@ -1825,15 +1825,15 @@ class Sales extends MY_Controller
     } else {
       $this->datatables
         ->select(
-          "{$this->db->dbprefix('sale_items')}.id as id,
-          {$this->db->dbprefix('sales')}.date as date,
-          {$this->db->dbprefix('sales')}.reference as reference,
-          {$this->db->dbprefix('sales')}.biller as biller,
-          {$this->db->dbprefix('sales')}.customer as customer,
-          {$this->db->dbprefix('sale_items')}.product_code as product_code,
-          {$this->db->dbprefix('sale_items')}.product_name as product_name,
-          {$this->db->dbprefix('sale_items')}.json_data as json_data,
-          {$this->db->dbprefix('sales')}.payment_status as payment_status"
+          "sale_items.id as id,
+          sales.date as date,
+          sales.reference as reference,
+          sales.biller as biller,
+          sales.customer as customer,
+          sale_items.product_code as product_code,
+          sale_items.product_name as product_name,
+          sale_items.json_data as json_data,
+          sales.payment_status as payment_status"
         )
         ->from('sale_items')
         ->join('sales', 'sale_items.sale_id=sales.id', 'left');

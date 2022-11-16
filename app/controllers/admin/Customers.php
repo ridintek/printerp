@@ -589,7 +589,7 @@ class Customers extends MY_Controller
       ->select("deposits.id as id, date, amount, paid_by, CONCAT(users.first_name, ' ', users.last_name) as created_by", false)
       ->from('deposits')
       ->join('users', 'users.id=deposits.created_by', 'left')
-      ->where($this->db->dbprefix('deposits') . '.customer_id', $customer_id)
+      ->where('deposits.customer_id', $customer_id)
       ->add_column('Actions', "<div class=\"text-center\"><a class=\"tip\" title='" . lang('deposit_note') . "' href='" . admin_url('customers/deposit_note/$1') . "' data-toggle='modal' data-target='#myModal2'><i class=\"fad fa-file-text\"></i></a> <a class=\"tip\" title='" . lang('edit_deposit') . "' href='" . admin_url('customers/edit_deposit/$1') . "' data-toggle='modal' data-target='#myModal2'><i class=\"fad fa-edit\"></i></a> <a href='#' class='tip po' title='<b>" . lang('delete_deposit') . "</b>' data-content=\"<p>" . lang('r_u_sure') . "</p><a class='btn btn-danger po-delete' href='" . admin_url('customers/delete_deposit/$1') . "'>" . lang('i_m_sure') . "</a> <button class='btn po-close'>" . lang('no') . "</button>\"  rel='popover'><i class=\"fad fa-trash\"></i></a></div>", 'id')
       ->unset_column('id');
     echo $this->datatables->generate();
