@@ -951,20 +951,49 @@ class Reports extends MY_Controller
     $opt = [];
 
     $opt['period'] = ($period ?? date('Y-m')); // Default current year and month.
-    
+
     if (!$xls) { // Send to DataTables.
       $this->response(200, [
         'data' => getDailyPerformanceReport($opt) // Helper
       ]);
     } else { // Save as Excel
-      $dpData = getDailyPerformanceReport($opt);
+      $ddGrid = [
+        ['F', 'G', 'H'], ['I', 'J', 'K'], ['L', 'M', 'N'], ['O', 'P', 'Q'], ['R', 'S', 'T'],
+        ['U', 'V', 'W'], ['X', 'Y', 'Z'], ['AA', 'AB', 'AC'], ['AD', 'AE', 'AF'], ['AG', 'AH', 'AI'],
+        ['AJ', 'AK', 'AL'], ['AM', 'AN', 'AO'], ['AP', 'AQ', 'AR'], ['AS', 'AT', 'AU'], ['AV', 'AW', 'AX'],
+        ['AY', 'AZ', 'BA'], ['BB', 'BC', 'BD'], ['BE', 'BF', 'BG'], ['BH', 'BI', 'BJ'], ['BK', 'BL', 'BM'],
+        ['BN', 'BO', 'BP'], ['BQ', 'BR', 'BS'], ['BT', 'BU', 'BV'], ['BW', 'BX', 'BY'], ['BZ', 'CA', 'CB'],
+        ['CC', 'CD', 'CE'], ['CF', 'CG', 'CH'], ['CI', 'CJ', 'CK'], ['CL', 'CM', 'CN'], ['CO', 'CP', 'CQ'],
+        ['CR', 'CS', 'CT']
+      ];
+
+      $dailyPerfData = getDailyPerformanceReport($opt);
 
       $excel = $this->ridintek->spreadsheet();
+      $excel->loadFile(FCPATH . 'files/templates/DailyPerformance_Report.xlsx');
 
-      $excel->setTitle('Daily Performance');
-      // $excel->setCellValue('A1', 'Reference');
+      $excel->setTitle('Period ' . $opt['period']);
 
-      
+      $r1 = 3; // 3rd row.
+
+      foreach ($dailyPerfData as $dp) {
+        $excel->setCellValue('A' . $r1, $dp['biller']);
+        $excel->setCellValue('B' . $r1, $dp['target']);
+        $excel->setCellValue('C' . $r1, $dp['revenue']);
+        $excel->setCellValue('D' . $r1, $dp['avg_revenue']);
+        $excel->setCellValue('E' . $r1, $dp['forecast']);
+
+        $r2 = 0;
+        foreach ($dp['daily_data'] as $dd) {
+          $excel->setCellValue($ddGrid[$r2][0] . $r1, $dd['revenue']);
+          $excel->setCellValue($ddGrid[$r2][1] . $r1, $dd['stock_value']);
+          $excel->setCellValue($ddGrid[$r2][2] . $r1, $dd['piutang']);
+
+          $r2++;
+        }
+
+        $r1++;
+      }
 
       $name = $this->session->userdata('fullname');
 

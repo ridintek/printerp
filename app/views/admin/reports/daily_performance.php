@@ -220,7 +220,7 @@ $q = '';
       let q = '';
       let period = $('#period').val();
 
-      if (period) q += 'period=' + period;
+      if (period) q += '&period=' + period;
 
       location.href = '<?= admin_url('reports/getDailyPerformanceReport?xls=1'); ?>' + q;
     });
