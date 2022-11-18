@@ -21,9 +21,11 @@ class Debug extends MY_Controller
   {
     $opt = [
       'start_date' => '2022-10-01',
-      'end_date' => '2022-11-15'
+      'end_date' => '2022-11-17'
     ];
-    $r = getWarehouseStockValue(2, $opt);
+
+    $warehouseId = (int)Warehouse::getRow(['code' => 'LUC'])->id;
+    $r = getWarehouseStockValue($warehouseId, $opt);
 
     dbgprint($r);
   }
@@ -484,7 +486,7 @@ class Debug extends MY_Controller
   public function duration_time()
   {
     $current = new DateTime();
-    $endDate = new DateTime('2022-11-16 00:00:00');
+    $endDate = new DateTime('2022-11-18 00:00:00');
 
     $timeleft = $current->diff($endDate)->format('%R');
 
