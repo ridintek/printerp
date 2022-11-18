@@ -630,6 +630,10 @@
                       <label for="expenses" class="padding05"><?= lang('expenses') ?></label>
                     </span>
                     <span style="display:inline-block;">
+                      <input type="checkbox" value="1" class="checkbox" id="daily_performance" name="reports-daily_performance" <?php echo ($gp->{'reports-daily_performance'} ?? '') ? 'checked' : ''; ?>>
+                      <label for="daily_performance" class="padding05"><?= lang('daily_performance') ?></label>
+                    </span>
+                    <span style="display:inline-block;">
                       <input type="checkbox" value="1" class="checkbox" id="daily_purchases" name="reports-daily_purchases" <?php echo $gp->{'reports-daily_purchases'} ? 'checked' : ''; ?>>
                       <label for="daily_purchases" class="padding05"><?= lang('daily_purchases') ?></label>
                     </span>
