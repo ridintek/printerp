@@ -1476,7 +1476,7 @@ class Reports extends MY_Controller
       ->where_in('products.type', ['standard']) // Standard only
       ->where_not_in('products.category_id', [2, 14, 16, 17, 18]); // Not Assets and Sub-Assets.
 
-    // echo $this->datatables->generate(['returnCompiled' => TRUE]);
+    // echo $this->datatables->generate(['returnCompiled' => TRUE]); die;
     echo $this->datatables->generate();
   }
 
