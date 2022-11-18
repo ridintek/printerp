@@ -2387,6 +2387,26 @@ class Site extends MY_Model
         // if ($adjustmentId = $this->addAdjustmentStock($adjustmentData, $adjustmentItems)) {
         //   $this->db->update('trackingpod', ['adjustment_id' => $adjustmentId], ['id' => $trackId]);
         // }
+
+        // Test with new adjustment.
+        $adjustmentData = [
+          'date'         => ($data['created_at'] ?? date('Y-m-d H:i:s')),
+          'warehouse_id' => $data['warehouse_id'],
+          'mode'         => 'formula',
+          'note'         => 'Tracking POD Rejected' . (empty($note) ? '.' : ': ' . $note),
+          'created_by'   => $data['created_by'],
+          'end_date'     => $dateTime
+        ];
+
+        $adjustmentItems[] = [
+          'product_id'     => $data['pod_id'],
+          'quantity'       => $data['mc_reject'] * -1
+        ];
+
+        // Add adjustment.
+        if ($adjustmentId = $this->addAdjustmentStock($adjustmentData, $adjustmentItems)) {
+          $this->db->update('trackingpod', ['adjustment_id' => $adjustmentId], ['id' => $trackId]);
+        }
       }
 
       addEvent("Created Tracking POD [{$trackId}: start_click: {$data['start_click']}; end_click: {$data['end_click']}]", 'info');
@@ -6259,7 +6279,7 @@ class Site extends MY_Model
 
     //$this->db->where("date < '{$date} 00:00:00'");
 
-    $end_date = date('Y-m-d', strtotime('-1 day', strtotime($date)));
+    $end_date = date('Y-m-d', strtotime('-1 day', strtotime($date ?? date('Y-m-d'))));
     $clauses['end_date'] = $end_date;
 
     $stocks   = $this->getStocks($clauses);
