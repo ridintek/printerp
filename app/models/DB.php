@@ -54,6 +54,14 @@ class DB
   }
 
   /**
+   * Commit transaction.
+   */
+  public static function commitTransaction()
+  {
+    return get_instance()->db->trans_commit();
+  }
+
+  /**
    * Delete rows.
    * @param array $clause Filter clause.
    */
@@ -63,11 +71,11 @@ class DB
   }
 
   /**
-   * Commit transaction.
+   * Get compiled select.
    */
-  public static function commitTransaction()
+  public function getCompiledSelect()
   {
-    return get_instance()->db->trans_commit();
+    return self::$ciInstance->db->get_compiled_select();
   }
 
   /**
