@@ -76,19 +76,16 @@
       $.ajax({
         contentType: false,
         data: form,
+        error: (xhr) => {
+          addAlert(xhr.responseJSON.message, 'danger');
+          toastr.error(xhr.responseJSON.message);
+        },
         method: 'POST',
         processData: false,
         success: function(data) {
-          if (isObject(data)) {
-            if (data.success) {
-              if (Table) Table.draw(false);
-              addAlert(data.message, 'success');
-            } else {
-              addAlert(data.message, 'danger');
-            }
-          } else {
-            addAlert('Something wrong here.', 'danger');
-          }
+          if (Table) Table.draw(false);
+          addAlert(data.message, 'success');
+          toastr.success(data.message);
 
           $('#myModal').modal('hide');
         },
