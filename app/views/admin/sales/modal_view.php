@@ -21,7 +21,7 @@
           <div style="padding: 5px">
             <h2 style="margin-top:0px;"><?= $biller->company && $biller->company != '-' ? $biller->company : $biller->name; ?></h2>
             <?php
-            echo $biller->address . ', ' . $biller->city . ' ' . $biller->postal_code . ' ' . $biller->state  . (!empty($biller->country) ? ', ' . $biller->country : '') . '<br>';
+            echo $biller->address . ', ' . $biller->city . '<br>';
 
             echo lang('tel') . ': ' . $biller->phone . '<br>' .
               (!empty($biller->json_data) ? lang('whatsapp') . ': ' . json_decode($biller->json_data)->whatsapp : '') . '<br>' .

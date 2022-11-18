@@ -29,20 +29,15 @@ class Billers extends MY_Controller
     if ($this->form_validation->run('billers/add') == true) {
       $data = [
         'name'      => $this->input->post('name'),
-        'email'          => $this->input->post('email'),
-        'group_id'       => null,
-        'group_name'     => 'biller',
-        'company'        => $this->input->post('company'),
-        'address'        => $this->input->post('address'),
-        'city'           => $this->input->post('city'),
-        'state'          => $this->input->post('state'),
-        'postal_code'    => $this->input->post('postal_code'),
-        'country'        => $this->input->post('country'),
-        'phone'          => $this->input->post('phone'),
-        'logo'           => $this->input->post('logo'),
-        'invoice_footer' => $this->input->post('invoice_footer'),
-        'json_data'      => json_encode([
-          'whatsapp'       => $this->input->post('whatsapp')
+        'email'     => $this->input->post('email'),
+        'company'   => $this->input->post('company'),
+        'address'   => $this->input->post('address'),
+        'city'      => $this->input->post('city'),
+        'phone'     => $this->input->post('phone'),
+        'logo'      => $this->input->post('logo'),
+        'json_data' => json_encode([
+          'target'    => filterDecimal($this->input->post('target')),
+          'whatsapp'  => $this->input->post('whatsapp')
         ])
       ];
     } elseif ($this->input->post('add_biller')) {
@@ -127,20 +122,15 @@ class Billers extends MY_Controller
     if ($this->form_validation->run('billers/add') == true) {
       $data = [
         'name'      => $this->input->post('name'),
-        'email'          => $this->input->post('email'),
-        'group_id'       => null,
-        'group_name'     => 'biller',
-        'company'        => $this->input->post('company'),
-        'address'        => $this->input->post('address'),
-        'city'           => $this->input->post('city'),
-        'state'          => $this->input->post('state'),
-        'postal_code'    => $this->input->post('postal_code'),
-        'country'        => $this->input->post('country'),
-        'phone'          => $this->input->post('phone'),
-        'logo'           => $this->input->post('logo'),
-        'invoice_footer' => $this->input->post('invoice_footer'),
-        'json_data'      => json_encode([
-          'whatsapp'      => $this->input->post('whatsapp')
+        'email'     => $this->input->post('email'),
+        'company'   => $this->input->post('company'),
+        'address'   => $this->input->post('address'),
+        'city'      => $this->input->post('city'),
+        'phone'     => $this->input->post('phone'),
+        'logo'      => $this->input->post('logo'),
+        'json_data' => json_encode([
+          'target'    => filterDecimal($this->input->post('target')),
+          'whatsapp'  => $this->input->post('whatsapp')
         ])
       ];
     } elseif ($this->input->post('edit_biller')) {
@@ -157,6 +147,7 @@ class Billers extends MY_Controller
         admin_redirect('billers');
       }
       $this->data['biller']   = $biller;
+      $this->data['billerJS'] = json_decode($biller->json_data);
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
       $this->data['logos']    = $this->getLogoList();
       $this->load->view($this->theme . 'billers/edit', $this->data);
@@ -177,9 +168,8 @@ class Billers extends MY_Controller
 
     $this->load->library('datatables');
     $this->datatables
-      ->select('id, company, name, phone, email, city, country')
+      ->select('id, company, name, phone, email, city')
       ->from('billers')
-      ->where('group_name', 'biller')
       ->add_column('Actions', "<div class=\"text-center\"><a class=\"tip\" title='" . $this->lang->line('edit_biller') . "' href='" . admin_url('billers/edit/$1') . "' data-toggle='modal' data-target='#myModal'><i class=\"fad fa-edit\"></i></a> <a href='#' class='tip po' title='<b>" . $this->lang->line('delete_biller') . "</b>' data-content=\"<p>" . lang('r_u_sure') . "</p><a class='btn btn-danger po-delete' href='" . admin_url('billers/delete/$1') . "'>" . lang('i_m_sure') . "</a> <button class='btn po-close'>" . lang('no') . "</button>\"  rel='popover'><i class=\"fad fa-trash\"></i></a></div>", 'id');
     //->unset_column('id');
     echo $this->datatables->generate();
@@ -243,7 +233,7 @@ class Billers extends MY_Controller
         $updated = 0;
         $items   = [];
         $keys    = [
-          'no', 'use', 'company', 'name', 'email', 'phone', 'whatsapp', 'address', 'city'
+          'no', 'use', 'company', 'name', 'email', 'phone', 'whatsapp', 'address', 'city', 'target'
         ];
 
         if ($header_id[0] != 'BILR') {
@@ -256,17 +246,15 @@ class Billers extends MY_Controller
         foreach ($csvs as $csv) {
           if ($csv['use'] == 0) continue;
           $data_biller = [
-            'group_id'       => null,
-            'group_name'     => 'biller',
-            'company'        => $csv['company'],
-            'name'           => $csv['name'],
-            'email'          => $csv['email'],
-            'phone'          => $csv['phone'],
-            'address'        => $csv['address'],
-            'city'           => $csv['city'],
-            'logo'           => 'logo-indoprinting-300.png',
-            'json_data'      => json_encode([
-              'whatsapp'     => $csv['whatsapp']
+            'company'   => $csv['company'],
+            'name'      => $csv['name'],
+            'email'     => $csv['email'],
+            'phone'     => $csv['phone'],
+            'address'   => $csv['address'],
+            'logo'      => 'logo-indoprinting-300.png',
+            'json_data' => json_encode([
+              'target'    => $csv['target'],
+              'whatsapp'  => $csv['whatsapp']
             ])
           ];
 

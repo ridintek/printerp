@@ -15,7 +15,7 @@
         <div class="form-group">
           <?= lang('logo', 'biller_logo'); ?>
           <?php
-          $biller_logos[''] = '';
+          $biller_logos = [];
           foreach ($logos as $key => $value) {
             $biller_logos[$value] = $value;
           }
@@ -23,8 +23,7 @@
         </div>
       </div>
       <div class="col-md-6">
-        <div id="logo-con" class="text-center"><img
-            src="<?= base_url('assets/uploads/logos/' . $biller->logo) ?>" alt=""></div>
+        <div id="logo-con" class="text-center"><img src="<?= base_url('assets/uploads/logos/' . $biller->logo) ?>" alt=""></div>
       </div>
     </div>
     <div class="row">
@@ -39,18 +38,17 @@
         </div>
         <div class="form-group">
           <?= lang('email_address', 'email_address'); ?>
-          <input type="email" name="email" class="form-control" required="required" id="email_address"
-               value="<?= $biller->email ?>"/>
+          <input type="email" name="email" class="form-control" required="required" id="email_address" value="<?= $biller->email ?>" />
         </div>
         <div class="form-group">
           <?= lang('phone', 'phone'); ?>
-          <input type="tel" name="phone" class="form-control" required="required" id="phone"
-               value="<?= $biller->phone ?>"/>
+          <input type="tel" name="phone" class="form-control" required="required" id="phone" value="<?= $biller->phone ?>" />
         </div>
+      </div>
+      <div class="col-md-6">
         <div class="form-group">
           <?= lang('whatsapp', 'whatsapp'); ?>
-          <input type="tel" name="whatsapp" class="form-control" required="required" id="whatsapp"
-               value="<?= ( ! empty($biller->json_data) ? json_decode($biller->json_data)->whatsapp : '') ?>"/>
+          <input type="tel" name="whatsapp" class="form-control" required="required" id="whatsapp" value="<?= (!empty($biller->json_data) ? json_decode($biller->json_data)->whatsapp : '') ?>" />
         </div>
         <div class="form-group">
           <?= lang('address', 'address'); ?>
@@ -61,26 +59,8 @@
           <?php echo form_input('city', $biller->city, 'class="form-control" id="city" required="required"'); ?>
         </div>
         <div class="form-group">
-          <?= lang('state', 'state'); ?>
-          <?php
-            echo form_input('state', $biller->state, 'class="form-control" id="state"');
-          ?>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="form-group">
-          <?= lang('postal_code', 'postal_code'); ?>
-          <?php echo form_input('postal_code', $biller->postal_code, 'class="form-control" id="postal_code"'); ?>
-        </div>
-        <div class="form-group">
-          <?= lang('country', 'country'); ?>
-          <?php echo form_input('country', $biller->country, 'class="form-control" id="country"'); ?>
-        </div>
-      </div>
-      <div class="col-md-12">
-        <div class="form-group">
-          <?= lang('invoice_footer', 'invoice_footer'); ?>
-          <?php echo form_textarea('invoice_footer', $biller->invoice_footer, 'class="form-control skip" id="invoice_footer" style="height:100px;"'); ?>
+          <?= lang('target', 'target'); ?>
+          <?php echo form_input('target', ($billerJS->target ?? 0), 'class="form-control currency" id="target"'); ?>
         </div>
       </div>
     </div>
@@ -91,12 +71,13 @@
 </div>
 <?php echo form_close(); ?>
 <script type="text/javascript" charset="utf-8">
-  $(document).ready(function () {
-    $('#biller_logo').change(function (event) {
+  $(document).ready(function() {
+    $('#biller_logo').change(function(event) {
       var biller_logo = $(this).val();
-      $('#logo-con').html('<img src="<?=base_url('assets/uploads/logos')?>/' + biller_logo + '" alt="">');
+      $('#logo-con').html('<img src="<?= base_url('assets/uploads/logos') ?>/' + biller_logo + '" alt="">');
     });
+
+    $('#target').val(formatCurrency('<?= $billerJS->target ?? 0 ?>'));
   });
 </script>
 <script async src="<?= $assets ?>js/modal.js?v=<?= $res_hash ?>"></script>
-

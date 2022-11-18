@@ -17,14 +17,13 @@
       "aoColumns": [{
         "bSortable": false,
         "mRender": checkbox
-      }, null, null, null, null, null, null, {"bSortable": false}]
+      }, null, null, null, null, null, {"bSortable": false}]
     }).dtFilter([
       {column_number: 1, filter_default_label: "[<?=lang('company');?>]", filter_type: "text", data: []},
       {column_number: 2, filter_default_label: "[<?=lang('name');?>]", filter_type: "text", data: []},
       {column_number: 3, filter_default_label: "[<?=lang('phone');?>]", filter_type: "text", data: []},
       {column_number: 4, filter_default_label: "[<?=lang('email_address');?>]", filter_type: "text", data: []},
-      {column_number: 5, filter_default_label: "[<?=lang('city');?>]", filter_type: "text", data: []},
-      {column_number: 6, filter_default_label: "[<?=lang('country');?>]", filter_type: "text", data: []},
+      {column_number: 5, filter_default_label: "[<?=lang('city');?>]", filter_type: "text", data: []}
     ], "footer");
 
     $('#dtfilter').datatableFilter();
@@ -78,13 +77,12 @@
               <th><?= lang('phone'); ?></th>
               <th><?= lang('email_address'); ?></th>
               <th><?= lang('city'); ?></th>
-              <th><?= lang('country'); ?></th>
               <th style="width:85px;"><?= lang('actions'); ?></th>
             </tr>
             </thead>
             <tbody>
             <tr>
-              <td colspan="9" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
+              <td colspan="8" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
             </tr>
             </tbody>
             <tfoot class="dtFilter">
@@ -92,7 +90,6 @@
               <th style="min-width:30px; width: 30px; text-align: center;">
                 <input class="checkbox checkft" type="checkbox" name="check"/>
               </th>
-              <th></th>
               <th></th>
               <th></th>
               <th></th>
