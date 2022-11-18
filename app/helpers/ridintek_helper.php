@@ -199,6 +199,10 @@ function billerToWarehouse($billerId)
   return NULL;
 }
 
+function cache(string $name = '')
+{
+}
+
 /**
  * Check path existence, create directory if not exist.
  * @param string $path Path to check.
@@ -775,15 +779,21 @@ function getDailyPerformanceReport($opt)
 {
   // We need biller to warehouse because ONLY warehouse has 'active' column.
   $dailyPerformanceData = [];
+  $billers    = [];
   $warehouses = [];
 
   if (!empty($opt['biller_id']) && is_array($opt['biller_id'])) {
-    $warehouseIds = billerToWarehouse($opt['biller_id']);
+    foreach ($opt['biller_id'] as $billerId) {
+      $billers[] = Biller::getRow(['id' => $billerId, 'active' => '1']);
+    }
 
-    foreach ($warehouseIds as $warehouseId) {
-      $warehouses[] = Warehouse::get(['id' => $warehouseId, 'active' => '1']);
+    if ($warehouseIds = billerToWarehouse($opt['biller_id'])) {
+      foreach ($warehouseIds as $warehouseId) {
+        $warehouses[] = Warehouse::getRow(['id' => $warehouseId, 'active' => '1']);
+      }
     }
   } else if (empty($opt['biller_id'])) {
+    $billers    = Biller::get(['active' => '1']);
     $warehouses = Warehouse::get(['active' => '1']);
   }
 
@@ -795,20 +805,26 @@ function getDailyPerformanceReport($opt)
   }
 
   $currentDate  = new DateTime();
-  $startDate    = new DateTime($period->format('Y-m-d')); // Date must be 01
+  $beginDate    = new DateTime('2022-01-01 00:00:00'); // First data date of begin date.
+  $startDate    = new DateTime($period->format('Y-m-d')); // First date of current period.
   $endDate      = new DateTime($period->format('Y-m-t')); // Date must be end of month. (28 to 31)
 
-  $firstDate  = intval($startDate->format('j')); // Date only. COUNTABLE
+  $firstDate  = 1; // First date of month.
   $lastDate   = intval($endDate->format('j')); // Date only. COUNTABLE
   $ymPeriod   = $period->format('Y-m'); // 2022-11
 
-  foreach ($warehouses as $warehouse) {
-    if ($warehouse->active != 1) continue;
+  foreach ($billers as $biller) {
+    if ($biller->active != 1) continue;
+    // Hide FUCKED IDS
+    if ($biller->code == 'BALINN') continue;
+    if ($biller->code == 'IDSUNG') continue;
+    if ($biller->code == 'IDSLOS') continue;
+    if ($biller->code == 'BALINT') continue;
 
     $dailyData = [];
-    $biller = Biller::getRow(['code' => $warehouse->code]);
 
-    if (!$biller) continue;
+    $billerJS = json_decode($biller->json_data);
+    $warehouse = Warehouse::getRow(['code' => $biller->code]);
 
     if ($biller->code == 'LUC') { // Lucretia method is different.
       $revenue = round(DB::table('product_transfer')
@@ -818,24 +834,35 @@ function getDailyPerformanceReport($opt)
         ->getRow()->total ?? 0);
 
       for ($a = $firstDate; $a <= $lastDate; $a++) {
-        $dt = prependZero($a);
+        $dt       = prependZero($a);
+        $dtDaily  = new DateTime("{$ymPeriod}-{$dt}");
 
-        $dailyRevenue = round(DB::table('product_transfer')
-          ->selectSum('grand_total', 'total')
-          ->where('warehouse_id_from', $warehouse->id)
-          ->where("created_at LIKE '{$ymPeriod}-{$dt}%'")
-          ->getRow()->total ?? 0);
+        $overTime = ($currentDate->diff($dtDaily)->format('%R') == '+' ? TRUE : FALSE);
+
+        if (!$overTime) {
+          $dailyRevenue = round(DB::table('product_transfer')
+            ->selectSum('grand_total', 'total')
+            ->where('warehouse_id_from', $warehouse->id)
+            ->where("created_at LIKE '{$ymPeriod}-{$dt}%'")
+            ->getRow()->total ?? 0);
+        } else {
+          $dailyRevenue = 0;
+        }
 
         $stockValue = getWarehouseStockValue($warehouse->id, [
-          'start_date'  => '2022-10-01',
+          'start_date'  => $beginDate->format('Y-m-d'),
           'end_date'    => "{$ymPeriod}-{$dt}"
         ]); // sql
 
-        $piutang    = round(DB::table('product_transfer')
-          ->selectSum('(grand_total - paid)', 'total')
-          ->where('warehouse_id_from', $warehouse->id)
-          ->where("created_at LIKE '{$ymPeriod}-{$dt}%'")
-          ->getRow()->total ?? 0);
+        if (!$overTime) {
+          $piutang  = round(DB::table('product_transfer')
+            ->selectSum('(grand_total - paid)', 'total')
+            ->where('warehouse_id_from', $warehouse->id)
+            ->where("created_at BETWEEN '{$beginDate->format('Y-m-d')} 00:00:00' AND '{$ymPeriod}-{$dt}%'")
+            ->getRow()->total ?? 0);
+        } else {
+          $piutang = 0;
+        }
 
         $dailyData[] = [
           'revenue'     => $dailyRevenue,
@@ -852,23 +879,38 @@ function getDailyPerformanceReport($opt)
 
       for ($a = $firstDate; $a <= $lastDate; $a++) {
         $dt = prependZero($a);
+        $dtDaily = new DateTime("{$ymPeriod}-{$dt}");
 
-        $dailyRevenue = round(DB::table('sales')
-          ->selectSum('grand_total', 'total')
-          ->where('biller_id', $biller->id)
-          ->where("date LIKE '{$ymPeriod}-{$dt}%'")
-          ->getRow()->total ?? 0);
+        $overTime = ($currentDate->diff($dtDaily)->format('%R') == '+' ? TRUE : FALSE);
 
-        $stockValue = getWarehouseStockValue($warehouse->id, [
-          'start_date'  => '2022-10-01',
-          'end_date'    => "{$ymPeriod}-{$dt}"
-        ]); // sql
+        if (!$overTime) {
+          $dailyRevenue = round(DB::table('sales')
+            ->selectSum('grand_total', 'total')
+            ->where('biller_id', $biller->id)
+            ->where("date LIKE '{$ymPeriod}-{$dt}%'")
+            ->getRow()->total ?? 0);
+        } else {
+          $dailyRevenue = 0;
+        }
 
-        $piutang    = round(DB::table('sales')
-          ->selectSum('balance', 'total')
-          ->where('biller_id', $biller->id)
-          ->where("date LIKE '{$ymPeriod}-{$dt}%'")
-          ->getRow()->total ?? 0);
+        if ($warehouse) {
+          $stockValue = getWarehouseStockValue($warehouse->id, [
+            'start_date'  => $beginDate->format('Y-m-d'),
+            'end_date'    => "{$ymPeriod}-{$dt}"
+          ]); // sql
+        } else {
+          $stockValue = 0;
+        }
+
+        if (!$overTime) {
+          $piutang  = round(DB::table('sales')
+            ->selectSum('balance', 'total')
+            ->where('biller_id', $biller->id)
+            ->where("date BETWEEN '{$beginDate->format('Y-m-d')} 00:00:00' AND '{$ymPeriod}-{$dt}%'")
+            ->getRow()->total ?? 0);
+        } else {
+          $piutang = 0;
+        }
 
         $dailyData[] = [
           'revenue'     => $dailyRevenue,
@@ -878,18 +920,17 @@ function getDailyPerformanceReport($opt)
       }
     }
 
-    $activeDays     = intval($startDate->diff($currentDate)->format('%d')) + 1;
+    $activeDays     = intval($startDate->diff($currentDate)->format('%d'));
     $daysInMonth    = getDaysInMonth($startDate->format('Y'), $startDate->format('n'));
     $averageRevenue = ($revenue / $activeDays);
 
     $dailyPerformanceData[] = [
       'biller_id'   => $biller->id,
-      'biller'      => $warehouse->name,
+      'biller'      => $biller->name,
       'avg_revenue' => round($averageRevenue),
       'forecast'    => round($averageRevenue * $daysInMonth),
       'revenue'     => round($revenue), // total sales even not paid.
-      'target'      => 0, // set on biller
-      'active_days' => $activeDays, // 2022-11-01 - 2022-11-10 = 10 days
+      'target'      => ($billerJS->target ?? 0), // set on biller
       'daily_data'  => $dailyData // [['revenue' => 100, 'stock_value' => 200, 'piutang' => 300]]
     ];
   }
@@ -1850,39 +1891,35 @@ function getWarehouseStockValue(int $warehouseId, array $opt = [])
   }
 
   if ($warehouse->code == 'LUC') { // Lucretai mode.
-    $in = DB::table('stocks')->selectSum('(cost * quantity)', 'total')
-      ->where('product_type', 'standard')
-      ->where('status', 'received')
-      ->where('warehouse_id', $warehouse->id)
-      ->where("created_at BETWEEN '{$startDate->format('Y-m-d')} 00:00:00' AND '{$endDate->format('Y-m-d')} 23:59:59'")
-      ->getRow()->total;
+    $value = DB::table('products')->selectSum('products.cost * (COALESCE(recv.total, 0) - COALESCE(sent.total, 0))', 'total')
+      ->join("(SELECT product_id, SUM(quantity) AS total FROM stocks
+        WHERE status LIKE 'received' AND warehouse_id = {$warehouse->id}
+        AND date BETWEEN '{$startDate->format('Y-m-d')} 00:00:00' AND '{$endDate->format('Y-m-d')} 23:59:59'
+        GROUP BY product_id) recv", 'recv.product_id = products.id', 'left')
+      ->join("(SELECT product_id, SUM(quantity) AS total FROM stocks
+      WHERE status LIKE 'sent' AND warehouse_id = {$warehouse->id}
+      AND date BETWEEN '{$startDate->format('Y-m-d')} 00:00:00' AND '{$endDate->format('Y-m-d')} 23:59:59'
+      GROUP BY product_id) sent", 'sent.product_id = products.id', 'left')
+      ->whereIn('products.type', ['standard']) // Standard only
+      ->whereNotIn('products.category_id', [2, 14, 16, 17, 18]) // Not Assets and Sub-Assets.
+      ->getRow();
 
-    $out = DB::table('stocks')->selectSum('(cost * quantity)', 'total')
-      ->where('product_type', 'standard')
-      ->where('status', 'sent')
-      ->where('warehouse_id', $warehouse->id)
-      ->where("created_at BETWEEN '{$startDate->format('Y-m-d')} 00:00:00' AND '{$endDate->format('Y-m-d')} 23:59:59'")
-      ->getRow()->total;
-
-    return floatval($in - $out);
+    return floatval($value->total);
   } else {
-    $in = DB::table('stocks')->selectSum('(stocks.cost * stocks.quantity)', 'total')
-      ->join('products', 'products.id = stocks.product_id', 'left')
-      ->where('stocks.product_type', 'standard')
-      ->where('stocks.status', 'received')
-      ->where('stocks.warehouse_id', $warehouse->id)
-      ->where("stocks.created_at BETWEEN '{$startDate->format('Y-m-d')} 00:00:00' AND '{$endDate->format('Y-m-d')} 23:59:59'")
-      ->getRow()->total;
+    $value = DB::table('products')->selectSum('products.markon_price * (COALESCE(recv.total, 0) - COALESCE(sent.total, 0))', 'total')
+      ->join("(SELECT product_id, SUM(quantity) AS total FROM stocks
+        WHERE status LIKE 'received' AND warehouse_id = {$warehouse->id}
+        AND date BETWEEN '{$startDate->format('Y-m-d')} 00:00:00' AND '{$endDate->format('Y-m-d')} 23:59:59'
+        GROUP BY product_id) recv", 'recv.product_id = products.id', 'left')
+      ->join("(SELECT product_id, SUM(quantity) AS total FROM stocks
+      WHERE status LIKE 'sent' AND warehouse_id = {$warehouse->id}
+      AND date BETWEEN '{$startDate->format('Y-m-d')} 00:00:00' AND '{$endDate->format('Y-m-d')} 23:59:59'
+      GROUP BY product_id) sent", 'sent.product_id = products.id', 'left')
+      ->whereIn('products.type', ['standard']) // Standard only
+      ->whereNotIn('products.category_id', [2, 14, 16, 17, 18]) // Not Assets and Sub-Assets.
+      ->getRow();
 
-    $out = DB::table('stocks')->selectSum('(stocks.cost * stocks.quantity)', 'total')
-      ->join('products', 'products.id = stocks.product_id', 'left')
-      ->where('stocks.product_type', 'standard')
-      ->where('stocks.status', 'sent')
-      ->where('stocks.warehouse_id', $warehouse->id)
-      ->where("stocks.created_at BETWEEN '{$startDate->format('Y-m-d')} 00:00:00' AND '{$endDate->format('Y-m-d')} 23:59:59'")
-      ->getRow()->total;
-
-    return floatval($in - $out);
+    return floatval($value->total);
   }
 }
 
