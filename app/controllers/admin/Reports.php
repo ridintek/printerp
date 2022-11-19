@@ -588,6 +588,8 @@ class Reports extends MY_Controller
       if ($warehouse->code == 'ADV') continue; // Ignore Advertising.
       if ($warehouse->code == 'BAL') continue; // Ignore Baltis Inn.
       if ($warehouse->code == 'LUC') continue; // Ignore Lucretai.
+      if ($warehouse->code == 'IDSLOS') continue; // Ignore FUCKED IDS.
+      if ($warehouse->code == 'IDSUNG') continue; // Ignore FUCKED IDS.
 
       $sheet->setCellValue("A{$r1}", $user->fullname);
       $sheet->setCellValue("B{$r1}", $warehouse->name);
