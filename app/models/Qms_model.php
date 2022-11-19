@@ -408,6 +408,7 @@ class Qms_model extends CI_Model
     $this->db->select("users.*")
       ->join('users', 'users.id = queue_tickets.user_id', 'left')
       ->where("queue_tickets.date BETWEEN '{$startDate} 00:00:00' AND '{$endDate} 23:59:59'")
+      ->where('users.active', 1)
       ->group_by('queue_tickets.user_id');
 
     $q = $this->db->get_where('queue_tickets', $opt);
