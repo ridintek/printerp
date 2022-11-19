@@ -710,9 +710,9 @@ class Qms extends MY_Controller
     sendJSON(['error' => 1, 'msg' => 'You cannot rest.']);
   }
 
-  public function test()
+  private function test()
   {
     $r = $this->Qms_model->getQueueTicketByID(1);
-    rd_print($r);
+    dbgprint($r);
   }
 }
