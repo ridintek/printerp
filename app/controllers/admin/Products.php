@@ -2715,9 +2715,9 @@ class Products extends MY_Controller
 
     foreach ($csvs as $csv) {
       if ($csv['action'] == 2064) {
-        $product = $this->site->getProduct(['code' => $csv['code']]);
+        $product = Product::getRow(['code' => $csv['code']]);
 
-        if ($product && $this->site->deleteProduct($product->id)) {
+        if ($product && Product::delete(['id' => $product->id])) {
           $deleted++;
         }
 
@@ -2762,7 +2762,7 @@ class Products extends MY_Controller
 
       if ($isSellingItem) {
         if ($useProduct && !empty($ItemData)) {
-          $product = $this->site->getProductByCode($ItemData['code']);
+          $product = Product::getRow(['code' => $ItemData['code']]);
           $ItemData['price'] = $this->site->getTotalComboPricesByRawItems($rawItems);
 
           if (!$product) { // Check if product not exist then ADD else UPDATE.
@@ -2773,9 +2773,11 @@ class Products extends MY_Controller
             if ($this->site->addProducts([$ItemData])) { // Insert selling product.
               $groupId = 1; // Begin group from 1 to 6
 
-              $product = $this->site->getProductByCode($ItemData['code']); // Get new added product.
+              $product = Product::getRow(['code' => $ItemData['code']]); // Get new added product.
 
               foreach ($priceGroups as $priceGroup) {
+                $pp = ProductPrice::getRow(['product_id' => $product->id, 'price_group_id' => $groupId]);
+
                 $ppData = [
                   'product_id' => $product->id,
                   'price_group_id' => $groupId,
@@ -2787,7 +2789,11 @@ class Products extends MY_Controller
                   'price6' => $priceGroup[5],
                 ];
 
-                $this->site->addProductPrices($ppData);
+                if ($pp) {
+                  ProductPrice::update($pp->id, $ppData);
+                } else {
+                  ProductPrice::add($ppData);
+                }
 
                 $groupId++;
               }
@@ -2797,28 +2803,34 @@ class Products extends MY_Controller
           } else { // !product
             $ItemData['combo_items'] = $rawItems;
             $ItemData['product_id'] = $product->id;
-            if ($this->site->updateProducts([$ItemData])) {
-              $groupId = 1; // Begin group from 1 to 6 + (7: Privilge A, 8: Privilege B, 9: Privilege C)
+            $this->site->updateProducts([$ItemData]);
 
-              foreach ($priceGroups as $priceGroup) {
-                $ppData = [
-                  'product_id' => $product->id,
-                  'price_group_id' => $groupId,
-                  'price'  => $priceGroup[0],
-                  'price2' => $priceGroup[1],
-                  'price3' => $priceGroup[2],
-                  'price4' => $priceGroup[3],
-                  'price5' => $priceGroup[4],
-                  'price6' => $priceGroup[5],
-                ];
+            $groupId = 1; // Begin group from 1 to 6 + (7: Privilge A, 8: Privilege B, 9: Privilege C)
 
-                $this->site->addProductPrices($ppData);
+            foreach ($priceGroups as $priceGroup) {
+              $pp = ProductPrice::getRow(['product_id' => $product->id, 'price_group_id' => $groupId]);
 
-                $groupId++;
+              $ppData = [
+                'product_id' => $product->id,
+                'price_group_id' => $groupId,
+                'price'  => $priceGroup[0],
+                'price2' => $priceGroup[1],
+                'price3' => $priceGroup[2],
+                'price4' => $priceGroup[3],
+                'price5' => $priceGroup[4],
+                'price6' => $priceGroup[5],
+              ];
+
+              if ($pp) {
+                ProductPrice::update($pp->id, $ppData);
+              } else {
+                ProductPrice::add($ppData);
               }
 
-              $updated++;
+              $groupId++;
             }
+
+            $updated++;
           } // !product
 
           // Reset parsing.

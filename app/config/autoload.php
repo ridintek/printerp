@@ -141,7 +141,8 @@ $autoload['model'] = [
   'Category', 'CronModel', 'Customer',
   'DB', 'Expense',
   'GoogleReview', 'MaintenanceLog',
-  'OrderRef', 'Payment', 'Product', 'ProductReview', 'ProductTransfer', 'ProductTransferItem',
+  'OrderRef',
+  'Payment', 'Product', 'ProductPrice', 'ProductReview', 'ProductTransfer', 'ProductTransferItem',
   'Qms_model', 'Sale', 'SaleItem', 'Setting', 'Stock', 'Transfer', 'Unit', 'User',
   'Warehouse', 'WarehouseProduct'
 ];
