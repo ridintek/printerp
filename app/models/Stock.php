@@ -153,15 +153,21 @@ class Stock
    */
   public static function totalQuantityOld(int $productId, int $warehouseId, $opt = [])
   {
-    $inc = (float)DB::table('stocks')->selectSum('quantity', 'total')
-      ->where('status', 'received')
+    $total = (float)DB::table('stocks')
+      ->selectSum('(COALESCE(stock_recv.total, 0) - COALESCE(stock_sent.total, 0)', 'total')
+      ->join("(
+        SELECT product_id, SUM(quantity) FROM stocks
+        WHERE product_id = {$productId} AND warehouse_id = {$warehouseId}
+        AND status LIKE 'received' GROUP BY product_id) stock_recv",
+        'stock_recv.product_id = stocks.product_id', 'left')
+      ->join("(
+        SELECT product_id, SUM(quantity) FROM stocks
+        WHERE product_id = {$productId} AND warehouse_id = {$warehouseId}
+        AND status LIKE 'sent' GROUP BY product_id) stock_sent",
+        'stock_sent.product_id = stocks.product_id', 'left')
       ->getRow(['product_id' => $productId, 'warehouse_id' => $warehouseId])->total;
 
-    $dec = (float)DB::table('stocks')->selectSum('quantity', 'total')
-      ->where('status', 'sent')
-      ->getRow(['product_id' => $productId, 'warehouse_id' => $warehouseId])->total;
-
-    return floatval($inc - $dec);
+    return $total;
   }
 
   /**
