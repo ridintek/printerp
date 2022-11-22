@@ -3117,6 +3117,104 @@ class Products extends MY_Controller
     sendJSON($info);
   }
 
+  /**
+   * INTERNAL USES
+   */
+  public function internal_use()
+  {
+    checkPermission('products-internal_use_view');
+
+    if ($argv = func_get_args()) {
+      $method = __FUNCTION__ . '_' . $argv[0];
+
+      if (method_exists($this, $method)) {
+        array_shift($argv);
+        return call_user_func_array([$this, $method], $argv);
+      }
+    }
+
+    $meta = [
+      'page_title' => lang('internal_use'),
+      'bc' => [
+        ['link' => base_url(), 'page' => lang('home')],
+        ['link' => admin_url('products'), 'page' => lang('products')],
+        ['link' => '#', 'page' => lang('internal_use')]
+      ]
+    ];
+    $this->data = array_merge($this->data, $meta);
+
+    $this->page_construct('products/internal_use/index', $this->data);
+  }
+
+  private function internal_use_add()
+  {
+    if (!getPermission('products-internal_use_add')) {
+      $this->response(401, ['message' => 'Anda tidak memiliki akses untuk menambahkan.']);
+    }
+
+    if ($this->requestMethod == 'POST') {
+      $createdAt       = ($this->isAdmin ? dtPHP($this->input->post('created_at')) : $this->serverDateTime);
+      $createdBy       = $this->input->post('created_by');
+      $warehouseIdFrom = $this->input->post('from_warehouse');
+      $warehouseIdTo   = $this->input->post('to_warehouse');
+      $note            = $this->input->post('note');
+      $products        = $this->input->post('product');
+
+      $items = [];
+
+      if (!$products) $this->response(400, ['message' => 'Item tidak boleh kosong.']);
+
+      $productSize = count($products['id']);
+
+      for ($a = 0; $a < $productSize; $a++) {
+        $items[] = [
+          'product_id'   => $products['id'][$a],
+          'markon_price' => filterDecimal($products['markon_price'][$a]),
+          'quantity'     => filterDecimal($products['quantity'][$a]),
+          'spec'         => htmlEncode($products['spec'][$a])
+        ];
+      }
+
+      $ptData = [
+        'created_at'        => $createdAt,
+        'created_by'        => $createdBy,
+        'warehouse_id_from' => $warehouseIdFrom,
+        'warehouse_id_to'   => $warehouseIdTo,
+        'note'              => $note
+      ];
+
+      $upload = new FileUpload();
+
+      if ($upload->has('attachment')) {
+        $ptData['attachment_id'] = $upload->storeRandom();
+      }
+
+      if (ProductTransfer::add($ptData, $items)) {
+        $this->response(201, ['message' => 'Product Transfer berhasil dibuat.']);
+      }
+      $this->response(400, ['message' => 'Gagal membuat Product Transfer.']);
+    }
+
+    $this->load->view($this->theme . 'products/transfer/add', $this->data);
+  }
+
+  private function internal_use_delete()
+  {
+  }
+
+  private function internal_use_edit($iuseId = NULL)
+  {
+  }
+
+  private function internal_use_getInternalUses()
+  {
+  }
+
+  private function internal_use_index()
+  {
+    echo "OKE";
+  }
+
   /* --------------------------------------------------------------------------------------------- */
 
   public function modal_view($product_id = null)
