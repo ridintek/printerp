@@ -235,6 +235,7 @@ $(document).on('click', '[data-action="confirm"]', function (e) {
             }
           } else {
             addAlert('Unknown error.', 'danger');
+            addAlert(data, 'danger');
           }
         },
         url: this.href
