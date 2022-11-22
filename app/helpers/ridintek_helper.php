@@ -167,16 +167,14 @@ function baseToUnitQty($qty_received, $unit)
  */
 function billerToWarehouse($billerId)
 {
-  $ci = &get_instance();
-
   if (gettype($billerId) == 'array') {
     $data = [];
 
     foreach ($billerId as $biller_id) {
-      $biller = $ci->site->getBiller(['id' => $biller_id]);
+      $biller = Biller::getRow(['id' => $biller_id]);
 
       if ($biller) {
-        $warehouse = $ci->site->getWarehouse(['code' => $biller->code]);
+        $warehouse = Warehouse::getRow(['code' => $biller->code]);
 
         if ($warehouse) {
           $data[] = $warehouse->id;
@@ -186,10 +184,10 @@ function billerToWarehouse($billerId)
 
     return $data;
   } else {
-    $biller = $ci->site->getBiller(['id' => $billerId]);
+    $biller = Biller::getRow(['id' => $billerId]);
 
     if ($biller) {
-      $warehouse = $ci->site->getWarehouse(['code' => $biller->code]);
+      $warehouse = Warehouse::getRow(['code' => $biller->code]);
 
       if ($warehouse) {
         return $warehouse->id;
@@ -2734,16 +2732,14 @@ function toSN(string $code, string $reference)
  */
 function warehouseToBiller($warehouseId)
 {
-  $ci = &get_instance();
-
   if (gettype($warehouseId) == 'array') {
     $data = [];
 
     foreach ($warehouseId as $warehouse_id) {
-      $warehouse = $ci->site->getWarehouseByID($warehouse_id);
+      $warehouse = Warehouse::getRow(['id' => $warehouse_id]);
 
       if ($warehouse) {
-        $biller = $ci->site->getBiller(['code' => $warehouse->code]);
+        $biller = Biller::getRow(['code' => $warehouse->code]);
 
         if ($biller) {
           $data[] = $biller->id;
@@ -2753,10 +2749,10 @@ function warehouseToBiller($warehouseId)
 
     return $data;
   } else {
-    $warehouse = $ci->site->getWarehouseByID($warehouseId);
+    $warehouse = Warehouse::getRow(['id' => $warehouseId]);
 
     if ($warehouse) {
-      $biller = $ci->site->getBiller(['code' => $warehouse->code]);
+      $biller = Biller::getRow(['code' => $warehouse->code]);
 
       if ($biller) {
         return $biller->id;
