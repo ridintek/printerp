@@ -3968,7 +3968,7 @@ class Site extends MY_Model
       ->join('warehouses', 'warehouses.name LIKE products.warehouses', 'left')
       ->like('categories.code', 'MACH', 'none')
       ->or_like('categories.code', 'COMP', 'none')
-      ->where_in('categories.code', ['BUILD', 'COMP', 'ELC', 'MACH'])
+      // ->where_in('categories.code', ['BUILD', 'COMP', 'ELC', 'MACH'])
       ->order_by('code', 'ASC');
 
     $q = $this->db->get('products');
