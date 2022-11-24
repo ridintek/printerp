@@ -10,6 +10,8 @@ class Attachment
    */
   public static function add(array $data)
   {
+    $data = setCreatedBy($data);
+
     DB::table('attachment')->insert($data);
     return DB::insertId();
   }
