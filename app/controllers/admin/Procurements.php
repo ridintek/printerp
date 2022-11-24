@@ -86,6 +86,7 @@ class Procurements extends MY_Controller
       $note             = htmlEncode($this->input->post('note'));
       $status           = $this->input->post('status'); // Must 'need_approval';
       $category         = $this->input->post('category'); // Sparepart, Consumable
+      $supplierId       = $this->input->post('supplier');
       $tsId             = $this->input->post('ts');
 
       if (empty($category)) {
@@ -135,7 +136,7 @@ class Procurements extends MY_Controller
           $total_markon_price = (getMarkonPrice($product->cost, $product->markon) * $item_quantity);
 
           if ($from_warehouse_qty < $item_quantity) {
-            $this->session->set_flashdata('error', 'Stock on warehouse is more than requested.');
+            $this->session->set_flashdata('error', 'Stok di outlet kurang dari yang diperlukan.');
             admin_redirect('procurements/internal_uses/add');
           }
 
@@ -168,6 +169,7 @@ class Procurements extends MY_Controller
         'grand_total'       => $grandTotal,
         'counter'           => $counter,
         'note'              => $note,
+        'supplier_id'       => $supplierId,
         'ts_id'             => $tsId,
         'created_by'        => XSession::get('user_id'),
         'status'            => $status, // new add = need_approval
@@ -175,18 +177,21 @@ class Procurements extends MY_Controller
 
       $upload = new FileUpload();
 
-      if ($upload->has('document') && $upload->getSize('kb') >= 50) {
+      if ($upload->has('document') && $upload->getSize('mb') <= 2) {
         $internalUseData['attachment_id'] = $upload->storeRandom();
+      } else if ($category == 'consumable') {
+        $this->session->set_flashdata('error', 'Attachment maks. 2MB harus disertakan.');
+        admin_redirect('procurements/internal_uses/add');
       }
     }
 
     if ($this->form_validation->run()) {
       if ($this->site->addStockInternalUse($internalUseData, $products)) {
         $this->session->set_userdata('remove_tols', 1);
-        $this->session->set_flashdata('message', 'Internal use has been added successfully.');
+        $this->session->set_flashdata('message', 'Internal use berhasil ditambahkan.');
       } else {
         $this->session->set_userdata('remove_tols', 1);
-        $this->session->set_flashdata('error', 'Failed to add internal use.');
+        $this->session->set_flashdata('error', 'Gagal menambahkan internal use.');
       }
       admin_redirect('procurements/internal_uses');
     } else {
@@ -253,6 +258,7 @@ class Procurements extends MY_Controller
       $note             = htmlEncode($this->input->post('note'));
       $status           = $this->input->post('status');
       $category         = $this->input->post('category');
+      $supplierId       = $this->input->post('supplier');
       $tsId             = $this->input->post('ts');
 
       if ($this->iuse_mode == 'status') {
@@ -332,30 +338,17 @@ class Procurements extends MY_Controller
         'grand_total'       => $grand_total,
         'counter'           => $counter,
         'note'              => $note,
+        'supplier_id'       => $supplierId,
         'ts_id'             => $tsId,
         'updated_by'        => $this->session->userdata('user_id'),
         'status'            => $status,
       ];
 
-      if ($_FILES['document']['size'] > 0) {
-        checkPath($this->upload_internal_uses_path);
-        $this->load->library('upload');
-        $config['upload_path']   = $this->upload_internal_uses_path;
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
+      $upload = new FileUpload();
 
-        $this->upload->initialize($config);
-
-        if (!$this->upload->do_upload('document')) {
-          $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
-        }
-        $photo = $this->upload->file_name;
-        $internal_use_data['attachment'] = $photo;
-      } else if ($status == 'installed') {
+      if ($upload->has('document') && $upload->getSize('mb') <= 2) {
+        $internalUseData['attachment_id'] = $upload->storeRandom();
+      } else if ($status == 'installed' && empty($internal_use->attachment_id)) {
         $this->session->set_flashdata('error', 'Attachment harus disertakan jika sudah selesai instalasi.');
         admin_redirect('procurements/internal_uses/status/' . $internal_use_id);
       }
@@ -417,6 +410,7 @@ class Procurements extends MY_Controller
       $this->data['internal_use_items'] = $iu_items;
       $this->data['iuse_mode']          = $this->iuse_mode;
       $this->data['id']                 = $internal_use_id;
+      $this->data['teamSupports']       = getTeamSupports();
       $this->data['machines']           = $this->site->getAllMachines();
       $this->data['warehouses']         = $this->site->getAllWarehouses();
 
@@ -583,7 +577,7 @@ class Procurements extends MY_Controller
       to_warehouse.name AS warehouse_to_name,
       items, grand_total,
       internal_uses.counter AS counter_status, note,
-      internal_uses.status AS internal_status, attachment")
+      internal_uses.status AS internal_status, attachment_id")
       ->from('internal_uses');
 
     // JOIN TABLE

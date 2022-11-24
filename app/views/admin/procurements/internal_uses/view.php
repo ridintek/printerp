@@ -29,6 +29,12 @@
               <div class="col-md-2">Biller</div>
               <div class="col-md-6">: <?= ($internal_use->biller_id ? $this->site->getBillerByID($internal_use->biller_id)->name : ''); ?></div>
             </div>
+            <?php if ($internal_use->supplier_id): ?>
+            <div class="row"><?php $supplier = Supplier::getRow(['id' => $internal_use->supplier_id]); ?>
+              <div class="col-md-2">Supplier</div>
+              <div class="col-md-8">: <?= $supplier->name . (!empty($supplier->company) ? " ({$supplier->company})" : '') ?></div>
+            </div>
+            <?php endif; ?>
             <?php if ($internal_use->ts_id): ?>
             <div class="row">
               <div class="col-md-2">Support</div>

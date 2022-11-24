@@ -143,7 +143,7 @@ $autoload['model'] = [
   'GoogleReview', 'MaintenanceLog',
   'OrderRef',
   'Payment', 'Product', 'ProductPrice', 'ProductReview', 'ProductTransfer', 'ProductTransferItem',
-  'Qms_model', 'Sale', 'SaleItem', 'Setting', 'Stock', 'Transfer', 'Unit', 'User',
+  'Qms_model', 'Sale', 'SaleItem', 'Setting', 'Stock', 'Supplier', 'Transfer', 'Unit', 'User',
   'Warehouse', 'WarehouseProduct'
 ];
 

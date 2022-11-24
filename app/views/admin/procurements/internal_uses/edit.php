@@ -165,201 +165,209 @@
         ?>
         <input type="hidden" name="callback_url" value="<?= ($_SERVER['HTTP_REFERER'] ?? 'procurements/internal_uses') ?>">
         <div class="row">
-          <div class="col-lg-12">
-            <div class="col-md-4">
-              <div class="form-group">
-                <?= lang('date', 'iudate'); ?>
-                <?php echo form_input('date', $internal_use->date, 'class="form-control input-tip date" id="iudate" required="required"'); ?>
-              </div>
+          <div class="col-md-4">
+            <div class="form-group">
+              <?= lang('date', 'iudate'); ?>
+              <?php echo form_input('date', $internal_use->date, 'class="form-control input-tip date" id="iudate" required="required"'); ?>
             </div>
+          </div>
 
-            <div class="col-md-4">
-              <div class="form-group">
-                <?= lang('reference', 'ref'); ?>
-                <?php echo form_input('reference',  $internal_use->reference, 'class="form-control input-tip" id="ref" required="required" readonly="readonly"'); ?>
-              </div>
+          <div class="col-md-4 support" style="display: none">
+            <div class="form-group">
+              <label for="ts">Team Support</label>
+              <select class="select2" id="ts" name="ts" style="width:100%" disabled>
+                <?php foreach ($teamSupports as $ts) : ?>
+                  <option value="<?= $ts->id ?>"><?= $ts->fullname ?></option>
+                <?php endforeach; ?>
+              </select>
             </div>
+          </div>
 
-            <div class="col-md-4 support" style="display: none">
-              <div class="form-group">
-                <label for="ts">Team Support</label>
-                <select class="select2" id="ts" name="ts" style="width:100%" disabled>
-                  <?php foreach ($teamSupports as $ts) : ?>
-                    <option value="<?= $ts->id ?>"><?= $ts->fullname ?></option>
-                  <?php endforeach; ?>
-                </select>
-              </div>
+          <div class="col-md-4 supplier" style="display: none">
+            <div class="form-group">
+              <label for="supplier">Supplier</label>
+              <select class="select2" id="supplier" name="supplier" style="width:100%" disabled>
+              </select>
             </div>
+          </div>
+        </div>
 
-            <div class="col-md-12">
-              <div class="panel panel-warning">
-                <div class="panel-heading"><?= lang('please_select_these_before_adding_product') ?></div>
-                <div class="panel-body" style="padding: 5px;">
-                  <?php if ($Owner || $Admin || !XSession::get('warehouse_id')) { ?>
-                    <div class="col-md-4">
-                      <div class="form-group">
-                        <?= lang('from_warehouse', 'from_warehouse'); ?>
-                        <?php
-                        $wh[''] = '';
-                        foreach ($warehouses as $warehouse) {
-                          $wh[$warehouse->id] = $warehouse->name;
-                        }
-                        echo form_dropdown(
-                          'from_warehouse',
-                          $wh,
-                          $internal_use->from_warehouse_id,
-                          'id="from_warehouse" class="form-control input-tip select2" data-placeholder="Select Warehouse From" required="required" style="width:100%;"'
-                        ); ?>
-                      </div>
-                    </div>
-                    <div class="col-md-4">
-                      <div class="form-group">
-                        <?= lang('to_warehouse', 'to_warehouse'); ?>
-                        <?php
-                        $wh[''] = '';
-                        foreach ($warehouses as $warehouse) {
-                          $wh[$warehouse->id] = $warehouse->name;
-                        }
-                        echo form_dropdown(
-                          'to_warehouse',
-                          $wh,
-                          $internal_use->to_warehouse_id,
-                          'id="to_warehouse" class="form-control input-tip select2" data-placeholder="Select Warehouse To" required="required" style="width:100%;"'
-                        );
-                        ?>
-                      </div>
-                    </div>
-                  <?php } else {
-                    $warehouse_from = [
-                      'type'  => 'hidden',
-                      'name'  => 'from_warehouse',
-                      'id'    => 'from_warehouse',
-                      'value' => $internal_use->from_warehouse_id,
-                    ];
-                    echo form_input($warehouse_from);
+        <div class="row">
+          <div class="col-md-4">
+            <div class="form-group">
+              <?= lang('reference', 'ref'); ?>
+              <?php echo form_input('reference',  $internal_use->reference, 'class="form-control input-tip" id="ref" required="required" readonly="readonly"'); ?>
+            </div>
+          </div>
 
-                    $warehouse_to = [
-                      'type'  => 'hidden',
-                      'name'  => 'to_warehouse',
-                      'id'    => 'to_warehouse',
-                      'value' => $internal_use->to_warehouse_id,
-                    ];
-                    echo form_input($warehouse_to);
-                  } ?>
+          <div class="col-md-12">
+            <div class="panel panel-warning">
+              <div class="panel-heading"><?= lang('please_select_these_before_adding_product') ?></div>
+              <div class="panel-body" style="padding: 5px;">
+                <?php if ($Owner || $Admin || !XSession::get('warehouse_id')) { ?>
                   <div class="col-md-4">
                     <div class="form-group">
-                      <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                        <?php if ($Owner || $Admin || $GP['internal_uses-consumable']) { ?>
-                          <label class="btn">
-                            <input type="radio" name="category" id="category_consumable" value="consumable"> Consumable
-                          </label>
-                        <?php } ?>
-                        <?php if ($Owner || $Admin || $GP['internal_uses-cmreport']) { ?>
-                          <!-- <label class="btn">
-                              <input type="radio" name="category" id="category_report" value="report"> Combo Report
-                            </label> -->
-                        <?php } ?>
-                        <?php if ($Owner || $Admin || $GP['internal_uses-sparepart']) { ?>
-                          <label class="btn">
-                            <input type="radio" name="category" id="category_sparepart" value="sparepart"> Sparepart
-                          </label>
-                        <?php } ?>
-                      </div>
+                      <?= lang('from_warehouse', 'from_warehouse'); ?>
+                      <?php
+                      $wh[''] = '';
+                      foreach ($warehouses as $warehouse) {
+                        $wh[$warehouse->id] = $warehouse->name;
+                      }
+                      echo form_dropdown(
+                        'from_warehouse',
+                        $wh,
+                        $internal_use->from_warehouse_id,
+                        'id="from_warehouse" class="form-control input-tip select2" data-placeholder="Select Warehouse From" required="required" style="width:100%;"'
+                      ); ?>
                     </div>
                   </div>
+                  <div class="col-md-4">
+                    <div class="form-group">
+                      <?= lang('to_warehouse', 'to_warehouse'); ?>
+                      <?php
+                      $wh[''] = '';
+                      foreach ($warehouses as $warehouse) {
+                        $wh[$warehouse->id] = $warehouse->name;
+                      }
+                      echo form_dropdown(
+                        'to_warehouse',
+                        $wh,
+                        $internal_use->to_warehouse_id,
+                        'id="to_warehouse" class="form-control input-tip select2" data-placeholder="Select Warehouse To" required="required" style="width:100%;"'
+                      );
+                      ?>
+                    </div>
+                  </div>
+                <?php } else {
+                  $warehouse_from = [
+                    'type'  => 'hidden',
+                    'name'  => 'from_warehouse',
+                    'id'    => 'from_warehouse',
+                    'value' => $internal_use->from_warehouse_id,
+                  ];
+                  echo form_input($warehouse_from);
+
+                  $warehouse_to = [
+                    'type'  => 'hidden',
+                    'name'  => 'to_warehouse',
+                    'id'    => 'to_warehouse',
+                    'value' => $internal_use->to_warehouse_id,
+                  ];
+                  echo form_input($warehouse_to);
+                } ?>
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                      <?php if ($Owner || $Admin || $GP['internal_uses-consumable']) { ?>
+                        <label class="btn">
+                          <input type="radio" name="category" id="category_consumable" value="consumable"> Consumable
+                        </label>
+                      <?php } ?>
+                      <?php if ($Owner || $Admin || $GP['internal_uses-cmreport']) { ?>
+                        <!-- <label class="btn">
+                              <input type="radio" name="category" id="category_report" value="report"> Combo Report
+                            </label> -->
+                      <?php } ?>
+                      <?php if ($Owner || $Admin || $GP['internal_uses-sparepart']) { ?>
+                        <label class="btn">
+                          <input type="radio" name="category" id="category_sparepart" value="sparepart"> Sparepart
+                        </label>
+                      <?php } ?>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="clearfix"></div>
+          </div>
+
+          <div class="col-md-12" id="sticker">
+            <div class="well well-sm">
+              <div class="form-group" style="margin-bottom:0;">
+                <div class="input-group wide-tip">
+                  <div class="input-group-addon" style="padding-left: 10px; padding-right: 10px;">
+                    <i class="fad fa-barcode addIcon"></i></a>
+                  </div>
+                  <?php echo form_input('add_item', '', 'class="form-control input-lg" id="add_item" placeholder="' . $this->lang->line('add_product_to_order') . '"'); ?>
                 </div>
               </div>
               <div class="clearfix"></div>
             </div>
+          </div>
 
-            <div class="col-md-12" id="sticker">
-              <div class="well well-sm">
-                <div class="form-group" style="margin-bottom:0;">
-                  <div class="input-group wide-tip">
-                    <div class="input-group-addon" style="padding-left: 10px; padding-right: 10px;">
-                      <i class="fad fa-barcode addIcon"></i></a>
-                    </div>
-                    <?php echo form_input('add_item', '', 'class="form-control input-lg" id="add_item" placeholder="' . $this->lang->line('add_product_to_order') . '"'); ?>
-                  </div>
-                </div>
-                <div class="clearfix"></div>
+          <div class="clearfix"></div>
+          <div class="col-md-12">
+            <div class="control-group table-group">
+              <label class="table-label"><?= lang('order_items'); ?></label>
+
+              <div class="table-responsive controls table-controls">
+                <table id="toTable" class="table items table-striped table-bordered table-condensed table-hover sortable_table">
+                  <thead>
+                    <tr>
+                      <th class="col-md-4"><?= lang('product') . ' (' . lang('code') . ' - ' . lang('name') . ')'; ?></th>
+                      <th class="col-md-4"><?= lang('machine'); ?></th>
+                      <th class="col-md-2"><?= lang('counter'); ?></th>
+                      <th><?= lang('unit'); ?></th>
+                      <th><?= lang('quantity'); ?></th>
+                      <th><?= lang('source_stock'); ?></th>
+                      <th style="width: 30px !important; text-align: center;">
+                        <i class="fad fa-trash" style="opacity:0.5; filter:alpha(opacity=50);"></i>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                  <tfoot></tfoot>
+                </table>
               </div>
             </div>
+          </div>
 
-            <div class="clearfix"></div>
-            <div class="col-md-12">
-              <div class="control-group table-group">
-                <label class="table-label"><?= lang('order_items'); ?></label>
+          <div class="col-md-4">
+            <div class="form-group">
+              <?= lang('status', 'iustatus'); ?>
+              <?php
+              $st = [];
+              $st[$internal_use->status] = lang($internal_use->status); // Current status.
 
-                <div class="table-responsive controls table-controls">
-                  <table id="toTable" class="table items table-striped table-bordered table-condensed table-hover sortable_table">
-                    <thead>
-                      <tr>
-                        <th class="col-md-4"><?= lang('product') . ' (' . lang('code') . ' - ' . lang('name') . ')'; ?></th>
-                        <th class="col-md-4"><?= lang('machine'); ?></th>
-                        <th class="col-md-2"><?= lang('counter'); ?></th>
-                        <th><?= lang('unit'); ?></th>
-                        <th><?= lang('quantity'); ?></th>
-                        <th><?= lang('source_stock'); ?></th>
-                        <th style="width: 30px !important; text-align: center;">
-                          <i class="fad fa-trash" style="opacity:0.5; filter:alpha(opacity=50);"></i>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody></tbody>
-                    <tfoot></tfoot>
-                  </table>
-                </div>
-              </div>
+              if ($internal_use->status == 'need_approval') {
+                $st['approved'] = 'Approved';
+              }
+              if ($internal_use->status == 'approved') {
+                $st['packing'] = 'Packing';
+              }
+              if ($internal_use->status == 'packing') {
+                $st['cancelled'] = 'Cancelled';
+                $st['installed'] = 'Installed';
+              }
+              if ($internal_use->status == 'cancelled') {
+                $st['returned'] = 'Returned';
+              }
+              if ($internal_use->status == 'installed') {
+                $st['completed'] = 'Completed';
+              }
+              if (empty($internal_use->status)) { // If empty, then need approval.
+                $st['need_approval'] = 'Need Approval';
+              }
+
+              echo form_dropdown('status', $st, $internal_use->status, 'id="iustatus" class="form-control input-tip select2" data-placeholder="Select Status" required="required" style="width:100%;"');
+              ?>
             </div>
-
-            <div class="col-md-4">
-              <div class="form-group">
-                <?= lang('status', 'iustatus'); ?>
-                <?php
-                $st = [];
-                $st[$internal_use->status] = lang($internal_use->status); // Current status.
-
-                if ($internal_use->status == 'need_approval') {
-                  $st['approved'] = 'Approved';
-                }
-                if ($internal_use->status == 'approved') {
-                  $st['packing'] = 'Packing';
-                }
-                if ($internal_use->status == 'packing') {
-                  $st['cancelled'] = 'Cancelled';
-                  $st['installed'] = 'Installed';
-                }
-                if ($internal_use->status == 'cancelled') {
-                  $st['returned'] = 'Returned';
-                }
-                if ($internal_use->status == 'installed') {
-                  $st['completed'] = 'Completed';
-                }
-                if (empty($internal_use->status)) { // If empty, then need approval.
-                  $st['need_approval'] = 'Need Approval';
-                }
-
-                echo form_dropdown('status', $st, $internal_use->status, 'id="iustatus" class="form-control input-tip select2" data-placeholder="Select Status" required="required" style="width:100%;"');
-                ?>
-              </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-group">
+              <?= lang('document', 'document') ?>
+              <input id="document" type="file" data-browse-label="<?= lang('browse'); ?>" name="document" data-show-upload="false" data-show-preview="false" class="form-control file">
             </div>
-            <div class="col-md-4">
-              <div class="form-group">
-                <?= lang('document', 'document') ?>
-                <input id="document" type="file" data-browse-label="<?= lang('browse'); ?>" name="document" data-show-upload="false" data-show-preview="false" class="form-control file">
-              </div>
+          </div>
+          <div class="col-md-12">
+            <div class="from-group">
+              <?= lang('note', 'tonote'); ?>
+              <?php echo form_textarea('note', '', 'id="tonote" class="form-control" style="margin-top: 10px; height: 100px;"'); ?>
             </div>
-            <div class="col-md-12">
-              <div class="from-group">
-                <?= lang('note', 'tonote'); ?>
-                <?php echo form_textarea('note', '', 'id="tonote" class="form-control" style="margin-top: 10px; height: 100px;"'); ?>
-              </div>
-            </div>
-            <div class="col-md-12">
-              <div class="from-group"><?php echo form_submit('edit_internal_use', $this->lang->line('submit'), 'id="edit_internal_use" class="btn btn-primary" style="padding: 6px 15px; margin:15px 0;"'); ?>
-                <button type="button" class="btn btn-danger" id="reset"><?= lang('reset') ?></button>
-              </div>
+          </div>
+          <div class="col-md-12">
+            <div class="from-group"><?php echo form_submit('edit_internal_use', $this->lang->line('submit'), 'id="edit_internal_use" class="btn btn-primary" style="padding: 6px 15px; margin:15px 0;"'); ?>
+              <button type="button" class="btn btn-danger" id="reset"><?= lang('reset') ?></button>
             </div>
           </div>
         </div>
@@ -429,10 +437,45 @@
 <script>
   $(document).ready(function() {
     let category = "<?= strtolower($internal_use->category); ?>";
+    let supplier = '<?= $internal_use->supplier_id ?>';
 
     if (category) {
       $(`#category_${category}`).iCheck('check');
+
+      if (category == 'sparepart') {
+        $('div.support').slideDown();
+        $('#ts').prop('disabled', false);
+        $('div.supplier').slideDown();
+        $('#supplier').prop('disabled', false);
+      } else {
+        $('div.support').slideUp();
+        $('#ts').prop('disabled', true);
+        $('div.supplier').slideUp();
+        $('#supplier').prop('disabled', true);
+      }
     }
+
+    if (supplier) {
+      preSelectSupplier('#supplier', supplier);
+    }
+
+    $('input[name="category"]').on('ifChecked', function(e) {
+      if (e.target.checked) {
+        if (e.target.value == 'sparepart') {
+          $('div.support').slideDown();
+          $('#ts').prop('disabled', false);
+          $('div.supplier').slideDown();
+          $('#supplier').prop('disabled', false);
+        } else {
+          $('div.support').slideUp();
+          $('#ts').prop('disabled', true);
+          $('div.supplier').slideUp();
+          $('#supplier').prop('disabled', true);
+        }
+      }
+    });
+
+    $('#ts').val('<?= $internal_use->ts_id ?>').trigger('change');
   });
 </script>
 <?php if (!$Owner || !$Admin || XSession::get('warehouse_id')) { ?>

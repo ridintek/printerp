@@ -356,6 +356,16 @@ function addConfirm(opt) {
   alertify.confirm().set(options).showModal();
 }
 
+function attachmentId(x) {
+  return (x == null
+    ? ''
+    : `<div class="text-center">
+        <a href="#" data-remote="${site.base_url}gallery/attachment/${x}?modal=1" data-toggle="modal" data-modal-class="modal-lg" data-target="#myModal">
+          <i class="fad fa-file-download"></i>
+        </a>
+      </div>`);
+}
+
 function attachment(x) {
   return (x == null
     ? ''

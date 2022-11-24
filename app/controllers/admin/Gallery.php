@@ -38,7 +38,7 @@ class Gallery extends MY_Controller
     $data = $this->input->get('data');
     $type = $this->input->get('type');
 
-    if ( ! $type) $type = 'code128';
+    if (!$type) $type = 'code128';
 
     if ($data) {
       Barcode::render($type, 'image', ['text' => $data, 'drawText' => FALSE, 'barHeight' => 80]);

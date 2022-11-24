@@ -52,7 +52,7 @@ if ($warehouse_to) $q .= '&warehouse=' . $warehouse_to;
       "aoColumns": [
         {"bSortable": false,"mRender": checkbox}, {"mRender": fld}, null, null, null, null, null,
         {"mRender": currencyFormat}, null, {"mRender": notes}, {"mRender": renderStatus},
-        {"bSortable": false,"mRender": attachmentInternalUse}, {"bSortable": false}
+        {"bSortable": false,"mRender": attachmentId}, {"bSortable": false}
       ],
       'fnRowCallback': function (nRow, aData, iDisplayIndex) {
         nRow.id = aData[0];

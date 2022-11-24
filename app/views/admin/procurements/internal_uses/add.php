@@ -181,6 +181,14 @@
               </div>
             </div>
 
+            <div class="col-md-4 supplier" style="display: none">
+              <div class="form-group">
+                <label for="supplier">Supplier</label>
+                <select class="select2" id="supplier" name="supplier" style="width:100%" disabled>
+                </select>
+              </div>
+            </div>
+
             <div class="col-md-12">
               <div class="panel panel-warning">
                 <div class="panel-heading"><?= lang('please_select_these_before_adding_product') ?></div>
@@ -352,14 +360,16 @@
 
     $('input[name="category"]').on('ifChecked', function(e) {
       if (e.target.checked) {
-        localStorage.setItem('socategory', e.target.value);
-
         if (e.target.value == 'sparepart') {
           $('div.support').slideDown();
           $('#ts').prop('disabled', false);
+          $('div.supplier').slideDown();
+          $('#supplier').prop('disabled', false);
         } else {
           $('div.support').slideUp();
           $('#ts').prop('disabled', true);
+          $('div.supplier').slideUp();
+          $('#supplier').prop('disabled', true);
         }
       }
     });
