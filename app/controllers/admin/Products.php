@@ -3224,27 +3224,39 @@ class Products extends MY_Controller
     $startDate = $this->input->get('start_date');
     $endDate   = $this->input->get('end_date');
 
-    $pr_details = $this->site->getProductByID($product_id);
-    if (!$product_id || !$pr_details) {
+    $product = Product::getRow(['id' => $product_id]);
+
+    if (!$product_id || !$product) {
       $this->session->set_flashdata('error', lang('prduct_not_found'));
       $this->sma->md();
     }
-    $this->data['barcode'] = "<img src='" . admin_url('products/gen_barcode/' . $pr_details->code . '/' . $pr_details->barcode_symbology . '/40/0') . "' alt='" . $pr_details->code . "' class='pull-left' />";
-    if ($pr_details->type == 'combo') {
+
+    $this->data['barcode'] = "<img src='" . admin_url('products/gen_barcode/' . $product->code . '/' . $product->barcode_symbology . '/40/0') . "' alt='" . $product->code . "' class='pull-left' />";
+
+    if ($product->type == 'combo') {
       $this->data['combo_items'] = $this->site->getProductComboItems($product_id);
     }
 
     // Sync products warehouses.
     // $this->site->syncProductQty($product_id);
+    if ($warehouseId = XSession::has('warehouse_id')) {
+      Product::syncOld($product->id, $warehouseId);
+    } else {
+      $warehouses = Warehouse::get(['active' => 1]);
 
-    $this->data['product']       = $pr_details;
-    $this->data['productJS']     = getJSON($pr_details->json_data);
-    $this->data['unit']          = $this->site->getUnitByID($pr_details->unit);
-    $this->data['sale_unit']     = $this->site->getUnitByID($pr_details->sale_unit);
-    $this->data['purchase_unit'] = $this->site->getUnitByID($pr_details->purchase_unit);
+      foreach ($warehouses as $warehouse) {
+        Product::syncOld($product->id, $warehouse->id);
+      }
+    }
+
+    $this->data['product']       = $product;
+    $this->data['productJS']     = getJSON($product->json_data);
+    $this->data['unit']          = $this->site->getUnitByID($product->unit);
+    $this->data['sale_unit']     = $this->site->getUnitByID($product->sale_unit);
+    $this->data['purchase_unit'] = $this->site->getUnitByID($product->purchase_unit);
     $this->data['images']        = NULL; //$this->products_model->getProductPhotos($product_id);
-    $this->data['category']      = $this->site->getProductCategoryByID($pr_details->category_id);
-    $this->data['subcategory']   = $pr_details->subcategory_id ? $this->site->getProductCategoryByID($pr_details->subcategory_id) : null;
+    $this->data['category']      = $this->site->getProductCategoryByID($product->category_id);
+    $this->data['subcategory']   = $product->subcategory_id ? $this->site->getProductCategoryByID($product->subcategory_id) : null;
     $this->data['warehouses']    = $this->site->getAllWarehousesWithPQ($product_id, ['start_date' => $startDate, 'end_date' => $endDate]); // PQ = Product Quantity
 
     $this->load->view($this->theme . 'products/modal_view', $this->data);
@@ -4285,7 +4297,8 @@ class Products extends MY_Controller
         if ($itemSync) {
           // Sync item stock before sent to browser.
           foreach ($items as $item) {
-            $this->site->syncProductQty($item->id, $warehouse->id);
+            // $this->site->syncProductQty($item->id, $warehouse->id);
+            Product::syncOld($item->id, $warehouse->id);
           }
 
           // Get items with updated stock.
