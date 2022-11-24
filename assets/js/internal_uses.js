@@ -334,7 +334,7 @@ $(document).ready(function () {
   function loadItems () {
     if (localStorage.getItem('iuitems')) {
       total = 0;
-      count = 1;
+      count = 0;
       an = 1;
       $("#toTable tbody").empty();
       let stock_missing = false;
@@ -350,18 +350,19 @@ $(document).ready(function () {
 
       $.each(iuitems, function () {
         var item = this,
-          item_id   = item.row.id,
-          item_qty  = item.row.quantity,
-          item_code = item.row.code,
-          item_iuse_type = item.row.iuse_type,
-          item_type = item.row.type,
-          item_unit = item.row.unit,
-          item_name = item.row.name.replace(/"/g, "&#034;").replace(/'/g, "&#039;"),
+          item_id           = item.row.id,
+          item_qty          = item.row.quantity,
+          item_code         = item.row.code,
+          item_iuse_type    = item.row.iuse_type,
+          item_type         = item.row.type,
+          item_unit         = item.row.unit,
+          item_name         = item.row.name.replace(/"/g, "&#034;").replace(/'/g, "&#039;"),
           item_markon_price = item.row.markon_price,
-          item_machine = item.row.machine_id,
-          item_price = item.row.price,
-          item_spec = item.row.spec,
-          row_no    = item.id;
+          item_machine      = item.row.machine_id,
+          item_price        = item.row.price,
+          item_spec         = item.row.spec,
+          itemUniqueCode    = item.row.unique_code,
+          row_no            = item.id;
 
         // Source stock.
         var source_stock = item.row.source_qty;
@@ -397,7 +398,9 @@ $(document).ready(function () {
         let readonly     = (iustatus != 'need_approval' && iustatus != 'completed' && iuse_mode == 'status' ? 'readonly="readonly"' : '');
 
         // First Column Table
-        tr_html = `<td><input name="product_id[]" type="hidden" class="rid" value="${item_id}">
+        tr_html = `<td>
+          <input name="unique_code[]" type="hidden" value="${itemUniqueCode}">
+          <input name="product_id[]" type="hidden" class="rid" value="${item_id}">
           <input name="product_code[]" type="hidden" class="rcode" value="${item_code}">
           <input name="product_type[]" type="hidden" class="rtype" value="${item_type}">
           <input name="product_unit[]" type="hidden" class="runit" value="${item_unit}">
@@ -461,7 +464,7 @@ $(document).ready(function () {
       // Totals calculations after item addition
       var gtotal = total;
       $('#total').text(formatMoney(total));
-      $('#titems').text((an-1)+' ('+(formatQty(parseFloat(count) - 1))+')');
+      $('#titems').text(parseFloat(count));
 
       $('#gtotal').text(formatMoney(gtotal));
       // if (an > parseInt(site.settings.bc_fix) && parseInt(site.settings.bc_fix) > 0) {

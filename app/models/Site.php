@@ -9631,6 +9631,7 @@ class Site extends MY_Model
             'status'          => $data['status'],
             'warehouse_id'    => $data['from_warehouse_id'],
             'machine_id'      => $item['machine_id'],
+            'unique_code'     => $item['unique_code'],
             'created_by'      => ($data['created_by'] ?? $internal_use->created_by),
             'updated_by'      => $this->session->userdata('user_id')
           ]);

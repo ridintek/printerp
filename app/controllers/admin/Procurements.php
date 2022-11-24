@@ -244,16 +244,16 @@ class Procurements extends MY_Controller
     $this->form_validation->set_rules('from_warehouse', lang('warehouse') . ' (' . lang('from') . ')', 'required|is_natural_no_zero');
 
     if ($this->form_validation->run()) {
-      $counter           = '';
-      $date              = rd_trim($this->input->post('date'));
-      $grand_total       = 0;
-      $items             = '';
-      $biller_id         = $this->input->post('biller');
-      $warehouseIdFrom = $this->input->post('from_warehouse');
-      $warehouseIdTo   = $this->input->post('to_warehouse');
-      $note              = htmlEncode($this->input->post('note'));
-      $status            = $this->input->post('status');
-      $category          = $this->input->post('category');
+      $counter          = '';
+      $date             = rd_trim($this->input->post('date'));
+      $grand_total      = 0;
+      $items            = '';
+      $warehouseIdFrom  = $this->input->post('from_warehouse');
+      $warehouseIdTo    = $this->input->post('to_warehouse');
+      $note             = htmlEncode($this->input->post('note'));
+      $status           = $this->input->post('status');
+      $category         = $this->input->post('category');
+      $tsId             = $this->input->post('ts');
 
       if ($this->iuse_mode == 'status') {
         if ($status == $internal_use->status) {
@@ -270,11 +270,12 @@ class Procurements extends MY_Controller
       $i = isset($_POST['product_id']) ? count($_POST['product_id']) : 0;
 
       for ($r = 0; $r < $i; $r++) {
-        $item_code          = $_POST['product_code'][$r];
-        $item_machine       = $_POST['machines'][$r];
-        $item_price         = $_POST['price'][$r];
-        $item_quantity      = $_POST['quantity'][$r];
-        $item_spec          = $_POST['spec'][$r];
+        $item_code      = $_POST['product_code'][$r];
+        $item_machine   = $_POST['machines'][$r];
+        $item_price     = $_POST['price'][$r];
+        $item_quantity  = $_POST['quantity'][$r];
+        $item_spec      = $_POST['spec'][$r];
+        $itemUniqueCode = $_POST['unique_code'][$r];
 
         if (isset($item_code) && isset($item_quantity)) {
           $product = $this->site->getProductByCode($item_code);
@@ -302,11 +303,12 @@ class Procurements extends MY_Controller
           }
 
           $product_data = [
-            'product_id' => $product->id,
-            'machine_id' => $item_machine,
-            'price'      => $item_price,
-            'quantity'   => $item_quantity,
-            'spec'       => $item_spec
+            'product_id'  => $product->id,
+            'machine_id'  => $item_machine,
+            'price'       => $item_price,
+            'quantity'    => $item_quantity,
+            'spec'        => $item_spec,
+            'unique_code' => $itemUniqueCode
           ];
 
           $items .= '- ' . getExcerpt($product->name, 30) . '<br>';
@@ -323,13 +325,14 @@ class Procurements extends MY_Controller
       $internal_use_data = [
         'date'              => $date,
         'category'          => $category, // Add new, consumable/sparepart.
-        'biller_id'         => $biller_id,
+        'biller_id'         => warehouseToBiller($category == 'sparepart' ? $warehouseIdFrom : $warehouseIdTo),
         'from_warehouse_id' => $warehouseIdFrom,
         'to_warehouse_id'   => $warehouseIdTo,
         'items'             => $items,
         'grand_total'       => $grand_total,
         'counter'           => $counter,
         'note'              => $note,
+        'ts_id'             => $tsId,
         'updated_by'        => $this->session->userdata('user_id'),
         'status'            => $status,
       ];
@@ -387,8 +390,7 @@ class Procurements extends MY_Controller
         }
 
         $whp_to               = $this->site->getWarehouseProduct($item->product_id, $internal_use->to_warehouse_id);
-        $whp_from             = $this->site->getWarehouseProduct($item->product_id, $internal_use->from_warehouse_id);
-        // $row->source_qty      = $whp_from->quantity + $item->quantity;
+
         $row->source_qty      = $item->quantity;
         $row->destination_qty = $whp_to->quantity;
         $row->safety_stock    = $whp_to->safety_stock;
@@ -397,6 +399,7 @@ class Procurements extends MY_Controller
         $row->unit            = $item->unit_id;
         $row->spec            = ($item->spec ?? '');
         $row->machine_id      = ($item->machine_id ?? NULL);
+        $row->unique_code     = $item->unique_code;
 
         $units    = $this->site->getUnitsByBUID($row->unit);
 

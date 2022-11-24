@@ -180,11 +180,22 @@
               </div>
             </div>
 
+            <div class="col-md-4 support" style="display: none">
+              <div class="form-group">
+                <label for="ts">Team Support</label>
+                <select class="select2" id="ts" name="ts" style="width:100%" disabled>
+                  <?php foreach ($teamSupports as $ts) : ?>
+                    <option value="<?= $ts->id ?>"><?= $ts->fullname ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+            </div>
+
             <div class="col-md-12">
               <div class="panel panel-warning">
                 <div class="panel-heading"><?= lang('please_select_these_before_adding_product') ?></div>
                 <div class="panel-body" style="padding: 5px;">
-                  <?php if ($Owner || $Admin || !$this->session->userdata('warehouse_id')) { ?>
+                  <?php if ($Owner || $Admin || !XSession::get('warehouse_id')) { ?>
                     <div class="col-md-4">
                       <div class="form-group">
                         <?= lang('from_warehouse', 'from_warehouse'); ?>
@@ -424,10 +435,10 @@
     }
   });
 </script>
-<?php if (!$Owner || !$Admin || $this->session->userdata('warehouse_id')) { ?>
+<?php if (!$Owner || !$Admin || XSession::get('warehouse_id')) { ?>
   <script class="procurements-internal_uses-status">
     $(document).ready(function() {
-      $("#to_warehouse option[value='<?= $this->session->userdata('warehouse_id'); ?>']").attr('disabled', 'disabled');
+      $("#to_warehouse option[value='<?= XSession::get('warehouse_id'); ?>']").attr('disabled', 'disabled');
     });
   </script>
 <?php } ?>
