@@ -17,6 +17,13 @@ class Debug extends MY_Controller
     echo "Index";
   }
 
+  public function gencode()
+  {
+    $r = generateInternalUseUniqueCode();
+
+    dbgprint($r);
+  }
+
   public function stockvalue()
   {
     $opt = [
