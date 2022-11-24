@@ -641,6 +641,43 @@ function generateDatatables($db, $columns)
   ]);
 }
 
+function generateInternalUseUniqueCode()
+{
+  $code = '';
+  $noCode = true;
+
+  $iuseItems = Stock::get(['not_null' => 'internal_use_id', 'order' => ['created_at', 'DESC']]);
+
+  foreach ($iuseItems as $item) {
+    if (!empty($item->unique_code)) {
+      $noCode = false;
+      $a = substr($item->unique_code, 0, 1);
+      $c = substr($item->unique_code, 1);
+  
+      if (intval($c) == 999) {
+        $b = ord($a);
+        $b++;
+  
+        $code = chr($b) . '001';
+      } else {
+        $c = intval($c);
+        $c++;
+  
+        // Prepend zero.
+        $ca = strval($c);
+        if ($c < 100) $ca = '0' . $c;
+        if ($c < 10)  $ca = '00' . $c;
+  
+        $code = $a . $ca;
+      }
+
+      break;
+    }
+  }
+
+  return ($noCode ? 'A001' : $code);
+}
+
 /**
  * Generate Universally Unique Identifier.
  * @return string
@@ -1417,6 +1454,33 @@ function getOrderStock($current_stock, $min_order_qty, $safety_stock)
   return $order_stock;
 }
 
+/**
+ * Get past month period.
+ * @param int $month How many past month.
+ * @example 1 getPastMonthPeriod(1);
+ * // Return ['start_date' => '2020-01-01', 'end_date' => '2020-01-31', 'days' => 31]
+ */
+function getPastMonthPeriod($month)
+{
+  $mn   = intval($month);
+  $base = strtotime(date('Y-m-') . '01'); // Current year and month with date 1.
+  $y    = date('Y', strtotime('-1 month', $base));
+  $m    = date('n', strtotime('-1 month', $base));
+  $days = 0;
+
+  $start_date = date('Y-m', strtotime("-{$mn} month", $base)) . '-01';
+  $end_date   = date('Y-m', strtotime('-1 month', $base)) . '-' . getDaysInMonth($y, $m);
+
+  for ($a = 1; $a <= $mn; $a++) {
+    $days += getDaysInMonth(date('Y', strtotime("-{$a} month", $base)), date('n', strtotime("-{$a} month", $base)));
+  }
+
+  return [
+    'start_date' => $start_date,
+    'end_date'   => $end_date,
+    'days'       => $days // Total days.
+  ];
+}
 
 /**
  * Get user permission from permission name.
@@ -1760,34 +1824,6 @@ function getSafetyStock($daily_qty, $required_days, $ratio)
 }
 
 /**
- * Get past month period.
- * @param int $month How many past month.
- * @example 1 getPastMonthPeriod(1);
- * // Return ['start_date' => '2020-01-01', 'end_date' => '2020-01-31', 'days' => 31]
- */
-function getPastMonthPeriod($month)
-{
-  $mn   = intval($month);
-  $base = strtotime(date('Y-m-') . '01'); // Current year and month with date 1.
-  $y    = date('Y', strtotime('-1 month', $base));
-  $m    = date('n', strtotime('-1 month', $base));
-  $days = 0;
-
-  $start_date = date('Y-m', strtotime("-{$mn} month", $base)) . '-01';
-  $end_date   = date('Y-m', strtotime('-1 month', $base)) . '-' . getDaysInMonth($y, $m);
-
-  for ($a = 1; $a <= $mn; $a++) {
-    $days += getDaysInMonth(date('Y', strtotime("-{$a} month", $base)), date('n', strtotime("-{$a} month", $base)));
-  }
-
-  return [
-    'start_date' => $start_date,
-    'end_date'   => $end_date,
-    'days'       => $days // Total days.
-  ];
-}
-
-/**
  * Get Sale Item Sub-Total with minimal price.
  * @param float $price Item Price.
  * @param float $quantity Item Quantity.
@@ -1850,6 +1886,15 @@ function getSQLSelects($select)
   }
 
   return $res;
+}
+
+function getTeamSupports()
+{
+  return DB::table('users')->select('users.*, groups.name as group_name, groups.description as group_desc')
+    ->join('groups', 'groups.id = users.group_id', 'left')
+    ->like('groups.name', 'support', 'none')
+    ->where('users.active', 1)
+    ->get();
 }
 
 function getTotalAmountIncomeStatement($data)

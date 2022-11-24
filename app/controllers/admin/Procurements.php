@@ -77,16 +77,20 @@ class Procurements extends MY_Controller
     $this->form_validation->set_rules('from_warehouse', lang('warehouse') . ' (' . lang('from') . ')', 'required|is_natural_no_zero');
 
     if ($this->form_validation->run()) {
-      $counter           = '';
-      $date              = $this->serverDateTime; // Using server date time.
-      $grand_total       = 0;
-      $items             = '';
-      $biller_id         = $this->input->post('biller');
-      $from_warehouse_id = $this->input->post('from_warehouse');
-      $to_warehouse_id   = $this->input->post('to_warehouse');
-      $note              = htmlEncode($this->input->post('note'));
-      $status            = $this->input->post('status'); // Must 'need_approval';
-      $category          = $this->input->post('category'); // Sparepart, Consumable
+      $counter          = '';
+      $createdAt        = $this->serverDateTime; // Using server date time.
+      $grandTotal       = 0;
+      $items            = '';
+      $warehouseIdFrom  = $this->input->post('from_warehouse');
+      $warehouseIdTo    = $this->input->post('to_warehouse');
+      $note             = htmlEncode($this->input->post('note'));
+      $status           = $this->input->post('status'); // Must 'need_approval';
+      $category         = $this->input->post('category'); // Sparepart, Consumable
+
+      if (empty($category)) {
+        $this->session->set_flashdata('error', "Harap pilih kategory, Consumable atau Sparepart.");
+        admin_redirect('procurements/internal_uses/add');
+      }
 
       $i = isset($_POST['product_id']) ? sizeof($_POST['product_id']) : 0;
 
@@ -98,8 +102,8 @@ class Procurements extends MY_Controller
         $item_spec          = $_POST['spec'][$r]; // Counter.
 
         if (isset($item_code) && isset($item_quantity)) {
-          $product = $this->site->getProductByCode($item_code);
-          $pcategory = $this->site->getProductCategoryByID($product->category_id);
+          $product = Product::getRow(['code' => $item_code]);
+          $pcategory = Category::getRow(['id' => $product->category_id]);
 
           if (!$item_quantity) {
             $this->session->set_flashdata('error', "No quantity for item {$item_code}");
@@ -125,7 +129,7 @@ class Procurements extends MY_Controller
             }
           }
 
-          $whp = $this->site->getWarehouseProduct($product->id, $from_warehouse_id);
+          $whp = WarehouseProduct::getRow(['product_id' => $product->id, 'warehouse_id' => $warehouseIdFrom]);
           $from_warehouse_qty = ($whp ? $whp->quantity : 0);
           $total_markon_price = (getMarkonPrice($product->cost, $product->markon) * $item_quantity);
 
@@ -134,7 +138,7 @@ class Procurements extends MY_Controller
             admin_redirect('procurements/internal_uses/add');
           }
 
-          $product_data = [
+          $productData = [
             'product_id' => $product->id,
             'machine_id' => $item_machine,
             'price'      => $item_price,
@@ -144,8 +148,8 @@ class Procurements extends MY_Controller
 
           $items .= '- ' . getExcerpt($product->name) . '<br>';
           if ($item_spec) $counter .= $item_spec . '<br>'; // Item spec used as counter.
-          $grand_total += $total_markon_price;
-          $products[] = $product_data;
+          $grandTotal += $total_markon_price;
+          $products[] = $productData;
         }
       }
 
@@ -153,47 +157,29 @@ class Procurements extends MY_Controller
         $this->form_validation->set_rules('product', lang('order_items'), 'required');
       }
 
-      $internal_use_data = [
-        'date'              => $date,
+      $internalUseData = [
+        'created_at'        => $createdAt,
         'category'          => $category, // Add new, consumable/sparepart.
-        'biller_id'         => $biller_id,
-        'from_warehouse_id' => $from_warehouse_id,
-        'to_warehouse_id'   => $to_warehouse_id,
+        'biller_id'         => warehouseToBiller($category == 'sparepart' ? $warehouseIdFrom : $warehouseIdTo),
+        'from_warehouse_id' => $warehouseIdFrom,
+        'to_warehouse_id'   => $warehouseIdTo,
         'items'             => $items,
-        'grand_total'       => $grand_total,
+        'grand_total'       => $grandTotal,
         'counter'           => $counter,
         'note'              => $note,
-        'created_by'        => $this->session->userdata('user_id'),
+        'created_by'        => XSession::get('user_id'),
         'status'            => $status, // new add = need_approval
       ];
 
-      if ($_FILES['document']['size'] > 0) {
-        checkPath($this->upload_internal_uses_path);
-        $this->load->library('upload');
-        $config['upload_path']   = $this->upload_internal_uses_path;
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
+      $upload = new FileUpload();
 
-        $this->upload->initialize($config);
-
-        if (!$this->upload->do_upload('document')) {
-          $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
-        }
-        $photo = $this->upload->file_name;
-        $internal_use_data['attachment'] = $photo;
-      } else {
-        // Optional on first add.
-        // $this->session->set_flashdata('error', 'Attachment is required.');
-        // admin_redirect('procurements/internal_uses/add');
+      if ($upload->has('document') && $upload->getSize('kb') >= 50) {
+        $internalUseData['attachment_id'] = $upload->storeRandom();
       }
     }
 
-    if ($this->form_validation->run() == true) {
-      if ($this->site->addStockInternalUse($internal_use_data, $products)) {
+    if ($this->form_validation->run()) {
+      if ($this->site->addStockInternalUse($internalUseData, $products)) {
         $this->session->set_userdata('remove_tols', 1);
         $this->session->set_flashdata('message', 'Internal use has been added successfully.');
       } else {
@@ -203,20 +189,7 @@ class Procurements extends MY_Controller
       admin_redirect('procurements/internal_uses');
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
-
-      $this->data['name'] = [
-        'name'  => 'name',
-        'id'    => 'name',
-        'type'  => 'text',
-        'value' => $this->form_validation->set_value('name'),
-      ];
-      $this->data['quantity'] = [
-        'name'  => 'quantity',
-        'id'    => 'quantity',
-        'type'  => 'text',
-        'value' => $this->form_validation->set_value('quantity'),
-      ];
-
+      $this->data['teamSupports'] = getTeamSupports();
       $this->data['machines']   = $this->site->getAllMachines();
       $this->data['warehouses'] = $this->site->getAllWarehouses();
 
@@ -274,8 +247,8 @@ class Procurements extends MY_Controller
       $grand_total       = 0;
       $items             = '';
       $biller_id         = $this->input->post('biller');
-      $from_warehouse_id = $this->input->post('from_warehouse');
-      $to_warehouse_id   = $this->input->post('to_warehouse');
+      $warehouseIdFrom = $this->input->post('from_warehouse');
+      $warehouseIdTo   = $this->input->post('to_warehouse');
       $note              = htmlEncode($this->input->post('note'));
       $status            = $this->input->post('status');
       $category          = $this->input->post('category');
@@ -316,8 +289,8 @@ class Procurements extends MY_Controller
             }
           }
 
-          // $from_warehouse_qty = $this->site->getStockQuantity($product->id, $from_warehouse_id) + $item_quantity; // Get source stock.
-          $whp = $this->site->getWarehouseProduct($product->id, $from_warehouse_id);
+          // $from_warehouse_qty = $this->site->getStockQuantity($product->id, $warehouseIdFrom) + $item_quantity; // Get source stock.
+          $whp = $this->site->getWarehouseProduct($product->id, $warehouseIdFrom);
           $from_warehouse_qty = ($whp ? $whp->quantity : 0) + $item_quantity; // Get source stock.
           $total_markon_price = (getMarkonPrice($product->cost, $product->markon) * $item_quantity);
 
@@ -349,8 +322,8 @@ class Procurements extends MY_Controller
         'date'              => $date,
         'category'          => $category, // Add new, consumable/sparepart.
         'biller_id'         => $biller_id,
-        'from_warehouse_id' => $from_warehouse_id,
-        'to_warehouse_id'   => $to_warehouse_id,
+        'from_warehouse_id' => $warehouseIdFrom,
+        'to_warehouse_id'   => $warehouseIdTo,
         'items'             => $items,
         'grand_total'       => $grand_total,
         'counter'           => $counter,
@@ -693,12 +666,12 @@ class Procurements extends MY_Controller
     $this->internal_uses_edit($internal_use_id);
   }
 
-  public function internal_uses_suggestions()
+  private function internal_uses_suggestions()
   {
-    $term               = $this->input->get('term', TRUE);
-    $from_warehouse_id  = $this->input->get('from_warehouse_id', TRUE);
-    $to_warehouse_id    = $this->input->get('to_warehouse_id', TRUE);
-    $category           = $this->input->get('category', TRUE);
+    $term             = $this->input->get('term', TRUE);
+    $warehouseIdFrom  = $this->input->get('from_warehouse_id', TRUE);
+    $warehouseIdTo    = $this->input->get('to_warehouse_id', TRUE);
+    $category         = $this->input->get('category', TRUE);
 
     if (strlen($term) < 1 || !$term) {
       die("<script type='text/javascript'>setTimeout(function(){ window.top.location.href = '" . admin_url('welcome') . "'; }, 10);</script>");
@@ -718,13 +691,20 @@ class Procurements extends MY_Controller
       foreach ($rows as $row) {
         if ($row->active != 1) continue; // No inactive item.
 
+        // Sync product quantity.
+        Product::syncOld($row->id, $warehouseIdFrom);
+
+        if ($warehouseIdFrom != $warehouseIdTo) {
+          Product::syncOld($row->id, $warehouseIdTo);
+        }
+
         $hash = generateUUID();
-        $to_whp = $this->site->getWarehouseProduct($row->id, $to_warehouse_id);
+        $to_whp = $this->site->getWarehouseProduct($row->id, $warehouseIdTo);
 
         if (!$to_whp) continue;
 
         $destination_stock = $to_whp->quantity;
-        $source_stock      = $this->site->getWarehouseProduct($row->id, $from_warehouse_id)->quantity;
+        $source_stock      = $this->site->getWarehouseProduct($row->id, $warehouseIdFrom)->quantity;
         $safe_stock        = getOrderStock($destination_stock, $row->min_order_qty, $to_whp->safety_stock);
 
         if ($safe_stock > $source_stock) $safe_stock = $source_stock; // If safe stock more then source stock.
@@ -955,28 +935,28 @@ class Procurements extends MY_Controller
           </a>
         </div>";
     })
-    ->editColumn('status', function ($data) {
-      switch ($data['status']) {
-        case 'need_approval':
-          $type = 'danger';
-          break;
-        case 'approved':
-          $type = 'success';
-          break;
-        case 'ordered':
-        case 'received_partial':
-          $type = 'info';
-          break;
-        case 'received':
-          $type = 'primary';
-          break;
-        default:
-          $type = 'warning';
-      }
+      ->editColumn('status', function ($data) {
+        switch ($data['status']) {
+          case 'need_approval':
+            $type = 'danger';
+            break;
+          case 'approved':
+            $type = 'success';
+            break;
+          case 'ordered':
+          case 'received_partial':
+            $type = 'info';
+            break;
+          case 'received':
+            $type = 'primary';
+            break;
+          default:
+            $type = 'warning';
+        }
 
-      $status = ucwords(str_replace('_', ' ', $data['status']));
+        $status = ucwords(str_replace('_', ' ', $data['status']));
 
-      return "
+        return "
       <div class=\"text-center\">
         <a href=\"" . admin_url('procurements/purchases2/edit/' . $data['id'] . '?mode=status') . "\"
           class=\"label label-{$type} status\"
@@ -984,27 +964,27 @@ class Procurements extends MY_Controller
         </a>
       </div>
       ";
-    })
-    ->editColumn('payment_status', function ($data) {
-      switch ($data['payment_status']) {
-        case 'need_approval':
-          $type = 'danger';
-          break;
-        case 'approved':
-        case 'paid':
-          $type = 'success';
-          break;
-        case 'paid_partial':
-          $type = 'info';
-          break;
-        case 'pending':
-        default:
-          $type = 'warning';
-      }
+      })
+      ->editColumn('payment_status', function ($data) {
+        switch ($data['payment_status']) {
+          case 'need_approval':
+            $type = 'danger';
+            break;
+          case 'approved':
+          case 'paid':
+            $type = 'success';
+            break;
+          case 'paid_partial':
+            $type = 'info';
+            break;
+          case 'pending':
+          default:
+            $type = 'warning';
+        }
 
-      $status = ucwords(str_replace('_', ' ', $data['payment_status']));
+        $status = ucwords(str_replace('_', ' ', $data['payment_status']));
 
-      return "
+        return "
       <div class=\"text-center\">
         <a href=\"" . admin_url('procurements/purchases2/addPayment/' . $data['id']) . "\"
           class=\"label label-{$type} status\"
@@ -1012,7 +992,7 @@ class Procurements extends MY_Controller
         </a>
       </div>
       ";
-    });
+      });
 
     $this->datatable->generate();
   }
@@ -2695,8 +2675,8 @@ class Procurements extends MY_Controller
 
     if ($this->form_validation->run()) {
       $date              = $this->serverDateTime;
-      $from_warehouse_id = $this->input->post('from_warehouse');
-      $to_warehouse_id   = $this->input->post('to_warehouse');
+      $warehouseIdFrom = $this->input->post('from_warehouse');
+      $warehouseIdTo   = $this->input->post('to_warehouse');
       $note              = $this->sma->clear_tags($this->input->post('note'));
       $status            = ($this->input->post('status') == 'packing' ? $this->input->post('status') : 'packing'); // Status must 'packing'
 
@@ -2711,7 +2691,7 @@ class Procurements extends MY_Controller
 
         if (isset($item_code) && isset($item_quantity)) {
           $product = $this->site->getProductByCode($item_code);
-          $from_warehouse_qty = $this->site->getStockQuantity($product->id, $from_warehouse_id); // Get source stock.
+          $from_warehouse_qty = $this->site->getStockQuantity($product->id, $warehouseIdFrom); // Get source stock.
 
           if ($from_warehouse_qty < $item_quantity) {
             $this->session->set_flashdata('error', lang('no_match_found') . ' (' . lang('product_name') . ' <strong>' . $product->name . '</strong> ' . lang('product_code') . ' <strong>' . $product->code . '</strong>)');
@@ -2739,8 +2719,8 @@ class Procurements extends MY_Controller
 
       $transferData = [
         'date'              => $date,
-        'from_warehouse_id' => $from_warehouse_id,
-        'to_warehouse_id'   => $to_warehouse_id,
+        'from_warehouse_id' => $warehouseIdFrom,
+        'to_warehouse_id'   => $warehouseIdTo,
         'note'              => $note,
         'grand_total'       => $grand_total,
         'created_by'        => $this->session->userdata('user_id'),
@@ -2972,8 +2952,8 @@ class Procurements extends MY_Controller
 
     if ($this->form_validation->run()) {
       $date              = rd_trim($this->input->post('date'));
-      $to_warehouse_id   = $this->input->post('to_warehouse');
-      $from_warehouse_id = $this->input->post('from_warehouse');
+      $warehouseIdTo   = $this->input->post('to_warehouse');
+      $warehouseIdFrom = $this->input->post('from_warehouse');
       $note              = htmlEncode($this->input->post('note'));
       $status            = $this->input->post('status');
       $total             = 0;
@@ -2987,7 +2967,7 @@ class Procurements extends MY_Controller
 
         if (isset($item_code) && isset($item_quantity)) {
           $product = $this->site->getProductByCode($item_code);
-          $wh_product = $this->site->getWarehouseProduct($product->id, $from_warehouse_id); // Get source stock.
+          $wh_product = $this->site->getWarehouseProduct($product->id, $warehouseIdFrom); // Get source stock.
           $from_warehouse_qty = ($wh_product ? $wh_product->quantity + $item_quantity : 0);
 
           if ($from_warehouse_qty < $item_quantity) {
@@ -3000,7 +2980,7 @@ class Procurements extends MY_Controller
             'quantity'     => $item_quantity,
             'price'        => roundDecimal($item_markon_price),
             'spec'         => $item_spec,
-            'warehouse_id' => $to_warehouse_id
+            'warehouse_id' => $warehouseIdTo
           ];
 
           $subtotal = roundDecimal($item_markon_price * $item_quantity);
@@ -3018,8 +2998,8 @@ class Procurements extends MY_Controller
 
       $transferData = [
         'date'              => $date,
-        'from_warehouse_id' => $from_warehouse_id,
-        'to_warehouse_id'   => $to_warehouse_id,
+        'from_warehouse_id' => $warehouseIdFrom,
+        'to_warehouse_id'   => $warehouseIdTo,
         'note'              => $note,
         'grand_total'       => $grand_total,
         'created_by'        => $transfer->created_by,
@@ -3072,15 +3052,15 @@ class Procurements extends MY_Controller
       $this->data['transfer'] = $transfer;
 
       $transfer_items = $this->site->getStockTransferItemsByTransferID($transferId);
-      $from_warehouse_id = $transfer->from_warehouse_id;
-      $to_warehouse_id   = $transfer->to_warehouse_id;
+      $warehouseIdFrom = $transfer->from_warehouse_id;
+      $warehouseIdTo   = $transfer->to_warehouse_id;
 
       foreach ($transfer_items as $item) {
         $hash = sha1($item->product_id + mt_rand(1, 1000));
         $product_id = $item->product_id;
 
-        $wh_item_to    = $this->site->getWarehouseProduct($product_id, $to_warehouse_id);
-        $wh_item_from  = $this->site->getWarehouseProduct($product_id, $from_warehouse_id);
+        $wh_item_to    = $this->site->getWarehouseProduct($product_id, $warehouseIdTo);
+        $wh_item_from  = $this->site->getWarehouseProduct($product_id, $warehouseIdFrom);
         $row = $this->site->getProductByID($product_id);
 
         $destination_stock    = $wh_item_to->quantity;
@@ -3504,8 +3484,8 @@ class Procurements extends MY_Controller
       }
 
       $date                   = rd_trim($this->input->post('date'));
-      $to_warehouse_id        = $this->input->post('to_warehouse');
-      $from_warehouse_id      = $this->input->post('from_warehouse');
+      $warehouseIdTo        = $this->input->post('to_warehouse');
+      $warehouseIdFrom      = $this->input->post('from_warehouse');
       $note                   = htmlEncode($this->input->post('note'));
       $status                 = $this->input->post('status');
       $total = 0;
@@ -3519,7 +3499,7 @@ class Procurements extends MY_Controller
 
         if (isset($item_code) && isset($item_markon_price) && isset($item_quantity)) {
           $product  = $this->site->getProductByCode($item_code);
-          /*$from_warehouse_qty = $this->site->getStockQuantity($product->id, $from_warehouse_id) + $item_quantity; // Get source stock.
+          /*$from_warehouse_qty = $this->site->getStockQuantity($product->id, $warehouseIdFrom) + $item_quantity; // Get source stock.
 
 		  		if ($from_warehouse_qty < $item_quantity) {
 		  			$this->session->set_flashdata('error', lang('no_match_found') . ' (' . lang('product_name') . ' <strong>' . $product->name . '</strong> ' . lang('product_code') . ' <strong>' . $product->code . '</strong>)');
@@ -3531,7 +3511,7 @@ class Procurements extends MY_Controller
             'quantity'     => $item_quantity,
             'price'        => round($item_markon_price),
             'spec'         => $item_spec,
-            'warehouse_id' => $to_warehouse_id
+            'warehouse_id' => $warehouseIdTo
           ];
 
           $subtotal = round($item_markon_price * $item_quantity);
@@ -3549,8 +3529,8 @@ class Procurements extends MY_Controller
 
       $transfer_data = [
         'date'              => $date,
-        'from_warehouse_id' => $from_warehouse_id,
-        'to_warehouse_id'   => $to_warehouse_id,
+        'from_warehouse_id' => $warehouseIdFrom,
+        'to_warehouse_id'   => $warehouseIdTo,
         'note'              => $note,
         'grand_total'       => $grand_total,
         'created_by'        => $transfer->created_by,
@@ -3600,22 +3580,22 @@ class Procurements extends MY_Controller
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
       $this->data['transfer'] = $transfer;
       $transfer_items    = $this->site->getStockTransferItemsByTransferID($transfer_id); // New
-      $from_warehouse_id = $transfer->from_warehouse_id;
-      $to_warehouse_id   = $transfer->to_warehouse_id;
+      $warehouseIdFrom = $transfer->from_warehouse_id;
+      $warehouseIdTo   = $transfer->to_warehouse_id;
 
       foreach ($transfer_items as $item) {
         $hash = sha1($item->product_id + mt_rand(1, 1000));
         $product_id = $item->product_id;
 
         // Remove syncProductQty if it has stable.
-        // $this->site->syncProductQty($product_id, $from_warehouse_id);
-        // $this->site->syncProductQty($product_id, $to_warehouse_id);
-        $from_whp = $this->site->getWarehouseProduct($product_id, $from_warehouse_id);
-        $to_whp = $this->site->getWarehouseProduct($product_id, $to_warehouse_id);
+        // $this->site->syncProductQty($product_id, $warehouseIdFrom);
+        // $this->site->syncProductQty($product_id, $warehouseIdTo);
+        $from_whp = $this->site->getWarehouseProduct($product_id, $warehouseIdFrom);
+        $to_whp = $this->site->getWarehouseProduct($product_id, $warehouseIdTo);
         $row = $this->site->getProductByID($product_id);
 
-        // $destination_stock = $this->site->getStockQuantity($product_id, $to_warehouse_id);
-        // $source_stock      = $this->site->getStockQuantity($product_id, $from_warehouse_id);
+        // $destination_stock = $this->site->getStockQuantity($product_id, $warehouseIdTo);
+        // $source_stock      = $this->site->getStockQuantity($product_id, $warehouseIdFrom);
         $destination_stock = $to_whp->quantity;
         $source_stock      = $from_whp->quantity;
         $safe_stock        = getOrderStock($destination_stock, $row->min_order_qty, $to_whp->safety_stock);
@@ -3677,24 +3657,24 @@ class Procurements extends MY_Controller
       'msg' => 'failed'
     ];
     $product_ids = json_decode($this->input->post('ids'));
-    $from_warehouse_id = $this->site->getWarehouseByName('Lucretia Enterprise')->id; // Default from Lucretia Enterprise.
-    $to_warehouse_id = 0;
+    $warehouseIdFrom = $this->site->getWarehouseByName('Lucretia Enterprise')->id; // Default from Lucretia Enterprise.
+    $warehouseIdTo = 0;
 
     if ($action == 'add_transfers' && !empty($product_ids)) {
       $to_items = [];
       foreach ($product_ids as $product) {
         $hash = sha1($product->product_id + mt_rand(1, 1000));
         $product_id      = $product->product_id;
-        $to_warehouse_id = $product->warehouse_id;
+        $warehouseIdTo = $product->warehouse_id;
 
-        // $this->site->syncProductQty($product_id, $from_warehouse_id);
-        // $this->site->syncProductQty($product_id, $to_warehouse_id);
-        $from_whp = $this->site->getWarehouseProduct($product_id, $from_warehouse_id);
-        $to_whp   = $this->site->getWarehouseProduct($product_id, $to_warehouse_id);
+        // $this->site->syncProductQty($product_id, $warehouseIdFrom);
+        // $this->site->syncProductQty($product_id, $warehouseIdTo);
+        $from_whp = $this->site->getWarehouseProduct($product_id, $warehouseIdFrom);
+        $to_whp   = $this->site->getWarehouseProduct($product_id, $warehouseIdTo);
         $row = $this->site->getProductByID($product_id);
 
-        // $destination_stock = $this->site->getStockQuantity($row->id, $to_warehouse_id);
-        // $source_stock      = $this->site->getStockQuantity($row->id, $from_warehouse_id);
+        // $destination_stock = $this->site->getStockQuantity($row->id, $warehouseIdTo);
+        // $source_stock      = $this->site->getStockQuantity($row->id, $warehouseIdFrom);
         $destination_stock = $to_whp->quantity;
         $source_stock      = $from_whp->quantity;
         $safe_stock = getOrderStock($destination_stock, $row->min_order_qty, $to_whp->safety_stock);
@@ -3731,7 +3711,7 @@ class Procurements extends MY_Controller
         ];
       }
       $data->items = $to_items;
-      $data->warehouse_id = $to_warehouse_id;
+      $data->warehouse_id = $warehouseIdTo;
       $data->msg = 'success';
     }
 

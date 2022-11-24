@@ -6,21 +6,21 @@
   $(document).ready(function() {
     window.machines = JSON.parse('<?= json_encode($machines); ?>');
     <?php if ($internal_use) { ?>
-      localStorage.setItem('todate', '<?= date($dateFormats['php_ldate'], strtotime($internal_use->date)) ?>');
+      localStorage.setItem('iudate', '<?= date($dateFormats['php_ldate'], strtotime($internal_use->date)) ?>');
       localStorage.setItem('from_warehouse', '<?= $internal_use->from_warehouse_id ?>');
-      localStorage.setItem('toref', '<?= $internal_use->reference ?>');
+      localStorage.setItem('iuref', '<?= $internal_use->reference ?>');
       localStorage.setItem('to_warehouse', '<?= $internal_use->to_warehouse_id ?>');
       localStorage.setItem('iustatus', '<?= $internal_use->status ?>');
-      localStorage.setItem('tonote', `<?= htmlDecode($internal_use->note); ?>`);
+      localStorage.setItem('iunote', `<?= htmlDecode($internal_use->note); ?>`);
       localStorage.setItem('iuitems', '<?= json_encode($internal_use_items); ?>');
       localStorage.setItem('iuse_mode', '<?= $iuse_mode; ?>');
     <?php } ?>
     <?php if ($Owner || $Admin) { ?>
-      $(document).on('change', '#todate', function(e) {
-        localStorage.setItem('todate', $(this).val());
+      $(document).on('change', '#iudate', function(e) {
+        localStorage.setItem('iudate', $(this).val());
       });
-      if (todate = localStorage.getItem('todate')) {
-        $('#todate').val(todate);
+      if (iudate = localStorage.getItem('iudate')) {
+        $('#iudate').val(iudate);
       }
     <?php } ?>
     ItemnTotals();
@@ -168,8 +168,8 @@
           <div class="col-lg-12">
             <div class="col-md-4">
               <div class="form-group">
-                <?= lang('date', 'todate'); ?>
-                <?php echo form_input('date', $internal_use->date, 'class="form-control input-tip date" id="todate" required="required"'); ?>
+                <?= lang('date', 'iudate'); ?>
+                <?php echo form_input('date', $internal_use->date, 'class="form-control input-tip date" id="iudate" required="required"'); ?>
               </div>
             </div>
 
@@ -177,26 +177,6 @@
               <div class="form-group">
                 <?= lang('reference', 'ref'); ?>
                 <?php echo form_input('reference',  $internal_use->reference, 'class="form-control input-tip" id="ref" required="required" readonly="readonly"'); ?>
-              </div>
-            </div>
-
-            <div class="col-md-4">
-              <div class="form-group">
-                <?= lang('biller', 'biller'); ?>
-                <?php
-                $bl[''] = '';
-
-                $billers = $this->site->getAllBillers();
-
-                foreach ($billers as $biller) {
-                  if ($this->session->userdata('biller_id')) {
-                    if ($biller->id != $this->session->userdata('biller_id')) continue;
-                  }
-                  $bl[$biller->id] = $biller->name;
-                }
-
-                echo form_dropdown('biller', $bl, $internal_use->biller_id, 'class="select2" id="biller" data-placeholder="Select Biller" required="required" style="width:100%"');
-                ?>
               </div>
             </div>
 

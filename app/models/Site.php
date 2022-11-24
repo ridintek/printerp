@@ -1586,7 +1586,7 @@ class Site extends MY_Model
    */
   public function addStockInternalUse($data, $items = [])
   {
-    if (stripos($data['category'], 'report') === 0) {
+    if (stripos($data['category'], 'report') === 0) { // Legacy, do not erase!
       $ref = $this->getReference('cmreport'); // As report only.
     } else {
       $ref = $this->getReference('iuse'); // Default internal use.
@@ -1598,12 +1598,11 @@ class Site extends MY_Model
       $data['status'] = 'completed';
     }
 
-    $this->db->trans_start();
-    $this->db->insert('internal_uses', $data);
-    $insert_id = $this->db->insert_id();
-    $this->db->trans_complete();
+    $data = setCreatedBy($data);
 
-    if ($this->db->trans_status()) {
+    DB::table('internal_uses')->insert($data);
+
+    if ($insertId = DB::insertID()) {
       if ($this->getReference('iuse') == $data['reference']) {
         $this->updateReference('iuse');
       }
@@ -1614,8 +1613,8 @@ class Site extends MY_Model
         }
 
         foreach ($items as $item) {
-          $product  = $this->getProductByID($item['product_id']);
-          $category = $this->getProductCategoryByID($product->category_id);
+          $product  = Product::getRow(['id' => $item['product_id']]);
+          $category = Category::getRow(['id' => $product->category_id]);
 
           if ($data['category'] == 'consumable') { // Consumable = Disposal.
             if ($category->code == 'AST' || $category->code == 'EQUIP') {
@@ -1645,7 +1644,7 @@ class Site extends MY_Model
 
           $this->addStockQuantity([
             'date'            => $data['date'],
-            'internal_use_id' => $insert_id,
+            'internal_use_id' => $insertId,
             'product_id'      => $item['product_id'],
             'price'           => $item['price'],
             'quantity'        => $item['quantity'],
@@ -1653,12 +1652,13 @@ class Site extends MY_Model
             'status'          => $data['status'],
             'warehouse_id'    => $data['from_warehouse_id'],
             'machine_id'      => $item['machine_id'],
+            'unique_code'     => generateInternalUseUniqueCode(),
             'created_by'      => $data['created_by']
           ]);
         }
       }
 
-      return $insert_id;
+      return $insertId;
     }
 
     return FALSE;

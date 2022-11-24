@@ -4,14 +4,11 @@
     if (localStorage.getItem('iuitems')) {
       localStorage.removeItem('iuitems');
     }
-    if (localStorage.getItem('sobiller')) {
-      localStorage.removeItem('sobiller');
-    }
     if (localStorage.getItem('to_warehouse')) {
       localStorage.removeItem('to_warehouse');
     }
-    if (localStorage.getItem('sonote')) {
-      localStorage.removeItem('sonote');
+    if (localStorage.getItem('iunote')) {
+      localStorage.removeItem('iunote');
     }
     if (localStorage.getItem('from_warehouse')) {
       localStorage.removeItem('from_warehouse');
@@ -173,25 +170,14 @@
               </div>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-4 support" style="display: none">
               <div class="form-group">
-                <?= lang('biller', 'biller'); ?>
-                <?php
-                $bl[''] = '';
-
-                $billers = $this->site->getAllBillers();
-
-                foreach ($billers as $biller) {
-                  if ($this->session->userdata('biller_id')) {
-                    if ($biller->id != $this->session->userdata('biller_id')) continue;
-                  }
-                  $bl[$biller->id] = $biller->name;
-                }
-
-                $defBiller = $this->session->userdata('biller_id');
-
-                echo form_dropdown('biller', $bl, $defBiller, 'class="select2" id="biller" data-placeholder="Select Biller" required="required" style="width:100%"');
-                ?>
+                <label for="ts">Team Support</label>
+                <select class="select2" id="ts" style="width:100%" disabled>
+                  <?php foreach ($teamSupports as $ts) : ?>
+                    <option value="<?= $ts->id ?>"><?= $ts->fullname ?></option>
+                  <?php endforeach; ?>
+                </select>
               </div>
             </div>
 
@@ -212,7 +198,7 @@
                           'from_warehouse',
                           $wh,
                           $Settings->default_warehouse,
-                          'id="from_warehouse" class="form-control input-tip select2" data-placeholder="Select Warehouse From" required="required" style="width:100%;"'
+                          'id="from_warehouse" class="select2" data-placeholder="Select Warehouse From" required="required" style="width:100%;"'
                         ); ?>
                       </div>
                     </div>
@@ -228,7 +214,7 @@
                           'to_warehouse',
                           $wh,
                           '',
-                          'id="to_warehouse" class="form-control input-tip select2" data-placeholder="Select Warehouse To" required="required" style="width:100%;"'
+                          'id="to_warehouse" class=" select2" data-placeholder="Select Warehouse To" required="required" style="width:100%;"'
                         );
                         ?>
                       </div>
@@ -335,8 +321,8 @@
             </div>
             <div class="col-md-12">
               <div class="from-group">
-                <?= lang('note', 'tonote'); ?>
-                <?php echo form_textarea('note', (isset($_POST['note']) ? $_POST['note'] : ''), 'id="tonote" class="form-control" style="margin-top: 10px; height: 100px;"'); ?>
+                <?= lang('note', 'iunote'); ?>
+                <?php echo form_textarea('note', (isset($_POST['note']) ? $_POST['note'] : ''), 'id="iunote" class="form-control" style="margin-top: 10px; height: 100px;"'); ?>
               </div>
             </div>
             <div class="col-md-12">
@@ -367,10 +353,15 @@
     $('input[name="category"]').on('ifChecked', function(e) {
       if (e.target.checked) {
         localStorage.setItem('socategory', e.target.value);
+
+        if (e.target.value == 'sparepart') {
+          $('div.support').slideDown();
+          $('#ts').prop('disabled', false);
+        } else {
+          $('div.support').slideUp();
+          $('#ts').prop('disabled', true);
+        }
       }
     });
-
-    if (from_warehouse) localStorage.setItem('from_warehouse', from_warehouse);
-    if (to_warehouse) localStorage.setItem('to_warehouse', to_warehouse);
   });
 </script>

@@ -162,6 +162,18 @@ class DB
     return self::$ciInstance->db->insert(self::$tableName, $data);
   }
 
+  public function isNotNull($field)
+  {
+    self::$ciInstance->db->where("{$field} IS NOT NULL");
+    return self::$classInstance;
+  }
+
+  public function isNull($field)
+  {
+    self::$ciInstance->db->where("{$field} IS NULL");
+    return self::$classInstance;
+  }
+
   /**
    * Return insert ID.
    */

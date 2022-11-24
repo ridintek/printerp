@@ -97,7 +97,7 @@ class Stock
     $stock = DB::table('stocks');
 
     if (!empty($clause['not_null'])) {
-      $stock->where("{$clause['not_null']} IS NOT NULL");
+      $stock->isNotNull($clause['not_null']);
       unset($clause['not_null']);
     }
     if (!empty($clause['start_date'])) {

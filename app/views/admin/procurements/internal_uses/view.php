@@ -31,7 +31,6 @@
             </div>
           </div>
           <div class="col-xs-6 pull-right text-right order_barcodes">
-            <img src="<?= admin_url('misc/barcode/' . $this->sma->base64url_encode($internal_use->reference) . '/code128/74/0/1'); ?>" alt="<?= $internal_use->reference; ?>" class="bcimg" />
             <?= $this->ridintek->qrcode(admin_url('procurements/internal_uses/view/' . $internal_use->id)); ?>
           </div>
           <div class="clearfix"></div>
