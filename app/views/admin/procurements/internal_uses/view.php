@@ -29,6 +29,12 @@
               <div class="col-md-2">Biller</div>
               <div class="col-md-6">: <?= ($internal_use->biller_id ? $this->site->getBillerByID($internal_use->biller_id)->name : ''); ?></div>
             </div>
+            <?php if ($internal_use->ts_id): ?>
+            <div class="row">
+              <div class="col-md-2">Support</div>
+              <div class="col-md-6">: <?= User::getRow(['id' => $internal_use->ts_id])->fullname ?></div>
+            </div>
+            <?php endif; ?>
           </div>
           <div class="col-xs-6 pull-right text-right order_barcodes">
             <?= $this->ridintek->qrcode(admin_url('procurements/internal_uses/view/' . $internal_use->id)); ?>
@@ -57,10 +63,11 @@
         <table class="table table-bordered table-hover table-striped order-table">
           <thead>
             <tr>
-              <th style="text-align:center; vertical-align:middle;"><?= lang('no.'); ?></th>
-              <th style="vertical-align:middle;"><?= lang('description'); ?></th>
-              <th style="vertical-align:middle;"><?= lang('machine'); ?></th>
-              <th style="vertical-align:middle;"><?= lang('counter'); ?></th>
+              <th style="text-align:center; vertical-align:middle;">No</th>
+              <th style="vertical-align:middle;">Description</th>
+              <th style="vertical-align:middle;">Machine</th>
+              <th style="vertical-align:middle;">Unique Code</th>
+              <th style="vertical-align:middle;">Counter</th>
               <th style="text-align:center; vertical-align:middle;"><?= lang('quantity'); ?></th>
               <?php if ($Owner || $Admin) { ?>
               <th style="text-align:center; vertical-align:middle;"><?= lang('unit_cost'); ?></th>
@@ -88,7 +95,8 @@
                 <?= $iuseItem->product_code . ' - ' . $iuseItem->product_name; ?>
               </td>
               <td class="text-center" style="width:25px;"><?= ($machine ? $machine->name : 'All Machines'); ?></td>
-              <td class="col-md-4 text-right"><?= ( ! empty($iuseItem->spec) ? $iuseItem->spec : '-'); ?></td>
+              <td class="text-center"><?= ($iuseItem->unique_code ?? '-') ?></td>
+              <td class="text-right"><?= ( ! empty($iuseItem->spec) ? $iuseItem->spec : '-'); ?></td>
               <td class="text-center" style="width:80px; "><?= formatStock($iuseItem->quantity) . ' ' . $iuseItem->unit_code; ?></td>
               <?php if ($Owner || $Admin) { ?>
               <td class="text-right"><?= formatCurrency($price); ?></td>
@@ -103,7 +111,7 @@
           <?php if ($Owner || $Admin) { ?>
           <tfoot>
             <tr>
-              <td class="text-right" colspan="6"><strong>Grand Total</strong></td>
+              <td class="text-right" colspan="7"><strong>Grand Total</strong></td>
               <td class="text-right"><strong><?= formatCurrency($grandTotal); ?></strong></td>
             </tr>
           </tfoot>

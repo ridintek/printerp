@@ -1378,23 +1378,22 @@ class Reports extends MY_Controller
 
     if ($startDate) {
       $endDate = ($endDate ?? date('Y-m-d'));
-      $startDate = $startDate . ' 00:00:00';
-      $endDate   = $endDate . ' 23:59:59';
 
-      $clausesBegin .= "AND date < '{$startDate}'";
-      $clauses .= "AND date BETWEEN '{$startDate}' AND '{$endDate}'";
-    } else {
-      $current_date = date('Y-m-d') . ' 00:00:00';
-      $clausesBegin .= "AND date < '{$current_date}'";
+      $clausesBegin .= "AND date < '{$startDate} 00:00:00'";
+      $clauses .= "AND date BETWEEN '{$startDate} 00:00:00' AND '{$endDate} 23:59:59'";
     }
 
     if ($warehouseId) {
-      $clausesBegin .= " AND warehouse_id = {$warehouseId}";
+      if ($startDate) {
+        $clausesBegin .= " AND warehouse_id = {$warehouseId}";
+      }
       $clauses .= " AND warehouse_id = {$warehouseId}";
     }
 
     if ($categoryId) {
-      $clausesBegin .= " AND category_id = {$categoryId}";
+      if ($startDate) {
+        $clausesBegin .= " AND category_id = {$categoryId}";
+      }
       $clauses .= " AND category_id = {$categoryId}";
     }
 

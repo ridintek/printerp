@@ -1652,7 +1652,7 @@ class Site extends MY_Model
             'status'          => $data['status'],
             'warehouse_id'    => $data['from_warehouse_id'],
             'machine_id'      => $item['machine_id'],
-            'unique_code'     => generateInternalUseUniqueCode(),
+            'unique_code'     => ($data['category'] == 'sparepart' ? generateInternalUseUniqueCode() : NULL),
             'created_by'      => $data['created_by']
           ]);
         }
@@ -1988,8 +1988,9 @@ class Site extends MY_Model
         $stock_data['subtotal'] = filterDecimal($data['price']) * filterDecimal($data['quantity']);
       }
 
-      if (!empty($data['machine_id'])) $stock_data['machine_id'] = $data['machine_id'];
-      if (isset($data['json_data']))     $stock_data['json_data']  = $data['json_data'];
+      if (!empty($data['machine_id']))  $stock_data['machine_id'] = $data['machine_id'];
+      if (!empty($data['unique_code'])) $stock_data['unique_code'] = $data['unique_code'];
+      if (isset($data['json_data']))    $stock_data['json_data']  = $data['json_data'];
 
       $product = $ci->getProductByID($data['product_id']);
 

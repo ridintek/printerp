@@ -86,6 +86,7 @@ class Procurements extends MY_Controller
       $note             = htmlEncode($this->input->post('note'));
       $status           = $this->input->post('status'); // Must 'need_approval';
       $category         = $this->input->post('category'); // Sparepart, Consumable
+      $tsId             = $this->input->post('ts');
 
       if (empty($category)) {
         $this->session->set_flashdata('error', "Harap pilih kategory, Consumable atau Sparepart.");
@@ -139,12 +140,12 @@ class Procurements extends MY_Controller
           }
 
           $productData = [
-            'product_id' => $product->id,
-            'machine_id' => $item_machine,
-            'price'      => $item_price,
-            'quantity'   => $item_quantity,
-            'spec'       => $item_spec
-          ];
+            'product_id'  => $product->id,
+            'machine_id'  => $item_machine,
+            'price'       => $item_price,
+            'quantity'    => $item_quantity,
+            'spec'        => $item_spec
+          ]; // unique_code in model.
 
           $items .= '- ' . getExcerpt($product->name) . '<br>';
           if ($item_spec) $counter .= $item_spec . '<br>'; // Item spec used as counter.
@@ -167,6 +168,7 @@ class Procurements extends MY_Controller
         'grand_total'       => $grandTotal,
         'counter'           => $counter,
         'note'              => $note,
+        'ts_id'             => $tsId,
         'created_by'        => XSession::get('user_id'),
         'status'            => $status, // new add = need_approval
       ];

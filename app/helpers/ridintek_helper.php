@@ -653,21 +653,26 @@ function generateInternalUseUniqueCode()
       $noCode = false;
       $a = substr($item->unique_code, 0, 1);
       $c = substr($item->unique_code, 1);
-  
+
       if (intval($c) == 999) {
         $b = ord($a);
-        $b++;
-  
+
+        if ($b == 90) { // if Z reset to A
+          $b = 65;
+        } else {
+          $b++;
+        }
+
         $code = chr($b) . '001';
       } else {
         $c = intval($c);
         $c++;
-  
+
         // Prepend zero.
         $ca = strval($c);
         if ($c < 100) $ca = '0' . $c;
         if ($c < 10)  $ca = '00' . $c;
-  
+
         $code = $a . $ca;
       }
 

@@ -173,7 +173,7 @@
             <div class="col-md-4 support" style="display: none">
               <div class="form-group">
                 <label for="ts">Team Support</label>
-                <select class="select2" id="ts" style="width:100%" disabled>
+                <select class="select2" id="ts" name="ts" style="width:100%" disabled>
                   <?php foreach ($teamSupports as $ts) : ?>
                     <option value="<?= $ts->id ?>"><?= $ts->fullname ?></option>
                   <?php endforeach; ?>
@@ -363,5 +363,8 @@
         }
       }
     });
+
+    if (from_warehouse) localStorage.setItem('from_warehouse', from_warehouse);
+    if (to_warehouse) localStorage.setItem('to_warehouse', to_warehouse);
   });
 </script>

@@ -1435,7 +1435,8 @@ class Products extends MY_Controller
 
     $rows = $this->site->getStocks($clause);
     unset($clause['start_date'], $clause['end_date'], $clause['order']);
-    $beginning_qty  = $this->site->getStockBeginningQuantity($clause, $start_date);
+    
+    $beginning_qty  = ($start_date ? $this->site->getStockBeginningQuantity($clause, $start_date) : 0);
 
     $this->data['beginning_qty'] = $beginning_qty;
     $this->data['rows']          = $rows;
