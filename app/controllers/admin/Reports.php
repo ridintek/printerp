@@ -1844,7 +1844,6 @@ class Reports extends MY_Controller
       $machine  = Product::getRow(['id' => $item->machine_id]);
       $supplier = Supplier::getRow(['id' => $iuse->supplier_id]);
       $ts       = User::getRow(['id' => $iuse->ts_id]);
-      $toWarehouse = Warehouse::getRow(['id' => $iuse->to_warehouse_id]);
 
       $lastItem = NULL;
       $lastIUse = NULL;
@@ -1882,12 +1881,12 @@ class Reports extends MY_Controller
       $sheet->setCellValue("A{$r}", $r - 2);
       $sheet->setCellValue("B{$r}", $iuse->created_at);
       $sheet->setCellValue("C{$r}", $iuse->reference);
-      $sheet->setCellValue("D{$r}", $toWarehouse->name);
+      $sheet->setCellValue("D{$r}", ($machine ? $machine->warehouses : ''));
       $sheet->setCellValue("E{$r}", $item->product_name);
       $sheet->setCellValue("F{$r}", ($supplier ? $supplier->name : ''));
       $sheet->setCellValue("G{$r}", ''); // Order date
       $sheet->setCellValue("H{$r}", $item->unique_code); // Unique Code
-      $sheet->setCellValue("I{$r}", ($machine ? $machine->name . " ({$machine->warehouses})" : '')); // Machine name and Warehouse
+      $sheet->setCellValue("I{$r}", ($machine ? $machine->name : '')); // Machine name and Warehouse
       $sheet->setCellValue("J{$r}", ($lastIUse ? $lastIUse->created_at : '')); // Installation date.
       $sheet->setCellValue("K{$r}", ($lastItem ? $lastItem->spec : '')); // Installation counter.
       $sheet->setCellValue("L{$r}", $iuse->created_at); // Replacement date.
