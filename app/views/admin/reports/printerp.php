@@ -136,7 +136,12 @@
         <div class="row">
           <div class="col-sm-6">
             <div class="form-group">
-              <a class="btn btn-danger btn-block" href="#" id="XlsSoldItem"><i class="fad fa-fw fa-file-excel"></i> Report Sold Items</a>
+              <a class="btn btn-primary btn-block" href="#" id="XlsSoldItem"><i class="fad fa-fw fa-file-excel"></i> Report Sold Items</a>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="form-group">
+              <a class="btn btn-warning btn-block" href="#" id="XlsUsability"><i class="fad fa-fw fa-file-excel"></i> Report Sparepart Usability</a>
             </div>
           </div>
         </div>
@@ -287,6 +292,22 @@
       // return false;
 
       location.href = site.base_url + 'reports/getSoldItems?' + q;
+    });
+
+    $('#XlsUsability').click(function() {
+      let q = '';
+      let startDate = $('#startDate').val();
+      let endDate = $('#endDate').val();
+
+      if (startDate) {
+        q += '&start_date=' + startDate;
+      }
+
+      if (endDate) {
+        q += '&end_date=' + endDate;
+      }
+
+      location.href = site.base_url + 'reports/getUsabilityReport?' + q;
     });
   });
 </script>

@@ -12,7 +12,7 @@ class Reports extends MY_Controller
       // $this->session->set_userdata('requested_page', $this->uri->uri_string());
       // $this->sma->md('login');
 
-      // loginPage();
+      loginPage();
     }
 
     $this->lang->admin_load('reports', $this->Settings->user_language);
@@ -1814,6 +1814,92 @@ class Reports extends MY_Controller
 
   public function getQMSReport()
   {
+  }
+
+  public function getUsabilityReport()
+  {
+    $startDate  = $this->input->get('start_date') ?? date('Y-m-') . '01';
+    $endDate    = $this->input->get('end_date') ?? date('Y-m-d');
+
+    $iuseItems = DB::table('stocks')->isNotNull('internal_use_id')
+      ->where("created_at BETWEEN '{$startDate} 00:00:00' AND '{$endDate} 23:59:59'")->get();
+
+    $sheet = $this->ridintek->spreadsheet();
+    $sheet->loadFile(FCPATH . 'files/templates/Usability_Report.xlsx');
+
+    $sheet->getSheetByName('Sheet1');
+    $sheet->setTitle('Usability Report');
+    // $sheet->setCellValue('A1', date('F Y', strtotime($startDate)));
+
+    $r = 3;
+
+    foreach ($iuseItems as $item) {
+      $iuse = InternalUse::getRow(['id' => $item->internal_use_id]);
+
+      if ($iuse->category != 'sparepart') continue; // Sparepart only.
+
+      $sameItems = DB::table('stocks')->isNotNull('internal_use_id')
+        ->where('product_id', $item->product_id)->orderBy('internal_use_id', 'ASC')->get();
+
+      $machine  = Product::getRow(['id' => $item->machine_id]);
+      $supplier = Supplier::getRow(['id' => $iuse->supplier_id]);
+      $ts       = User::getRow(['id' => $iuse->ts_id]);
+
+      $lastItem = NULL;
+      $lastIUse = NULL;
+
+      for ($a = 0; $a < count($sameItems); $a++) {
+        if ($sameItems[$a]->id == $item->id) {
+          if (isset($sameItems[$a - 1])) {
+            $lastItem = $sameItems[$a - 1];
+            $lastIUse = InternalUse::getRow(['id' => $lastItem->internal_use_id]);
+          }
+          break;
+        }
+      }
+
+      // Usability Day
+      if ($lastIUse) {
+        $replacementDate = new DateTime($iuse->created_at);
+        $installDate = new DateTime($lastIUse->created_at);
+
+        $usabilityDays = $installDate->diff($replacementDate)->format('%a'); // total days
+      } else {
+        $usabilityDays = 0;
+      }
+
+      // Usability Counter
+      if ($lastItem) {
+        $replacementCounter = intval($item->spec);
+        $installCounter = intval($lastItem->spec);
+
+        $usabilityCounter = $replacementCounter - $installCounter;
+      } else {
+        $usabilityCounter = 0;
+      }
+
+      $sheet->setCellValue("A{$r}", $r - 2);
+      $sheet->setCellValue("B{$r}", $iuse->created_at);
+      $sheet->setCellValue("C{$r}", $item->product_name);
+      $sheet->setCellValue("D{$r}", ($supplier ? $supplier->name : ''));
+      $sheet->setCellValue("E{$r}", ''); // Order date
+      $sheet->setCellValue("F{$r}", $item->unique_code); // Unique Code
+      $sheet->setCellValue("G{$r}", ($machine ? $machine->name . " ({$machine->warehouses})" : '')); // Machine name and Warehouse
+      $sheet->setCellValue("H{$r}", ($lastIUse ? $lastIUse->created_at : '')); // Installation date.
+      $sheet->setCellValue("I{$r}", ($lastItem ? $lastItem->spec : '')); // Installation counter.
+      $sheet->setCellValue("J{$r}", $iuse->created_at); // Replacement date.
+      $sheet->setCellValue("K{$r}", $item->spec); // Replacement counter.
+      $sheet->setCellValue("L{$r}", $usabilityDays); // Usability (day).
+      $sheet->setCellValue("M{$r}", $usabilityCounter); // Usability (counter).
+      $sheet->setCellValue("N{$r}", ($ts ? $ts->fullname : '')); // TS.
+      $sheet->setCellValue("O{$r}", htmlRemove($iuse->note)); // Note.
+
+      $r++;
+    }
+
+    $name = $this->session->userdata('fullname');
+
+    $sheet->export('PrintERP-SparepartUsabilityReport-' . date('Ymd_His') . "-($name)");
   }
 
   public function getWarehouseStockAlerts($warehouse_id = null, $pdf = null, $xls = null)
