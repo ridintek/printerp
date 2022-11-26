@@ -1836,14 +1836,15 @@ class Reports extends MY_Controller
     foreach ($iuseItems as $item) {
       $iuse = InternalUse::getRow(['id' => $item->internal_use_id]);
 
-      if ($iuse->category != 'sparepart') continue; // Sparepart only.
+      // if ($iuse->category != 'sparepart') continue; // Kabeh category.
 
       $sameItems = DB::table('stocks')->isNotNull('internal_use_id')
         ->where('product_id', $item->product_id)->orderBy('internal_use_id', 'ASC')->get();
 
-      $machine  = Product::getRow(['id' => $item->machine_id]);
-      $supplier = Supplier::getRow(['id' => $iuse->supplier_id]);
-      $ts       = User::getRow(['id' => $iuse->ts_id]);
+      $machine      = Product::getRow(['id' => $item->machine_id]);
+      $supplier     = Supplier::getRow(['id' => $iuse->supplier_id]);
+      $ts           = User::getRow(['id' => $iuse->ts_id]);
+      $warehouseTo  = Warehouse::getRow(['id' => $iuse->to_warehouse_id]);
 
       $lastItem = NULL;
       $lastIUse = NULL;
@@ -1881,20 +1882,22 @@ class Reports extends MY_Controller
       $sheet->setCellValue("A{$r}", $r - 2);
       $sheet->setCellValue("B{$r}", $iuse->created_at);
       $sheet->setCellValue("C{$r}", $iuse->reference);
-      $sheet->setCellValue("D{$r}", ($machine ? $machine->warehouses : ''));
+      $sheet->setCellValue("D{$r}", $warehouseTo->name);
       $sheet->setCellValue("E{$r}", $item->product_name);
-      $sheet->setCellValue("F{$r}", ($supplier ? $supplier->name : ''));
-      $sheet->setCellValue("G{$r}", ''); // Order date
-      $sheet->setCellValue("H{$r}", $item->unique_code); // Unique Code
-      $sheet->setCellValue("I{$r}", ($machine ? $machine->name : '')); // Machine name and Warehouse
-      $sheet->setCellValue("J{$r}", ($lastIUse ? $lastIUse->created_at : '')); // Installation date.
-      $sheet->setCellValue("K{$r}", ($lastItem ? $lastItem->spec : '')); // Installation counter.
-      $sheet->setCellValue("L{$r}", $iuse->created_at); // Replacement date.
-      $sheet->setCellValue("M{$r}", $item->spec); // Replacement counter.
-      $sheet->setCellValue("N{$r}", $usabilityDays); // Usability (day).
-      $sheet->setCellValue("O{$r}", $usabilityCounter); // Usability (counter).
-      $sheet->setCellValue("P{$r}", ($ts ? $ts->fullname : '')); // TS.
-      $sheet->setCellValue("Q{$r}", htmlRemove($iuse->note)); // Note.
+      $sheet->setCellValue("F{$r}", $item->cost);
+      $sheet->setCellValue("G{$r}", $item->price);
+      $sheet->setCellValue("H{$r}", ($supplier ? $supplier->name : ''));
+      $sheet->setCellValue("I{$r}", ''); // Order date
+      $sheet->setCellValue("J{$r}", $item->unique_code); // Unique Code
+      $sheet->setCellValue("K{$r}", ($machine ? $machine->name . " ({$machine->warehouses})" : '')); // Machine name and Warehouse
+      $sheet->setCellValue("L{$r}", ($lastIUse ? $lastIUse->created_at : '')); // Installation date.
+      $sheet->setCellValue("M{$r}", ($lastItem ? $lastItem->spec : '')); // Installation counter.
+      $sheet->setCellValue("N{$r}", $iuse->created_at); // Replacement date.
+      $sheet->setCellValue("O{$r}", $item->spec); // Replacement counter.
+      $sheet->setCellValue("P{$r}", $usabilityDays); // Usability (day).
+      $sheet->setCellValue("Q{$r}", $usabilityCounter); // Usability (counter).
+      $sheet->setCellValue("R{$r}", ($ts ? $ts->fullname : '')); // TS.
+      $sheet->setCellValue("S{$r}", htmlRemove($iuse->note)); // Note.
 
       $r++;
     }
