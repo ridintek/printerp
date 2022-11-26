@@ -1652,7 +1652,7 @@ class Site extends MY_Model
             'status'          => $data['status'],
             'warehouse_id'    => $data['from_warehouse_id'],
             'machine_id'      => $item['machine_id'],
-            'unique_code'     => ($data['category'] == 'sparepart' ? generateInternalUseUniqueCode() : NULL),
+            'unique_code'     => generateInternalUseUniqueCode($data['category']),
             'created_by'      => $data['created_by']
           ]);
         }
