@@ -641,46 +641,54 @@ function generateDatatables($db, $columns)
   ]);
 }
 
-function generateInternalUseUniqueCode()
+function generateInternalUseUniqueCode(string $category)
 {
   $code = '';
   $noCode = true;
+  $prefix = [
+    'consumable'  => 'C',
+    'sparepart'   => 'S'
+  ];
 
-  $iuseItems = Stock::get(['not_null' => 'internal_use_id', 'order' => ['created_at', 'DESC']]);
+  $iuseItems = DB::table('stocks')->isNotNull('internal_use_id')
+    ->like('unique_code', $prefix[$category], 'right')
+    ->orderBy('internal_use_id', 'DESC')->get(); // Find Cxxxx or Sxxxx
 
   foreach ($iuseItems as $item) {
     if (!empty($item->unique_code)) {
       $noCode = false;
-      $a = substr($item->unique_code, 0, 1);
-      $c = substr($item->unique_code, 1);
+      $uniqueCode = $item->unique_code;
 
-      if (intval($c) == 999) {
-        $b = ord($a);
+      $prf = substr($uniqueCode, 0, 1); // Prefix C,S
+      $alp = substr($uniqueCode, 1, 1); // Alphabet A,B,C,...
+      $idx = substr($uniqueCode, 2); // Index 001,002,003,...
 
-        if ($b == 90) { // if Z reset to A
-          $b = 65;
+      if (intval($idx) == 999) {
+        $a = ord($alp);
+
+        if ($a == 90) { // if Z reset to A
+          $a = 65;
         } else {
-          $b++;
+          $a++;
         }
 
-        $code = chr($b) . '001';
+        $code = $prf . chr($a) . '001';
       } else {
-        $c = intval($c);
-        $c++;
+        $i = intval($idx);
+        $i++;
 
         // Prepend zero.
-        $ca = strval($c);
-        if ($c < 100) $ca = '0' . $c;
-        if ($c < 10)  $ca = '00' . $c;
+        $id = strval($i);
+        $id = ($i < 100 ? ($i < 10 ? '00' . $id : '0' . $id) : $id);
 
-        $code = $a . $ca;
+        $code = $prf . $alp . $id;
       }
 
       break;
     }
   }
 
-  return ($noCode ? 'A001' : $code);
+  return ($noCode ? $prefix[$category] . 'A001' : $code);
 }
 
 /**
