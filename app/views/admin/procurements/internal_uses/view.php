@@ -160,9 +160,9 @@
       <?php if ( ! $Supplier || !$Customer) { ?>
       <div class="buttons">
         <div class="btn-group btn-group-justified">
-          <?php if ($internal_use->attachment) { ?>
+          <?php if ($internal_use->attachment_id) { ?>
           <div class="btn-group">
-            <a href="<?= admin_url('gallery/view?name=' . $internal_use->attachment) ?>&path=internal_uses" class="tip btn btn-primary" data-toggle="modal" data-target="#myModal3" title="<?= lang('attachment') ?>">
+            <a href="<?= admin_url("gallery/attachment/{$internal_use->attachment_id}/?modal=1") ?>" class="tip btn btn-primary" data-toggle="modal" data-target="#myModal3" title="<?= lang('attachment') ?>">
               <i class="fad fa-chain"></i>
               <span class="hidden-sm hidden-xs"><?= lang('attachment') ?></span>
             </a>
