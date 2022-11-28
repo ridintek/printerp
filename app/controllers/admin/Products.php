@@ -4885,7 +4885,7 @@ class Products extends MY_Controller
     $this->page_construct('products/transfer/plan', $this->data);
   }
 
-  private function transfers_updateSafetyStock()
+  protected function transfer_updateSafetyStock()
   {
     if ($this->input->is_ajax_request() && $_SERVER['REQUEST_METHOD'] == 'POST') {
       ini_set('max_execution_time', 0);
