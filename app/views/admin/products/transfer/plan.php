@@ -249,16 +249,8 @@ if ($filter = $this->input->get('f')) {
 </div>
 <script>
   $(document).ready(function() {
-    $('#btn_filter').click(function() {
-      filterStockOpname();
-    });
-
     $('#create_transfers').click(function() {
       createTransfers();
-    });
-
-    $('#export_excel').click(function() {
-      filterStockOpname(true);
     });
 
     $('#update_safety_stock').click(function() {
@@ -284,14 +276,12 @@ if ($filter = $this->input->get('f')) {
                 addAlert('Unknown error', 'danger');
               }
             },
-            url: site.base_url + 'procurements/transfers/updateSafetyStock'
+            url: site.base_url + 'products/transfer/updateSafetyStock'
           });
         },
         title: '<b>Update Safety Stock Seluruh Item</b>'
       });
     });
-
-    // reloadContextMenu();
   });
 
   function createTransfers() {
@@ -322,120 +312,5 @@ if ($filter = $this->input->get('f')) {
       },
       url: site.base_url + 'products/transfer/addProductTransferFromPlan'
     });
-  }
-
-  function filterStockOpname(xls = false) {
-    let q = '';
-    let group_by = $('#group_by').val();
-    let warehouses = $('#warehouses').val();
-    let start_date = $('#start_date').val();
-    let end_date = $('#end_date').val();
-
-    if (group_by) q += '&group_by=' + group_by;
-
-    if (warehouses) {
-      for (wh of warehouses) {
-        q += '&warehouses[]=' + wh;
-      }
-    }
-    if (start_date) q += '&start_date=' + start_date;
-    if (end_date) q += '&end_date=' + end_date;
-    if (xls) q += '&xls=1';
-
-    if (xls) {
-      location.href = site.base_url + 'products/stock_opname/getStockOpname?' + trimFilter(q);
-    } else {
-      location.href = site.base_url + 'products/stock_opname?f=' + btoa(trimFilter(q));
-    }
-  }
-
-  function reloadContextMenu() {
-    let privilege = '<?= $Owner ?? $Admin; ?>';
-    let contextMenuOpt = {
-      selector: '.opname_link',
-      callback: function(key, opt) {
-        let opname_id = opt.$trigger.data('id');
-        let reference = opt.$trigger.data('reference');
-        let status = opt.$trigger.data('status');
-
-        if (key == 'confirm') {
-          if (status == 'checked' || status == 'confirmed') {
-            location.href = site.base_url + 'products/stock_opname/confirm/' + opname_id;
-          } else {
-            addAlert(`Tidak dapat di 'confirm', status telah '${status}'.`, 'danger');
-          }
-        }
-        if (key == 'delete') {
-          alertify.dialog('confirm').set({
-            message: `Are you sure to delete Stock Opname <b>${reference}</b>?`,
-            onok: function() {
-              let data = {
-                id: opname_id
-              };
-              data[security.csrf_token_name] = security.csrf_hash;
-              $.ajax({
-                data: data,
-                method: 'POST',
-                success: function(data) {
-                  if (typeof data == 'object' && !data.error) {
-                    if (Table) Table.draw();
-                    addAlert(data.msg, 'success');
-                  } else if (typeof data == 'object' && data.error) {
-                    addAlert(data.msg, 'danger');
-                  } else {
-                    addAlert('Unknown error', 'danger');
-                  }
-                },
-                url: site.base_url + 'products/stock_opname/delete'
-              });
-            },
-            title: 'Delete Stock Opname',
-            transition: 'zoom'
-          }).show();
-        }
-        if (key == 'edit') {
-          location.href = site.base_url + 'products/stock_opname/edit/' + opname_id;
-        }
-        if (key == 'view') {
-          showModal(site.base_url + 'products/stock_opname/view/' + opname_id, 'modal-lg no-modal-header');
-        }
-        if (key == 'view_minus') {
-          showModal(site.base_url + 'products/stock_opname/view/' + opname_id + '?mode=minus', 'modal-lg no-modal-header');
-        }
-        if (key == 'view_plus') {
-          showModal(site.base_url + 'products/stock_opname/view/' + opname_id + '?mode=plus', 'modal-lg no-modal-header');
-        }
-      }
-    };
-
-    contextMenuOpt.items = {};
-    contextMenuOpt.items['confirm'] = {
-      name: 'Confirm Stock Opname',
-      icon: 'fas fa-box-check'
-    };
-    if (privilege == 1 || privilege == 2) {
-      contextMenuOpt.items['delete'] = {
-        name: 'Delete Stock Opname',
-        icon: 'fas fa-trash-alt'
-      };
-      contextMenuOpt.items['edit'] = {
-        name: 'Edit Stock Opname',
-        icon: 'fas fa-edit'
-      };
-    }
-    contextMenuOpt.items['view'] = {
-      name: 'View Details',
-      icon: 'fas fa-search'
-    };
-    contextMenuOpt.items['view_minus'] = {
-      name: 'View Minus Details',
-      icon: 'fas fa-search-minus'
-    };
-    contextMenuOpt.items['view_plus'] = {
-      name: 'View Plus Details',
-      icon: 'fas fa-search-plus'
-    };
-
-    $.contextMenu(contextMenuOpt);
   }
 </script>
