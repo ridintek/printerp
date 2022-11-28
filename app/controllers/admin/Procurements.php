@@ -3198,7 +3198,6 @@ class Procurements extends MY_Controller
   private function transfers_getTransfersPlan()
   {
     $today = getDayName(date('w') + 1); // Get today name. Ex. senin, selasa, ...
-    $week = getCurrentWeekOfMonth();
 
     $this->load->library('datatable');
     $this->datatable
@@ -3208,8 +3207,8 @@ class Procurements extends MY_Controller
           JSON_UNQUOTE(JSON_EXTRACT(json_data, '$.visit_weeks')) AS visit_weeks,
         warehouses.id AS warehouses_id") // FALSE required for disable escaping column.
       ->from('warehouses')
+      ->where('active', 1)
       ->like("LOWER(JSON_UNQUOTE(JSON_EXTRACT(json_data, '$.visit_days')))", $today, 'both');
-    // ->like("LOWER(JSON_UNQUOTE(JSON_EXTRACT(json_data, '$.visit_weeks')))", $week, 'both');
 
     echo $this->datatable->generate();
   }
