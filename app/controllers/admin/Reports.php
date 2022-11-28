@@ -1838,31 +1838,38 @@ class Reports extends MY_Controller
 
       // if ($iuse->category != 'sparepart') continue; // Kabeh category.
 
-      $sameItems = DB::table('stocks')->isNotNull('internal_use_id')
-        ->where('product_id', $item->product_id)->orderBy('internal_use_id', 'ASC')->get();
+      $sameItems = DB::table('stocks')
+        ->select('stocks.*')
+        ->join('internal_uses', 'internal_uses.id = stocks.internal_use_id', 'left')
+        ->isNotNull('stocks.internal_use_id')
+        ->where('stocks.product_id', $item->product_id)
+        ->where('internal_uses.to_warehouse_id', $iuse->to_warehouse_id)
+        ->orderBy('stocks.internal_use_id', 'ASC')->get();
 
       $machine      = Product::getRow(['id' => $item->machine_id]);
       $supplier     = Supplier::getRow(['id' => $iuse->supplier_id]);
       $ts           = User::getRow(['id' => $iuse->ts_id]);
       $warehouseTo  = Warehouse::getRow(['id' => $iuse->to_warehouse_id]);
 
-      $lastItem = NULL;
-      $lastIUse = NULL;
+      $nextItem = NULL;
+      $nextIUse = NULL;
 
-      for ($a = 0; $a < count($sameItems); $a++) {
-        if ($sameItems[$a]->id == $item->id) {
-          if (isset($sameItems[$a - 1])) {
-            $lastItem = $sameItems[$a - 1];
-            $lastIUse = InternalUse::getRow(['id' => $lastItem->internal_use_id]);
+      if ($sameItems) {
+        for ($a = 0; $a < count($sameItems); $a++) {
+          if ($sameItems[$a]->id == $item->id) {
+            if (isset($sameItems[$a + 1])) {
+              $nextItem = $sameItems[$a + 1];
+              $nextIUse = InternalUse::getRow(['id' => $nextItem->internal_use_id]);
+            }
+            break;
           }
-          break;
         }
       }
 
       // Usability Day
-      if ($lastIUse) {
-        $replacementDate = new DateTime($iuse->created_at);
-        $installDate = new DateTime($lastIUse->created_at);
+      if ($nextIUse) {
+        $replacementDate = new DateTime($nextIUse->created_at);
+        $installDate = new DateTime($iuse->created_at);
 
         $usabilityDays = $installDate->diff($replacementDate)->format('%a'); // total days
       } else {
@@ -1870,9 +1877,9 @@ class Reports extends MY_Controller
       }
 
       // Usability Counter
-      if ($lastItem) {
-        $replacementCounter = intval($item->spec);
-        $installCounter = intval($lastItem->spec);
+      if ($nextItem) {
+        $replacementCounter = intval($nextItem->spec);
+        $installCounter = intval($item->spec);
 
         $usabilityCounter = $replacementCounter - $installCounter;
       } else {
@@ -1890,10 +1897,10 @@ class Reports extends MY_Controller
       $sheet->setCellValue("I{$r}", ''); // Order date
       $sheet->setCellValue("J{$r}", $item->unique_code); // Unique Code
       $sheet->setCellValue("K{$r}", ($machine ? $machine->name . " ({$machine->warehouses})" : '')); // Machine name and Warehouse
-      $sheet->setCellValue("L{$r}", ($lastIUse ? $lastIUse->created_at : '')); // Installation date.
-      $sheet->setCellValue("M{$r}", ($lastItem ? $lastItem->spec : '')); // Installation counter.
-      $sheet->setCellValue("N{$r}", $iuse->created_at); // Replacement date.
-      $sheet->setCellValue("O{$r}", $item->spec); // Replacement counter.
+      $sheet->setCellValue("L{$r}", $iuse->created_at); // Installation date.
+      $sheet->setCellValue("M{$r}", $item->spec); // Installation counter.
+      $sheet->setCellValue("N{$r}", ($nextIUse ? $nextIUse->created_at : '')); // Replacement date.
+      $sheet->setCellValue("O{$r}", ($nextItem ? $nextItem->spec : '')); // Replacement counter.
       $sheet->setCellValue("P{$r}", $usabilityDays); // Usability (day).
       $sheet->setCellValue("Q{$r}", $usabilityCounter); // Usability (counter).
       $sheet->setCellValue("R{$r}", ($ts ? $ts->fullname : '')); // TS.
