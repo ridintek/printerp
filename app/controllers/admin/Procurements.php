@@ -214,15 +214,15 @@ class Procurements extends MY_Controller
     }
   }
 
-  private function internal_uses_delete($internal_use_id)
+  private function internal_uses_delete($iuseId)
   {
     $this->sma->checkUserPermissions('internal_uses-delete');
 
     if ($this->input->get('id')) {
-      $internal_use_id = $this->input->get('id');
+      $iuseId = $this->input->get('id');
     }
 
-    if ($this->site->deleteStockInternalUse($internal_use_id)) {
+    if ($this->site->deleteStockInternalUse($iuseId)) {
       if ($this->input->is_ajax_request()) {
         sendJSON(['error' => 0, 'msg' => 'Internal Use has been deleted successfully.']);
       } else {
@@ -239,9 +239,9 @@ class Procurements extends MY_Controller
     }
   }
 
-  private function internal_uses_edit($internal_use_id)
+  private function internal_uses_edit($iuseId)
   {
-    $internal_use = $this->site->getStockInternalUseByID($internal_use_id);
+    $iuse = $this->site->getStockInternalUseByID($iuseId);
 
     $this->form_validation->set_message('is_natural_no_zero', lang('no_zero_required'));
     $this->form_validation->set_rules('reference', lang('reference'), 'required');
@@ -262,15 +262,15 @@ class Procurements extends MY_Controller
       $tsId             = $this->input->post('ts');
 
       if ($this->iuse_mode == 'status') {
-        if ($status == $internal_use->status) {
+        if ($status == $iuse->status) {
           $this->session->set_flashdata('error', 'Status not changed');
-          admin_redirect('procurements/internal_uses/status/' . $internal_use->id);
+          admin_redirect('procurements/internal_uses/status/' . $iuse->id);
         }
       }
 
       if (empty($category)) {
         $this->session->set_flashdata('error', 'Category is empty.');
-        admin_redirect('procurements/internal_uses/status/' . $internal_use->id);
+        admin_redirect('procurements/internal_uses/status/' . $iuse->id);
       }
 
       $i = isset($_POST['product_id']) ? count($_POST['product_id']) : 0;
@@ -288,13 +288,13 @@ class Procurements extends MY_Controller
 
           if (!$product) {
             $this->session->set_flashdata('error', lang('no_match_found') . ' (' . lang('product_name') . ' <strong>' . $product->name . '</strong> ' . lang('product_code') . ' <strong>' . $product->code . '</strong>)');
-            admin_redirect('procurements/internal_uses/edit/' . $internal_use->id);
+            admin_redirect('procurements/internal_uses/edit/' . $iuse->id);
           }
 
           if ($product->iuse_type == 'sparepart') {
             if (empty($item_machine)) {
               $this->session->set_flashdata('error', "Machine is not selected for {$item_code}.");
-              admin_redirect('procurements/internal_uses/edit/' . $internal_use->id);
+              admin_redirect('procurements/internal_uses/edit/' . $iuse->id);
             }
           }
 
@@ -328,7 +328,7 @@ class Procurements extends MY_Controller
         $this->form_validation->set_rules('product', lang('order_items'), 'required');
       }
 
-      $internal_use_data = [
+      $internalUseData = [
         'date'              => $date,
         'category'          => $category, // Add new, consumable/sparepart.
         'biller_id'         => warehouseToBiller($category == 'sparepart' ? $warehouseIdFrom : $warehouseIdTo),
@@ -348,29 +348,29 @@ class Procurements extends MY_Controller
 
       if ($upload->has('document') && $upload->getSize('mb') <= 2) {
         $internalUseData['attachment_id'] = $upload->storeRandom();
-      } else if ($status == 'installed' && empty($internal_use->attachment_id)) {
+      } else if ($status == 'installed' && empty($iuse->attachment_id)) {
         $this->session->set_flashdata('error', 'Attachment harus disertakan jika sudah selesai instalasi.');
-        admin_redirect('procurements/internal_uses/status/' . $internal_use_id);
+        admin_redirect('procurements/internal_uses/status/' . $iuse->id);
       }
     }
 
     if ($this->form_validation->run() == true) {
 
-      if ($this->site->updateStockInternalUse($internal_use_id, $internal_use_data, $products)) {
+      if ($this->site->updateStockInternalUse($iuse->id, $internalUseData, $products)) {
         $this->session->set_userdata('remove_tols', 1);
         $this->session->set_flashdata('message', 'Internal Use has been edited successfully.');
       } else {
         $this->session->set_userdata('remove_tols', 1);
         $this->session->set_flashdata('error', 'Failed to edit Internal Use.');
-        admin_redirect('procurements/internal_uses/edit/' . $internal_use_id);
+        admin_redirect('procurements/internal_uses/edit/' . $iuse->id);
       }
 
       admin_redirect('procurements/internal_uses');
     } else {
       $iu_items = [];
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
-      $this->data['internal_use'] = $internal_use;
-      $internal_use_items         = $this->site->getStockInternalUseItems($internal_use_id);
+      $this->data['internal_use'] = $iuse;
+      $internal_use_items         = $this->site->getStockInternalUseItems($iuse->id);
 
       foreach ($internal_use_items as $item) {
         $row = $this->site->getProductByID($item->product_id);
@@ -382,7 +382,7 @@ class Procurements extends MY_Controller
           unset($row->details, $row->product_details, $row->image, $row->barcode_symbology, $row->cf1, $row->cf2, $row->cf3, $row->cf4, $row->cf5, $row->cf6, $row->supplier1price, $row->supplier2price, $row->cfsupplier3price, $row->supplier4price, $row->supplier5price, $row->supplier1, $row->supplier2, $row->supplier3, $row->supplier4, $row->supplier5, $row->supplier1_part_no, $row->supplier2_part_no, $row->supplier3_part_no, $row->supplier4_part_no, $row->supplier5_part_no);
         }
 
-        $whp_to               = $this->site->getWarehouseProduct($item->product_id, $internal_use->to_warehouse_id);
+        $whp_to               = $this->site->getWarehouseProduct($item->product_id, $iuse->to_warehouse_id);
 
         $row->source_qty      = $item->quantity;
         $row->destination_qty = $whp_to->quantity;
@@ -409,7 +409,7 @@ class Procurements extends MY_Controller
 
       $this->data['internal_use_items'] = $iu_items;
       $this->data['iuse_mode']          = $this->iuse_mode;
-      $this->data['id']                 = $internal_use_id;
+      $this->data['id']                 = $iuse->id;
       $this->data['teamSupports']       = getTeamSupports();
       $this->data['machines']           = $this->site->getAllMachines();
       $this->data['warehouses']         = $this->site->getAllWarehouses();
