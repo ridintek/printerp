@@ -118,7 +118,7 @@ class Welcome extends MY_Controller
     $noChart = ($this->input->get('nochart') ?? 0);
 
     if (!$this->isLocal)
-      $this->data['sales'] = NULL; //$this->db_model->getLatestSales();
+      $this->data['sales'] = []; //$this->db_model->getLatestSales();
 
     if ($sync = $this->input->get('sync')) {
       if ($sync == 'sales') {
