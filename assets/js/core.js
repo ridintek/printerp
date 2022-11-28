@@ -1059,7 +1059,7 @@ $(document).ready(function () {
           error: () => {
             reject('Ajax Error');
           },
-          success: () => {
+          success: (data) => {
             resolve(data);
           }
         });
