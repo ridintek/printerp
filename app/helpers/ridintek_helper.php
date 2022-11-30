@@ -661,9 +661,9 @@ function generateInternalUseUniqueCode(string $category)
 
       $prf = substr($uniqueCode, 0, 1); // Prefix C,S
       $alp = substr($uniqueCode, 1, 1); // Alphabet A,B,C,...
-      $idx = substr($uniqueCode, 2); // Index 001,002,003,...
+      $idx = substr($uniqueCode, 2); // Index 0001,0002,0003,...
 
-      if (intval($idx) == 999) {
+      if (intval($idx) == 9999) {
         $a = ord($alp);
 
         if ($a == 90) { // if Z reset to A
@@ -672,14 +672,14 @@ function generateInternalUseUniqueCode(string $category)
           $a++;
         }
 
-        $code = $prf . chr($a) . '001';
+        $code = $prf . chr($a) . '0001';
       } else {
         $i = intval($idx);
         $i++;
 
         // Prepend zero.
         $id = strval($i);
-        $id = ($i < 100 ? ($i < 10 ? '00' . $id : '0' . $id) : $id);
+        $id = ($i < 1000 ? ($i < 100 ? ($i < 10 ? '000' . $id : '00' . $id) : '0' . $id) : $id);
 
         $code = $prf . $alp . $id;
       }
@@ -688,7 +688,7 @@ function generateInternalUseUniqueCode(string $category)
     }
   }
 
-  return ($noCode ? $prefix[$category] . 'A001' : $code);
+  return ($noCode ? $prefix[$category] . 'A0001' : $code);
 }
 
 /**
