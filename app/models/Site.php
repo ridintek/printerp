@@ -1635,9 +1635,9 @@ class Site extends MY_Model
               $mainCost += $item['price'];
 
               $this->updateProducts([[
-                'product_id' => $machine->id,
-                'maintenance_qty' => $maintain,
-                'maintenance_cost' => $mainCost,
+                'product_id'        => $machine->id,
+                'maintenance_qty'   => $maintain,
+                'maintenance_cost'  => $mainCost,
               ]]);
             }
           }
@@ -1653,6 +1653,7 @@ class Site extends MY_Model
             'warehouse_id'    => $data['from_warehouse_id'],
             'machine_id'      => $item['machine_id'],
             'unique_code'     => generateInternalUseUniqueCode($data['category']),
+            'ucr'             => ($item['ucr'] ?? NULL),
             'created_by'      => $data['created_by']
           ]);
         }
@@ -1988,9 +1989,10 @@ class Site extends MY_Model
         $stock_data['subtotal'] = filterDecimal($data['price']) * filterDecimal($data['quantity']);
       }
 
-      if (!empty($data['machine_id']))  $stock_data['machine_id'] = $data['machine_id'];
-      if (!empty($data['unique_code'])) $stock_data['unique_code'] = $data['unique_code'];
-      if (isset($data['json_data']))    $stock_data['json_data']  = $data['json_data'];
+      if (!empty($data['machine_id']))  $stock_data['machine_id']   = $data['machine_id'];
+      if (!empty($data['ucr']))         $stock_data['ucr']          = $data['ucr'];
+      if (!empty($data['unique_code'])) $stock_data['unique_code']  = $data['unique_code'];
+      if (isset($data['json_data']))    $stock_data['json_data']    = $data['json_data'];
 
       $product = $ci->getProductByID($data['product_id']);
 
@@ -3539,16 +3541,16 @@ class Site extends MY_Model
   /**
    * THE ONLY FUNCTION TO DELETE INTERNAL USE.
    */
-  public function deleteStockInternalUse($internal_use_id)
+  public function deleteStockInternalUse($iuseId)
   {
-    $internal_use = $this->getStockInternalUseByID($internal_use_id);
-    if ($internal_use && $this->deleteStockQuantity(['internal_use_id' => $internal_use_id])) {
-      if ($this->db->delete('internal_uses', ['id' => $internal_use_id])) {
-        if ($internal_use->attachment) {
-          $this->deleteAttachment($internal_use->attachment);
+    $iuse = $this->getStockInternalUseByID($iuseId);
+    if ($iuse && $this->deleteStockQuantity(['internal_use_id' => $iuseId])) {
+      if ($this->db->delete('internal_uses', ['id' => $iuseId])) {
+        if ($iuse->attachment_id) {
+          Attachment::delete(['id' => $iuseId]);
         }
 
-        addEvent("Deleted Internal Use [{$internal_use->id}: {$internal_use->reference}]", 'warning');
+        addEvent("Deleted Internal Use [{$iuse->id}: {$iuse->reference}]", 'warning');
         return TRUE;
       }
     }
@@ -6307,18 +6309,18 @@ class Site extends MY_Model
     return NULL;
   }
 
-  public function getStockInternalUseByID($internal_use_id)
+  public function getStockInternalUseByID($iuseId)
   {
-    $q = $this->db->get_where('internal_uses', ['id' => $internal_use_id]);
+    $q = $this->db->get_where('internal_uses', ['id' => $iuseId]);
     if ($q->num_rows() > 0) {
       return $q->row();
     }
     return NULL;
   }
 
-  public function getStockInternalUseItems($internal_use_id)
+  public function getStockInternalUseItems($iuseId)
   {
-    return $this->getStocks(['internal_use_id' => $internal_use_id]);
+    return $this->getStocks(['internal_use_id' => $iuseId]);
   }
 
   /**
@@ -9597,19 +9599,19 @@ class Site extends MY_Model
   /**
    * THE ONLY FUNCTION TO UPDATE INTERNAL USE.
    */
-  public function updateStockInternalUse($internal_use_id, $data, $items = [])
+  public function updateStockInternalUse($iuseId, $data, $items = [])
   {
-    $old_internal_use = $this->getStockInternalUseByID($internal_use_id);
+    $oldIUse = $this->getStockInternalUseByID($iuseId);
 
-    if ($old_internal_use->category == 'consumable') {
+    if ($oldIUse->category == 'consumable') {
       $data['status'] = 'completed';
     }
 
-    $this->db->trans_start();
-    $this->db->update('internal_uses', $data, ['id' => $internal_use_id]);
-    $this->db->trans_complete();
+    $data = setUpdatedBy($data);
 
-    if ($this->db->trans_status() !== FALSE) {
+    DB::table('internal_uses')->update($data, ['id' => $iuseId]);
+
+    if (DB::affectedRows()) {
       if (isset($data['status'])) {
         if ($data['status'] == 'packing' || $data['status'] == 'installed' || $data['status'] == 'completed') {
           $data['status'] = 'sent'; // Change from packing to sent for stocks.
@@ -9617,13 +9619,13 @@ class Site extends MY_Model
       }
 
       if ($items) {
-        $internal_use = $this->getStockInternalUseByID($internal_use_id);
-        $this->deleteStockQuantity(['internal_use_id' => $internal_use_id]);
+        $iuse = $this->getStockInternalUseByID($iuseId);
+        $this->deleteStockQuantity(['internal_use_id' => $iuseId]);
 
         foreach ($items as $item) {
           $this->addStockQuantity([
             'date'            => $data['date'],
-            'internal_use_id' => $internal_use_id,
+            'internal_use_id' => $iuseId,
             'product_id'      => $item['product_id'],
             'price'           => $item['price'],
             'quantity'        => $item['quantity'],
@@ -9631,8 +9633,9 @@ class Site extends MY_Model
             'status'          => $data['status'],
             'warehouse_id'    => $data['from_warehouse_id'],
             'machine_id'      => $item['machine_id'],
+            'ucr'             => $item['ucr'],
             'unique_code'     => $item['unique_code'],
-            'created_by'      => ($data['created_by'] ?? $internal_use->created_by),
+            'created_by'      => ($data['created_by'] ?? $iuse->created_by),
             'updated_by'      => $this->session->userdata('user_id')
           ]);
         }

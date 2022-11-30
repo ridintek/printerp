@@ -73,6 +73,7 @@
               <th style="vertical-align:middle;">Description</th>
               <th style="vertical-align:middle;">Machine</th>
               <th style="vertical-align:middle;">Unique Code</th>
+              <th style="vertical-align:middle;">Unique Code Replacement</th>
               <th style="vertical-align:middle;">Counter</th>
               <th style="text-align:center; vertical-align:middle;"><?= lang('quantity'); ?></th>
               <?php if ($Owner || $Admin) { ?>
@@ -102,6 +103,7 @@
               </td>
               <td class="text-center" style="width:25px;"><?= ($machine ? $machine->name : 'All Machines'); ?></td>
               <td class="text-center"><?= ($iuseItem->unique_code ?? '-') ?></td>
+              <td class="text-center"><?= ($iuseItem->ucr ?? '-') ?></td>
               <td class="text-right"><?= ( ! empty($iuseItem->spec) ? $iuseItem->spec : '-'); ?></td>
               <td class="text-center" style="width:80px; "><?= formatStock($iuseItem->quantity) . ' ' . $iuseItem->unit_code; ?></td>
               <?php if ($Owner || $Admin) { ?>
@@ -117,7 +119,7 @@
           <?php if ($Owner || $Admin) { ?>
           <tfoot>
             <tr>
-              <td class="text-right" colspan="7"><strong>Grand Total</strong></td>
+              <td class="text-right" colspan="8"><strong>Grand Total</strong></td>
               <td class="text-right"><strong><?= formatCurrency($grandTotal); ?></strong></td>
             </tr>
           </tfoot>

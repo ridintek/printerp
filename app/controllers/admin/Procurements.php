@@ -97,11 +97,12 @@ class Procurements extends MY_Controller
       $i = isset($_POST['product_id']) ? sizeof($_POST['product_id']) : 0;
 
       for ($r = 0; $r < $i; $r++) {
-        $item_code          = $_POST['product_code'][$r];
-        $item_machine       = $_POST['machines'][$r];
-        $item_price         = $_POST['price'][$r];
-        $item_quantity      = $_POST['quantity'][$r];
-        $item_spec          = $_POST['spec'][$r]; // Counter.
+        $item_code      = $_POST['product_code'][$r];
+        $item_machine   = $_POST['machines'][$r];
+        $item_price     = $_POST['price'][$r];
+        $item_quantity  = $_POST['quantity'][$r];
+        $item_spec      = $_POST['spec'][$r]; // Counter.
+        $itemUCR        = $_POST['ucr'][$r]; // Unique Code Replacement.
 
         if (isset($item_code) && isset($item_quantity)) {
           $product = Product::getRow(['code' => $item_code]);
@@ -145,8 +146,9 @@ class Procurements extends MY_Controller
             'machine_id'  => $item_machine,
             'price'       => $item_price,
             'quantity'    => $item_quantity,
-            'spec'        => $item_spec
-          ]; // unique_code in model.
+            'spec'        => $item_spec,
+            'ucr'         => $itemUCR
+          ]; // unique_code generated in model.
 
           $items .= '- ' . getExcerpt($product->name) . '<br>';
           if ($item_spec) $counter .= $item_spec . '<br>'; // Item spec used as counter.
@@ -281,10 +283,11 @@ class Procurements extends MY_Controller
         $item_price     = $_POST['price'][$r];
         $item_quantity  = $_POST['quantity'][$r];
         $item_spec      = $_POST['spec'][$r];
+        $itemUCR        = $_POST['ucr'][$r];
         $itemUniqueCode = $_POST['unique_code'][$r];
 
         if (isset($item_code) && isset($item_quantity)) {
-          $product = $this->site->getProductByCode($item_code);
+          $product = Product::getRow(['code' => $item_code]);
 
           if (!$product) {
             $this->session->set_flashdata('error', lang('no_match_found') . ' (' . lang('product_name') . ' <strong>' . $product->name . '</strong> ' . lang('product_code') . ' <strong>' . $product->code . '</strong>)');
@@ -314,6 +317,7 @@ class Procurements extends MY_Controller
             'price'       => $item_price,
             'quantity'    => $item_quantity,
             'spec'        => $item_spec,
+            'ucr'         => $itemUCR,
             'unique_code' => $itemUniqueCode
           ];
 
@@ -392,6 +396,7 @@ class Procurements extends MY_Controller
         $row->unit            = $item->unit_id;
         $row->spec            = ($item->spec ?? '');
         $row->machine_id      = ($item->machine_id ?? NULL);
+        $row->ucr             = $item->ucr;
         $row->unique_code     = $item->unique_code;
 
         $units    = $this->site->getUnitsByBUID($row->unit);
@@ -708,19 +713,21 @@ class Procurements extends MY_Controller
 
         if ($safe_stock > $source_stock) $safe_stock = $source_stock; // If safe stock more then source stock.
 
-        $row->cost             = filterDecimal($row->cost);
-        $row->price            = filterDecimal($row->price);
-        $row->markon_price     = filterDecimal($row->markon_price);
-        $row->source_qty       = $source_stock; // Lucretia stock
-        $row->destination_qty  = $destination_stock; // Destination outlet stock.
-        $row->min_order_qty    = $row->min_order_qty; // Min. order quantity.
-        $row->safety_stock     = $to_whp->safety_stock; // Destination outlet safety stock.
-        $row->quantity         = $safe_stock;
-        $row->spec             = '';
-        $row->base_unit        = $row->unit;
-        $row->unit             = (!empty($row->purchase_unit) ? $row->purchase_unit : $row->unit);
-        $row->machine_id       = 0;
-        $units                 = $this->site->getUnitsByBUID($row->unit);
+        $row->cost            = filterDecimal($row->cost);
+        $row->price           = filterDecimal($row->price);
+        $row->markon_price    = filterDecimal($row->markon_price);
+        $row->source_qty      = $source_stock; // Lucretia stock
+        $row->destination_qty = $destination_stock; // Destination outlet stock.
+        $row->min_order_qty   = $row->min_order_qty; // Min. order quantity.
+        $row->safety_stock    = $to_whp->safety_stock; // Destination outlet safety stock.
+        $row->quantity        = $safe_stock;
+        $row->spec            = '';
+        $row->base_unit       = $row->unit;
+        $row->unit            = (!empty($row->purchase_unit) ? $row->purchase_unit : $row->unit);
+        $row->machine_id      = 0;
+        $row->unique_code     = '';
+        $row->ucr             = '';
+        $units                = $this->site->getUnitsByBUID($row->unit);
 
         if ($row->base_unit != $row->unit) {
           foreach ($units as $unit) { // For quantity alert stock. OK.

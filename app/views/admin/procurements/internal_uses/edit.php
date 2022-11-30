@@ -304,12 +304,14 @@
                 <table id="toTable" class="table items table-striped table-bordered table-condensed table-hover sortable_table">
                   <thead>
                     <tr>
-                      <th class="col-md-4"><?= lang('product') . ' (' . lang('code') . ' - ' . lang('name') . ')'; ?></th>
-                      <th class="col-md-4"><?= lang('machine'); ?></th>
-                      <th class="col-md-2"><?= lang('counter'); ?></th>
-                      <th><?= lang('unit'); ?></th>
-                      <th><?= lang('quantity'); ?></th>
-                      <th><?= lang('source_stock'); ?></th>
+                      <th class="col-md-4">Product (Code - Name)</th>
+                      <th class="col-md-2">Machine</th>
+                      <th class="col-md-2">Counter</th>
+                      <th>Unique Code Replacement</th>
+                      <th>Unit</th>
+                      <th>Quantity</th>
+                      <th>Source Stock</th>
+                      </th>
                       <th style="width: 30px !important; text-align: center;">
                         <i class="fad fa-trash" style="opacity:0.5; filter:alpha(opacity=50);"></i>
                       </th>

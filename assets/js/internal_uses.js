@@ -188,12 +188,23 @@ $(document).ready(function () {
   /* --------------------------
    * Edit Spec Item Method
    -------------------------- */
-   var old_row_qty;
    $(document).on("change", '.spec', function () {
     let row = $(this).parents('tr');
     let row_id = row.attr('data-row-id');
 
     iuitems[row_id].row.spec = $(this).val();
+    localStorage.setItem('iuitems', JSON.stringify(iuitems));
+    loadItems();
+  });
+
+  /* --------------------------
+   * Edit Unique Code Replacement
+   -------------------------- */
+   $(document).on("change", '.ucr', function () {
+    let row = $(this).parents('tr');
+    let row_id = row.attr('data-row-id');
+
+    iuitems[row_id].row.ucr = $(this).val();
     localStorage.setItem('iuitems', JSON.stringify(iuitems));
     loadItems();
   });
@@ -362,6 +373,7 @@ $(document).ready(function () {
           item_price        = item.row.price,
           item_spec         = item.row.spec,
           itemUniqueCode    = item.row.unique_code,
+          itemUCR           = item.row.ucr,
           row_no            = item.id;
 
         // Source stock.
@@ -417,7 +429,10 @@ $(document).ready(function () {
         </td>`;
 
         // Spec as Counter
-        tr_html += `<td class="text-center"><input class="form-control editor spec" name="spec[]" value="${item_spec}"></td>`;
+        tr_html += `<td class="text-center"><input class="form-control editor spec" name="spec[]" value="${item_spec}" ${readonly}></td>`;
+
+        // UCR (Unique Code Replacement)
+        tr_html += `<td class="text-center"><input class="form-control editor ucr" name="ucr[]" value="${itemUCR}" ${readonly}></td>`;
 
         // Unit
         tr_html += `<td class="text-center">${unit_name}</td>`;
@@ -449,7 +464,7 @@ $(document).ready(function () {
         }
       });
 
-      var col = 6; // For add/edit mode.
+      var col = 7; // For add/edit mode.
 
       if (true || update_mode) {
         col -= 0; // For update mode/status mode.

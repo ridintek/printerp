@@ -150,13 +150,13 @@
 
 <div class="box">
   <div class="box-header">
-    <h2 class="blue"><i class="fad fa-plus-circle"></i><?= lang('add_internal_use'); ?></h2>
+    <h2 class="blue"><i class="fad fa-plus-circle"></i>Add Internal Use</h2>
   </div>
   <div class="box-content">
     <div class="row">
       <div class="col-lg-12">
 
-        <p class="introtext"><?php echo lang('enter_info'); ?></p>
+        <p class="introtext"></p>
         <?php
         $attrib = ['data-toggle' => 'validator', 'role' => 'form'];
         echo admin_form_open_multipart('procurements/internal_uses/add', $attrib) ?>
@@ -287,18 +287,19 @@
             <div class="clearfix"></div>
             <div class="col-md-12">
               <div class="control-group table-group">
-                <label class="table-label"><?= lang('order_items'); ?></label>
+                <label class="table-label">Order Items</label>
 
                 <div class="table-responsive controls table-controls">
                   <table id="toTable" class="table items table-striped table-bordered table-condensed table-hover sortable_table">
                     <thead>
                       <tr>
-                        <th class="col-md-4"><?= lang('product') . ' (' . lang('code') . ' - ' . lang('name') . ')'; ?></th>
-                        <th class="col-md-4"><?= lang('machine'); ?></th>
-                        <th class="col-md-2"><?= lang('counter'); ?></th>
-                        <th><?= lang('unit'); ?></th>
-                        <th><?= lang('quantity'); ?></th>
-                        <th><?= lang('source_stock'); ?></th>
+                        <th class="col-md-4">Product (Code - Name)</th>
+                        <th class="col-md-2">Machine</th>
+                        <th class="col-md-2">Counter</th>
+                        <th>Unique Code Replacement</th>
+                        <th>Unit</th>
+                        <th>Quantity</th>
+                        <th>Source Stock</th>
                         </th>
                         <th style="width: 30px !important; text-align: center;">
                           <i class="fad fa-trash" style="opacity:0.5; filter:alpha(opacity=50);"></i>
