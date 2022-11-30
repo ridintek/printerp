@@ -19,7 +19,7 @@ class Debug extends MY_Controller
 
   public function gencode()
   {
-    $r = generateInternalUseUniqueCode('consumable');
+    $r = generateInternalUseUniqueCode('sparepart');
 
     dbgprint($r);
   }
