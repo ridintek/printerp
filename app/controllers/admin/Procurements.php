@@ -104,6 +104,20 @@ class Procurements extends MY_Controller
         $item_spec      = $_POST['spec'][$r]; // Counter.
         $itemUCR        = $_POST['ucr'][$r]; // Unique Code Replacement.
 
+        // Prevent input lower counter than current counter.
+        if (!empty($item_spec)) {
+          $counter = WarehouseProduct::getRow(['product_code' => 'KLIKPOD', 'warehouse_id' => $warehouseIdTo]);
+
+          if ($counter) {
+            $lastKLIKQty = intval($counter->quantity);
+
+            if ($lastKLIKQty > intval($item_spec)) {
+              $this->session->set_flashdata('error', "Klik {$item_spec} tidak sesuai klik terakhir {$lastKLIKQty}.");
+              admin_redirect('procurements/internal_uses/add');
+            }
+          }
+        }
+
         if (isset($item_code) && isset($item_quantity)) {
           $product = Product::getRow(['code' => $item_code]);
           $pcategory = Category::getRow(['id' => $product->category_id]);
