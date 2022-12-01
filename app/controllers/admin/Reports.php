@@ -1857,21 +1857,29 @@ class Reports extends MY_Controller
 
       if ($sameItems) {
         for ($a = 0; $a < count($sameItems); $a++) {
-          if ($sameItems[$a]->id == $item->id) {
+          // Compare by Unique Code Replacement (UCR)
+          if (!empty($sameItems[$a]->ucr) && strcmp($sameItems[$a]->ucr, $item->unique_code) == 0) {
+            $nextItem = $sameItems[$a];
+            $nextIUse = InternalUse::getRow(['id' => $nextItem->internal_use_id]);
+            $nextTS   = User::getRow(['id' => $nextIUse->ts_id]);
+
+            break;
+          } else if ($sameItems[$a]->id == $item->id) {
             if (isset($sameItems[$a + 1])) {
               $nextItem = $sameItems[$a + 1];
               $nextIUse = InternalUse::getRow(['id' => $nextItem->internal_use_id]);
               $nextTS   = User::getRow(['id' => $nextIUse->ts_id]);
+
+              break;
             }
-            break;
           }
         }
       }
 
       // Usability Day
       if ($nextIUse) {
-        $replacementDate = new DateTime($nextIUse->created_at);
-        $installDate = new DateTime($iuse->created_at);
+        $replacementDate  = new DateTime($nextIUse->created_at);
+        $installDate      = new DateTime($iuse->created_at);
 
         $usabilityDays = $installDate->diff($replacementDate)->format('%a'); // total days
       } else {
@@ -1881,7 +1889,7 @@ class Reports extends MY_Controller
       // Usability Counter
       if ($nextItem) {
         $replacementCounter = intval($nextItem->spec);
-        $installCounter = intval($item->spec);
+        $installCounter     = intval($item->spec);
 
         $usabilityCounter = $replacementCounter - $installCounter;
       } else {
