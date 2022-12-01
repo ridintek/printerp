@@ -490,9 +490,13 @@ class Site extends MY_Model
   {
     $data = setCreatedBy($data);
 
-    if ($this->db->insert('maintenance_logs', $data)) {
-      return $this->db->insert_id();
+    DB::table('maintenance_logs')->insert($data);
+
+    if ($insertId = DB::insertID()) {
+      return $insertId;
     }
+
+    setLastError(DB::error()['message']);
     return NULL;
   }
 

@@ -542,7 +542,7 @@ class Machines extends MY_Controller
         if ($condition == 'solved') {
           if (!empty($lastReport) && $lastReport->condition != 'good') {
             // Send report to CS/TL if status has been solved.
-            if ($user->phone) {
+            if ($user->phone && $assigner) {
               $message = "Hi {$user->fullname},\n\n" .
                 "Item berikut telah dilakukan perbaikan:\n\n" .
                 "*Outlet*: {$warehouse->name}\n" .
@@ -569,7 +569,7 @@ class Machines extends MY_Controller
           // If last status is solved.
           if (!empty($lastReport) && $lastReport->condition == 'solved') {
             // Send report to PIC/TS if status has been good.
-            if ($pic->phone) {
+            if ($pic && $pic->phone && $assigner) {
               $message = "Hi {$pic->fullname},\n\n" .
                 "Terima kasih telah melakukan perbaikan:\n\n" .
                 "*Outlet*: {$warehouse->name}\n" .
@@ -589,7 +589,7 @@ class Machines extends MY_Controller
             }
 
             // Send report to CS/TL if status has been good.
-            if ($user->phone) {
+            if ($user->phone && $assigner) {
               $message = "Hi {$user->fullname},\n\n" .
                 "Item berikut telah berhasil dilakukan perbaikan:\n\n" .
                 "*Outlet*: {$warehouse->name}\n" .
@@ -612,7 +612,7 @@ class Machines extends MY_Controller
             }
 
             // Add maintenance log.
-            $this->site->addMaintenanceLog([
+            $mlog = $this->site->addMaintenanceLog([
               'product_id'      => $product->id,
               'product_code'    => $product->code,
               'assigned_at'     => (!empty($productJS->assigned_at) ? $productJS->assigned_at : $this->serverDateTime),
@@ -625,6 +625,10 @@ class Machines extends MY_Controller
               'pic_note'        => $picNote,
               'created_by'      => $createdBy
             ]);
+
+            if (!$mlog) {
+              $this->response(400, ['message' => getLastError()]);
+            }
           } else if (!empty($lastReport) && $lastReport->condition != 'good') {
             $this->response(400, ['message' => 'Status harus <b>Solved</b> dahulu sebelum di <b>Good</b>.']);
           }
