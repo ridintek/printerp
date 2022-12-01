@@ -104,7 +104,7 @@ class Procurements extends MY_Controller
         $item_spec      = $_POST['spec'][$r]; // Counter.
         $itemUCR        = $_POST['ucr'][$r]; // Unique Code Replacement.
 
-        // Prevent input counter to lower than current.
+        // Prevent input lower counter than current counter.
         if (!empty($item_spec)) {
           $counter = WarehouseProduct::getRow(['product_code' => 'KLIKPOD', 'warehouse_id' => $warehouseIdTo]);
 
