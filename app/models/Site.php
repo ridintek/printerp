@@ -9611,8 +9611,6 @@ class Site extends MY_Model
       $data['status'] = 'completed';
     }
 
-    $data = setUpdatedBy($data);
-
     DB::table('internal_uses')->update($data, ['id' => $iuseId]);
 
     if (DB::affectedRows()) {
