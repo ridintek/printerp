@@ -106,10 +106,10 @@ class Procurements extends MY_Controller
 
         // Prevent input lower counter than current counter.
         if (!empty($item_spec)) {
-          $counter = WarehouseProduct::getRow(['product_code' => 'KLIKPOD', 'warehouse_id' => $warehouseIdTo]);
+          $whp = WarehouseProduct::getRow(['product_code' => 'KLIKPOD', 'warehouse_id' => $warehouseIdTo]);
 
-          if ($counter) {
-            $lastKLIKQty = intval($counter->quantity);
+          if ($whp) {
+            $lastKLIKQty = intval($whp->quantity);
 
             if ($lastKLIKQty > intval($item_spec)) {
               $this->session->set_flashdata('error', "Klik {$item_spec} tidak sesuai klik terakhir {$lastKLIKQty}.");
