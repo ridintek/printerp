@@ -90,7 +90,7 @@ if ($group_by = getGET('group_by')) {
           "mRender": pay_status
         }, {
           "bSortable": false,
-          "mRender": attachmentSale
+          "mRender": attachment
         }, {
           "bVisible": false
         }, {
