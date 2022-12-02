@@ -402,17 +402,23 @@ class Api extends MY_Controller
 
     if (!$sale) sendJSON(['error' => 0, 'message' => 'Sale is not valid.']);
 
+    if (empty($trDate)) $this->response(400, ['message' => 'Transaction date is invalid.']);
+
+    $transDate = new DateTime($trDate);
+
     $data = (object)[
       'account_number' => $accountNo,
       'data_mutasi' => [
         (object)[
-          'transaction_date' => ($trDate ?? date('Y-m-d H:i:s')),
+          'transaction_date' => ($transDate ? $transDate->format('Y-m-d H:i:s') : date('Y-m-d H:i:s')),
           'type'             => 'CR',
           'amount'           => filterDecimal($amount),
           'description'      => $note
         ]
       ]
     ];
+
+    $this->rdlog->info($data);
 
     $pv_options = [
       'manual' => TRUE, /* Optional, but required for manual validation. */
