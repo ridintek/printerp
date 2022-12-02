@@ -5,14 +5,14 @@
     iuitems = {};
   $(document).ready(function() {
     window.machines = JSON.parse('<?= json_encode($machines); ?>');
-    <?php if ($internal_use) { ?>
-      localStorage.setItem('iudate', '<?= date($dateFormats['php_ldate'], strtotime($internal_use->date)) ?>');
-      localStorage.setItem('from_warehouse', '<?= $internal_use->from_warehouse_id ?>');
-      localStorage.setItem('iuref', '<?= $internal_use->reference ?>');
-      localStorage.setItem('to_warehouse', '<?= $internal_use->to_warehouse_id ?>');
-      localStorage.setItem('iustatus', '<?= $internal_use->status ?>');
-      localStorage.setItem('iunote', `<?= htmlDecode($internal_use->note); ?>`);
-      localStorage.setItem('iuitems', '<?= json_encode($internal_use_items); ?>');
+    <?php if ($iuse) { ?>
+      localStorage.setItem('iudate', '<?= date($dateFormats['php_ldate'], strtotime($iuse->date)) ?>');
+      localStorage.setItem('from_warehouse', '<?= $iuse->from_warehouse_id ?>');
+      localStorage.setItem('iuref', '<?= $iuse->reference ?>');
+      localStorage.setItem('to_warehouse', '<?= $iuse->to_warehouse_id ?>');
+      localStorage.setItem('iustatus', '<?= $iuse->status ?>');
+      localStorage.setItem('iunote', `<?= htmlDecode($iuse->note); ?>`);
+      localStorage.setItem('iuitems', '<?= json_encode($iuse_items); ?>');
       localStorage.setItem('iuse_mode', '<?= $iuse_mode; ?>');
     <?php } ?>
     <?php if ($Owner || $Admin) { ?>
@@ -132,7 +132,7 @@
         bootbox.alert('<?= lang('please_select_different_warehouse') ?>');
       }
     });
-    let status = '<?= $internal_use->status; ?>';
+    let status = '<?= $iuse->status; ?>';
     let iuse_mode = '<?= $iuse_mode; ?>';
 
     if (status == 'completed' && iuse_mode == 'status') {
@@ -158,9 +158,9 @@
         <?php
         $attrib = ['data-toggle' => 'validator', 'role' => 'form', 'class' => 'edit-to-form'];
         if ($iuse_mode == 'status') {
-          echo admin_form_open_multipart('procurements/internal_uses/status/' . $internal_use->id, $attrib);
+          echo admin_form_open_multipart('procurements/internal_uses/status/' . $iuse->id, $attrib);
         } else {
-          echo admin_form_open_multipart('procurements/internal_uses/edit/' . $internal_use->id, $attrib);
+          echo admin_form_open_multipart('procurements/internal_uses/edit/' . $iuse->id, $attrib);
         }
         ?>
         <input type="hidden" name="callback_url" value="<?= ($_SERVER['HTTP_REFERER'] ?? 'procurements/internal_uses') ?>">
@@ -168,7 +168,7 @@
           <div class="col-md-4">
             <div class="form-group">
               <?= lang('date', 'iudate'); ?>
-              <?php echo form_input('date', $internal_use->date, 'class="form-control input-tip date" id="iudate" required="required"'); ?>
+              <?php echo form_input('date', $iuse->date, 'class="form-control input-tip date" id="iudate" required="required"'); ?>
             </div>
           </div>
 
@@ -196,7 +196,7 @@
           <div class="col-md-4">
             <div class="form-group">
               <?= lang('reference', 'ref'); ?>
-              <?php echo form_input('reference',  $internal_use->reference, 'class="form-control input-tip" id="ref" required="required" readonly="readonly"'); ?>
+              <?php echo form_input('reference',  $iuse->reference, 'class="form-control input-tip" id="ref" required="required" readonly="readonly"'); ?>
             </div>
           </div>
 
@@ -216,7 +216,7 @@
                       echo form_dropdown(
                         'from_warehouse',
                         $wh,
-                        $internal_use->from_warehouse_id,
+                        $iuse->from_warehouse_id,
                         'id="from_warehouse" class="form-control input-tip select2" data-placeholder="Select Warehouse From" required="required" style="width:100%;"'
                       ); ?>
                     </div>
@@ -232,7 +232,7 @@
                       echo form_dropdown(
                         'to_warehouse',
                         $wh,
-                        $internal_use->to_warehouse_id,
+                        $iuse->to_warehouse_id,
                         'id="to_warehouse" class="form-control input-tip select2" data-placeholder="Select Warehouse To" required="required" style="width:100%;"'
                       );
                       ?>
@@ -243,7 +243,7 @@
                     'type'  => 'hidden',
                     'name'  => 'from_warehouse',
                     'id'    => 'from_warehouse',
-                    'value' => $internal_use->from_warehouse_id,
+                    'value' => $iuse->from_warehouse_id,
                   ];
                   echo form_input($warehouse_from);
 
@@ -251,28 +251,23 @@
                     'type'  => 'hidden',
                     'name'  => 'to_warehouse',
                     'id'    => 'to_warehouse',
-                    'value' => $internal_use->to_warehouse_id,
+                    'value' => $iuse->to_warehouse_id,
                   ];
                   echo form_input($warehouse_to);
                 } ?>
                 <div class="col-md-4">
                   <div class="form-group">
                     <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                      <?php if ($Owner || $Admin || $GP['internal_uses-consumable']) { ?>
+                      <?php if ($Owner || $Admin || getPermission('internal_uses-consumable') || $iuse->category == 'consumable') : ?>
                         <label class="btn">
                           <input type="radio" name="category" id="category_consumable" value="consumable"> Consumable
                         </label>
-                      <?php } ?>
-                      <?php if ($Owner || $Admin || $GP['internal_uses-cmreport']) { ?>
-                        <!-- <label class="btn">
-                              <input type="radio" name="category" id="category_report" value="report"> Combo Report
-                            </label> -->
-                      <?php } ?>
-                      <?php if ($Owner || $Admin || $GP['internal_uses-sparepart']) { ?>
+                      <?php endif; ?>
+                      <?php if ($Owner || $Admin || getPermission('internal_uses-sparepart') || $iuse->category == 'sparepart') : ?>
                         <label class="btn">
                           <input type="radio" name="category" id="category_sparepart" value="sparepart"> Sparepart
                         </label>
-                      <?php } ?>
+                      <?php endif ?>
                     </div>
                   </div>
                 </div>
@@ -329,29 +324,29 @@
               <?= lang('status', 'iustatus'); ?>
               <?php
               $st = [];
-              $st[$internal_use->status] = lang($internal_use->status); // Current status.
+              $st[$iuse->status] = lang($iuse->status); // Current status.
 
-              if ($internal_use->status == 'need_approval') {
+              if ($iuse->status == 'need_approval') {
                 $st['approved'] = 'Approved';
               }
-              if ($internal_use->status == 'approved') {
+              if ($iuse->status == 'approved') {
                 $st['packing'] = 'Packing';
               }
-              if ($internal_use->status == 'packing') {
+              if ($iuse->status == 'packing') {
                 $st['cancelled'] = 'Cancelled';
                 $st['installed'] = 'Installed';
               }
-              if ($internal_use->status == 'cancelled') {
+              if ($iuse->status == 'cancelled') {
                 $st['returned'] = 'Returned';
               }
-              if ($internal_use->status == 'installed') {
+              if ($iuse->status == 'installed') {
                 $st['completed'] = 'Completed';
               }
-              if (empty($internal_use->status)) { // If empty, then need approval.
+              if (empty($iuse->status)) { // If empty, then need approval.
                 $st['need_approval'] = 'Need Approval';
               }
 
-              echo form_dropdown('status', $st, $internal_use->status, 'id="iustatus" class="form-control input-tip select2" data-placeholder="Select Status" required="required" style="width:100%;"');
+              echo form_dropdown('status', $st, $iuse->status, 'id="iustatus" class="form-control input-tip select2" data-placeholder="Select Status" required="required" style="width:100%;"');
               ?>
             </div>
           </div>
@@ -438,8 +433,8 @@
 </div>
 <script>
   $(document).ready(function() {
-    let category = "<?= strtolower($internal_use->category); ?>";
-    let supplier = '<?= $internal_use->supplier_id ?>';
+    let category = "<?= strtolower($iuse->category); ?>";
+    let supplier = '<?= $iuse->supplier_id ?>';
 
     if (category) {
       $(`#category_${category}`).iCheck('check');
@@ -477,7 +472,7 @@
       }
     });
 
-    $('#ts').val('<?= $internal_use->ts_id ?>').trigger('change');
+    $('#ts').val('<?= $iuse->ts_id ?>').trigger('change');
   });
 </script>
 <?php if (!$Owner || !$Admin || XSession::get('warehouse_id')) { ?>

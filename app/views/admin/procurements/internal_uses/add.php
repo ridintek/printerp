@@ -247,21 +247,16 @@
                   <div class="col-md-4">
                     <div class="form-group">
                       <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                        <?php if ($Owner || $Admin || $GP['internal_uses-consumable']) { ?>
+                        <?php if ($Owner || $Admin || $GP['internal_uses-consumable']) : ?>
                           <label class="btn">
                             <input type="radio" name="category" id="category_consumable" value="consumable"> Consumable
                           </label>
-                        <?php } ?>
-                        <?php if ($Owner || $Admin || $GP['internal_uses-cmreport']) { ?>
-                          <!-- <label class="btn">
-                            <input type="radio" name="category" id="category_report" value="report"> Combo Report
-                          </label> -->
-                        <?php } ?>
-                        <?php if ($Owner || $Admin || $GP['internal_uses-sparepart']) { ?>
+                        <?php endif; ?>
+                        <?php if ($Owner || $Admin || $GP['internal_uses-sparepart']) : ?>
                           <label class="btn">
                             <input type="radio" name="category" id="category_sparepart" value="sparepart"> Sparepart
                           </label>
-                        <?php } ?>
+                        <?php endif ?>
                       </div>
                     </div>
                   </div>
