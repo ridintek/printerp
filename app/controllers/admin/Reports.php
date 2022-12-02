@@ -27,11 +27,11 @@ class Reports extends MY_Controller
    */
   public function balancesheet()
   {
-    $startDate = ($this->input->get('start_date') ?? NULL);
-    $endDate   = ($this->input->get('end_date') ?? date('Y-m-d')); // Default current date
+    $startDate = (getGET('start_date') ?? NULL);
+    $endDate   = (getGET('end_date') ?? date('Y-m-d')); // Default current date
 
-    $billerId    = ($this->input->get('biller') ?? NULL);
-    $warehouseId = ($this->input->get('warehouse') ?? NULL);
+    $billerId    = (getGET('biller') ?? NULL);
+    $warehouseId = (getGET('warehouse') ?? NULL);
 
     $clause = [];
     if ($billerId)  $clause['biller_id']  = $billerId;
@@ -395,9 +395,9 @@ class Reports extends MY_Controller
 
   public function cohs()
   {
-    $startDate = ($this->input->get('start_date') ?? date('Y-m-') . '01');
-    $endDate   = ($this->input->get('end_date') ?? date('Y-m-d'));
-    $whIds     = $this->input->get('warehouse');
+    $startDate = (getGET('start_date') ?? date('Y-m-') . '01');
+    $endDate   = (getGET('end_date') ?? date('Y-m-d'));
+    $whIds     = getGET('warehouse');
 
     $sheet = $this->ridintek->spreadsheet();
 
@@ -547,8 +547,8 @@ class Reports extends MY_Controller
         }
       }
     } else {
-      $startDate    = $this->input->get('start_date') ?? date('Y-m-') . '01';
-      $endDate      = $this->input->get('end_date') ?? date('Y-m-d');
+      $startDate    = getGET('start_date') ?? date('Y-m-') . '01';
+      $endDate      = getGET('end_date') ?? date('Y-m-d');
     }
 
     $sheet = $this->ridintek->spreadsheet();
@@ -831,8 +831,8 @@ class Reports extends MY_Controller
    */
   public function sales_piutang()
   {
-    $startDate = $this->input->get('start_date') ?? date('Y-m-') . '01';
-    $endDate   = $this->input->get('end_date') ?? date('Y-m-d');
+    $startDate = getGET('start_date') ?? date('Y-m-') . '01';
+    $endDate   = getGET('end_date') ?? date('Y-m-d');
 
     $sheet = $this->ridintek->spreadsheet();
 
@@ -928,8 +928,8 @@ class Reports extends MY_Controller
 
   public function stockOpnames()
   {
-    $startDate = $this->input->get('start_date') ?? date('Y-m-') . '01';
-    $endDate   = $this->input->get('end_date') ?? date('Y-m-d');
+    $startDate = getGET('start_date') ?? date('Y-m-') . '01';
+    $endDate   = getGET('end_date') ?? date('Y-m-d');
 
     $sheet = $this->ridintek->spreadsheet();
 
@@ -947,8 +947,8 @@ class Reports extends MY_Controller
    */
   public function getDailyPerformanceReport()
   {
-    $period = $this->input->get('period'); // 2022-11
-    $xls    = ($this->input->get('xls') == 1 ? TRUE : FALSE);
+    $period = getGET('period'); // 2022-11
+    $xls    = (getGET('xls') == 1 ? TRUE : FALSE);
 
     $opt = [];
 
@@ -1007,15 +1007,15 @@ class Reports extends MY_Controller
   {
     $this->sma->checkPermissions('payments', true);
 
-    $users       = $this->input->get('user');
-    $number      = $this->input->get('number');
-    $banks       = $this->input->get('bank');
-    $billers     = $this->input->get('biller');
-    $payment_ref = $this->input->get('payment_ref');
-    $paid_by     = $this->input->get('paid_by');
-    $start_date  = $this->input->get('start_date');
-    $end_date    = $this->input->get('end_date');
-    $xls         = ($this->input->get('xls') == 1 ? TRUE : FALSE);
+    $users       = getGET('user');
+    $number      = getGET('number');
+    $banks       = getGET('bank');
+    $billers     = getGET('biller');
+    $payment_ref = getGET('payment_ref');
+    $paid_by     = getGET('paid_by');
+    $start_date  = getGET('start_date');
+    $end_date    = getGET('end_date');
+    $xls         = (getGET('xls') == 1 ? TRUE : FALSE);
 
     if ($start_date) {
       $start_date = $start_date . ' 00:00:00';
@@ -1230,10 +1230,10 @@ class Reports extends MY_Controller
    */
   public function getIncomeStatementReport()
   {
-    $biller_ids = $this->input->get('biller'); // If biller not specified, then all billers except lucretia
-    $start_date = ($this->input->get('start_date') ?? NULL);
-    $end_date   = ($this->input->get('end_date') ?? NULL);
-    $xls        = ($this->input->get('xls') == 1 ? TRUE : FALSE);
+    $biller_ids = getGET('biller'); // If biller not specified, then all billers except lucretia
+    $start_date = (getGET('start_date') ?? NULL);
+    $end_date   = (getGET('end_date') ?? NULL);
+    $xls        = (getGET('xls') == 1 ? TRUE : FALSE);
 
     $opt = [];
     $lucretaiMode = FALSE;
@@ -1363,11 +1363,11 @@ class Reports extends MY_Controller
     $clausesBegin = '';
     $clauses = '';
 
-    $categoryId  = $this->input->get('category');
-    $itemName    = $this->input->get('item_name');
-    $startDate   = $this->input->get('start_date');
-    $endDate     = $this->input->get('end_date');
-    $warehouseId = $this->input->get('warehouse');
+    $categoryId  = getGET('category');
+    $itemName    = getGET('item_name');
+    $startDate   = getGET('start_date');
+    $endDate     = getGET('end_date');
+    $warehouseId = getGET('warehouse');
 
     $lucretaiMode = FALSE;
     $warehouse = $this->site->getWarehouseByID($warehouseId);
@@ -1490,12 +1490,12 @@ class Reports extends MY_Controller
 
     $begin_clauses = '';
     $clauses = '';
-    $category_id  = $this->input->get('category');
-    $item_name    = $this->input->get('item_name');
-    $start_date   = $this->input->get('start_date');
-    $end_date     = $this->input->get('end_date');
-    $warehouse_id = $this->input->get('warehouse');
-    $xls          = $this->input->get('xls');
+    $category_id  = getGET('category');
+    $item_name    = getGET('item_name');
+    $start_date   = getGET('start_date');
+    $end_date     = getGET('end_date');
+    $warehouse_id = getGET('warehouse');
+    $xls          = getGET('xls');
 
     $lucretaiMode = FALSE;
     $warehouse = $this->site->getWarehouseByID($warehouse_id);
@@ -1818,8 +1818,8 @@ class Reports extends MY_Controller
 
   public function getUsabilityReport()
   {
-    $startDate  = $this->input->get('start_date') ?? date('Y-m-') . '01';
-    $endDate    = $this->input->get('end_date') ?? date('Y-m-d');
+    $startDate  = getGET('start_date') ?? date('Y-m-') . '01';
+    $endDate    = getGET('end_date') ?? date('Y-m-d');
 
     $iuseItems = DB::table('stocks')->isNotNull('internal_use_id')
       ->where("created_at BETWEEN '{$startDate} 00:00:00' AND '{$endDate} 23:59:59'")->get();
@@ -2085,16 +2085,16 @@ class Reports extends MY_Controller
   public function getSalesStatus($xls = null)
   { // Added, custom of [getSalesReport => (ignored)].
     $this->sma->checkPermissions('sales', true);
-    $group_by     = $this->input->get('group_by') ?? 'sale'; // sale as default
-    $product      = $this->input->get('product');
-    $categories   = $this->input->get('categories') ?? [];
-    $users        = $this->input->get('users') ?? [];
-    $customer     = $this->input->get('customer');
-    $biller       = $this->input->get('biller');
-    $warehouse    = $this->input->get('warehouse');
-    $reference    = $this->input->get('reference');
-    $start_date   = $this->input->get('start_date');
-    $end_date     = $this->input->get('end_date');
+    $group_by     = getGET('group_by') ?? 'sale'; // sale as default
+    $product      = getGET('product');
+    $categories   = getGET('categories') ?? [];
+    $users        = getGET('users') ?? [];
+    $customer     = getGET('customer');
+    $biller       = getGET('biller');
+    $warehouse    = getGET('warehouse');
+    $reference    = getGET('reference');
+    $start_date   = getGET('start_date');
+    $end_date     = getGET('end_date');
 
     $warehouse = ($this->session->userdata('warehouse_id') ?? $warehouse);
 
@@ -2557,10 +2557,10 @@ class Reports extends MY_Controller
 
   public function getSoldItems()
   {
-    $billerId     = $this->input->get('biller');
-    $warehouseId  = $this->input->get('warehouse');
-    $startDate    = $this->input->get('start_date');
-    $endDate      = $this->input->get('end_date');
+    $billerId     = getGET('biller');
+    $warehouseId  = getGET('warehouse');
+    $startDate    = getGET('start_date');
+    $endDate      = getGET('end_date');
 
     $clause = [
       'not_null' => 'sale_id'
@@ -2641,8 +2641,8 @@ class Reports extends MY_Controller
     $this->data['categories'] = $this->site->getParentCategories();
     $this->data['warehouses'] = Warehouse::get(['active' => '1']);
 
-    $this->data['period']       = $this->input->get('period');
-    $this->data['xls']          = $this->input->get('xls');
+    $this->data['period']       = getGET('period');
+    $this->data['xls']          = getGET('xls');
 
     if (empty($this->data['period'])) {
       $period = new DateTime();
@@ -2676,13 +2676,13 @@ class Reports extends MY_Controller
     $this->data['categories'] = $this->site->getParentCategories();
     $this->data['warehouses'] = $this->site->getAllWarehouses();
 
-    $warehouse_id = $this->input->get('warehouse');
-    $this->data['category_id']  = $this->input->get('category');
-    $this->data['item_name']    = $this->input->get('item_name');
-    $this->data['start_date']   = $this->input->get('start_date');
-    $this->data['end_date']     = $this->input->get('end_date');
-    $this->data['warehouse_id'] = $this->input->get('warehouse');
-    $this->data['xls']          = $this->input->get('xls');
+    $warehouse_id = getGET('warehouse');
+    $this->data['category_id']  = getGET('category');
+    $this->data['item_name']    = getGET('item_name');
+    $this->data['start_date']   = getGET('start_date');
+    $this->data['end_date']     = getGET('end_date');
+    $this->data['warehouse_id'] = getGET('warehouse');
+    $this->data['xls']          = getGET('xls');
 
     if ($warehouse_id) {
       $this->data['warehouse']    = $this->site->getWarehouseByID($warehouse_id);
@@ -2709,13 +2709,13 @@ class Reports extends MY_Controller
     $this->data['categories'] = $this->site->getParentCategories();
     $this->data['warehouses'] = $this->site->getAllWarehouses();
 
-    $warehouse_id = $this->input->get('warehouse');
-    $this->data['category_id']  = $this->input->get('category');
-    $this->data['item_name']    = $this->input->get('item_name');
-    $this->data['start_date']   = $this->input->get('start_date');
-    $this->data['end_date']     = $this->input->get('end_date');
-    $this->data['warehouse_id'] = $this->input->get('warehouse');
-    $this->data['xls']          = $this->input->get('xls');
+    $warehouse_id = getGET('warehouse');
+    $this->data['category_id']  = getGET('category');
+    $this->data['item_name']    = getGET('item_name');
+    $this->data['start_date']   = getGET('start_date');
+    $this->data['end_date']     = getGET('end_date');
+    $this->data['warehouse_id'] = getGET('warehouse');
+    $this->data['xls']          = getGET('xls');
 
     if ($warehouse_id) {
       $this->data['warehouse']    = $this->site->getWarehouseByID($warehouse_id);
@@ -2778,9 +2778,9 @@ class Reports extends MY_Controller
    */
   public function machines()
   {
-    $startDate = ($this->input->get('start_date') ?? date('Y-m-') . '01');
-    $endDate   = ($this->input->get('end_date') ?? date('Y-m-d'));
-    $whIds = $this->input->get('warehouse');
+    $startDate = (getGET('start_date') ?? date('Y-m-') . '01');
+    $endDate   = (getGET('end_date') ?? date('Y-m-d'));
+    $whIds = getGET('warehouse');
 
     $whNames = [];
 
@@ -3093,7 +3093,7 @@ class Reports extends MY_Controller
 
   // public function suggestions()
   // {
-  //   $term = $this->input->get('term', true);
+  //   $term = getGET('term', true);
   //   if (strlen($term) < 1) {
   //     die();
   //   }
@@ -3112,8 +3112,8 @@ class Reports extends MY_Controller
   public function trackingPODs()
   {
     // die("<b>Sedang Maintenance</b>");
-    $startDate = ($this->input->get('start_date') ?? date('Y-m-') . '01');
-    $endDate   = ($this->input->get('end_date') ?? date('Y-m-d'));
+    $startDate = (getGET('start_date') ?? date('Y-m-') . '01');
+    $endDate   = (getGET('end_date') ?? date('Y-m-d'));
 
     $sheet = $this->ridintek->spreadsheet();
 

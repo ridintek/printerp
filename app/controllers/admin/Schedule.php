@@ -15,15 +15,15 @@ class Schedule extends MY_Controller
   public function add()
   {
     if ($this->requestMethod == 'POST') {
-      $sun = $this->input->post('sun');
-      $mon = $this->input->post('mon');
-      $tue = $this->input->post('tue');
-      $wed = $this->input->post('wed');
-      $thu = $this->input->post('thu');
-      $fri = $this->input->post('fri');
-      $sat = $this->input->post('sat');
+      $sun = getPOST('sun');
+      $mon = getPOST('mon');
+      $tue = getPOST('tue');
+      $wed = getPOST('wed');
+      $thu = getPOST('thu');
+      $fri = getPOST('fri');
+      $sat = getPOST('sat');
 
-      $billers = implode(',', ($this->input->post('biller') ?? []));
+      $billers = implode(',', (getPOST('biller') ?? []));
 
       $scheduleData = [
         'billers'  => $billers,
@@ -48,7 +48,7 @@ class Schedule extends MY_Controller
 
   public function delete($scheduleId = NULL)
   {
-    $scheduleIds = $this->input->post('val');
+    $scheduleIds = getPOST('val');
 
     if (!getPermission('schedule-delete')) {
       sendJSON(['success' => 0, 'message' => lang('access_denied')]);
@@ -71,15 +71,15 @@ class Schedule extends MY_Controller
   public function edit($scheduleId = NULL)
   {
     if ($this->requestMethod == 'POST') {
-      $sun = $this->input->post('sun');
-      $mon = $this->input->post('mon');
-      $tue = $this->input->post('tue');
-      $wed = $this->input->post('wed');
-      $thu = $this->input->post('thu');
-      $fri = $this->input->post('fri');
-      $sat = $this->input->post('sat');
+      $sun = getPOST('sun');
+      $mon = getPOST('mon');
+      $tue = getPOST('tue');
+      $wed = getPOST('wed');
+      $thu = getPOST('thu');
+      $fri = getPOST('fri');
+      $sat = getPOST('sat');
 
-      $billers = implode(',', ($this->input->post('biller') ?? []));
+      $billers = implode(',', (getPOST('biller') ?? []));
 
       $scheduleData = [
         'billers'  => $billers,
@@ -238,13 +238,13 @@ class Schedule extends MY_Controller
   public function holiday_add()
   {
     if ($this->requestMethod == 'POST') {
-      $billers = implode(',', ($this->input->post('biller') ?? []));
-      $holiday = $this->input->post('holiday');
-      $working = $this->input->post('working');
+      $billers = implode(',', (getPOST('biller') ?? []));
+      $holiday = getPOST('holiday');
+      $working = getPOST('working');
 
       $holidayData = [
         'billers'     => $billers,
-        'description' => htmlEncode($this->input->post('description')),
+        'description' => htmlEncode(getPOST('description')),
         'start_date'  => (!empty($holiday[0]) ? $holiday[0] : NULL),
         'end_date'    => (!empty($holiday[1]) ? $holiday[1] : NULL),
         'start_work'  => (!empty($working[0]) ? $working[0] : NULL),
@@ -263,7 +263,7 @@ class Schedule extends MY_Controller
 
   public function holiday_delete($holidayId = NULL)
   {
-    $holidayIds = $this->input->post('val');
+    $holidayIds = getPOST('val');
 
     if (!$this->isAdmin && !getPermission('holiday-delete')) {
       sendJSON(['success' => 0, 'message' => lang('access_denied')]);
@@ -286,13 +286,13 @@ class Schedule extends MY_Controller
   public function holiday_edit($holidayId = NULL)
   {
     if ($this->requestMethod == 'POST') {
-      $billers = implode(',', ($this->input->post('biller') ?? []));
-      $holiday = $this->input->post('holiday');
-      $working = $this->input->post('working');
+      $billers = implode(',', (getPOST('biller') ?? []));
+      $holiday = getPOST('holiday');
+      $working = getPOST('working');
 
       $holidayData = [
         'billers'     => $billers,
-        'description' => htmlEncode($this->input->post('description')),
+        'description' => htmlEncode(getPOST('description')),
         'start_date'  => (!empty($holiday[0]) ? $holiday[0] : NULL),
         'end_date'    => (!empty($holiday[1]) ? $holiday[1] : NULL),
         'start_work'  => (!empty($working[0]) ? $working[0] : NULL),

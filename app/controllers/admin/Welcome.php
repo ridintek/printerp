@@ -91,11 +91,11 @@ class Welcome extends MY_Controller
    */
   public function getTables()
   {
-    if ($mode = $this->input->get('mode')) {
+    if ($mode = getGET('mode')) {
       if ($mode == 'sales') {
         $this->data['sales'] = $this->db_model->getLatestSales();
 
-        if ($sync = $this->input->get('sync')) {
+        if ($sync = getGET('sync')) {
           if ($sync == 'sales') {
             foreach ($this->data['sales'] as $sale) {
               $this->site->syncSales(['sale_id' => $sale->id]);
@@ -115,12 +115,12 @@ class Welcome extends MY_Controller
   public function index()
   {
     // if ($this->Owner) die('NOP');
-    $noChart = ($this->input->get('nochart') ?? 0);
+    $noChart = (getGET('nochart') ?? 0);
 
     if (!$this->isLocal)
       $this->data['sales'] = []; //$this->db_model->getLatestSales();
 
-    if ($sync = $this->input->get('sync')) {
+    if ($sync = getGET('sync')) {
       if ($sync == 'sales') {
         foreach ($this->data['sales'] as $sale) {
           $this->site->syncSales(['sale_id' => $sale->id]);
@@ -165,7 +165,7 @@ class Welcome extends MY_Controller
     $meta                    = ['page_title' => lang('dashboard'), 'bc' => $bc];
     $this->data = array_merge($this->data, $meta);
 
-    if ($export = $this->input->get('export')) {
+    if ($export = getGET('export')) {
       if ($export == 'sales') {
         $excel = $this->ridintek->spreadsheet();
 
@@ -310,8 +310,8 @@ class Welcome extends MY_Controller
 
   public function language($lang = false)
   {
-    if ($this->input->get('lang')) {
-      $lang = $this->input->get('lang');
+    if (getGET('lang')) {
+      $lang = getGET('lang');
     }
     //$this->load->helper('cookie');
     $folder        = 'app/language/';
@@ -342,7 +342,7 @@ class Welcome extends MY_Controller
 
   public function slug()
   {
-    echo $this->sma->slug($this->input->get('title', true), $this->input->get('type', true));
+    echo $this->sma->slug(getGET('title', true), getGET('type', true));
     exit();
   }
 

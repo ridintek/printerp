@@ -25,28 +25,28 @@ class Customers extends MY_Controller
     $this->form_validation->set_rules('email', lang('email'), 'required|trim|valid_email');
 
     if ($this->form_validation->run() == true) {
-      $cg   = $this->site->getCustomerGroupByID($this->input->post('customer_group'));
-      $pg   = $this->site->getPriceGroupByID($this->input->post('price_group'));
+      $cg   = $this->site->getCustomerGroupByID(getPOST('customer_group'));
+      $pg   = $this->site->getPriceGroupByID(getPOST('price_group'));
       $data = [
-        'name'                => $this->input->post('name'),
-        'email'               => $this->input->post('email'),
+        'name'                => getPOST('name'),
+        'email'               => getPOST('email'),
         'group_id'            => '3',
         'group_name'          => 'customer',
-        'customer_group_id'   => $this->input->post('customer_group'),
+        'customer_group_id'   => getPOST('customer_group'),
         'customer_group_name' => $cg->name,
-        'price_group_id'      => $this->input->post('price_group') ? $this->input->post('price_group') : null,
-        'price_group_name'    => $this->input->post('price_group') ? $pg->name : null,
-        'company'             => $this->input->post('company'),
-        'address'             => $this->input->post('address'),
-        'city'                => $this->input->post('city'),
-        'state'               => $this->input->post('state'),
-        'postal_code'         => $this->input->post('postal_code'),
-        'country'             => $this->input->post('country'),
-        'phone'               => $this->input->post('phone'),
-        'payment_term'        => (!empty($this->input->post('payment_term')) ? $this->input->post('payment_term') : 1),
+        'price_group_id'      => getPOST('price_group') ? getPOST('price_group') : null,
+        'price_group_name'    => getPOST('price_group') ? $pg->name : null,
+        'company'             => getPOST('company'),
+        'address'             => getPOST('address'),
+        'city'                => getPOST('city'),
+        'state'               => getPOST('state'),
+        'postal_code'         => getPOST('postal_code'),
+        'country'             => getPOST('country'),
+        'phone'               => getPOST('phone'),
+        'payment_term'        => (!empty(getPOST('payment_term')) ? getPOST('payment_term') : 1),
         'json_data' => json_encode([
-          'notify_wa' => $this->input->post('notify_wa'),
-          'shipaddr' => $this->input->post('shipaddr')
+          'notify_wa' => getPOST('notify_wa'),
+          'shipaddr' => getPOST('shipaddr')
         ])
       ];
       if (!$this->Owner && !$this->Admin && stripos($data['company'], 'INDOPRINTING') !== FALSE) {
@@ -58,7 +58,7 @@ class Customers extends MY_Controller
         $this->session->set_flashdata('error', "Phone number {$data['phone']} sudah terdaftar sebelumnya.");;
         redirect($_SERVER['HTTP_REFERER'] ?? 'admin/customers');
       }
-    } elseif ($this->input->post('add_customer')) {
+    } elseif (getPOST('add_customer')) {
       $this->session->set_flashdata('error', validation_errors());
       redirect($_SERVER['HTTP_REFERER'] ?? 'admin/customers');
     }
@@ -88,16 +88,16 @@ class Customers extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'line1'       => $this->input->post('line1'),
-        'line2'       => $this->input->post('line2'),
-        'city'        => $this->input->post('city'),
-        'postal_code' => $this->input->post('postal_code'),
-        'state'       => $this->input->post('state'),
-        'country'     => $this->input->post('country'),
-        'phone'       => $this->input->post('phone'),
+        'line1'       => getPOST('line1'),
+        'line2'       => getPOST('line2'),
+        'city'        => getPOST('city'),
+        'postal_code' => getPOST('postal_code'),
+        'state'       => getPOST('state'),
+        'country'     => getPOST('country'),
+        'phone'       => getPOST('phone'),
         'customer_id' => $customer->id,
       ];
-    } elseif ($this->input->post('add_address')) {
+    } elseif (getPOST('add_address')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('customers');
     }
@@ -116,8 +116,8 @@ class Customers extends MY_Controller
   {
     $this->sma->checkPermissions('deposits', true);
 
-    if ($this->input->get('id')) {
-      $customer_id = $this->input->get('id');
+    if (getGET('id')) {
+      $customer_id = getGET('id');
     }
     $customer = $this->site->getCustomerByID($customer_id);
 
@@ -128,23 +128,23 @@ class Customers extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       if ($this->Owner || $this->Admin) {
-        $date = $this->sma->fld(trim($this->input->post('date')));
+        $date = $this->sma->fld(trim(getPOST('date')));
       } else {
         $date = date('Y-m-d H:i:s');
       }
       $data = [
         'date'       => $date,
-        'amount'     => $this->input->post('amount'),
-        'paid_by'    => $this->input->post('paid_by'),
-        'note'       => $this->input->post('note'),
+        'amount'     => getPOST('amount'),
+        'paid_by'    => getPOST('paid_by'),
+        'note'       => getPOST('note'),
         'customer_id' => $customer->id,
         'created_by' => $this->session->userdata('user_id'),
       ];
 
       $cdata = [
-        'deposit_amount' => ($customer->deposit_amount + $this->input->post('amount')),
+        'deposit_amount' => ($customer->deposit_amount + getPOST('amount')),
       ];
-    } elseif ($this->input->post('add_deposit')) {
+    } elseif (getPOST('add_deposit')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('customers');
     }
@@ -163,8 +163,8 @@ class Customers extends MY_Controller
   {
     $this->sma->checkPermissions(false, true);
 
-    if ($this->input->get('id')) {
-      $customer_id = $this->input->get('id');
+    if (getGET('id')) {
+      $customer_id = getGET('id');
     }
     $customer = $this->site->getCustomerByID($customer_id);
 
@@ -173,22 +173,22 @@ class Customers extends MY_Controller
     $this->form_validation->set_rules('password_confirm', lang('confirm_password'), 'required');
 
     if ($this->form_validation->run('customers/add_user') == true) {
-      $active                  = $this->input->post('status');
-      $notify                  = $this->input->post('notify');
-      list($username, $domain) = explode('@', $this->input->post('email'));
-      $email                   = strtolower($this->input->post('email'));
-      $password                = $this->input->post('password');
+      $active                  = getPOST('status');
+      $notify                  = getPOST('notify');
+      list($username, $domain) = explode('@', getPOST('email'));
+      $email                   = strtolower(getPOST('email'));
+      $password                = getPOST('password');
       $additional_data         = [
-        'first_name' => $this->input->post('first_name'),
-        'last_name'  => $this->input->post('last_name'),
-        'phone'      => $this->input->post('phone'),
-        'gender'     => $this->input->post('gender'),
+        'first_name' => getPOST('first_name'),
+        'last_name'  => getPOST('last_name'),
+        'phone'      => getPOST('phone'),
+        'gender'     => getPOST('gender'),
         'customer_id' => $customer->id,
         'company'    => $customer->company,
         'group_id'   => 3,
       ];
       $this->load->library('ion_auth');
-    } elseif ($this->input->post('add_user')) {
+    } elseif (getPOST('add_user')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('customers');
     }
@@ -222,7 +222,7 @@ class Customers extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       if (!empty($_POST['val'])) {
-        if ($this->input->post('form_action') == 'delete') {
+        if (getPOST('form_action') == 'delete') {
           $this->sma->checkPermissions('delete', NULL, NULL, TRUE);
           $error = false;
           foreach ($_POST['val'] as $id) {
@@ -238,7 +238,7 @@ class Customers extends MY_Controller
           redirect($_SERVER['HTTP_REFERER']);
         }
 
-        if ($this->input->post('form_action') == 'export_excel') {
+        if (getPOST('form_action') == 'export_excel') {
           $this->load->library('excel');
           $this->excel->setActiveSheetIndex(0);
           $this->excel->getActiveSheet()->setTitle(lang('customer'));
@@ -291,7 +291,7 @@ class Customers extends MY_Controller
     checkPermission('customer-delete');
 
     if ($this->requestMethod == 'POST') {
-      $vals = $this->input->post('val'); // Array val[]
+      $vals = getPOST('val'); // Array val[]
 
       if (!empty($vals) && is_array($vals)) {
         $success = 0;
@@ -308,13 +308,13 @@ class Customers extends MY_Controller
       $this->response(400, ['message' => "Failed to delete customers"]);
     }
 
-    if ($this->input->get('id')) {
-      $id = $this->input->get('id');
+    if (getGET('id')) {
+      $id = getGET('id');
     }
 
     if (empty($id)) $this->response(400, ['message' => "Id is empty."]);
 
-    if ($this->input->get('id') == 1) {
+    if (getGET('id') == 1) {
       sendJSON(['error' => 1, 'msg' => lang('customer_x_deleted')]);
     }
 
@@ -358,8 +358,8 @@ class Customers extends MY_Controller
   {
     $this->sma->checkPermissions(false, true);
 
-    if ($this->input->get('id')) {
-      $customer_id = $this->input->get('id');
+    if (getGET('id')) {
+      $customer_id = getGET('id');
     }
 
     $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -374,42 +374,42 @@ class Customers extends MY_Controller
     $this->form_validation->set_rules('name', lang('name'), 'required|trim');
     $this->form_validation->set_rules('phone', lang('phone'), 'required|trim');
 
-    if ($this->input->get('id')) {
-      $id = $this->input->get('id');
+    if (getGET('id')) {
+      $id = getGET('id');
     }
 
     $customer = $this->site->getCustomerByID($id);
-    if ($this->input->post('email') != $customer->email) {
+    if (getPOST('email') != $customer->email) {
       $this->form_validation->set_rules('code', lang('email_address'), 'is_unique[customers.email]');
     }
 
     if ($this->form_validation->run() == true) {
-      $cg   = $this->site->getCustomerGroupByID($this->input->post('customer_group'));
-      $pg   = $this->site->getPriceGroupByID($this->input->post('price_group'));
+      $cg   = $this->site->getCustomerGroupByID(getPOST('customer_group'));
+      $pg   = $this->site->getPriceGroupByID(getPOST('price_group'));
       $data = [
-        'name'                => $this->input->post('name'),
-        'email'               => $this->input->post('email'),
+        'name'                => getPOST('name'),
+        'email'               => getPOST('email'),
         'group_id'            => '3',
         'group_name'          => 'customer',
-        'customer_group_id'   => $this->input->post('customer_group'),
+        'customer_group_id'   => getPOST('customer_group'),
         'customer_group_name' => $cg->name,
-        'price_group_id'      => $this->input->post('price_group') ? $this->input->post('price_group') : null,
-        'price_group_name'    => $this->input->post('price_group') ? $pg->name : null,
-        'company'             => $this->input->post('company'),
-        'address'             => $this->input->post('address'),
-        'city'                => $this->input->post('city'),
-        'state'               => $this->input->post('state'),
-        'postal_code'         => $this->input->post('postal_code'),
-        'country'             => $this->input->post('country'),
-        'phone'               => $this->input->post('phone'),
-        'payment_term'        => (!empty($this->input->post('payment_term')) ? $this->input->post('payment_term') : 1),
-        'award_points'        => $this->input->post('award_points'),
+        'price_group_id'      => getPOST('price_group') ? getPOST('price_group') : null,
+        'price_group_name'    => getPOST('price_group') ? $pg->name : null,
+        'company'             => getPOST('company'),
+        'address'             => getPOST('address'),
+        'city'                => getPOST('city'),
+        'state'               => getPOST('state'),
+        'postal_code'         => getPOST('postal_code'),
+        'country'             => getPOST('country'),
+        'phone'               => getPOST('phone'),
+        'payment_term'        => (!empty(getPOST('payment_term')) ? getPOST('payment_term') : 1),
+        'award_points'        => getPOST('award_points'),
         'json_data' => json_encode([
-          'notify_wa' => $this->input->post('notify_wa'),
-          'shipaddr' => $this->input->post('ship_address')
+          'notify_wa' => getPOST('notify_wa'),
+          'shipaddr' => getPOST('ship_address')
         ])
       ];
-    } elseif ($this->input->post('edit_customer')) {
+    } elseif (getPOST('edit_customer')) {
       $this->session->set_flashdata('error', validation_errors());
       redirect($_SERVER['HTTP_REFERER']);
     }
@@ -441,16 +441,16 @@ class Customers extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'line1'       => $this->input->post('line1'),
-        'line2'       => $this->input->post('line2'),
-        'city'        => $this->input->post('city'),
-        'postal_code' => $this->input->post('postal_code'),
-        'state'       => $this->input->post('state'),
-        'country'     => $this->input->post('country'),
-        'phone'       => $this->input->post('phone'),
+        'line1'       => getPOST('line1'),
+        'line2'       => getPOST('line2'),
+        'city'        => getPOST('city'),
+        'postal_code' => getPOST('postal_code'),
+        'state'       => getPOST('state'),
+        'country'     => getPOST('country'),
+        'phone'       => getPOST('phone'),
         'updated_at'  => date('Y-m-d H:i:s'),
       ];
-    } elseif ($this->input->post('edit_address')) {
+    } elseif (getPOST('edit_address')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('customers');
     }
@@ -468,8 +468,8 @@ class Customers extends MY_Controller
   {
     $this->sma->checkPermissions('deposits', true);
 
-    if ($this->input->get('id')) {
-      $id = $this->input->get('id');
+    if (getGET('id')) {
+      $id = getGET('id');
     }
     $deposit = $this->site->getCustomerDepositByID($id);
     $customer = $this->site->getCustomerByID($deposit->customer_id);
@@ -481,24 +481,24 @@ class Customers extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       if ($this->Owner || $this->Admin) {
-        $date = $this->sma->fld(trim($this->input->post('date')));
+        $date = $this->sma->fld(trim(getPOST('date')));
       } else {
         $date = $deposit->date;
       }
       $data = [
         'date'       => $date,
-        'amount'     => $this->input->post('amount'),
-        'paid_by'    => $this->input->post('paid_by'),
-        'note'       => $this->input->post('note'),
+        'amount'     => getPOST('amount'),
+        'paid_by'    => getPOST('paid_by'),
+        'note'       => getPOST('note'),
         'customer_id' => $deposit->customer_id,
         'updated_by' => $this->session->userdata('user_id'),
         'updated_at' => $date = date('Y-m-d H:i:s'),
       ];
 
       $cdata = [
-        'deposit_amount' => (($customer->deposit_amount - $deposit->amount) + $this->input->post('amount')),
+        'deposit_amount' => (($customer->deposit_amount - $deposit->amount) + getPOST('amount')),
       ];
-    } elseif ($this->input->post('edit_deposit')) {
+    } elseif (getPOST('edit_deposit')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('customers');
     }
@@ -516,41 +516,41 @@ class Customers extends MY_Controller
 
   public function edit_email($id = null)
   { // Added
-    if ($this->input->get('id')) {
-      $id = $this->input->get('id');
+    if (getGET('id')) {
+      $id = getGET('id');
     }
 
     $customer = $this->site->getCustomerByID($id);
-    if ($this->input->post('email') != $customer->email) {
+    if (getPOST('email') != $customer->email) {
       $this->form_validation->set_rules('code', lang('email_address'), 'is_unique[customers.email]');
     }
 
     if ($this->form_validation->run('customers/add') == true) {
-      $cg   = $this->site->getCustomerGroupByID($this->input->post('customer_group'));
-      $pg   = $this->site->getPriceGroupByID($this->input->post('price_group'));
+      $cg   = $this->site->getCustomerGroupByID(getPOST('customer_group'));
+      $pg   = $this->site->getPriceGroupByID(getPOST('price_group'));
       $data = [
-        'name'           => $this->input->post('name'),
-        'email'               => $this->input->post('email'),
+        'name'           => getPOST('name'),
+        'email'               => getPOST('email'),
         'group_id'            => '3',
         'group_name'          => 'customer',
-        'customer_group_id'   => $this->input->post('customer_group'),
+        'customer_group_id'   => getPOST('customer_group'),
         'customer_group_name' => $cg->name,
-        'price_group_id'      => $this->input->post('price_group') ? $this->input->post('price_group') : null,
-        'price_group_name'    => $this->input->post('price_group') ? $pg->name : null,
-        'company'             => $this->input->post('company'),
-        'address'             => $this->input->post('address'),
-        'city'                => $this->input->post('city'),
-        'state'               => $this->input->post('state'),
-        'postal_code'         => $this->input->post('postal_code'),
-        'country'             => $this->input->post('country'),
-        'phone'               => $this->input->post('phone'),
-        'payment_term'        => $this->input->post('payment_term'),
-        'award_points'        => $this->input->post('award_points'),
+        'price_group_id'      => getPOST('price_group') ? getPOST('price_group') : null,
+        'price_group_name'    => getPOST('price_group') ? $pg->name : null,
+        'company'             => getPOST('company'),
+        'address'             => getPOST('address'),
+        'city'                => getPOST('city'),
+        'state'               => getPOST('state'),
+        'postal_code'         => getPOST('postal_code'),
+        'country'             => getPOST('country'),
+        'phone'               => getPOST('phone'),
+        'payment_term'        => getPOST('payment_term'),
+        'award_points'        => getPOST('award_points'),
         'json_data' => json_encode([
-          'shipaddr' => $this->input->post('ship_address')
+          'shipaddr' => getPOST('ship_address')
         ])
       ];
-    } elseif ($this->input->post('edit_customer')) {
+    } elseif (getPOST('edit_customer')) {
       $this->session->set_flashdata('error', validation_errors());
       redirect($_SERVER['HTTP_REFERER']);
     }
@@ -732,7 +732,7 @@ class Customers extends MY_Controller
           }
         }
       }
-    } elseif ($this->input->post('import')) {
+    } elseif (getPOST('import')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('customers');
     }
@@ -838,7 +838,7 @@ class Customers extends MY_Controller
 
         // $this->sma->print_arrays($data, $updated);
       }
-    } elseif ($this->input->post('import')) {
+    } elseif (getPOST('import')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('customers');
     }
@@ -879,14 +879,14 @@ class Customers extends MY_Controller
 
   public function suggestions($term = null, $limit = null, $a = null)
   {
-    if ($this->input->get('term')) {
-      $term = $this->input->get('term', true);
+    if (getGET('term')) {
+      $term = getGET('term', true);
     }
-    if ($this->input->get('id')) {
+    if (getGET('id')) {
       $term = [];
-      $term['id'] = $this->input->get('id', true);
+      $term['id'] = getGET('id', true);
     }
-    $limit  = $this->input->get('limit', true);
+    $limit  = getGET('limit', true);
     $result = $this->site->getCustomerSuggestions($term, $limit);
     if ($a) {
       sendJSON($result);
@@ -899,8 +899,8 @@ class Customers extends MY_Controller
   {
     $this->sma->checkPermissions(false, true);
 
-    if ($this->input->get('id')) {
-      $customer_id = $this->input->get('id');
+    if (getGET('id')) {
+      $customer_id = getGET('id');
     }
 
     $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));

@@ -16,12 +16,12 @@ class Machines extends MY_Controller
 
   public function getMachines()
   {
-    $xls        = ($this->input->get('xls') == 1 ? TRUE : FALSE);
-    $startDate  = ($this->input->get('start_date') ?? date('Y-m-') . '01');
-    $endDate    = ($this->input->get('end_date') ?? date('Y-m-d'));
-    $condition  = $this->input->get('condition');
-    $code       = $this->input->get('code');
-    $warehouses = $this->session->userdata('warehouse_id') ?? $this->input->get('warehouse');
+    $xls        = (getGET('xls') == 1 ? TRUE : FALSE);
+    $startDate  = (getGET('start_date') ?? date('Y-m-') . '01');
+    $endDate    = (getGET('end_date') ?? date('Y-m-d'));
+    $condition  = getGET('condition');
+    $code       = getGET('code');
+    $warehouses = $this->session->userdata('warehouse_id') ?? getGET('warehouse');
     $whNames = [];
 
     if ($warehouses) {
@@ -298,7 +298,7 @@ class Machines extends MY_Controller
     $this->data['warehouse'] = $warehouse;
 
     if ($this->requestMethod == 'POST') {
-      $groups = $this->input->post('group'); // Each group or Each warehouse.
+      $groups = getPOST('group'); // Each group or Each warehouse.
       $g = [];
 
       // $group => [category: "ELEC", pic: 21, auto_assign: 1]
@@ -483,13 +483,13 @@ class Machines extends MY_Controller
     $this->data['creator'] = $this->site->getUserByID($this->session->userdata('user_id'));
 
     if ($this->requestMethod == 'POST') {
-      $createdBy    = $this->input->post('created_by');
-      $createdAt    = ($this->isAdmin ? dtPHP($this->input->post('created_at')) : $this->serverDateTime);
-      $condition    = $this->input->post('condition');
-      $note         = $this->input->post('note');
-      $picNote      = $this->input->post('pic_note');
-      $picId        = $this->input->post('pic');
-      $warehouseId  = $this->input->post('warehouse');
+      $createdBy    = getPOST('created_by');
+      $createdAt    = ($this->isAdmin ? dtPHP(getPOST('created_at')) : $this->serverDateTime);
+      $condition    = getPOST('condition');
+      $note         = getPOST('note');
+      $picNote      = getPOST('pic_note');
+      $picId        = getPOST('pic');
+      $warehouseId  = getPOST('warehouse');
 
       if (empty($picId)) $picId = NULL;
 
@@ -715,7 +715,7 @@ class Machines extends MY_Controller
     $this->data['product'] = $product;
 
     if ($this->requestMethod == 'POST') {
-      $picId = $this->input->post('pic');
+      $picId = getPOST('pic');
 
       $productData = [
         'product_id'  => $product->id,
@@ -743,7 +743,7 @@ class Machines extends MY_Controller
   protected function report_batch()
   {
     if ($this->requestMethod == 'POST') {
-      $itemIds = $this->input->post('val');
+      $itemIds = getPOST('val');
 
       if (empty($itemIds)) {
         $this->response(400, ['message' => "Harap pilih salah satu item."]);
@@ -834,13 +834,13 @@ class Machines extends MY_Controller
     }
 
     if ($this->requestMethod == 'POST') {
-      $createdBy    = $this->input->post('created_by');
-      $createdAt    = dtPHP($this->input->post('created_at'));
-      $condition    = $this->input->post('condition');
-      $note         = $this->input->post('note');
-      $picNote      = $this->input->post('pic_note');
-      $warehouse_id = $this->input->post('warehouse');
-      $picId        = $this->input->post('pic');
+      $createdBy    = getPOST('created_by');
+      $createdAt    = dtPHP(getPOST('created_at'));
+      $condition    = getPOST('condition');
+      $note         = getPOST('note');
+      $picNote      = getPOST('pic_note');
+      $warehouse_id = getPOST('warehouse');
+      $picId        = getPOST('pic');
 
       if (empty($condition)) $this->response(400, ['message' => 'Condition must be set.']);
 
@@ -892,10 +892,10 @@ class Machines extends MY_Controller
 
   protected function report_getReports()
   {
-    $productId  = $this->input->get('product_id');
-    $startDate = $this->input->get('start_date');
-    $endDate   = $this->input->get('end_date');
-    $xls = ($this->input->get('xls') == 1 ? TRUE : FALSE);
+    $productId  = getGET('product_id');
+    $startDate = getGET('start_date');
+    $endDate   = getGET('end_date');
+    $xls = (getGET('xls') == 1 ? TRUE : FALSE);
 
     $period = getLastMonthPeriod(['start_date' => $startDate, 'end_date' => $endDate]);
 
@@ -970,12 +970,12 @@ class Machines extends MY_Controller
     $this->data['creator'] = $this->site->getUserByID($this->session->userdata('user_id'));
 
     if ($this->requestMethod == 'POST') {
-      $createdBy    = $this->input->post('created_by');
-      $createdAt    = ($this->isAdmin ? dtPHP($this->input->post('created_at')) : $this->serverDateTime);
-      $note         = $this->input->post('note');
-      $picId        = $this->input->post('pic');
-      $rating       = $this->input->post('rating');
-      $warehouseId  = $this->input->post('warehouse');
+      $createdBy    = getPOST('created_by');
+      $createdAt    = ($this->isAdmin ? dtPHP(getPOST('created_at')) : $this->serverDateTime);
+      $note         = getPOST('note');
+      $picId        = getPOST('pic');
+      $rating       = getPOST('rating');
+      $warehouseId  = getPOST('warehouse');
 
       if (!$rating) $this->response(400, ['message' => 'Rating bintang harus diberikan']);
 
@@ -1038,12 +1038,12 @@ class Machines extends MY_Controller
       ->orderBy('id', 'desc')->getRow();
 
     if ($this->requestMethod == 'POST') {
-      $createdAt    = ($this->isAdmin ? dtPHP($this->input->post('created_at')) : $this->serverDateTime);
-      $createdBy    = $this->input->post('created_by');
-      $note         = $this->input->post('note');
-      $picId        = $this->input->post('pic');
-      $rating       = $this->input->post('rating');
-      $warehouseId  = $this->input->post('warehouse');
+      $createdAt    = ($this->isAdmin ? dtPHP(getPOST('created_at')) : $this->serverDateTime);
+      $createdBy    = getPOST('created_by');
+      $note         = getPOST('note');
+      $picId        = getPOST('pic');
+      $rating       = getPOST('rating');
+      $warehouseId  = getPOST('warehouse');
 
       if (!$rating) $this->response(400, ['message' => 'Rating bintang harus diberikan']);
 
@@ -1083,10 +1083,10 @@ class Machines extends MY_Controller
 
   protected function review_getReviews()
   {
-    $productId  = $this->input->get('product_id');
-    $startDate = $this->input->get('start_date');
-    $endDate   = $this->input->get('end_date');
-    $xls = ($this->input->get('xls') == 1 ? TRUE : FALSE);
+    $productId  = getGET('product_id');
+    $startDate = getGET('start_date');
+    $endDate   = getGET('end_date');
+    $xls = (getGET('xls') == 1 ? TRUE : FALSE);
 
     $period = getLastMonthPeriod(['start_date' => $startDate, 'end_date' => $endDate]);
 

@@ -15,12 +15,12 @@ class Whatsapp extends MY_Controller
   public function add()
   {
     if ($this->requestMethod == 'POST') {
-      $endClicks   = $this->input->post('end_click'); // Array
-      $mcRejects   = $this->input->post('mc_reject'); // Array
-      $dateTime    = ($this->isAdmin ? $this->input->post('date') : $this->serverDateTime);
+      $endClicks   = getPOST('end_click'); // Array
+      $mcRejects   = getPOST('mc_reject'); // Array
+      $dateTime    = ($this->isAdmin ? getPOST('date') : $this->serverDateTime);
       $date        = date('Y-m-d', strtotime($dateTime));
-      $warehouseId = $this->input->post('warehouse');
-      $note        = $this->input->post('note');
+      $warehouseId = getPOST('warehouse');
+      $note        = getPOST('note');
 
       $endClick = 0;
       $mcReject = 0;
@@ -33,7 +33,7 @@ class Whatsapp extends MY_Controller
         $mcReject += (!empty($orj) ? filterDecimal($orj) : 0);
       }
 
-      $product = $this->site->getProductByCode($this->input->post('category'));
+      $product = $this->site->getProductByCode(getPOST('category'));
 
       if (!$product) {
         sendJSON(['success' => 0, 'message' => "POD Category harap dipilih."]);
@@ -84,7 +84,7 @@ class Whatsapp extends MY_Controller
         'warehouse_id' => $warehouseId,
         'note'         => htmlEncode($note),
         'created_at'   => $dateTime,
-        'created_by'   => $this->input->post('created_by')
+        'created_by'   => getPOST('created_by')
       ];
 
       $uploader = new FileUpload();
@@ -115,7 +115,7 @@ class Whatsapp extends MY_Controller
 
   public function delete($jobId = NULL)
   {
-    $jobIds = $this->input->post('val');
+    $jobIds = getPOST('val');
 
     if (!$this->isAdmin && !getPermission('wajob-delete')) {
       sendJSON(['success' => 0, 'message' => lang('access_denied')]);
@@ -145,12 +145,12 @@ class Whatsapp extends MY_Controller
     $track = $this->site->getTrackingPODByID($trackId);
 
     if ($this->requestMethod == 'POST') {
-      $endClicks   = $this->input->post('end_click'); // Array
-      $mcRejects   = $this->input->post('mc_reject'); // Array
-      $erpClick    = filterDecimal($this->input->post('erp_click'));
-      $dateTime    = ($this->isAdmin ? $this->input->post('date') : $this->serverDateTime);
-      $warehouseId = $this->input->post('warehouse');
-      $note        = $this->input->post('note');
+      $endClicks   = getPOST('end_click'); // Array
+      $mcRejects   = getPOST('mc_reject'); // Array
+      $erpClick    = filterDecimal(getPOST('erp_click'));
+      $dateTime    = ($this->isAdmin ? getPOST('date') : $this->serverDateTime);
+      $warehouseId = getPOST('warehouse');
+      $note        = getPOST('note');
 
       $endClick = 0;
       $mcReject = 0;
@@ -163,7 +163,7 @@ class Whatsapp extends MY_Controller
         $mcReject += (!empty($orj) ? filterDecimal($orj) : 0);
       }
 
-      $product = $this->site->getProductByCode($this->input->post('category'));
+      $product = $this->site->getProductByCode(getPOST('category'));
 
       if (!$product) {
         sendJSON(['success' => 0, 'message' => "POD Category harap dipilih."]);
@@ -184,7 +184,7 @@ class Whatsapp extends MY_Controller
         'warehouse_id' => $warehouseId,
         'note'         => htmlEncode($note),
         'created_at'   => $dateTime,
-        'created_by'   => $this->input->post('created_by')
+        'created_by'   => getPOST('created_by')
       ];
 
       // print_r($trackData); die();

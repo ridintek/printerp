@@ -17,10 +17,10 @@ class Qms extends MY_Controller
    */
   public function addQueueTicket()
   {
-    $name         = $this->input->post('name');
-    $phone        = $this->input->post('phone');
-    $category_id  = $this->input->post('category');
-    $warehouse_id = $this->input->post('warehouse');
+    $name         = getPOST('name');
+    $phone        = getPOST('phone');
+    $category_id  = getPOST('category');
+    $warehouse_id = getPOST('warehouse');
 
     $ticket_data = [
       'name'  => $name,
@@ -85,7 +85,7 @@ class Qms extends MY_Controller
 
   public function display($warehouse_id = NULL)
   {
-    $active_display = ($this->input->get('active') == 1 ? 1 : 0);
+    $active_display = (getGET('active') == 1 ? 1 : 0);
     $warehouse_id = ($warehouse_id ?? $this->Settings->default_warehouse);
 
     $this->data['active_display'] = $active_display;
@@ -116,10 +116,10 @@ class Qms extends MY_Controller
 
   public function endQueue()
   {
-    $ticket_id = $this->input->post('ticket');
+    $ticket_id = getPOST('ticket');
 
     $queueData = [
-      'serve_time' => ($this->input->post('serve_time') ?? NULL)
+      'serve_time' => (getPOST('serve_time') ?? NULL)
     ];
 
     if ($this->Qms_model->endQueue($ticket_id, $queueData)) {
@@ -133,7 +133,7 @@ class Qms extends MY_Controller
    */
   public function getCustomers()
   {
-    $phone = $this->input->get('q');
+    $phone = getGET('q');
 
     $customers = $this->site->getCustomersByPhone($phone);
     $data = [];
@@ -246,10 +246,10 @@ class Qms extends MY_Controller
 
   public function getQueues()
   {
-    $startDate = ($this->input->get('start_date') ?? date('Y-m-') . '01');
-    $endDate   = ($this->input->get('end_date') ?? date('Y-m-d'));
-    $warehouses = $this->session->userdata('warehouse_id') ?? $this->input->get('warehouse');
-    $xls = $this->input->get('xls');
+    $startDate = (getGET('start_date') ?? date('Y-m-') . '01');
+    $endDate   = (getGET('end_date') ?? date('Y-m-d'));
+    $warehouses = $this->session->userdata('warehouse_id') ?? getGET('warehouse');
+    $xls = getGET('xls');
     $whNames = [];
 
     if ($warehouses) {
@@ -627,10 +627,10 @@ class Qms extends MY_Controller
 
     if ($queueSession = $this->Qms_model->getTodayQueueSession($user_id)) {
       $sessionData = [
-        'over_wcall_time'  => $this->input->post('over_wait_call_time'),
-        'over_wserve_time' => $this->input->post('over_wait_serve_time'),
-        'over_serve_time'  => $this->input->post('over_serve_time'),
-        'over_rest_time'   => $this->input->post('over_rest_time')
+        'over_wcall_time'  => getPOST('over_wait_call_time'),
+        'over_wserve_time' => getPOST('over_wait_serve_time'),
+        'over_serve_time'  => getPOST('over_serve_time'),
+        'over_rest_time'   => getPOST('over_rest_time')
       ];
 
       if ($this->Qms_model->updateQueueSession($queueSession->id, $sessionData)) {
@@ -645,7 +645,7 @@ class Qms extends MY_Controller
 
   public function serveQueue()
   {
-    $ticket_id = $this->input->post('ticket');
+    $ticket_id = getPOST('ticket');
 
     if ($this->Qms_model->serveQueue($ticket_id)) {
       sendJSON(['error' => 0, 'msg' => 'OK']);
@@ -655,7 +655,7 @@ class Qms extends MY_Controller
 
   public function setCounter()
   {
-    $counter = intval($this->input->post('counter'));
+    $counter = intval(getPOST('counter'));
     $user_id = $this->session->userdata('user_id');
     $warehouse_id = ($this->session->userdata('warehouse_id') ?? $this->Settings->default_warehouse);
 
@@ -694,7 +694,7 @@ class Qms extends MY_Controller
 
   public function skipQueue()
   {
-    $ticket_id = $this->input->post('ticket');
+    $ticket_id = getPOST('ticket');
 
     if ($this->Qms_model->skipQueue($ticket_id)) {
       sendJSON(['error' => 0, 'msg' => 'OK']);

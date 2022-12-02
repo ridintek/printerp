@@ -114,11 +114,11 @@ class Calendar extends MY_Controller
         }
 
         if ($cal_lang == 'ar') {
-            $start = $this->fc->convert2($this->input->get('start', true));
-            $end   = $this->fc->convert2($this->input->get('end', true));
+            $start = $this->fc->convert2(getGET('start', true));
+            $end   = $this->fc->convert2(getGET('end', true));
         } else {
-            $start = $this->input->get('start', true);
-            $end   = $this->input->get('end', true);
+            $start = getGET('start', true);
+            $end   = getGET('end', true);
         }
 
         $input_arrays  = $this->calendar_model->getEvents($start, $end);
