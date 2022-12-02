@@ -356,7 +356,7 @@ function addConfirm(opt) {
   alertify.confirm().set(options).showModal();
 }
 
-function attachmentId(x) {
+function attachment(x) {
   return (x == null
     ? ''
     : `<div class="text-center">
@@ -366,7 +366,7 @@ function attachmentId(x) {
       </div>`);
 }
 
-function attachment(x) {
+function attachment1(x) {
   return (x == null
     ? ''
     : `<div class="text-center">
