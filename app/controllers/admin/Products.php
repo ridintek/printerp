@@ -829,7 +829,7 @@ class Products extends MY_Controller
 
       if ($product_type == 'combo') {
         $item = getPOST('combo_item_code');
-        $total = count($item);
+        $total = (is_array($item) ? count($item) : 0);
 
         for ($a = 0; $a < $total; $a++) {
           $combo_item_code     = getPOST('combo_item_code');
