@@ -16,7 +16,7 @@ if ($warehouse_to) $q .= '&warehouse=' . $warehouse_to;
 
 ?>
 <script>
-  $(document).ready(function () {
+  $(document).ready(function() {
     if (localStorage.getItem('iuitems')) {
       localStorage.removeItem('iuitems');
     }
@@ -37,30 +37,62 @@ if ($warehouse_to) $q .= '&warehouse=' . $warehouse_to;
     }
 
     oTable = $('#IUData').dataTable({
-      "aaSorting": [[1, "DESC"]],
-      "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
+      "aaSorting": [
+        [1, "DESC"]
+      ],
+      "aLengthMenu": [
+        [10, 25, 50, 100, -1],
+        [10, 25, 50, 100, "<?= lang('all') ?>"]
+      ],
       "iDisplayLength": <?= $Settings->rows_per_page ?>,
-      'bProcessing': true, 'bServerSide': true,
+      'bProcessing': true,
+      'bServerSide': true,
       'sAjaxSource': '<?= admin_url('procurements/internal_uses/getInternalUses' . $q) ?>',
-      'fnServerData': function (sSource, aoData, fnCallback) {
+      'fnServerData': function(sSource, aoData, fnCallback) {
         aoData.push({
           "name": "<?= $this->security->get_csrf_token_name() ?>",
           "value": "<?= $this->security->get_csrf_hash() ?>"
         });
-        $.ajax({'dataType': 'json', 'type': 'POST', 'url': sSource, 'data': aoData, 'success': fnCallback});
+        $.ajax({
+          'dataType': 'json',
+          'type': 'POST',
+          'url': sSource,
+          'data': aoData,
+          'success': fnCallback
+        });
       },
-      "aoColumns": [
-        {"bSortable": false,"mRender": checkbox}, {"mRender": fld}, null, null, null, null, null,
-        {"mRender": currencyFormat}, null, {"mRender": notes}, {"mRender": renderStatus},
-        {"bSortable": false,"mRender": attachmentId}, {"bSortable": false}
+      "aoColumns": [{
+          "bSortable": false,
+          "mRender": checkbox
+        }, {
+          "mRender": fld
+        }, null, null, null, null, null,
+        {
+          "mRender": currencyFormat
+        },
+        null, {
+          "mRender": notes
+        }, {
+          "mRender": renderStatus
+        },
+        {
+          "bSortable": false,
+          "mRender": attachment
+        }, {
+          "bSortable": false
+        }
       ],
-      'fnRowCallback': function (nRow, aData, iDisplayIndex) {
+      'fnRowCallback': function(nRow, aData, iDisplayIndex) {
         nRow.id = aData[0];
         nRow.className = "internal_use_link";
         return nRow;
       },
-      "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
-        var row_total = 0, tax = 0, gtotal = 0, gpaid = 0, gbalance = 0;
+      "fnFooterCallback": function(nRow, aaData, iStart, iEnd, aiDisplay) {
+        var row_total = 0,
+          tax = 0,
+          gtotal = 0,
+          gpaid = 0,
+          gbalance = 0;
         for (var i = 0; i < aaData.length; i++) {
           gtotal += parseFloat(aaData[aiDisplay[i]][7]);
         }
@@ -84,33 +116,33 @@ if ($warehouse_to) $q .= '&warehouse=' . $warehouse_to;
 
     $('#dtfilter').datatableFilter();
 
-    $('body').on('click', '#delete', function (e) {
-			e.preventDefault();
-			let values = [];
-			$('.bpo').popover('hide');
-			$('input[name="val[]"]').each(function () {
-				if (this.checked) values.push(this.value);
-			});
-			$.ajax({
-				data: {
-					<?= $this->security->get_csrf_token_name(); ?>: '<?= $this->security->get_csrf_hash(); ?>',
-					form_action: 'delete',
-					val: values
-				},
-				method: 'POST',
-				success: function (data) {
-					if (typeof data == 'object' && ! data.error) {
-						if (oTable) oTable.fnDraw(false);
-						addAlert(data.msg, 'success');
-					} else if (typeof data == 'object') {
-						addAlert(data.msg, 'danger');
-					} else {
+    $('body').on('click', '#delete', function(e) {
+      e.preventDefault();
+      let values = [];
+      $('.bpo').popover('hide');
+      $('input[name="val[]"]').each(function() {
+        if (this.checked) values.push(this.value);
+      });
+      $.ajax({
+        data: {
+          <?= $this->security->get_csrf_token_name(); ?>: '<?= $this->security->get_csrf_hash(); ?>',
+          form_action: 'delete',
+          val: values
+        },
+        method: 'POST',
+        success: function(data) {
+          if (typeof data == 'object' && !data.error) {
+            if (oTable) oTable.fnDraw(false);
+            addAlert(data.msg, 'success');
+          } else if (typeof data == 'object') {
+            addAlert(data.msg, 'danger');
+          } else {
             addAlert('Response data is not valid.', 'danger');
           }
-				},
-				url: '<?= admin_url('procurements/internal_uses/actions'); ?>'
-			});
-		});
+        },
+        url: '<?= admin_url('procurements/internal_uses/actions'); ?>'
+      });
+    });
   });
 </script>
 <div class="box">
@@ -121,7 +153,7 @@ if ($warehouse_to) $q .= '&warehouse=' . $warehouse_to;
       <ul class="btn-tasks">
         <li class="dropdown">
           <a data-toggle="dropdown" class="dropdown-toggle" href="#">
-            <i class="icon fad fa-tasks tip"  data-placement="left" title="<?= lang('actions') ?>"></i>
+            <i class="icon fad fa-tasks tip" data-placement="left" title="<?= lang('actions') ?>"></i>
           </a>
           <ul class="dropdown-menu dropdown-menu-right tasks-menus" role="menu" aria-labelledby="dLabel">
             <li>
@@ -141,9 +173,7 @@ if ($warehouse_to) $q .= '&warehouse=' . $warehouse_to;
             </li>
             <li class="divider"></li>
             <li>
-              <a href="#" class="bpo" title="<b><?= $this->lang->line('delete_internal_uses') ?></b>"
-                data-content="<p><?= lang('r_u_sure') ?></p><button type='button' class='btn btn-danger' id='delete' data-action='delete'><?= lang('i_m_sure') ?></a> <button class='btn bpo-close'><?= lang('no') ?></button>"
-                data-html="true" data-placement="left">
+              <a href="#" class="bpo" title="<b><?= $this->lang->line('delete_internal_uses') ?></b>" data-content="<p><?= lang('r_u_sure') ?></p><button type='button' class='btn btn-danger' id='delete' data-action='delete'><?= lang('i_m_sure') ?></a> <button class='btn bpo-close'><?= lang('no') ?></button>" data-html="true" data-placement="left">
                 <i class="fad fa-fw fa-trash"></i> <?= lang('delete_internal_uses') ?>
               </a>
             </li>
@@ -158,7 +188,7 @@ if ($warehouse_to) $q .= '&warehouse=' . $warehouse_to;
   <div class="box-content">
     <div class="row">
       <div class="col-lg-12">
-        <p class="introtext"><strong><?= lang('to') . ' ' . lang('warehouse'); ?></strong>: <?= ($warehouse ? $warehouse->name : lang('all_warehouses'));?></p>
+        <p class="introtext"><strong><?= lang('to') . ' ' . lang('warehouse'); ?></strong>: <?= ($warehouse ? $warehouse->name : lang('all_warehouses')); ?></p>
         <div id="form_filter" class="closed well well-sm" style="display: none">
           <div class="row">
             <div class="col-sm-4">
@@ -171,11 +201,11 @@ if ($warehouse_to) $q .= '&warehouse=' . $warehouse_to;
               <div class="form-group">
                 <label><?= lang('warehouse') . ' (' . lang('to') . ')'; ?></label>
                 <?php
-                  $all_warehouses = $this->site->getAllWarehouses();
-                  $wh[''] = 'Select Warehouse To';
-                  foreach ($all_warehouses as $warehouse) {
-                    $wh[$warehouse->id] = $warehouse->name;
-                  }
+                $all_warehouses = $this->site->getAllWarehouses();
+                $wh[''] = 'Select Warehouse To';
+                foreach ($all_warehouses as $warehouse) {
+                  $wh[$warehouse->id] = $warehouse->name;
+                }
                 ?>
                 <?= form_dropdown('warehouse', $wh, ($warehouse_to ?? ''), 'class="form-control select2" id="warehouse_to" style="width:100%;"'); ?>
               </div>
@@ -224,12 +254,11 @@ if ($warehouse_to) $q .= '&warehouse=' . $warehouse_to;
           echo admin_form_open('procurements/transfers/transfer_actions', 'id="action-form"');
         } ?>
         <div class="table-responsive">
-          <table id="IUData" cellpadding="0" cellspacing="0" borders="0"
-               class="table table-bordered table-condensed table-hover table-striped">
+          <table id="IUData" cellpadding="0" cellspacing="0" borders="0" class="table table-bordered table-condensed table-hover table-striped">
             <thead>
               <tr class="active">
                 <th style="min-width:30px; width: 30px; text-align: center;">
-                  <input class="checkbox checkth" type="checkbox" name="check"/>
+                  <input class="checkbox checkth" type="checkbox" name="check" />
                 </th>
                 <th><?= lang('date'); ?></th>
                 <th><?= lang('ref_no'); ?></th>
@@ -253,7 +282,7 @@ if ($warehouse_to) $q .= '&warehouse=' . $warehouse_to;
             <tfoot class="dtFilter">
               <tr class="active">
                 <th style="min-width:30px; width: 30px; text-align: center;">
-                  <input class="checkbox checkft" type="checkbox" name="check"/>
+                  <input class="checkbox checkft" type="checkbox" name="check" />
                 </th>
                 <th></th>
                 <th></th>
@@ -272,18 +301,18 @@ if ($warehouse_to) $q .= '&warehouse=' . $warehouse_to;
           </table>
         </div>
         <?php if ($Owner || $Admin || $GP['bulk_actions']) { ?>
-        <div style="display: none;">
-          <input type="hidden" name="form_action" value="" id="form_action"/>
-          <?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
-        </div>
-        <?= form_close() ?>
+          <div style="display: none;">
+            <input type="hidden" name="form_action" value="" id="form_action" />
+            <?= form_submit('performAction', 'performAction', 'id="action-form-submit"') ?>
+          </div>
+          <?= form_close() ?>
         <?php } ?>
       </div>
     </div>
   </div>
 </div>
 <script>
-  $(document).ready(function () {
+  $(document).ready(function() {
     $('#sync_iuse').click(function() {
       addConfirm({
         title: 'Sync Internal Use',
@@ -320,37 +349,37 @@ if ($warehouse_to) $q .= '&warehouse=' . $warehouse_to;
       })
     });
 
-    $('#export_excel').click(function () {
+    $('#export_excel').click(function() {
       event.preventDefault();
       let q = '?xls=1';
-      let end_date     = $('#end_date').val();
-      let item_name    = $('#item_name').val();
-      let reference    = $('#reference').val();
-      let start_date   = $('#start_date').val();
+      let end_date = $('#end_date').val();
+      let item_name = $('#item_name').val();
+      let reference = $('#reference').val();
+      let start_date = $('#start_date').val();
       let warehouse_to = $('#warehouse_to').val();
 
-      if (end_date)     q += '&end_date=' + end_date;
-      if (item_name)    q += '&item=' + item_name;
-      if (reference)    q += '&reference=' + reference;
-      if (start_date)   q += '&start_date=' + start_date;
+      if (end_date) q += '&end_date=' + end_date;
+      if (item_name) q += '&item=' + item_name;
+      if (reference) q += '&reference=' + reference;
+      if (start_date) q += '&start_date=' + start_date;
       if (warehouse_to) q += '&warehouse=' + warehouse_to;
 
       location.href = site.base_url + 'procurements/internal_uses/getInternalUses' + q;
     });
 
-    $('#filter_submit').click(function () {
+    $('#filter_submit').click(function() {
       event.preventDefault();
       let q = '?';
-      let end_date     = $('#end_date').val();
-      let item_name    = $('#item_name').val();
-      let reference    = $('#reference').val();
-      let start_date   = $('#start_date').val();
+      let end_date = $('#end_date').val();
+      let item_name = $('#item_name').val();
+      let reference = $('#reference').val();
+      let start_date = $('#start_date').val();
       let warehouse_to = $('#warehouse_to').val();
 
-      if (end_date)     q += '&end_date=' + end_date;
-      if (item_name)    q += '&item=' + item_name;
-      if (reference)    q += '&reference=' + reference;
-      if (start_date)   q += '&start_date=' + start_date;
+      if (end_date) q += '&end_date=' + end_date;
+      if (item_name) q += '&item=' + item_name;
+      if (reference) q += '&reference=' + reference;
+      if (start_date) q += '&start_date=' + start_date;
       if (warehouse_to) q += '&warehouse=' + warehouse_to;
 
       location.href = site.base_url + 'procurements/internal_uses' + q;
