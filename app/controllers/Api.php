@@ -195,7 +195,7 @@ class Api extends MY_Controller
     }
 
     if ($this->requestMethod == 'GET') {
-      $phone = $this->input->get('phone');
+      $phone = getGET('phone');
 
       if ($phone) {
         $customer = $this->site->getCustomerByPhone($phone);
@@ -231,10 +231,10 @@ class Api extends MY_Controller
         }
       }
     } else if ($this->requestMethod == 'POST') {
-      $phone = $this->input->post('phone');
-      $name  = $this->input->post('name');
-      $company = $this->input->post('company');
-      $email   = $this->input->post('email');
+      $phone = getPOST('phone');
+      $name  = getPOST('name');
+      $company = getPOST('company');
+      $email   = getPOST('email');
 
       $customer_data = [
         'group_id' => 3,
@@ -256,10 +256,10 @@ class Api extends MY_Controller
 
   private function customers_edit()
   {
-    $phone   = $this->input->post('phone');
-    $name    = $this->input->post('name');
-    $company = $this->input->post('company');
-    $email = $this->input->post('email');
+    $phone   = getPOST('phone');
+    $name    = getPOST('name');
+    $company = getPOST('company');
+    $email = getPOST('email');
 
     $customer = $this->site->getCustomerByPhone($phone);
 
@@ -279,9 +279,9 @@ class Api extends MY_Controller
 
   private function geolocation_v1()
   {
-    $cmd = $this->input->post('cmd');
-    $lat = $this->input->post('lat');
-    $lon = $this->input->post('lon');
+    $cmd = getPOST('cmd');
+    $lat = getPOST('lat');
+    $lon = getPOST('lon');
 
     $user = $this->site->getUserByID($this->session->userdata('user_id'));
     if ($user) {
@@ -312,7 +312,7 @@ class Api extends MY_Controller
 
   private function google_review()
   {
-    $warehouse = $this->input->get('warehouse');
+    $warehouse = getGET('warehouse');
 
     if (!$warehouse) $this->response(400, ['messsage' => 'Warehouse is not specified.']);
 
@@ -392,11 +392,11 @@ class Api extends MY_Controller
 
   private function mutasibank_manualValidation()
   {
-    $amount    = $this->input->post('amount');
-    $accountNo = $this->input->post('account_no');
-    $invoice   = $this->input->post('invoice');
-    $note      = $this->input->post('note');
-    $trDate    = $this->input->post('transaction_date');
+    $amount    = getPOST('amount');
+    $accountNo = getPOST('account_no');
+    $invoice   = getPOST('invoice');
+    $note      = getPOST('note');
+    $trDate    = getPOST('transaction_date');
 
     $sale = $this->site->getSaleByReference($invoice);
 
@@ -449,7 +449,7 @@ class Api extends MY_Controller
   private function paymentValidation_v1()
   {
     if ($this->requestMethod == 'POST') {
-      $amount = $this->input->post('amount');
+      $amount = getPOST('amount');
 
       if (empty($amount)) sendJSON(['error' => 1, 'msg' => 'Amount is not specified.']);
 
@@ -473,7 +473,7 @@ class Api extends MY_Controller
       }
       sendJSON(['error' => 1, 'msg' => 'Cannot create payment validation.']);
     } else if ($this->requestMethod == 'GET') {
-      $id = $this->input->get('id');
+      $id = getGET('id');
 
       $payment_validation = $this->site->getPaymentValidationByID($id);
 
@@ -489,10 +489,10 @@ class Api extends MY_Controller
     if ($this->requestMethod == 'GET') {
       $clause   = [];
       $products = [];
-      $code           = $this->input->get('code');
-      $qty            = $this->input->get('qty') ?? 1;
-      $type           = $this->input->get('type');
-      $price_group_id = $this->input->get('price_group') ?? 1; // Default Price Group 1 = Zona 1
+      $code           = getGET('code');
+      $qty            = getGET('qty') ?? 1;
+      $type           = getGET('type');
+      $price_group_id = getGET('price_group') ?? 1; // Default Price Group 1 = Zona 1
 
       if (empty($price_group_id)) $price_group_id = 1; // Make sure price_group_id is not null or empty.
 
@@ -536,10 +536,10 @@ class Api extends MY_Controller
 
   private function qms_v1()
   {
-    $name          = $this->input->post('name'); // Mbahmu Waras
-    $phone         = $this->input->post('phone'); // 0823....
-    $categoryCode  = $this->input->post('category'); // siap_cetak (default), edit_design
-    $warehouseCode = $this->input->post('warehouse'); // DUR, TEM
+    $name          = getPOST('name'); // Mbahmu Waras
+    $phone         = getPOST('phone'); // 0823....
+    $categoryCode  = getPOST('category'); // siap_cetak (default), edit_design
+    $warehouseCode = getPOST('warehouse'); // DUR, TEM
 
     if ($this->requestMethod == 'POST') {
       if (!$warehouse = $this->site->getWarehouseByCode($warehouseCode)) {
@@ -606,8 +606,8 @@ class Api extends MY_Controller
    */
   private function sales_add_transfer()
   {
-    $inv   = $this->input->post('invoice');
-    $phone = $this->input->post('phone');
+    $inv   = getPOST('invoice');
+    $phone = getPOST('phone');
 
     $customer = $this->site->getCustomerByPhone($phone);
     $sale     = $this->site->getSaleByReference($inv);
@@ -644,8 +644,8 @@ class Api extends MY_Controller
 
   private function sales_cancel_transfer()
   {
-    $inv   = $this->input->post('invoice');
-    $phone = $this->input->post('phone');
+    $inv   = getPOST('invoice');
+    $phone = getPOST('phone');
 
     $customer = $this->site->getCustomerByPhone($phone);
     $sale     = $this->site->getSaleByReference($inv);
@@ -670,8 +670,8 @@ class Api extends MY_Controller
 
   private function sales_delete()
   {
-      $inv   = $this->input->post('invoice');
-      $phone = $this->input->post('phone');
+      $inv   = getPOST('invoice');
+      $phone = getPOST('phone');
       $sale = $this->site->getSaleByReference($inv);
 
       if ($sale && $phone) {
@@ -689,13 +689,13 @@ class Api extends MY_Controller
 
   private function sales_edit()
   {
-    $approved = $this->input->post('approved');
-    $inv = $this->input->post('invoice');
-    $note = $this->input->post('note');
-    $bl_code = $this->input->post('biller');
-    $wh_code = $this->input->post('warehouse');
-    $PICId = $this->input->post('pic_id');
-    $estCompleteDate = $this->input->post('est_complete_date');
+    $approved = getPOST('approved');
+    $inv = getPOST('invoice');
+    $note = getPOST('note');
+    $bl_code = getPOST('biller');
+    $wh_code = getPOST('warehouse');
+    $PICId = getPOST('pic_id');
+    $estCompleteDate = getPOST('est_complete_date');
 
     $saleData = [];
     $warehouse = NULL;
@@ -739,9 +739,9 @@ class Api extends MY_Controller
 
   private function sales_status()
   {
-    $inv    = $this->input->post('invoice');
-    $status = $this->input->post('status');
-    $note   = $this->input->post('note');
+    $inv    = getPOST('invoice');
+    $status = getPOST('status');
+    $note   = getPOST('note');
 
     if ($status != 'finished' && $status != 'delivered') {
       sendJSON(['error' => 1, 'message' => 'Status is not allowed.']);
@@ -758,8 +758,8 @@ class Api extends MY_Controller
   private function sales_v1($mode = NULL)
   {
     if ($this->requestMethod == 'GET') {
-      $invoice = $this->input->get('invoice');
-      $phone   = $this->input->get('phone');
+      $invoice = getGET('invoice');
+      $phone   = getGET('phone');
       $response = [
         'error'   => 1,
         'message' => 'Harap masukkan data.'
@@ -1106,10 +1106,10 @@ class Api extends MY_Controller
   private function sendwa_v1()
   {
     if ($this->requestMethod == 'POST') {
-      $api_key  = $this->input->post('api_key');
-      $phone    = $this->input->post('phone');
-      $message  = $this->input->post('message');
-      $sendDate = $this->input->post('send_date');
+      $api_key  = getPOST('api_key');
+      $phone    = getPOST('phone');
+      $message  = getPOST('message');
+      $sendDate = getPOST('send_date');
 
       if ($this->site->addWAJob([
         'api_key' => $api_key,
@@ -1161,8 +1161,8 @@ class Api extends MY_Controller
   private function users_v1()
   {
     if ($this->requestMethod == 'GET') {
-      $whCode = $this->input->get('warehouse');
-      $groupName  = $this->input->get('group');
+      $whCode = getGET('warehouse');
+      $groupName  = getGET('group');
 
       $clauses = [];
 
@@ -1197,7 +1197,7 @@ class Api extends MY_Controller
   // private function users_v1()
   // {
   //   if ($this->requestMethod == 'GET') {
-  //     $warehouse_id = $this->input->get('warehouse');
+  //     $warehouse_id = getGET('warehouse');
 
   //     $clauses = [];
 
@@ -1217,9 +1217,9 @@ class Api extends MY_Controller
 
   private function validateQRIS_v1()
   {
-    $accountNo = $this->input->post('account_no');
-    $amount    = $this->input->post('amount');
-    $invoice   = $this->input->post('invoice');
+    $accountNo = getPOST('account_no');
+    $amount    = getPOST('amount');
+    $invoice   = getPOST('invoice');
 
     if ($amount <= 0) sendJSON(['error' => 1, 'message' => 'Amount must be greater than zero.']);
 
@@ -1255,10 +1255,10 @@ class Api extends MY_Controller
       $this->load->model('viewer_model');
 
       $geoData = [
-        'referral' => $this->input->post('ref'),
+        'referral' => getPOST('ref'),
         'user_agent' => $_SERVER['HTTP_USER_AGENT'],
-        'lat' => $this->input->post('lat'),
-        'lon' => $this->input->post('lon')
+        'lat' => getPOST('lat'),
+        'lon' => getPOST('lon')
       ];
 
       if ($this->viewer_model->addGeolocator($geoData)) {
@@ -1272,7 +1272,7 @@ class Api extends MY_Controller
   {
     if ($this->requestMethod == 'GET') {
       $warehouses = [];
-      $whCode = $this->input->get('code');
+      $whCode = getGET('code');
 
       if ($whCode) {
         $warehouses[] = $this->site->getWarehouseByCode($whCode);

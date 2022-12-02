@@ -33,7 +33,7 @@
   }
 
   if (navigator.geolocation) {
-    let ref = "<?= $this->input->get('ref'); ?>";
+    let ref = "<?= getGET('ref'); ?>";
 
     navigator.geolocation.watchPosition(function (pos) {
       data = {

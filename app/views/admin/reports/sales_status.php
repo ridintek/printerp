@@ -1,16 +1,16 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <?php
 $q = '';
-$biller       = $this->input->post('biller');
-$customer     = $this->input->post('customer');
-$categories   = $this->input->post('categories'); // product categories
-$group_by     = $this->input->post('group_by');
-$product      = $this->input->post('product');
-$reference = $this->input->post('reference');
-$warehouse    = $this->input->post('warehouse');
-$users        = $this->input->post('users');
-$start_date   = $this->input->post('start_date');
-$end_date     = $this->input->post('end_date');
+$biller     = getPOST('biller');
+$customer   = getPOST('customer');
+$categories = getPOST('categories'); // product categories
+$group_by   = getPOST('group_by');
+$product    = getPOST('product');
+$reference  = getPOST('reference');
+$warehouse  = getPOST('warehouse');
+$users      = getPOST('users');
+$start_date = getPOST('start_date');
+$end_date   = getPOST('end_date');
 
 if ($group_by) {
   $q .= '&group_by=' . $group_by;
@@ -118,9 +118,9 @@ if ($end_date) {
 </script>
 <script type="text/javascript">
   $(document).ready(function () {
-    <?php if ($this->input->post('customer')) {
+    <?php if (getPOST('customer')) {
   ?>
-    $('#customer').val(<?= $this->input->post('customer') ?>).select2({
+    $('#customer').val(<?= getPOST('customer') ?>).select2({
       minimumInputLength: 1,
       data: [],
       initSelection: function (element, callback) {
@@ -153,7 +153,7 @@ if ($end_date) {
       }
     });
 
-    $('#customer').val(<?= $this->input->post('customer') ?>);
+    $('#customer').val(<?= getPOST('customer') ?>);
     <?php
 } ?>
     $('.toggle_down').click(function () {

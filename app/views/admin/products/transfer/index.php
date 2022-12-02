@@ -2,7 +2,7 @@
 <?php
 $q = '';
 
-if ($warehousesFrom = $this->input->get('warehouses_from')) {
+if ($warehousesFrom = getGET('warehouses_from')) {
   foreach ($warehousesFrom as $warehouseId) {
     if (!empty($warehouseId)) {
       $q .= '&warehouse_id_from[]=' . $warehouseId;
@@ -10,7 +10,7 @@ if ($warehousesFrom = $this->input->get('warehouses_from')) {
   }
 }
 
-if ($warehousesTo = $this->input->get('warehouses_to')) {
+if ($warehousesTo = getGET('warehouses_to')) {
   foreach ($warehousesTo as $warehouseId) {
     if (!empty($warehouseId)) {
       $q .= '&warehouse_id_to[]=' . $warehouseId;
@@ -18,11 +18,11 @@ if ($warehousesTo = $this->input->get('warehouses_to')) {
   }
 }
 
-if ($startDate = $this->input->get('start_date')) {
+if ($startDate = getGET('start_date')) {
   $q .= '&start_date=' . $startDate;
 }
 
-if ($endDate = $this->input->get('end_date')) {
+if ($endDate = getGET('end_date')) {
   $q .= '&end_date=' . $endDate;
 }
 ?>
@@ -110,7 +110,7 @@ if ($endDate = $this->input->get('end_date')) {
       }
       ?>
       <i class="fa-fw fad fa-cogs"></i><?= $page_title; ?>
-      <?= ($this->input->post('start_date') ? '(' . $this->input->post('start_date') . ')' : '') . ($this->input->post('end_date') ? ' to (' . $this->input->post('end_date') . ')' : ''); ?>
+      <?= (getPOST('start_date') ? '(' . getPOST('start_date') . ')' : '') . (getPOST('end_date') ? ' to (' . getPOST('end_date') . ')' : ''); ?>
     </h2>
 
     <div class="box-icon">

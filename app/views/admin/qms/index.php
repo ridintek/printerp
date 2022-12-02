@@ -2,17 +2,17 @@
 <?php
 $q = '';
 
-if ($warehouses = $this->input->get('warehouse')) {
+if ($warehouses = getGET('warehouse')) {
   foreach ($warehouses as $warehouse_id) {
     if (!empty($warehouse_id)) {
       $q .= '&warehouse[]=' . $warehouse_id;
     }
   }
 }
-if ($start_date = $this->input->get('start_date')) {
+if ($start_date = getGET('start_date')) {
   $q .= '&start_date=' . $start_date;
 }
-if ($end_date = $this->input->get('end_date')) {
+if ($end_date = getGET('end_date')) {
   $q .= '&end_date=' . $end_date;
 }
 ?>
@@ -92,7 +92,7 @@ if ($end_date = $this->input->get('end_date')) {
       }
       ?>
       <i class="fa-fw fad fa-cogs"></i><?= $page_title . ' (' . $whs . ')'; ?>
-      <?= ($this->input->get('start_date') ? '(' . $this->input->get('start_date') . ')' : '') . ($this->input->get('end_date') ? ' to (' . $this->input->get('end_date') . ')' : ''); ?>
+      <?= (getGET('start_date') ? '(' . getGET('start_date') . ')' : '') . (getGET('end_date') ? ' to (' . getGET('end_date') . ')' : ''); ?>
     </h2>
 
     <div class="box-icon">

@@ -1,13 +1,13 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <?php
 $q = '?';
-$reference  = $this->input->get('reference');
-$bank_id    = $this->input->get('bank');
-$pic        = $this->input->get('pic'); // Person In Charge.
-$customer   = $this->input->get('customer'); // Person In Charge.
-$start_date = $this->input->get('start_date');
-$end_date   = $this->input->get('end_date');
-$verify_status = $this->input->get('verify_status');
+$reference  = getGET('reference');
+$bank_id    = getGET('bank');
+$pic        = getGET('pic'); // Person In Charge.
+$customer   = getGET('customer'); // Person In Charge.
+$start_date = getGET('start_date');
+$end_date   = getGET('end_date');
+$verify_status = getGET('verify_status');
 
 if ($reference) {
   $q .= '&reference=' . $reference;

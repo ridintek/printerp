@@ -1,37 +1,37 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <?php
 $q = '';
-if ($reference = $this->input->get('reference')) {
+if ($reference = getGET('reference')) {
   $q .= '&reference=' . $reference;
 }
-if ($supplier_name = $this->input->get('supplier')) {
+if ($supplier_name = getGET('supplier')) {
   $q .= '&supplier=' . $supplier_name;
 }
-if ($warehouse = $this->input->get('warehouse')) {
+if ($warehouse = getGET('warehouse')) {
   foreach ($warehouse as $wh) {
     $q .= '&warehouse[]=' . $wh;
   }
 }
-if ($status = $this->input->get('status')) {
+if ($status = getGET('status')) {
   foreach ($status as $st) {
     $q .= '&status[]=' . $st;
   }
 }
-if ($payment_status = $this->input->get('payment_status')) {
+if ($payment_status = getGET('payment_status')) {
   foreach ($payment_status as $pst) {
     $q .= '&payment_status[]=' . $pst;
   }
 }
-if ($start_date = $this->input->get('start_date')) {
+if ($start_date = getGET('start_date')) {
   $q .= '&start_date=' . $start_date;
 }
-if ($end_date = $this->input->get('end_date')) {
+if ($end_date = getGET('end_date')) {
   $q .= '&end_date=' . $end_date;
 }
-if ($start_payment_date = $this->input->get('start_payment_date')) {
+if ($start_payment_date = getGET('start_payment_date')) {
   $q .= '&start_payment_date=' . $start_payment_date;
 }
-if ($end_payment_date = $this->input->get('end_payment_date')) {
+if ($end_payment_date = getGET('end_payment_date')) {
   $q .= '&end_payment_date=' . $end_payment_date;
 }
 ?>
@@ -136,7 +136,7 @@ if ($end_payment_date = $this->input->get('end_payment_date')) {
 
     $('#dtfilter').datatableFilter();
 
-    <?php if ($supp = $this->input->post('supplier')) { ?>
+    <?php if ($supp = getPOST('supplier')) { ?>
       $('#supplier_x').val(<?= $supp; ?>).select2({
         minimumInputLength: 1,
         initSelection: function(element, callback) {

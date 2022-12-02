@@ -1,33 +1,33 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <?php
 $q = '';
-if ($reference = $this->input->get('reference')) {
+if ($reference = getGET('reference')) {
   $q .= "&reference=" . $reference;
 }
-if ($warehouse_from = $this->input->get('warehouse_from')) {
+if ($warehouse_from = getGET('warehouse_from')) {
   foreach ($warehouse_from as $whf) {
     $q .= "&warehouse_from[]=" . $whf;
   }
 }
-if ($warehouse_to = $this->input->get('warehouse_to')) {
+if ($warehouse_to = getGET('warehouse_to')) {
   foreach ($warehouse_to as $wht) {
     $q .= "&warehouse_to[]=" . $wht;
   }
 }
-if ($status = $this->input->get('status')) {
+if ($status = getGET('status')) {
   foreach ($status as $st) {
     $q .= "&status[]=" . $st;
   }
 }
-if ($payment_status = $this->input->get('payment_status')) {
+if ($payment_status = getGET('payment_status')) {
   foreach ($payment_status as $pst) {
     $q .= "&payment_status[]=" . $pst;
   }
 }
-if ($start_date = $this->input->get('start_date')) {
+if ($start_date = getGET('start_date')) {
   $q .= "&start_date=" . $start_date;
 }
-if ($end_date = $this->input->get('end_date')) {
+if ($end_date = getGET('end_date')) {
   $q .= "&end_date=" . $end_date;
 }
 ?>

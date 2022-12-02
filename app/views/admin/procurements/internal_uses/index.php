@@ -2,11 +2,11 @@
 <?php
 $q = '?';
 
-$end_date  = $this->input->get('end_date');
-$item_name = $this->input->get('item');
-$reference = $this->input->get('reference');
-$start_date = $this->input->get('start_date');
-$warehouse_to = $this->input->get('warehouse');
+$end_date  = getGET('end_date');
+$item_name = getGET('item');
+$reference = getGET('reference');
+$start_date = getGET('start_date');
+$warehouse_to = getGET('warehouse');
 
 if ($end_date)     $q .= '&end_date=' . $end_date;
 if ($item_name)    $q .= '&item=' . $item_name;

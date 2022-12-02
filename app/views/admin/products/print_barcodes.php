@@ -109,7 +109,7 @@
                 </div>
                 <div id="barcode-con">
                     <?php
-                        if ($this->input->post('print')) {
+                        if (getPOST('print')) {
                             if (!empty($barcodes)) {
                                 echo '<button type="button" onclick="window.print();return false;" class="btn btn-primary btn-block tip no-print" title="' . lang('print') . '"><i class="icon fa fa-print"></i> ' . lang('print') . '</button>';
                                 $c = 1;
@@ -121,12 +121,12 @@
                                 foreach ($barcodes as $item) {
                                     for ($r = 1; $r <= $item['quantity']; $r++) {
                                         echo '<div class="item style' . $style . '" ' .
-                                        ($style == 50 && $this->input->post('cf_width') && $this->input->post('cf_height') ?
-                                            'style="width:' . $this->input->post('cf_width') . 'in;height:' . $this->input->post('cf_height') . 'in;border:0;"' : '')
+                                        ($style == 50 && getPOST('cf_width') && getPOST('cf_height') ?
+                                            'style="width:' . getPOST('cf_width') . 'in;height:' . getPOST('cf_height') . 'in;border:0;"' : '')
                                         . '>';
                                         if ($style == 50) {
-                                            if ($this->input->post('cf_orientation')) {
-                                                $ty        = (($this->input->post('cf_height') / $this->input->post('cf_width')) * 100) . '%';
+                                            if (getPOST('cf_orientation')) {
+                                                $ty        = ((getPOST('cf_height') / getPOST('cf_width')) * 100) . '%';
                                                 $landscape = '
                                                 -webkit-transform-origin: 0 0;
                                                 -moz-transform-origin:    0 0;
@@ -137,9 +137,9 @@
                                                 -ms-transform:     translateY(' . $ty . ') rotate(-90deg);
                                                 transform:         translateY(' . $ty . ') rotate(-90deg);
                                                 ';
-                                                echo '<div class="div50" style="width:' . $this->input->post('cf_height') . 'in;height:' . $this->input->post('cf_width') . 'in;border: 1px dotted #CCC;' . $landscape . '">';
+                                                echo '<div class="div50" style="width:' . getPOST('cf_height') . 'in;height:' . getPOST('cf_width') . 'in;border: 1px dotted #CCC;' . $landscape . '">';
                                             } else {
-                                                echo '<div class="div50" style="width:' . $this->input->post('cf_width') . 'in;height:' . $this->input->post('cf_height') . 'in;border: 1px dotted #CCC;padding-top:0.025in;">';
+                                                echo '<div class="div50" style="width:' . getPOST('cf_width') . 'in;height:' . getPOST('cf_height') . 'in;border: 1px dotted #CCC;padding-top:0.025in;">';
                                             }
                                         }
                                         if ($item['image']) {
@@ -241,7 +241,7 @@
     <?php
                     } ?>
     $(document).ready(function() {
-        <?php if ($this->input->post('print')) {
+        <?php if (getPOST('print')) {
                         ?>
             $( window ).load(function() {
                 $('html, body').animate({

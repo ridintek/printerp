@@ -1,20 +1,20 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <?php
 $q = '?';
-if ($this->input->post('reference')) {
-  $q .= '&reference=' . $this->input->post('reference');
+if (getPOST('reference')) {
+  $q .= '&reference=' . getPOST('reference');
 }
-if ($this->input->post('category')) {
-  $q .= '&category=' . $this->input->post('category');
+if (getPOST('category')) {
+  $q .= '&category=' . getPOST('category');
 }
-if ($this->input->post('paid_by')) {
-  $q .= '&paid_by=' . $this->input->post('paid_by');
+if (getPOST('paid_by')) {
+  $q .= '&paid_by=' . getPOST('paid_by');
 }
-if ($this->input->post('from_date')) {
-  $q .= '&from_date=' . $this->input->post('from_date');
+if (getPOST('from_date')) {
+  $q .= '&from_date=' . getPOST('from_date');
 }
-if ($this->input->post('to_date')) {
-  $q .= '&to_date=' . $this->input->post('to_date');
+if (getPOST('to_date')) {
+  $q .= '&to_date=' . getPOST('to_date');
 }
 ?>
 <script>
@@ -135,7 +135,7 @@ if ($this->input->post('to_date')) {
             <div class="col-sm-4">
               <div class="form-group">
                 <label><?= lang('ref_no'); ?></label>
-                <input type="text" class="form-control" name="reference" value="<?= ($this->input->post('reference') ?? '') ?>" />
+                <input type="text" class="form-control" name="reference" value="<?= (getPOST('reference') ?? '') ?>" />
               </div>
             </div>
             <div class="col-sm-4">
@@ -150,7 +150,7 @@ if ($this->input->post('to_date')) {
                     $cat[$category->id] = $category->name;
                   }
                 }
-                echo form_dropdown('category', $cat, ($this->input->post('category') ?? ''), 'class="form-control select2" id="category" style="width:100%;"'); ?>
+                echo form_dropdown('category', $cat, (getPOST('category') ?? ''), 'class="form-control select2" id="category" style="width:100%;"'); ?>
               </div>
             </div>
             <div class="col-sm-4">
@@ -172,7 +172,7 @@ if ($this->input->post('to_date')) {
                     }
                   }
                 }
-                echo form_dropdown('paid_by', $bk, ($this->input->post('paid_by') ?? ''), 'class="form-control select2" id="paid_by" style="width:100%;"'); ?>
+                echo form_dropdown('paid_by', $bk, (getPOST('paid_by') ?? ''), 'class="form-control select2" id="paid_by" style="width:100%;"'); ?>
               </div>
             </div>
           </div>
@@ -180,13 +180,13 @@ if ($this->input->post('to_date')) {
             <div class="col-sm-2">
               <div class="form-group">
                 <label><?= lang('from_date'); ?></label>
-                <input name="from_date" class="form-control" type="date" value="<?= ($this->input->post('from_date') ?? ''); ?>">
+                <input name="from_date" class="form-control" type="date" value="<?= (getPOST('from_date') ?? ''); ?>">
               </div>
             </div>
             <div class="col-sm-2">
               <div class="form-group">
                 <label><?= lang('to_date'); ?></label>
-                <input name="to_date" class="form-control" type="date" value="<?= ($this->input->post('to_date') ?? ''); ?>">
+                <input name="to_date" class="form-control" type="date" value="<?= (getPOST('to_date') ?? ''); ?>">
               </div>
             </div>
           </div>

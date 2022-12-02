@@ -1,14 +1,14 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <?php
 $q = '?';
-$code 			    = $this->input->get('code');
-$name 			    = $this->input->get('name');
-$type 			    = $this->input->get('type');
-$category_code  = $this->input->get('category');
-$supplier_id    = $this->input->get('supplier');
-$wh_id          = $this->input->get('warehouse');
-$start_date     = $this->input->get('start_date');
-$end_date       = $this->input->get('end_date');
+$code 			    = getGET('code');
+$name 			    = getGET('name');
+$type 			    = getGET('type');
+$category_code  = getGET('category');
+$supplier_id    = getGET('supplier');
+$wh_id          = getGET('warehouse');
+$start_date     = getGET('start_date');
+$end_date       = getGET('end_date');
 
 if ($code) {
 	$q .= '&code=' . $type;

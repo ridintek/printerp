@@ -6,7 +6,7 @@
       "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?=lang('all')?>"]],
       "iDisplayLength": <?=$Settings->rows_per_page?>,
       'bProcessing': true, 'bServerSide': true,
-      'sAjaxSource': '<?=admin_url('sales/getSalesItem' . ($warehouse_id ? '/' . $warehouse_id : '') . '?v=1' . ($this->input->get('shop') ? '&shop=' . $this->input->get('shop') : '') . ($this->input->get('attachment') ? '&attachment=' . $this->input->get('attachment') : '') . ($this->input->get('delivery') ? '&delivery=' . $this->input->get('delivery') : '')); ?>',
+      'sAjaxSource': '<?=admin_url('sales/getSalesItem' . ($warehouse_id ? '/' . $warehouse_id : '') . '?v=1' . (getGET('shop') ? '&shop=' . getGET('shop') : '') . (getGET('attachment') ? '&attachment=' . getGET('attachment') : '') . (getGET('delivery') ? '&delivery=' . getGET('delivery') : '')); ?>',
       'fnServerData': function (sSource, aoData, fnCallback) {
         aoData.push({
           "name": "<?=$this->security->get_csrf_token_name()?>",
@@ -278,9 +278,9 @@
         <li class="dropdown">
           <a data-toggle="dropdown" class="dropdown-toggle" href="#"><i class="icon fa fa-list-alt tip" data-placement="left" title="<?=lang('sales')?>"></i></a>
           <ul class="dropdown-menu pull-right tasks-menus" role="menu" aria-labelledby="dLabel">
-            <li<?= $this->input->get('shop') == 'yes' ? ' class="active"' : ''; ?>><a href="<?=admin_url('sales?shop=yes')?>"><i class="fa fa-shopping-cart"></i> <?=lang('shop_sales')?></a></li>
-            <li<?= $this->input->get('shop') == 'no' ? ' class="active"' : ''; ?>><a href="<?=admin_url('sales?shop=no')?>"><i class="fa fa-heart"></i> <?=lang('staff_sales')?></a></li>
-            <li<?= !$this->input->get('shop') ? ' class="active"' : ''; ?>><a href="<?=admin_url('sales')?>"><i class="fa fa-list-alt"></i> <?=lang('all_sales')?></a></li>
+            <li<?= getGET('shop') == 'yes' ? ' class="active"' : ''; ?>><a href="<?=admin_url('sales?shop=yes')?>"><i class="fa fa-shopping-cart"></i> <?=lang('shop_sales')?></a></li>
+            <li<?= getGET('shop') == 'no' ? ' class="active"' : ''; ?>><a href="<?=admin_url('sales?shop=no')?>"><i class="fa fa-heart"></i> <?=lang('staff_sales')?></a></li>
+            <li<?= !getGET('shop') ? ' class="active"' : ''; ?>><a href="<?=admin_url('sales')?>"><i class="fa fa-list-alt"></i> <?=lang('all_sales')?></a></li>
           </ul>
         </li>
         <?php

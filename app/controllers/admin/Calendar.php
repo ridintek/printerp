@@ -28,11 +28,11 @@ class Calendar extends MY_Controller
 
         if ($this->form_validation->run() == true) {
             $data = [
-                'title'       => $this->input->post('title'),
-                'start'       => $this->sma->fld($this->input->post('start')),
-                'end'         => $this->input->post('end') ? $this->sma->fld($this->input->post('end')) : null,
-                'description' => $this->input->post('description'),
-                'color'       => $this->input->post('color') ? $this->input->post('color') : '#000000',
+                'title'       => getPOST('title'),
+                'start'       => $this->sma->fld(getPOST('start')),
+                'end'         => getPOST('end') ? $this->sma->fld(getPOST('end')) : null,
+                'description' => getPOST('description'),
+                'color'       => getPOST('color') ? getPOST('color') : '#000000',
                 'user_id'     => $this->session->userdata('user_id'),
             ];
 
@@ -152,7 +152,7 @@ class Calendar extends MY_Controller
         $this->form_validation->set_rules('start', lang('start'), 'required');
 
         if ($this->form_validation->run() == true) {
-            $id = $this->input->post('id');
+            $id = getPOST('id');
             if ($event = $this->calendar_model->getEventByID($id)) {
                 if (!$this->Owner && $event->user_id != $this->session->userdata('user_id')) {
                     $res = ['error' => 1, 'msg' => lang('access_denied')];
@@ -160,11 +160,11 @@ class Calendar extends MY_Controller
                 }
             }
             $data = [
-                'title'       => $this->input->post('title'),
-                'start'       => $this->sma->fld($this->input->post('start')),
-                'end'         => $this->input->post('end') ? $this->sma->fld($this->input->post('end')) : null,
-                'description' => $this->input->post('description'),
-                'color'       => $this->input->post('color') ? $this->input->post('color') : '#000000',
+                'title'       => getPOST('title'),
+                'start'       => $this->sma->fld(getPOST('start')),
+                'end'         => getPOST('end') ? $this->sma->fld(getPOST('end')) : null,
+                'description' => getPOST('description'),
+                'color'       => getPOST('color') ? getPOST('color') : '#000000',
                 'user_id'     => $this->session->userdata('user_id'),
             ];
 

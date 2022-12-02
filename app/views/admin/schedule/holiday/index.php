@@ -2,7 +2,7 @@
 <?php
 $q = '';
 
-if ($billers = $this->input->get('biller')) {
+if ($billers = getGET('biller')) {
   foreach ($billers as $biller_id) {
     if (!empty($biller_id)) {
       $q .= '&biller[]=' . $biller_id;
@@ -10,11 +10,11 @@ if ($billers = $this->input->get('biller')) {
   }
 }
 
-if ($startDate = $this->input->get('start_date')) {
+if ($startDate = getGET('start_date')) {
   $q .= '&start_date=' . $startDate;
 }
 
-if ($endDate = $this->input->get('end_date')) {
+if ($endDate = getGET('end_date')) {
   $q .= '&end_date=' . $endDate;
 }
 ?>
@@ -88,7 +88,7 @@ if ($endDate = $this->input->get('end_date')) {
       }
       ?>
       <i class="fa-fw fad fa-cogs"></i><?= $page_title . ' (' . $bls . ')'; ?>
-      <?= ($this->input->post('start_date') ? '(' . $this->input->post('start_date') . ')' : '') . ($this->input->post('end_date') ? ' to (' . $this->input->post('end_date') . ')' : ''); ?>
+      <?= (getPOST('start_date') ? '(' . getPOST('start_date') . ')' : '') . (getPOST('end_date') ? ' to (' . getPOST('end_date') . ')' : ''); ?>
     </h2>
 
     <div class="box-icon">
