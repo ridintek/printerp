@@ -9625,6 +9625,9 @@ class Site extends MY_Model
         $this->deleteStockQuantity(['internal_use_id' => $iuseId]);
 
         foreach ($items as $item) {
+          // Generate unique code if add new item from edit.
+          $item['unique_code'] = (empty($item['unique_code']) ? generateInternalUseUniqueCode($data['category']) : $item['unique_code']);
+
           $this->addStockQuantity([
             'date'            => $data['date'],
             'internal_use_id' => $iuseId,
