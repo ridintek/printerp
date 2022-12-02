@@ -1049,7 +1049,7 @@ function getExcerpt($text, $length = 20)
  */
 function getGet($name)
 {
-  return (isset($_GET[$name]) ? (is_numeric($_GET[$name]) ? floatval($_GET[$name]) : $_GET[$name]) : NULL);
+  return (isset($_GET[$name]) ? $_GET[$name] : NULL);
 }
 
 /**
@@ -1550,7 +1550,7 @@ function getPermission($permission_name, $user_id = NULL)
  */
 function getPOST($name)
 {
-  return (isset($_POST[$name]) ? (is_numeric($_POST[$name]) ? floatval($_POST[$name]) : $_POST[$name]) : NULL);
+  return (isset($_POST[$name]) ? $_POST[$name] : NULL);
 }
 
 /**
