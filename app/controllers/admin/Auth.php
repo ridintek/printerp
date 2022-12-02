@@ -553,7 +553,7 @@ class Auth extends MY_Controller
     $this->data['title'] = lang('login');
 
     if ($this->form_validation->run() == true) {
-      $remember = (bool)getPOST('remember');
+      $remember = getPOST('remember');
 
       if ($this->auth_model->login(getPOST('identity'), getPOST('password'), $remember)) {
         $this->session->set_flashdata('message', $this->ion_auth->messages());
