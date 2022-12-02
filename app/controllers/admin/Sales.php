@@ -269,18 +269,12 @@ class Sales extends MY_Controller
       $uploader = new FileUpload();
 
       if ($uploader->has('document')) {
-        checkPath($this->upload_sales_path);
-
         if ($uploader->getSize('mb') > 2) {
           $this->session->set_flashdata('error', 'Besar attachment tidak boleh lebih dari 2MB.');
           redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
         }
 
-        $attachment = $uploader->getRandomName();
-
-        if ($uploader->move($this->upload_sales_path, $attachment)) {
-          $saleData['attachment'] = $attachment;
-        }
+        $saleData['attachment_id'] = $uploader->storeRandom();
       } else if (!getPermission('sales-no_attachment')) {
         if ($customerGroup->name == 'TOP') { // Prevent CS create sale without attachment for Customer TOP.
           $this->session->set_flashdata('error', lang('top_no_attachment'));
@@ -915,24 +909,16 @@ class Sales extends MY_Controller
         // die();
       }
 
-      if ($_FILES['document']['size'] > 0) {
-        $this->load->library('upload');
-        $config['upload_path']   = $this->upload_sales_path;
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
-        $this->upload->initialize($config);
+      $uploader = new FileUpload();
 
-        if (!$this->upload->do_upload('document')) {
-          $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+      if ($uploader->has('document')) {
+        if ($uploader->getSize('mb') > 2) {
+          $this->session->set_flashdata('error', 'Besar attachment tidak boleh lebih dari 2MB.');
           redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
         }
 
-        $photo = $this->upload->file_name;
-        $saleData['attachment'] = $photo;
-      } elseif (!$this->Owner && !$this->Admin) {
+        $saleData['attachment_id'] = $uploader->storeRandom();
+      } else if (!$this->Owner && !$this->Admin) {
         // Prevent CS create sale without attachment for Customer TOP.
         if ($customer_group_name == 'top' && !$sale->attachment) {
           $this->session->set_flashdata('error', lang('top_no_attachment'));
@@ -1360,9 +1346,9 @@ class Sales extends MY_Controller
       <a href="' . admin_url('sales/approve/$1') . '" data-action="confirm"
         data-labels=\'{"ok":"Setuju","cancel":"Batal"}\'
         data-message="Memilih <b>Approved Sale</b> berarti bertanggung jawab ' .
-        'jika item sudah di complete oleh operator tidak dapat dikembalikan lagi ' .
-        'ke <b>Waiting Production</b>." data-title="Persetujuan / Consent">' .
-        '<i class="fad fa-fw fa-check"></i> ' . lang('approved_sale') . '
+      'jika item sudah di complete oleh operator tidak dapat dikembalikan lagi ' .
+      'ke <b>Waiting Production</b>." data-title="Persetujuan / Consent">' .
+      '<i class="fad fa-fw fa-check"></i> ' . lang('approved_sale') . '
       </a>';
 
     $action = '<div class="text-center"><div class="btn-group text-left">'
@@ -1421,7 +1407,7 @@ class Sales extends MY_Controller
           ELSE customers.name
         END) AS customer_name,
         sales.status, sales.grand_total, sales.paid,
-        sales.balance AS balance, sales.payment_status, sales.attachment,
+        sales.balance AS balance, sales.payment_status, sales.attachment_id,
         pv.id as pv_id";
       } else
       if ($group_by == 'biller') {
