@@ -1044,6 +1044,15 @@ function getExcerpt($text, $length = 20)
 }
 
 /**
+ * Get GET request.
+ * @param string $name Request name.
+ */
+function getGet($name)
+{
+  return (isset($_GET[$name]) ? $_GET[$name] : NULL);
+}
+
+/**
  * Get google spreadsheet.
  * @param int $sheetId Sheet ID.
  * @param string $ranges A1 Notation ranges. Ex. A1:C4
@@ -1533,6 +1542,15 @@ function getPermission($permission_name, $user_id = NULL)
     return (empty($perms->{$permission_name}) ? FALSE : TRUE);
   }
   return FALSE;
+}
+
+/**
+ * Get POST request.
+ * @param string $name Request name.
+ */
+function getPOST($name)
+{
+  return (isset($_POST[$name]) ? $_POST[$name] : NULL);
 }
 
 /**

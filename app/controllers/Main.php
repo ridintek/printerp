@@ -73,7 +73,7 @@ class Main extends MY_Controller // From MY_Shop_Controller
     if ($this->form_validation->run() == false) {
       sendJSON(validation_errors());
     } else {
-      $identity = $this->ion_auth->where('email', strtolower($this->input->post('email')))->users()->row();
+      $identity = $this->ion_auth->where('email', strtolower(getPOST('email')))->users()->row();
       if (empty($identity)) {
         sendJSON(lang('forgot_password_email_not_found'));
       }
@@ -133,9 +133,9 @@ class Main extends MY_Controller // From MY_Shop_Controller
     }
 
     if ($this->form_validation->run('auth/login') == true) {
-      $remember = (bool)$this->input->post('remember_me');
+      $remember = (bool)getPOST('remember_me');
 
-      if ($this->ion_auth->login($this->input->post('identity'), $this->input->post('password'), $remember)) {
+      if ($this->ion_auth->login(getPOST('identity'), getPOST('password'), $remember)) {
         if ($this->Settings->mmode) {
           if (!$this->ion_auth->in_group('owner')) {
             $this->session->set_flashdata('error', lang('site_is_offline_plz_try_later'));
@@ -211,7 +211,7 @@ class Main extends MY_Controller // From MY_Shop_Controller
   public function permissions()
   {
     if ($this->requestMethod == 'POST') {
-      $name = $this->input->get('name');
+      $name = getGET('name');
 
       if ($name) {
         if ($permissions = $this->session->userdata('permissions')) {
@@ -252,30 +252,30 @@ class Main extends MY_Controller // From MY_Shop_Controller
       $this->form_validation->set_rules('state', lang('state'), 'required');
       $this->form_validation->set_rules('postal_code', lang('postal_code'), 'required');
       $this->form_validation->set_rules('country', lang('country'), 'required');
-      if ($user->email != $this->input->post('email')) {
+      if ($user->email != getPOST('email')) {
         $this->form_validation->set_rules('email', lang('email'), 'trim|is_unique[users.email]');
       }
 
       if ($this->form_validation->run() === true) {
         $bdata = [
-          'name'        => $this->input->post('first_name') . ' ' . $this->input->post('last_name'),
-          'phone'       => $this->input->post('phone'),
-          'email'       => $this->input->post('email'),
-          'company'     => $this->input->post('company'),
-          'vat_no'      => $this->input->post('vat_no'),
-          'address'     => $this->input->post('address'),
-          'city'        => $this->input->post('city'),
-          'state'       => $this->input->post('state'),
-          'postal_code' => $this->input->post('postal_code'),
-          'country'     => $this->input->post('country'),
+          'name'        => getPOST('first_name') . ' ' . getPOST('last_name'),
+          'phone'       => getPOST('phone'),
+          'email'       => getPOST('email'),
+          'company'     => getPOST('company'),
+          'vat_no'      => getPOST('vat_no'),
+          'address'     => getPOST('address'),
+          'city'        => getPOST('city'),
+          'state'       => getPOST('state'),
+          'postal_code' => getPOST('postal_code'),
+          'country'     => getPOST('country'),
         ];
 
         $udata = [
-          'first_name' => $this->input->post('first_name'),
-          'last_name'  => $this->input->post('last_name'),
-          'company'    => $this->input->post('company'),
-          'phone'      => $this->input->post('phone'),
-          'email'      => $this->input->post('email'),
+          'first_name' => getPOST('first_name'),
+          'last_name'  => getPOST('last_name'),
+          'company'    => getPOST('company'),
+          'phone'      => getPOST('phone'),
+          'email'      => getPOST('email'),
         ];
 
         if ($this->ion_auth->update($user->id, $udata) && $this->shop_model->updateCompany($user->company_id, $bdata)) {
@@ -297,7 +297,7 @@ class Main extends MY_Controller // From MY_Shop_Controller
         redirect('profile');
       } else {
         $identity = $this->session->userdata($this->config->item('identity', 'ion_auth'));
-        $change   = $this->ion_auth->change_password($identity, $this->input->post('old_password'), $this->input->post('new_password'));
+        $change   = $this->ion_auth->change_password($identity, getPOST('old_password'), getPOST('new_password'));
 
         if ($change) {
           $this->session->set_flashdata('message', $this->ion_auth->messages());
@@ -332,18 +332,18 @@ class Main extends MY_Controller // From MY_Shop_Controller
     $this->form_validation->set_rules('password_confirm', lang('confirm_password'), 'required');
 
     if ($this->form_validation->run('') == true) {
-      $email    = strtolower($this->input->post('email'));
-      $username = strtolower($this->input->post('username'));
-      $password = $this->input->post('password');
+      $email    = strtolower(getPOST('email'));
+      $username = strtolower(getPOST('username'));
+      $password = getPOST('password');
 
       $customer_group = $this->shop_model->getCustomerGroup($this->Settings->customer_group);
       $price_group    = $this->shop_model->getPriceGroup($this->Settings->price_group);
 
       $company_data = [
-        'company'             => $this->input->post('company') ? $this->input->post('company') : '-',
-        'name'                => $this->input->post('first_name') . ' ' . $this->input->post('last_name'),
-        'email'               => $this->input->post('email'),
-        'phone'               => $this->input->post('phone'),
+        'company'             => getPOST('company') ? getPOST('company') : '-',
+        'name'                => getPOST('first_name') . ' ' . getPOST('last_name'),
+        'email'               => getPOST('email'),
+        'phone'               => getPOST('phone'),
         'group_id'            => 3,
         'group_name'          => 'customer',
         'customer_group_id'   => (!empty($customer_group)) ? $customer_group->id : null,
@@ -355,10 +355,10 @@ class Main extends MY_Controller // From MY_Shop_Controller
       $company_id = $this->shop_model->addCustomer($company_data);
 
       $additional_data = [
-        'first_name' => $this->input->post('first_name'),
-        'last_name'  => $this->input->post('last_name'),
-        'phone'      => $this->input->post('phone'),
-        'company'    => $this->input->post('company'),
+        'first_name' => getPOST('first_name'),
+        'last_name'  => getPOST('last_name'),
+        'phone'      => getPOST('phone'),
+        'company'    => getPOST('company'),
         'gender'     => 'male',
         'company_id' => $company_id,
         'group_id'   => 3,
@@ -429,14 +429,14 @@ class Main extends MY_Controller // From MY_Shop_Controller
         $this->page_construct('user/reset_password', $this->data);
       } else {
         // do we have a valid request?
-        if ($user->id != $this->input->post('user_id')) {
+        if ($user->id != getPOST('user_id')) {
           $this->ion_auth->clear_forgotten_password_code($code);
           redirect('notify/csrf');
         } else {
           // finally change the password
           $identity = $user->email;
 
-          $change = $this->ion_auth->reset_password($identity, $this->input->post('new'));
+          $change = $this->ion_auth->reset_password($identity, getPOST('new'));
           if ($change) {
             //if the password was successfully changed
             $this->session->set_flashdata('message', $this->ion_auth->messages());

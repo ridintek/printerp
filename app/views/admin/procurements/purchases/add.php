@@ -38,10 +38,10 @@
     total = 0;
 
   $(document).ready(function() {
-    <?php if ($this->input->get('supplier')) {
+    <?php if (getGET('supplier')) {
     ?>
       if (!localStorage.getItem('poitems')) {
-        localStorage.setItem('posupplier', <?= $this->input->get('supplier'); ?>);
+        localStorage.setItem('posupplier', <?= getGET('supplier'); ?>);
       }
     <?php
     } ?>

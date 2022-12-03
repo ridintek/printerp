@@ -1,42 +1,42 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <?php
 $q = '';
-if ($reference = $this->input->get('reference')) {
+if ($reference = getGET('reference')) {
   $q .= '&reference=' . $reference;
 }
-if ($bank = $this->input->get('bank')) {
+if ($bank = getGET('bank')) {
   foreach ($bank as $bk) {
     $q .= '&bank[]=' . $bk;
   }
 }
-if ($category = $this->input->get('category')) {
+if ($category = getGET('category')) {
   foreach ($category as $cat) {
     $q .= '&category[]=' . $cat;
   }
 }
-if ($status = $this->input->get('status')) {
+if ($status = getGET('status')) {
   foreach ($status as $st) {
     $q .= '&status[]=' . $st;
   }
 }
-if ($payment_status = $this->input->get('payment_status')) {
+if ($payment_status = getGET('payment_status')) {
   foreach ($payment_status as $pst) {
     $q .= '&payment_status[]=' . $pst;
   }
 }
-if ($supplier = $this->input->get('supplier')) {
+if ($supplier = getGET('supplier')) {
   $q .= '&supplier=' . $supplier;
 }
-if ($start_date = $this->input->get('start_date')) {
+if ($start_date = getGET('start_date')) {
   $q .= '&start_date=' . $start_date;
 }
-if ($end_date = $this->input->get('end_date')) {
+if ($end_date = getGET('end_date')) {
   $q .= '&end_date=' . $end_date;
 }
-if ($start_payment_date = $this->input->get('start_payment_date')) {
+if ($start_payment_date = getGET('start_payment_date')) {
   $q .= '&start_payment_date=' . $start_payment_date;
 }
-if ($end_payment_date = $this->input->get('end_payment_date')) {
+if ($end_payment_date = getGET('end_payment_date')) {
   $q .= '&end_payment_date=' . $end_payment_date;
 }
 ?>

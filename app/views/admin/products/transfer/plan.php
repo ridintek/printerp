@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <?php
 $q = '';
-if ($filter = $this->input->get('f')) {
+if ($filter = getGET('f')) {
   $filter = getUriFilter64($filter);
   if (!empty($filter['group_by'])) {
     $q .= '&group_by=' . $filter['group_by'];

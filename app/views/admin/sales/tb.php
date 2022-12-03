@@ -2,10 +2,10 @@
 <?php
 $q = '';
 
-if ($startDate = $this->input->get('start_date')) {
+if ($startDate = getGET('start_date')) {
   $q .= '&start_date=' . $startDate;
 }
-if ($endDate = $this->input->get('end_date')) {
+if ($endDate = getGET('end_date')) {
   $q .= '&end_date=' . $endDate;
 }
 ?>

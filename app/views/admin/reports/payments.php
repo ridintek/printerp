@@ -1,34 +1,34 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <?php
 $v = '';
-if ($gpayment_ref = $this->input->get('payment_ref')) {
+if ($gpayment_ref = getGET('payment_ref')) {
   $v .= '&payment_ref=' . $gpayment_ref;
 }
-if ($gnumber = $this->input->get('number')) {
+if ($gnumber = getGET('number')) {
   $v .= '&number=' . $gnumber;
 }
-if ($gbanks = $this->input->get('bank')) {
+if ($gbanks = getGET('bank')) {
   foreach ($gbanks as $bank) {
     $v .= '&bank[]=' . $bank;
   }
 }
-if ($gpaid_by = $this->input->get('paid_by')) {
+if ($gpaid_by = getGET('paid_by')) {
   $v .= '&paid_by=' . $gpaid_by;
 }
-if ($gbillers = $this->input->get('biller')) {
+if ($gbillers = getGET('biller')) {
   foreach ($gbillers as $biller) {
     $v .= '&biller[]=' . $biller;
   }
 }
-if ($gusers = $this->input->get('user')) {
+if ($gusers = getGET('user')) {
   foreach ($gusers as $user) {
     $v .= '&user[]=' . $user;
   }
 }
-if ($gstart_date = $this->input->get('start_date')) {
+if ($gstart_date = getGET('start_date')) {
   $v .= '&start_date=' . $gstart_date;
 }
-if ($gend_date = $this->input->get('end_date')) {
+if ($gend_date = getGET('end_date')) {
   $v .= '&end_date=' . $gend_date;
 }
 ?>
@@ -94,14 +94,14 @@ if ($gend_date = $this->input->get('end_date')) {
 </script>
 <script type="text/javascript">
   $(document).ready(function () {
-    <?php if ($this->input->post('biller')) {
+    <?php if (getPOST('biller')) {
   ?>
     $('#rbiller').select2({ allowClear: true });
     <?php
 } ?>
-    <?php if ($this->input->post('supplier')) {
+    <?php if (getPOST('supplier')) {
     ?>
-    $('#rsupplier').val(<?= $this->input->post('supplier') ?>).select2({
+    $('#rsupplier').val(<?= getPOST('supplier') ?>).select2({
       minimumInputLength: 1,
       allowClear: true,
       initSelection: function (element, callback) {
@@ -133,12 +133,12 @@ if ($gend_date = $this->input->get('end_date')) {
         }
       }
     });
-    $('#rsupplier').val(<?= $this->input->post('supplier') ?>);
+    $('#rsupplier').val(<?= getPOST('supplier') ?>);
     <?php
   } ?>
-    <?php if ($this->input->post('customer')) {
+    <?php if (getPOST('customer')) {
     ?>
-    $('#rcustomer').val(<?= $this->input->post('customer') ?>).select2({
+    $('#rcustomer').val(<?= getPOST('customer') ?>).select2({
       minimumInputLength: 1,
       allowClear: true,
       initSelection: function (element, callback) {
@@ -178,8 +178,8 @@ if ($gend_date = $this->input->get('end_date')) {
 <div class="box">
   <div class="box-header">
     <h2 class="blue"><i class="fa-fw fa fa-money-bill"></i><?= lang('payments_report'); ?> <?php
-      if ($this->input->post('start_date')) {
-        echo 'From ' . $this->input->post('start_date') . ' to ' . $this->input->post('end_date');
+      if (getPOST('start_date')) {
+        echo 'From ' . getPOST('start_date') . ' to ' . getPOST('end_date');
       } ?>
     </h2>
 

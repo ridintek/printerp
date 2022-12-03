@@ -290,7 +290,7 @@ if ($end_date) {
       }
       ?>
       <i class="fa-fw fad fa-list"></i><?= lang('ordered_items') . ' (' . $whs . ')'; ?>
-      <?= ($this->input->post('from_date') ? '(' . $this->input->post('from_date') . ')' : '') . ($this->input->post('to_date') ? ' to (' . $this->input->post('to_date') . ')' : ''); ?>
+      <?= (getPOST('from_date') ? '(' . getPOST('from_date') . ')' : '') . (getPOST('to_date') ? ' to (' . getPOST('to_date') . ')' : ''); ?>
     </h2>
 
     <div class="box-icon">

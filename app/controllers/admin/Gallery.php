@@ -13,10 +13,10 @@ class Gallery extends MY_Controller
   {
     $attachment = Attachment::getRow(['id' => $attachmentId]);
 
-    $modal = ($this->input->get('modal') == 1 ? TRUE : FALSE);
+    $modal = (getGET('modal') == 1 ? TRUE : FALSE);
 
     if ($attachment && !$modal) {
-      $download = ($this->input->get('d') == 1 ? TRUE : FALSE);
+      $download = (getGET('d') == 1 ? TRUE : FALSE);
 
       header("Content-Type: {$attachment->mime}");
       header("Content-Length: {$attachment->size}");
@@ -35,8 +35,8 @@ class Gallery extends MY_Controller
 
   public function barcode()
   {
-    $data = $this->input->get('data');
-    $type = $this->input->get('type');
+    $data = getGET('data');
+    $type = getGET('type');
 
     if (!$type) $type = 'code128';
 
@@ -66,8 +66,8 @@ class Gallery extends MY_Controller
 
   public function get() // Called by HTML modal.
   {
-    $download = ($this->input->get('download') == 'true' ? TRUE : FALSE);
-    $name     = $this->input->get('name');
+    $download = (getGET('download') == 'true' ? TRUE : FALSE);
+    $name     = getGET('name');
 
     $filename = $this->getFile($name);
 
@@ -90,7 +90,7 @@ class Gallery extends MY_Controller
 
   public function view() // Called by Modal
   {
-    $name = $this->input->get('name');
+    $name = getGET('name');
 
     $filename = $this->getFile($name);
 

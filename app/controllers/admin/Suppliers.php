@@ -38,29 +38,29 @@ class Suppliers extends MY_Controller
 
     if ($this->form_validation->run('suppliers/add') == true) {
       $data = [
-        'name'              => $this->input->post('name'),
-        'email'             => $this->input->post('email'),
+        'name'              => getPOST('name'),
+        'email'             => getPOST('email'),
         'group_id'          => '4',
         'group_name'        => 'supplier',
-        'company'           => $this->input->post('company'),
-        'address'           => $this->input->post('address'),
-        'city'              => $this->input->post('city'),
-        'postal_code'       => $this->input->post('postal_code'),
-        'country'           => $this->input->post('country'),
-        'phone'             => preg_replace('/[^0-9]/', '', $this->input->post('phone')),
-        'payment_term'      => $this->input->post('payment_term'),
+        'company'           => getPOST('company'),
+        'address'           => getPOST('address'),
+        'city'              => getPOST('city'),
+        'postal_code'       => getPOST('postal_code'),
+        'country'           => getPOST('country'),
+        'phone'             => preg_replace('/[^0-9]/', '', getPOST('phone')),
+        'payment_term'      => getPOST('payment_term'),
         'json_data'         => json_encode([
-          'acc_holder'     => $this->input->post('acc_holder'),
-          'acc_no'         => preg_replace('/[^0-9]/', '', $this->input->post('acc_no')),
-          'acc_name'       => $this->input->post('acc_name'),
-          'acc_bic'        => $this->input->post('acc_bic'),
-          'cycle_purchase' => $this->input->post('cycle_purchase'),
-          'delivery_time'  => $this->input->post('delivery_time'),
-          'visit_days'     => $this->input->post('visit_days'),
-          'visit_weeks'    => $this->input->post('visit_weeks'),
+          'acc_holder'     => getPOST('acc_holder'),
+          'acc_no'         => preg_replace('/[^0-9]/', '', getPOST('acc_no')),
+          'acc_name'       => getPOST('acc_name'),
+          'acc_bic'        => getPOST('acc_bic'),
+          'cycle_purchase' => getPOST('cycle_purchase'),
+          'delivery_time'  => getPOST('delivery_time'),
+          'visit_days'     => getPOST('visit_days'),
+          'visit_weeks'    => getPOST('visit_weeks'),
         ])
       ];
-    } elseif ($this->input->post('add_supplier')) {
+    } elseif (getPOST('add_supplier')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('suppliers');
     }
@@ -79,8 +79,8 @@ class Suppliers extends MY_Controller
   {
     $this->sma->checkPermissions(false, true);
 
-    if ($this->input->get('id')) {
-      $supplier_id = $this->input->get('id');
+    if (getGET('id')) {
+      $supplier_id = getGET('id');
     }
     $supplier = $this->site->getSupplierByID($supplier_id);
 
@@ -89,22 +89,22 @@ class Suppliers extends MY_Controller
     $this->form_validation->set_rules('password_confirm', $this->lang->line('confirm_password'), 'required');
 
     if ($this->form_validation->run('suppliers/add_user') == true) {
-      $active                  = $this->input->post('status');
-      $notify                  = $this->input->post('notify');
-      list($username, $domain) = explode('@', $this->input->post('email'));
-      $email                   = strtolower($this->input->post('email'));
-      $password                = $this->input->post('password');
+      $active                  = getPOST('status');
+      $notify                  = getPOST('notify');
+      list($username, $domain) = explode('@', getPOST('email'));
+      $email                   = strtolower(getPOST('email'));
+      $password                = getPOST('password');
       $additional_data         = [
-        'first_name' => $this->input->post('first_name'),
-        'last_name'  => $this->input->post('last_name'),
-        'phone'      => preg_replace('/[^0-9]/', '', $this->input->post('phone')),
-        'gender'     => $this->input->post('gender'),
+        'first_name' => getPOST('first_name'),
+        'last_name'  => getPOST('last_name'),
+        'phone'      => preg_replace('/[^0-9]/', '', getPOST('phone')),
+        'gender'     => getPOST('gender'),
         'supplier_id' => $supplier->id,
         'company'    => $supplier->company,
         'group_id'   => 3,
       ];
       $this->load->library('ion_auth');
-    } elseif ($this->input->post('add_user')) {
+    } elseif (getPOST('add_user')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('suppliers');
     }
@@ -123,8 +123,8 @@ class Suppliers extends MY_Controller
   {
     $this->sma->checkPermissions(null, true);
 
-    if ($this->input->get('id')) {
-      $id = $this->input->get('id');
+    if (getGET('id')) {
+      $id = getGET('id');
     }
 
     if ($this->site->deleteSupplier($id)) {
@@ -138,12 +138,12 @@ class Suppliers extends MY_Controller
   {
     $this->sma->checkPermissions(false, true);
 
-    if ($this->input->get('id')) {
-      $supplier_id = $this->input->get('id');
+    if (getGET('id')) {
+      $supplier_id = getGET('id');
     }
 
     $supplier = $this->site->getSupplierByID($supplier_id);
-    $update_ss = $this->input->post('update_ss'); // Update safety stock.
+    $update_ss = getPOST('update_ss'); // Update safety stock.
     $this->form_validation->set_rules('name',         lang('name'), 'required');
     $this->form_validation->set_rules('company',      lang('company'), 'required');
     $this->form_validation->set_rules('phone',        lang('phone'), 'required');
@@ -157,29 +157,29 @@ class Suppliers extends MY_Controller
 
     if ($this->form_validation->run('suppliers/add') == true) {
       $data = [
-        'name'              => $this->input->post('name'),
-        'email'             => $this->input->post('email'),
+        'name'              => getPOST('name'),
+        'email'             => getPOST('email'),
         'group_id'          => '4',
         'group_name'        => 'supplier',
-        'company'           => $this->input->post('company'),
-        'address'           => $this->input->post('address'),
-        'city'              => $this->input->post('city'),
-        'postal_code'       => $this->input->post('postal_code'),
-        'country'           => $this->input->post('country'),
-        'phone'             => preg_replace('/[^0-9]/', '', $this->input->post('phone')),
-        'payment_term'      => $this->input->post('payment_term'),
+        'company'           => getPOST('company'),
+        'address'           => getPOST('address'),
+        'city'              => getPOST('city'),
+        'postal_code'       => getPOST('postal_code'),
+        'country'           => getPOST('country'),
+        'phone'             => preg_replace('/[^0-9]/', '', getPOST('phone')),
+        'payment_term'      => getPOST('payment_term'),
         'json_data'         => json_encode([
-          'acc_holder'     => $this->input->post('acc_holder'),
-          'acc_no'         => preg_replace('/[^0-9]/', '', $this->input->post('acc_no')),
-          'acc_name'       => $this->input->post('acc_name'),
-          'acc_bic'        => $this->input->post('acc_bic'),
-          'cycle_purchase' => $this->input->post('cycle_purchase'),
-          'delivery_time'  => $this->input->post('delivery_time'),
-          'visit_days'     => $this->input->post('visit_days'),
-          'visit_weeks'    => $this->input->post('visit_weeks'),
+          'acc_holder'     => getPOST('acc_holder'),
+          'acc_no'         => preg_replace('/[^0-9]/', '', getPOST('acc_no')),
+          'acc_name'       => getPOST('acc_name'),
+          'acc_bic'        => getPOST('acc_bic'),
+          'cycle_purchase' => getPOST('cycle_purchase'),
+          'delivery_time'  => getPOST('delivery_time'),
+          'visit_days'     => getPOST('visit_days'),
+          'visit_weeks'    => getPOST('visit_weeks'),
         ])
       ];
-    } elseif ($this->input->post('edit_supplier')) {
+    } elseif (getPOST('edit_supplier')) {
       $this->session->set_flashdata('error', validation_errors());
       redirect($_SERVER['HTTP_REFERER']);
     }
@@ -327,7 +327,7 @@ class Suppliers extends MY_Controller
           }
         }
       }
-    } elseif ($this->input->post('import')) {
+    } elseif (getPOST('import')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('suppliers');
     }
@@ -371,14 +371,14 @@ class Suppliers extends MY_Controller
 
   public function suggestions($term = null, $limit = null)
   {
-    if ($this->input->get('term')) {
-      $term = $this->input->get('term', true);
+    if (getGET('term')) {
+      $term = getGET('term', true);
     }
-    if ($this->input->get('id')) {
+    if (getGET('id')) {
       $term = [];
-      $term['id'] = $this->input->get('id', true);
+      $term['id'] = getGET('id', true);
     }
-    $limit           = $this->input->get('limit', true);
+    $limit           = getGET('limit', true);
     $rows['results'] = $this->site->getSupplierSuggestions($term, $limit);
     sendJSON($rows);
   }
@@ -394,7 +394,7 @@ class Suppliers extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       if (!empty($_POST['val'])) {
-        if ($this->input->post('form_action') == 'delete') {
+        if (getPOST('form_action') == 'delete') {
           $this->sma->checkPermissions('delete');
           $error = false;
           foreach ($_POST['val'] as $id) {
@@ -410,7 +410,7 @@ class Suppliers extends MY_Controller
           redirect($_SERVER['HTTP_REFERER']);
         }
 
-        if ($this->input->post('form_action') == 'export_excel') {
+        if (getPOST('form_action') == 'export_excel') {
           $this->load->library('excel');
           $this->excel->setActiveSheetIndex(0);
           $this->excel->getActiveSheet()->setTitle(lang('customer'));
@@ -460,8 +460,8 @@ class Suppliers extends MY_Controller
   {
     $this->sma->checkPermissions(false, true);
 
-    if ($this->input->get('id')) {
-      $supplier_id = $this->input->get('id');
+    if (getGET('id')) {
+      $supplier_id = getGET('id');
     }
 
     $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));

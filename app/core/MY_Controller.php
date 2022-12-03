@@ -22,7 +22,7 @@ class MY_Controller extends CI_Controller
     $this->microtime = microtime(TRUE);
     $this->data['microtime'] = $this->microtime;
 
-    // if ($this->input->get('dbg') == 1) {
+    // if (getGET('dbg') == 1) {
     //   $rest = (microtime(TRUE) - $this->microtime) * 1000;
     //   die("NORMAL {$rest} ms");
     // }

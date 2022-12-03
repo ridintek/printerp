@@ -75,9 +75,9 @@
       }
       localStorage.removeItem('remove_slls');
     }
-    <?php if ($this->input->get('customer')) { ?>
+    <?php if (getGET('customer')) { ?>
             if ( ! localStorage.getItem('slitems')) {
-              localStorage.setItem('slcustomer', <?=$this->input->get('customer'); ?>);
+              localStorage.setItem('slcustomer', <?=getGET('customer'); ?>);
             }
     <?php } ?>
 

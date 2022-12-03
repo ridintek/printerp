@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 
 <?php
-$mode = $this->input->get('m'); // noprice
+$mode = getGET('m'); // noprice
 $warehouseFrom = Warehouse::getRow(['id' => $pt->warehouse_id_from]);
 $warehouseTo   = Warehouse::getRow(['id' => $pt->warehouse_id_to]);
 ?>

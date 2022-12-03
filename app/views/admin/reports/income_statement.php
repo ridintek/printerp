@@ -1,9 +1,9 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <?php
 $q = '';
-$bils = $this->input->get('biller');
-$start_date = $this->input->get('start_date');
-$end_date = $this->input->get('end_date');
+$bils = getGET('biller');
+$start_date = getGET('start_date');
+$end_date = getGET('end_date');
 
 ?>
 <script>

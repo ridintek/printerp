@@ -2,41 +2,41 @@
 <?php
 $q = '';
 
-if ($reference = $this->input->get('reference')) {
+if ($reference = getGET('reference')) {
   $q .= '&reference=' . $reference;
 }
-if ($billers = $this->input->get('billers')) {
+if ($billers = getGET('billers')) {
   foreach ($billers as $bl) {
     $q .= '&billers[]=' . $bl;
   }
 }
-if ($customer = $this->input->get('customer')) {
+if ($customer = getGET('customer')) {
   $q .= '&customer=' . $customer;
 }
-if ($status = $this->input->get('status')) {
+if ($status = getGET('status')) {
   $q .= '&status=' . $status;
 }
-if ($created_by = $this->input->get('created_by')) {
+if ($created_by = getGET('created_by')) {
   $q .= '&created_by=' . $created_by;
 }
-if ($payment_status = $this->input->get('payment_status')) {
+if ($payment_status = getGET('payment_status')) {
   $q .= '&payment_status=' . $payment_status;
 }
-if ($tb_account = $this->input->get('tb_account')) {
+if ($tb_account = getGET('tb_account')) {
   $q .= '&tb_account=' . $tb_account;
 }
-if ($warehouses = $this->input->get('warehouses')) {
+if ($warehouses = getGET('warehouses')) {
   foreach ($warehouses as $wh) {
     $q .= '&warehouses[]=' . $wh;
   }
 }
-if ($start_date = $this->input->get('start_date')) {
+if ($start_date = getGET('start_date')) {
   $q .= '&start_date=' . $start_date;
 }
-if ($end_date = $this->input->get('end_date')) {
+if ($end_date = getGET('end_date')) {
   $q .= '&end_date=' . $end_date;
 }
-if ($group_by = $this->input->get('group_by')) {
+if ($group_by = getGET('group_by')) {
   $q .= '&group_by=' . $group_by;
 }
 ?>
@@ -90,7 +90,7 @@ if ($group_by = $this->input->get('group_by')) {
           "mRender": pay_status
         }, {
           "bSortable": false,
-          "mRender": attachmentSale
+          "mRender": attachment
         }, {
           "bVisible": false
         }, {

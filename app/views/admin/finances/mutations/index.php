@@ -1,25 +1,25 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <?php
 $q = '';
-if ($ref = $this->input->get('reference')) {
+if ($ref = getGET('reference')) {
   $q .= '&reference=' . $ref;
 }
-if ($accFrom = $this->input->get('acc_from')) {
+if ($accFrom = getGET('acc_from')) {
   $q .= '&acc_from=' . $accFrom;
 }
-if ($accTo = $this->input->get('acc_to')) {
+if ($accTo = getGET('acc_to')) {
   $q .= '&acc_to=' . $accTo;
 }
-if ($createdBy = $this->input->get('created_by')) {
+if ($createdBy = getGET('created_by')) {
   $q .= '&created_by=' . $createdBy;
 }
-if ($startDate = $this->input->get('start_date')) {
+if ($startDate = getGET('start_date')) {
   $q .= '&from_date=' . $startDate;
 }
-if ($endDate = $this->input->get('end_date')) {
+if ($endDate = getGET('end_date')) {
   $q .= '&end_date=' . $endDate;
 }
-if ($biller_ids = $this->input->get('biller')) {
+if ($biller_ids = getGET('biller')) {
   $biller_name = '';
 
   foreach ($biller_ids as $id) {

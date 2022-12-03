@@ -1127,9 +1127,9 @@ class Debug extends MY_Controller
   {
     $date = date('Y-m-d H:i:s');
 
-    $direct = ($this->input->get('direct') ?? 0);
-    $engine = ($this->input->get('engine') ?? 'whacenter');
-    $hp     = ($this->input->get('phone') ?? '082311662064');
+    $direct = (getGET('direct') ?? 0);
+    $engine = (getGET('engine') ?? 'whacenter');
+    $hp     = (getGET('phone') ?? '082311662064');
 
     $text = "Pesan ini dikirim oleh {$engine}";
 
@@ -1156,8 +1156,8 @@ class Debug extends MY_Controller
   {
     ini_set('max_execution_time', '0');
 
-    $startDate = $this->input->get('start_date');
-    $endDate = $this->input->get('end_date');
+    $startDate = getGET('start_date');
+    $endDate = getGET('end_date');
 
     $sales = $this->site->getSales([
       'start_date' => $startDate,
@@ -1187,8 +1187,8 @@ class Debug extends MY_Controller
 
   public function trackingpod()
   {
-    $startDate = ($this->input->get('start_date') ?? date('Y-m-') . '01');
-    $endDate   = ($this->input->get('end_date') ?? date('Y-m-d'));
+    $startDate = (getGET('start_date') ?? date('Y-m-') . '01');
+    $endDate   = (getGET('end_date') ?? date('Y-m-d'));
 
     d($startDate, $endDate);
 
@@ -1638,7 +1638,7 @@ class Debug extends MY_Controller
 
   public function w2p_dispatch()
   {
-    $ref = $this->input->get('invoice');
+    $ref = getGET('invoice');
 
     $sale = $this->site->getSaleByReference($ref);
 

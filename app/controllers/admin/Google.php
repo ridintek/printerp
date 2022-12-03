@@ -37,12 +37,12 @@ class Google extends MY_Controller
     checkPermission('googlereview-add');
 
     if ($this->requestMethod == 'POST') {
-      $billerId       = $this->input->post('biller');
-      $picId          = $this->input->post('pic');
-      $customerName   = $this->input->post('customer_name');
-      $status         = $this->input->post('status');
-      $createdAt      = ($this->isAdmin ? dtPHP($this->input->post('created_at')) : $this->serverDateTime);
-      $createdBy      = $this->input->post('created_by');
+      $billerId       = getPOST('biller');
+      $picId          = getPOST('pic');
+      $customerName   = getPOST('customer_name');
+      $status         = getPOST('status');
+      $createdAt      = ($this->isAdmin ? dtPHP(getPOST('created_at')) : $this->serverDateTime);
+      $createdBy      = getPOST('created_by');
 
       if (empty($customerName)) $this->response(400, ['message' => 'Nama pelanggan harus diisi.']);
 
@@ -79,7 +79,7 @@ class Google extends MY_Controller
 
   public function review_delete($reviewId = NULL)
   {
-    $reviewIds = $this->input->post('val');
+    $reviewIds = getPOST('val');
 
     if (!$this->isAdmin && !getPermission('googlereview-delete')) {
       sendJSON(['success' => 0, 'message' => lang('access_denied')]);
@@ -121,12 +121,12 @@ class Google extends MY_Controller
     }
 
     if ($this->requestMethod == 'POST') {
-      $billerId       = $this->input->post('biller');
-      $picId          = $this->input->post('pic');
-      $customerName   = $this->input->post('customer_name');
-      $status         = $this->input->post('status');
-      $createdAt      = ($this->isAdmin ? dtPHP($this->input->post('created_at')) : $this->serverDateTime);
-      $createdBy      = $this->input->post('created_by');
+      $billerId       = getPOST('biller');
+      $picId          = getPOST('pic');
+      $customerName   = getPOST('customer_name');
+      $status         = getPOST('status');
+      $createdAt      = ($this->isAdmin ? dtPHP(getPOST('created_at')) : $this->serverDateTime);
+      $createdBy      = getPOST('created_by');
 
       if (empty($customerName)) $this->response(400, ['message' => 'Nama pelanggan harus diisi.']);
 
@@ -174,8 +174,8 @@ class Google extends MY_Controller
 
   public function getGoogleReviews()
   {
-    $startDate  = $this->input->post('start_date');
-    $endDate    = $this->input->post('end_date');
+    $startDate  = getPOST('start_date');
+    $endDate    = getPOST('end_date');
     $billers = [];
 
     $this->load->library('datatable');

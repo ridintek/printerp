@@ -41,7 +41,7 @@ class Operators extends MY_Controller
 
   public function deliverySales()
   {
-    $vals = $this->input->post('val');
+    $vals = getPOST('val');
 
     if (!empty($vals) && is_array($vals)) {
       $success = 0;
@@ -74,7 +74,7 @@ class Operators extends MY_Controller
 
   public function finishSales()
   {
-    $vals = $this->input->post('val');
+    $vals = getPOST('val');
 
     if (!empty($vals) && is_array($vals)) {
       $success = 0;
@@ -109,7 +109,7 @@ class Operators extends MY_Controller
     $this->sma->checkPermissions('orders', NULL, 'operators', TRUE);
     $this->form_validation->set_rules('product_ids', 'Product IDs', 'required');
 
-    $product_ids = json_decode($this->input->post('product_ids'), TRUE); // as array
+    $product_ids = json_decode(getPOST('product_ids'), TRUE); // as array
 
     if ($this->form_validation->run() && ! empty($product_ids)) {
       $data_items = []; $ostatus = NULL;
@@ -143,12 +143,12 @@ class Operators extends MY_Controller
 
     $this->sma->checkPermissions('orders', null, 'operators');
 
-    $created_by   = $this->input->get('created_by');
-    $customer     = $this->input->get('customer');
-    $item_status  = $this->input->get('item_status');
-    $start_date   = $this->input->get('start_date');
-    $end_date     = $this->input->get('end_date');
-    $warehouses   = $this->input->get('warehouses');
+    $created_by   = getGET('created_by');
+    $customer     = getGET('customer');
+    $item_status  = getGET('item_status');
+    $start_date   = getGET('start_date');
+    $end_date     = getGET('end_date');
+    $warehouses   = getGET('warehouses');
 
     $warehouse_id = $this->session->userdata('warehouse_id');
 
@@ -245,10 +245,10 @@ class Operators extends MY_Controller
     $data = [];
 
     if ($this->requestMethod == 'POST') {
-      $items      = json_decode($this->input->post('items'));
-      $created_by = $this->input->post('created_by');
-      $date       = $this->input->post('date');
-      $_pg        = $this->input->post('_pg');
+      $items      = json_decode(getPOST('items'));
+      $created_by = getPOST('created_by');
+      $date       = getPOST('date');
+      $_pg        = getPOST('_pg');
 
       $error = 0;
       $errorCount = 0;
@@ -297,7 +297,7 @@ class Operators extends MY_Controller
 
       sendJSON(['error' => $error, 'msg' => $responseMsg]);
     } else {
-      if ($this->input->post('update')) {
+      if (getPOST('update')) {
         sendJSON(['error' => 1, 'msg' => validation_errors()]);
       }
 
@@ -308,14 +308,14 @@ class Operators extends MY_Controller
   public function orders ($mode = NULL, $warehouse_id = NULL) {
     $this->sma->checkPermissions('orders', null, 'operators');
 
-    $this->data['reference'] = $this->input->get('reference');
-    $this->data['warehouses'] = ($this->input->get('warehouses') ?? []);
-    $this->data['created_by'] = $this->input->get('created_by');
-    $this->data['customer'] = $this->input->get('customer');
-    $this->data['item_status'] = $this->input->get('item_status');
-    $this->data['payment_status'] = $this->input->get('payment_status');
-    $this->data['start_date'] = $this->input->get('start_date');
-    $this->data['end_date'] = $this->input->get('end_date');
+    $this->data['reference'] = getGET('reference');
+    $this->data['warehouses'] = (getGET('warehouses') ?? []);
+    $this->data['created_by'] = getGET('created_by');
+    $this->data['customer'] = getGET('customer');
+    $this->data['item_status'] = getGET('item_status');
+    $this->data['payment_status'] = getGET('payment_status');
+    $this->data['start_date'] = getGET('start_date');
+    $this->data['end_date'] = getGET('end_date');
 
     $bc   = [
       ['link' => base_url(), 'page' => lang('home')],

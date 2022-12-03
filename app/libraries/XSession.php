@@ -22,8 +22,20 @@ class XSession
     return ($_SESSION[$name] ?? NULL);
   }
 
-  public static function set(string $name, string $value)
+  public static function set($name, string $value = '')
   {
-    $_SESSION[$name] = $value;
+    $c = 0;
+
+    if (is_array($name)) {
+      foreach ($name as $n => $v) {
+        $_SESSION[$n] = $v;
+        $c++;
+      }
+    } else {
+      $_SESSION[$name] = $value;
+      $c++;
+    }
+
+    return $c;
   }
 }

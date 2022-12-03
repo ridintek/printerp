@@ -1,5 +1,5 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
-<?php if ($recallTicketId = $this->input->get('recall')): ?>
+<?php if ($recallTicketId = getGET('recall')): ?>
 <script>
   $(document).ready(function() {
     window.recallTicketid = <?= $recallTicketId ?>;

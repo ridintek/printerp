@@ -47,7 +47,7 @@ class Auth extends MY_Controller
   public function _valid_csrf_nonce()
   {
     if (
-      $this->input->post($this->session->flashdata('csrfkey')) !== false && $this->input->post($this->session->flashdata('csrfkey')) == $this->session->flashdata('csrfvalue')
+      getPOST($this->session->flashdata('csrfkey')) !== false && getPOST($this->session->flashdata('csrfkey')) == $this->session->flashdata('csrfvalue')
     ) {
       return true;
     }
@@ -109,7 +109,7 @@ class Auth extends MY_Controller
     } else {
       $identity = $this->session->userdata($this->config->item('identity', 'ion_auth'));
 
-      $change = $this->ion_auth->change_password($identity, $this->input->post('old_password'), $this->input->post('new_password'));
+      $change = $this->ion_auth->change_password($identity, getPOST('old_password'), getPOST('new_password'));
 
       if ($change) {
         $this->session->set_flashdata('message', $this->ion_auth->messages());
@@ -135,24 +135,24 @@ class Auth extends MY_Controller
     $this->form_validation->set_rules('group', lang('group'), 'trim|required');
 
     if ($this->form_validation->run() == true) {
-      $username = strtolower($this->input->post('username'));
-      $email    = strtolower($this->input->post('email'));
-      $password = $this->input->post('password');
-      $notify   = $this->input->post('notify');
+      $username = strtolower(getPOST('username'));
+      $email    = strtolower(getPOST('email'));
+      $password = getPOST('password');
+      $notify   = getPOST('notify');
 
       $additional_data = [
-        'fullname'       => $this->input->post('fullname'),
-        'company'        => $this->input->post('company'),
-        'phone'          => $this->input->post('phone'),
-        'gender'         => $this->input->post('gender'),
-        'group_id'       => $this->input->post('group') ? $this->input->post('group') : '3',
-        'biller_id'      => $this->input->post('biller'),
-        'warehouse_id'   => $this->input->post('warehouse'),
-        'view_right'     => $this->input->post('view_right'),
-        'edit_right'     => $this->input->post('edit_right'),
-        'allow_discount' => $this->input->post('allow_discount'),
+        'fullname'       => getPOST('fullname'),
+        'company'        => getPOST('company'),
+        'phone'          => getPOST('phone'),
+        'gender'         => getPOST('gender'),
+        'group_id'       => getPOST('group') ? getPOST('group') : '3',
+        'biller_id'      => getPOST('biller'),
+        'warehouse_id'   => getPOST('warehouse'),
+        'view_right'     => getPOST('view_right'),
+        'edit_right'     => getPOST('edit_right'),
+        'allow_discount' => getPOST('allow_discount'),
       ];
-      $active = $this->input->post('status');
+      $active = getPOST('status');
     }
     if ($this->form_validation->run() == true && $this->ion_auth->register($username, $password, $email, $additional_data, $active, $notify)) {
       $this->session->set_flashdata('message', $this->ion_auth->messages());
@@ -178,7 +178,7 @@ class Auth extends MY_Controller
     $this->form_validation->set_rules('confirm', lang('confirm'), 'required');
 
     if ($this->form_validation->run() == false) {
-      if ($this->input->post('deactivate')) {
+      if (getPOST('deactivate')) {
         $this->session->set_flashdata('error', validation_errors());
         redirect($_SERVER['HTTP_REFERER']);
       } else {
@@ -187,8 +187,8 @@ class Auth extends MY_Controller
         $this->load->view($this->theme . 'auth/deactivate_user', $this->data);
       }
     } else {
-      if ($this->input->post('confirm') == 'yes') {
-        if ($id != $this->input->post('id')) {
+      if (getPOST('confirm') == 'yes') {
+        if ($id != getPOST('id')) {
           show_error(lang('error_csrf'));
         }
 
@@ -235,8 +235,8 @@ class Auth extends MY_Controller
 
   public function edit_user($id = null)
   {
-    if ($this->input->post('id')) {
-      $id = $this->input->post('id');
+    if (getPOST('id')) {
+      $id = getPOST('id');
     }
     $this->data['title'] = lang('edit_user');
 
@@ -247,10 +247,10 @@ class Auth extends MY_Controller
 
     $user = $this->ion_auth->user($id)->row();
 
-    if ($user->username != $this->input->post('username')) {
+    if ($user->username != getPOST('username')) {
       $this->form_validation->set_rules('username', lang('username'), 'trim|is_unique[users.username]');
     }
-    if ($user->email != $this->input->post('email')) {
+    if ($user->email != getPOST('email')) {
       $this->form_validation->set_rules('email', lang('email'), 'trim|is_unique[users.email]');
     }
 
@@ -259,18 +259,18 @@ class Auth extends MY_Controller
 
       if ($this->Owner || $this->Admin) {
         if ($id == $this->session->userdata('user_id')) {
-          $userJS->acc_no = $this->input->post('acc_no');
+          $userJS->acc_no = getPOST('acc_no');
 
           $data = [
-            'fullname'   => $this->input->post('fullname'),
-            'company'    => $this->input->post('company'),
-            'email'      => $this->input->post('email'),
-            'phone'      => $this->input->post('phone'),
-            'gender'     => $this->input->post('gender'),
+            'fullname'   => getPOST('fullname'),
+            'company'    => getPOST('company'),
+            'email'      => getPOST('email'),
+            'phone'      => getPOST('phone'),
+            'gender'     => getPOST('gender'),
             'json_data'  => json_encode($userJS)
           ];
         } else {
-          $user_perms = $this->input->post('user_permissions');
+          $user_perms = getPOST('user_permissions');
           $permissions = [];
 
           if ($user_perms) {
@@ -279,43 +279,43 @@ class Auth extends MY_Controller
             }
           }
 
-          $userJS->acc_no = $this->input->post('acc_no');
-          $userJS->biller_access = $this->input->post('biller_access');
+          $userJS->acc_no = getPOST('acc_no');
+          $userJS->biller_access = getPOST('biller_access');
           $userJS->permissions = $permissions;
-          $userJS->so_cycle = $this->input->post('so_cycle');
+          $userJS->so_cycle = getPOST('so_cycle');
 
           $data = [
-            'fullname'       => $this->input->post('fullname'),
-            'company'        => $this->input->post('company'),
-            'username'       => $this->input->post('username'),
-            'email'          => $this->input->post('email'),
-            'phone'          => $this->input->post('phone'),
-            'gender'         => $this->input->post('gender'),
-            'active'         => $this->input->post('status'),
-            'group_id'       => $this->input->post('group'),
-            'biller_id'      => $this->input->post('biller') ? $this->input->post('biller') : null,
-            'warehouse_id'   => $this->input->post('warehouse') ? $this->input->post('warehouse') : null,
-            'view_right'     => $this->input->post('view_right'),
-            'edit_right'     => $this->input->post('edit_right'),
-            'allow_discount' => $this->input->post('allow_discount'),
+            'fullname'       => getPOST('fullname'),
+            'company'        => getPOST('company'),
+            'username'       => getPOST('username'),
+            'email'          => getPOST('email'),
+            'phone'          => getPOST('phone'),
+            'gender'         => getPOST('gender'),
+            'active'         => getPOST('status'),
+            'group_id'       => getPOST('group'),
+            'biller_id'      => getPOST('biller') ? getPOST('biller') : null,
+            'warehouse_id'   => getPOST('warehouse') ? getPOST('warehouse') : null,
+            'view_right'     => getPOST('view_right'),
+            'edit_right'     => getPOST('edit_right'),
+            'allow_discount' => getPOST('allow_discount'),
             'json_data'      => json_encode($userJS)
           ];
         }
       } else {
         $data = [
-          'fullname'   => $this->input->post('fullname'),
-          'company'    => $this->input->post('company'),
-          'phone'      => $this->input->post('phone'),
-          'gender'     => $this->input->post('gender')
+          'fullname'   => getPOST('fullname'),
+          'company'    => getPOST('company'),
+          'phone'      => getPOST('phone'),
+          'gender'     => getPOST('gender')
         ];
       }
 
       if ($this->Owner || $this->Admin) {
-        if ($this->input->post('password')) {
+        if (getPOST('password')) {
           $this->form_validation->set_rules('password', lang('edit_user_validation_password_label'), 'required|min_length[8]|max_length[25]|matches[password_confirm]');
           $this->form_validation->set_rules('password_confirm', lang('edit_user_validation_password_confirm_label'), 'required');
 
-          $data['password'] = $this->input->post('password');
+          $data['password'] = getPOST('password');
         }
       }
     }
@@ -343,7 +343,7 @@ class Auth extends MY_Controller
       $this->session->set_flashdata('error', $error);
       admin_redirect('login#forgot_password');
     } else {
-      $identity = $this->ion_auth->where('email', strtolower($this->input->post('forgot_email')))->users()->row();
+      $identity = $this->ion_auth->where('email', strtolower(getPOST('forgot_email')))->users()->row();
       if (empty($identity)) {
         $this->ion_auth->set_message('forgot_password_email_not_found');
         $this->session->set_flashdata('error', $this->ion_auth->messages());
@@ -415,7 +415,7 @@ class Auth extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       if (isset($_FILES['csv_file'])) {
-        $update_pass = (!empty($this->input->post('update_pass')) ? TRUE : FALSE);
+        $update_pass = (!empty(getPOST('update_pass')) ? TRUE : FALSE);
         $this->load->library('upload');
         $config['upload_path']   = $this->upload_import_path;
         $config['allowed_types'] = 'csv';
@@ -553,9 +553,9 @@ class Auth extends MY_Controller
     $this->data['title'] = lang('login');
 
     if ($this->form_validation->run() == true) {
-      $remember = (bool)$this->input->post('remember');
+      $remember = getPOST('remember');
 
-      if ($this->auth_model->login($this->input->post('identity'), $this->input->post('password'), $remember)) {
+      if ($this->auth_model->login(getPOST('identity'), getPOST('password'), $remember)) {
         $this->session->set_flashdata('message', $this->ion_auth->messages());
         admin_redirect($_SERVER['HTTP_REFERER']);
       } else {
@@ -584,7 +584,7 @@ class Auth extends MY_Controller
         'placeholder'                 => lang('password'),
       ];
       $this->data['allow_reg'] = $this->Settings->allow_reg;
-      $this->data['url'] = $this->input->get('url');
+      $this->data['url'] = getGET('url');
       $this->data['warehouses'] = $this->site->getAllWarehouses();
       $this->load->view($this->theme . 'auth/login', $this->data);
     }
@@ -694,14 +694,14 @@ class Auth extends MY_Controller
     }
 
     if ($this->form_validation->run() == true) {
-      $username = strtolower($this->input->post('username'));
-      $email    = strtolower($this->input->post('email'));
-      $password = $this->input->post('password');
+      $username = strtolower(getPOST('username'));
+      $email    = strtolower(getPOST('email'));
+      $password = getPOST('password');
 
       $additional_data = [
-        'fullname' => $this->input->post('fullname'),
-        'company'  => $this->input->post('company'),
-        'phone'    => $this->input->post('phone'),
+        'fullname' => getPOST('fullname'),
+        'company'  => getPOST('company'),
+        'phone'    => getPOST('phone'),
       ];
     }
     if ($this->form_validation->run() == true && $this->ion_auth->register($username, $password, $email, $additional_data)) {
@@ -795,8 +795,8 @@ class Auth extends MY_Controller
     $vals = [
       'img_path'    => './assets/captcha/',
       'img_url'     => base_url('assets/captcha/'),
-      'img_width'   => $this->input->get('width') ? $this->input->get('width') : 150,
-      'img_height'  => $this->input->get('height') ? $this->input->get('height') : 34,
+      'img_width'   => getGET('width') ? getGET('width') : 150,
+      'img_height'  => getGET('height') ? getGET('height') : 34,
       'word_length' => 5,
       'colors'      => ['background' => [255, 255, 255], 'border' => [204, 204, 204], 'text' => [102, 102, 102], 'grid' => [204, 204, 204]],
     ];
@@ -862,7 +862,7 @@ class Auth extends MY_Controller
         $this->load->view($this->theme . 'auth/reset_password', $this->data);
       } else {
         // do we have a valid request?
-        if ($user->id != $this->input->post('user_id')) {
+        if ($user->id != getPOST('user_id')) {
           //something fishy might be up
           $this->ion_auth->clear_forgotten_password_code($code);
           show_error(lang('error_csrf'));
@@ -870,7 +870,7 @@ class Auth extends MY_Controller
           // finally change the password
           $identity = $user->email;
 
-          $change = $this->ion_auth->reset_password($identity, $this->input->post('new'));
+          $change = $this->ion_auth->reset_password($identity, getPOST('new'));
 
           if ($change) {
             //if the password was successfully changed
@@ -892,14 +892,14 @@ class Auth extends MY_Controller
 
   public function suggestions($term = NULL, $limit = 10)
   {
-    if ($this->input->get('term')) {
-      $term = $this->input->get('term', true);
+    if (getGET('term')) {
+      $term = getGET('term', true);
     }
-    if ($id = $this->input->get('id')) {
+    if ($id = getGET('id')) {
       $term = [];
       $term['id'] = $id;
     }
-    $limit           = $this->input->get('limit', true);
+    $limit           = getGET('limit', true);
     $rows['results'] = $this->site->getUserSuggestions($term, $limit);
     sendJSON($rows);
   }
@@ -914,8 +914,8 @@ class Auth extends MY_Controller
    */
   public function update_avatar($id = null)
   {
-    if ($this->input->post('id')) {
-      $id = $this->input->post('id');
+    if (getPOST('id')) {
+      $id = getPOST('id');
     }
 
     if (!$this->ion_auth->logged_in() || (!$this->Owner && !$this->Admin) && $id != $this->session->userdata('user_id')) {
@@ -994,7 +994,7 @@ class Auth extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       if (!empty($_POST['val'])) {
-        if ($this->input->post('form_action') == 'delete') {
+        if (getPOST('form_action') == 'delete') {
           if (!$this->Owner && !$this->Admin) {
             $this->session->set_flashdata('warning', lang('access_denied'));
           } else {
