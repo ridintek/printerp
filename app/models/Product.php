@@ -47,16 +47,22 @@ class Product
 
   public static function sync(int $productId, int $warehouseId)
   {
-    return WarehouseProduct::update(
-      (int)WarehouseProduct::getRow(['product_id' => $productId, 'warehouse_id' => $warehouseId])->id,
+    $whp = WarehouseProduct::getRow(['product_id' => $productId, 'warehouse_id' => $warehouseId]);
+
+    if (!$whp) return FALSE;
+
+    return WarehouseProduct::update((int)$whp->id,
       ['quantity' => Stock::totalQuantity($productId, $warehouseId)]
     );
   }
 
   public static function syncOld(int $productId, int $warehouseId)
   {
-    return WarehouseProduct::update(
-      (int)WarehouseProduct::getRow(['product_id' => $productId, 'warehouse_id' => $warehouseId])->id,
+    $whp = WarehouseProduct::getRow(['product_id' => $productId, 'warehouse_id' => $warehouseId]);
+
+    if (!$whp) return FALSE;
+
+    return WarehouseProduct::update((int)$whp->id,
       ['quantity' => Stock::totalQuantityOld($productId, $warehouseId)]
     );
   }
