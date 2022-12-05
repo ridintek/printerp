@@ -502,7 +502,7 @@ class Site extends MY_Model
 
   /**
    * THE ONLY PAYMENT GATEWAY FUNCTION FOR ANY TRANSACTIONS. DO NOT USE ANY PAYMENT GATEWAY FUNCTION EXCEPT THIS !!!
-   * @param array $data [date, (expense_id, income_id, mutation_id, sale_id, purchase_id, transfer_id)*,
+   * @param array $data [date, reference_date, (expense_id, income_id, mutation_id, sale_id, purchase_id, transfer_id)*,
    * bank_id*, method*(Cash/Transfer), amount*, created_by, attachment, status, type*(pending/sent/received), note]
    */
   public function addPayment($data = [])
@@ -526,10 +526,11 @@ class Site extends MY_Model
 
     if (empty($data['bank_id'])) return FALSE;
 
-    $data['date']       = ($data['date'] ?? date('Y-m-d H:i:s'));
-    $data['reference']  = $inv->reference;
-    $data['created_by'] = ($data['created_by'] ?? $this->session->userdata('user_id'));
-    $data['biller_id']  = ($inv->biller_id ?? NULL);
+    $data['date']           = ($data['date'] ?? date('Y-m-d H:i:s'));
+    $data['reference_date'] = ($data['reference_date'] ?? date('Y-m-d H:i:s'));
+    $data['reference']      = $inv->reference;
+    $data['created_by']     = ($data['created_by'] ?? $this->session->userdata('user_id'));
+    $data['biller_id']      = ($inv->biller_id ?? NULL);
 
     $this->db->insert('payments', $data); // Insert Payment.
     $insertId = $this->db->insert_id();
