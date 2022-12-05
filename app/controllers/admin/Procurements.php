@@ -489,6 +489,7 @@ class Procurements extends MY_Controller
     $reference = getGET('reference');
     $start_date = getGET('start_date');
     $warehouse_to = getGET('warehouse');
+    $category     = getGET('category');
     $xls = (getGET('xls') == 1 ? TRUE : FALSE);
 
     $warehouse_id = $this->session->userdata('warehouse_id');
@@ -615,10 +616,10 @@ class Procurements extends MY_Controller
         ->group_end();
     }
     if ($reference) {
-      $this->datatables->like('reference', $reference, 'both');
+      $this->datatables->like('internal_uses.reference', $reference, 'both');
     }
     if ($warehouse_to) {
-      $this->datatables->where('to_warehouse_id', $warehouse_to);
+      $this->datatables->where('internal_uses.to_warehouse_id', $warehouse_to);
     }
     if ($start_date) {
       $start_date = ($start_date ?? date('Y-m-') . '01');
@@ -627,7 +628,11 @@ class Procurements extends MY_Controller
     }
 
     if ($warehouse_id) {
-      $this->datatables->where('to_warehouse_id', $warehouse_id);
+      $this->datatables->where('internal_uses.to_warehouse_id', $warehouse_id);
+    }
+
+    if ($category) {
+      $this->datatables->like('internal_uses.category', $category, 'none');
     }
 
     // ACTIONS BUTTON
