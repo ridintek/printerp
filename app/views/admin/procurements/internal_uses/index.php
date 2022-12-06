@@ -7,12 +7,14 @@ $item_name = getGET('item');
 $reference = getGET('reference');
 $start_date = getGET('start_date');
 $warehouse_to = getGET('warehouse');
+$category = getGET('category');
 
 if ($end_date)     $q .= '&end_date=' . $end_date;
 if ($item_name)    $q .= '&item=' . $item_name;
 if ($reference)    $q .= '&reference=' . $reference;
 if ($start_date)   $q .= '&start_date=' . $start_date;
 if ($warehouse_to) $q .= '&warehouse=' . $warehouse_to;
+if ($category)      $q .= '&category=' . $category;
 
 ?>
 <script>
@@ -230,6 +232,16 @@ if ($warehouse_to) $q .= '&warehouse=' . $warehouse_to;
                 <input name="end_date" class="form-control" id="end_date" type="date" value="<?= ($end_date ?? ''); ?>">
               </div>
             </div>
+            <div class="col-sm-4">
+              <div class="form-group">
+                <label for="category">Category</label>
+                <select class="select2" name="category" style="width:100%">
+                  <option value="">Choose Category</option>
+                  <option value="consumable">Consumable</option>
+                  <option value="sparepart">Sparepart</option>
+                </select>
+              </div>
+            </div>
           </div>
           <div class="row">
             <div class="col-sm-12">
@@ -313,6 +325,12 @@ if ($warehouse_to) $q .= '&warehouse=' . $warehouse_to;
 </div>
 <script>
   $(document).ready(function() {
+    let category = '<?= $category ?? '' ?>';
+
+    if (category) {
+      $('select[name="category"]').val(category).trigger('change');
+    }
+
     $('#sync_iuse').click(function() {
       addConfirm({
         title: 'Sync Internal Use',
@@ -357,12 +375,14 @@ if ($warehouse_to) $q .= '&warehouse=' . $warehouse_to;
       let reference = $('#reference').val();
       let start_date = $('#start_date').val();
       let warehouse_to = $('#warehouse_to').val();
+      let category = $('select[name="category"]').val();
 
       if (end_date) q += '&end_date=' + end_date;
       if (item_name) q += '&item=' + item_name;
       if (reference) q += '&reference=' + reference;
       if (start_date) q += '&start_date=' + start_date;
       if (warehouse_to) q += '&warehouse=' + warehouse_to;
+      if (category) q += '&category=' + category;
 
       location.href = site.base_url + 'procurements/internal_uses/getInternalUses' + q;
     });
@@ -375,12 +395,14 @@ if ($warehouse_to) $q .= '&warehouse=' . $warehouse_to;
       let reference = $('#reference').val();
       let start_date = $('#start_date').val();
       let warehouse_to = $('#warehouse_to').val();
+      let category = $('select[name="category"]').val();
 
       if (end_date) q += '&end_date=' + end_date;
       if (item_name) q += '&item=' + item_name;
       if (reference) q += '&reference=' + reference;
       if (start_date) q += '&start_date=' + start_date;
       if (warehouse_to) q += '&warehouse=' + warehouse_to;
+      if (category) q += '&category=' + category;
 
       location.href = site.base_url + 'procurements/internal_uses' + q;
     });

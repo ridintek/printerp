@@ -97,33 +97,33 @@ class Procurements extends MY_Controller
       $i = isset($_POST['product_id']) ? sizeof($_POST['product_id']) : 0;
 
       for ($r = 0; $r < $i; $r++) {
-        $item_code      = $_POST['product_code'][$r];
+        $itemCode      = $_POST['product_code'][$r];
         $item_machine   = $_POST['machines'][$r];
         $item_price     = $_POST['price'][$r];
         $item_quantity  = $_POST['quantity'][$r];
-        $item_spec      = $_POST['spec'][$r]; // Counter.
+        $itemSpec      = $_POST['spec'][$r]; // Counter.
         $itemUCR        = $_POST['ucr'][$r]; // Unique Code Replacement.
 
         // Prevent input lower counter than current counter.
-        if (!empty($item_spec)) {
+        if (!empty($itemSpec)) {
           $whp = WarehouseProduct::getRow(['product_code' => 'KLIKPOD', 'warehouse_id' => $warehouseIdTo]);
 
           if ($whp) {
             $lastKLIKQty = intval($whp->quantity);
 
-            if ($lastKLIKQty > intval($item_spec)) {
-              $this->session->set_flashdata('error', "Klik {$item_spec} tidak sesuai klik terakhir {$lastKLIKQty}.");
+            if ($lastKLIKQty > intval($itemSpec)) {
+              $this->session->set_flashdata('error', "Klik {$itemSpec} tidak sesuai klik terakhir {$lastKLIKQty}.");
               admin_redirect('procurements/internal_uses/add');
             }
           }
         }
 
-        if (isset($item_code) && isset($item_quantity)) {
-          $product = Product::getRow(['code' => $item_code]);
+        if (isset($itemCode) && isset($item_quantity)) {
+          $product = Product::getRow(['code' => $itemCode]);
           $pcategory = Category::getRow(['id' => $product->category_id]);
 
           if (!$item_quantity) {
-            $this->session->set_flashdata('error', "No quantity for item {$item_code}");
+            $this->session->set_flashdata('error', "No quantity for item {$itemCode}");
             admin_redirect('procurements/internal_uses/add');
           }
 
@@ -134,24 +134,24 @@ class Procurements extends MY_Controller
 
           if ($product->iuse_type == 'sparepart') { // If item sparepart and no machine. then error.
             if (empty($item_machine)) {
-              $this->session->set_flashdata('error', "MESIN BELUM DIPILIH UNTUK ITEM <b>{$item_code}</b>!");
+              $this->session->set_flashdata('error', "MESIN BELUM DIPILIH UNTUK ITEM <b>{$itemCode}</b>!");
               admin_redirect('procurements/internal_uses/add');
             }
           } else if ($product->iuse_type == 'consumable') {
             if (empty($item_machine)) {
               if ($pcategory->code == 'DPI' || $pcategory->code == 'POD') {
-                $this->session->set_flashdata('error', "MESIN BELUM DIPILIH UNTUK ITEM <b>{$item_code}</b>!");
+                $this->session->set_flashdata('error', "MESIN BELUM DIPILIH UNTUK ITEM <b>{$itemCode}</b>!");
                 admin_redirect('procurements/internal_uses/add');
               }
             }
           }
 
           $whp = WarehouseProduct::getRow(['product_id' => $product->id, 'warehouse_id' => $warehouseIdFrom]);
-          $from_warehouse_qty = ($whp ? $whp->quantity : 0);
+          $warehouseQtyFrom = ($whp ? $whp->quantity : 0);
           $total_markon_price = (getMarkonPrice($product->cost, $product->markon) * $item_quantity);
 
-          if ($from_warehouse_qty < $item_quantity) {
-            $this->session->set_flashdata('error', 'Stok di outlet kurang dari yang diperlukan.');
+          if ($warehouseQtyFrom < $item_quantity) {
+            $this->session->set_flashdata('error', "Stok di outlet ({$warehouseQtyFrom}) kurang dari yang diperlukan ({$item_quantity}).");
             admin_redirect('procurements/internal_uses/add');
           }
 
@@ -160,12 +160,12 @@ class Procurements extends MY_Controller
             'machine_id'  => $item_machine,
             'price'       => $item_price,
             'quantity'    => $item_quantity,
-            'spec'        => $item_spec,
+            'spec'        => $itemSpec,
             'ucr'         => $itemUCR
           ]; // unique_code generated in model.
 
           $items .= '- ' . getExcerpt($product->name) . '<br>';
-          if ($item_spec) $counter .= $item_spec . '<br>'; // Item spec used as counter.
+          if ($itemSpec) $counter .= $itemSpec . '<br>'; // Item spec used as counter.
           $grandTotal += $total_markon_price;
           $products[] = $productData;
         }
@@ -193,7 +193,11 @@ class Procurements extends MY_Controller
 
       $upload = new FileUpload();
 
-      if ($upload->has('document') && $upload->getSize('mb') <= 2) {
+      if ($upload->has('document')) {
+        if ($upload->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect('procurements/internal_uses/add');
+        }
         $internalUseData['attachment_id'] = $upload->storeRandom();
       } else if ($category == 'consumable') {
         $this->session->set_flashdata('error', 'Attachment maks. 2MB harus disertakan.');
@@ -292,16 +296,16 @@ class Procurements extends MY_Controller
       $i = isset($_POST['product_id']) ? count($_POST['product_id']) : 0;
 
       for ($r = 0; $r < $i; $r++) {
-        $item_code      = getPOST('product_code')[$r];
+        $itemCode      = getPOST('product_code')[$r];
         $item_machine   = getPOST('machines')[$r];
         $item_price     = getPOST('price')[$r];
         $item_quantity  = getPOST('quantity')[$r];
-        $item_spec      = getPOST('spec')[$r];
+        $itemSpec      = getPOST('spec')[$r];
         $itemUCR        = getPOST('ucr')[$r];
         $itemUniqueCode = getPOST('unique_code')[$r];
 
-        if (isset($item_code) && isset($item_quantity)) {
-          $product = Product::getRow(['code' => $item_code]);
+        if (isset($itemCode) && isset($item_quantity)) {
+          $product = Product::getRow(['code' => $itemCode]);
 
           if (!$product) {
             $this->session->set_flashdata('error', lang('no_match_found') . ' (' . lang('product_name') . ' <strong>' . $product->name . '</strong> ' . lang('product_code') . ' <strong>' . $product->code . '</strong>)');
@@ -310,7 +314,7 @@ class Procurements extends MY_Controller
 
           if ($product->iuse_type == 'sparepart') {
             if (empty($item_machine)) {
-              $this->session->set_flashdata('error', "Machine is not selected for {$item_code}.");
+              $this->session->set_flashdata('error', "Machine is not selected for {$itemCode}.");
               admin_redirect('procurements/internal_uses/edit/' . $iuse->id);
             }
           }
@@ -330,13 +334,13 @@ class Procurements extends MY_Controller
             'machine_id'  => $item_machine,
             'price'       => $item_price,
             'quantity'    => $item_quantity,
-            'spec'        => $item_spec,
+            'spec'        => $itemSpec,
             'ucr'         => $itemUCR,
             'unique_code' => $itemUniqueCode
           ];
 
           $items .= '- ' . getExcerpt($product->name, 30) . '<br>';
-          if ($item_spec) $counter .= $item_spec . '<br>'; // Item spec used as counter.
+          if ($itemSpec) $counter .= $itemSpec . '<br>'; // Item spec used as counter.
           $grand_total += $total_markon_price;
           $products[] = $product_data;
         }
@@ -364,7 +368,12 @@ class Procurements extends MY_Controller
 
       $upload = new FileUpload();
 
-      if ($upload->has('document') && $upload->getSize('mb') <= 2) {
+      if ($upload->has('document')) {
+        if ($upload->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect('procurements/internal_uses/status/' . $iuse->id);
+        }
+
         $internalUseData['attachment_id'] = $upload->storeRandom();
       } else if ($status == 'installed' && empty($iuse->attachment_id)) {
         $this->session->set_flashdata('error', 'Attachment harus disertakan jika sudah selesai instalasi.');
@@ -489,6 +498,7 @@ class Procurements extends MY_Controller
     $reference = getGET('reference');
     $start_date = getGET('start_date');
     $warehouse_to = getGET('warehouse');
+    $category     = getGET('category');
     $xls = (getGET('xls') == 1 ? TRUE : FALSE);
 
     $warehouse_id = $this->session->userdata('warehouse_id');
@@ -615,10 +625,10 @@ class Procurements extends MY_Controller
         ->group_end();
     }
     if ($reference) {
-      $this->datatables->like('reference', $reference, 'both');
+      $this->datatables->like('internal_uses.reference', $reference, 'both');
     }
     if ($warehouse_to) {
-      $this->datatables->where('to_warehouse_id', $warehouse_to);
+      $this->datatables->where('internal_uses.to_warehouse_id', $warehouse_to);
     }
     if ($start_date) {
       $start_date = ($start_date ?? date('Y-m-') . '01');
@@ -627,7 +637,11 @@ class Procurements extends MY_Controller
     }
 
     if ($warehouse_id) {
-      $this->datatables->where('to_warehouse_id', $warehouse_id);
+      $this->datatables->where('internal_uses.to_warehouse_id', $warehouse_id);
+    }
+
+    if ($category) {
+      $this->datatables->like('internal_uses.category', $category, 'none');
     }
 
     // ACTIONS BUTTON
@@ -867,12 +881,15 @@ class Procurements extends MY_Controller
         'note'         => $note
       ];
 
-      $upload = new FileUpload();
+      $uploader = new FileUpload();
 
-      if ($upload->has('attachment')) {
-        $name = $upload->getRandomName();
-        $upload->move(FCPATH . 'files/procurements/purchases/attachments', $name);
-        $purchaseData['attachment'] = $name;
+      if ($uploader->has('userfile')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect($_SERVER['HTTP_REFERER']);
+        }
+
+        $purchaseData['attachment_id'] = $uploader->storeRandom();
       }
 
       if ($this->site->addPurchase($purchaseData, $items)) {
@@ -1367,29 +1384,29 @@ class Procurements extends MY_Controller
       $purchase_items = [];
 
       for ($r = 0; $r < $i; $r++) {
-        $item_code          = $_POST['product'][$r];
-        $item_cost          = round(filterDecimal($_POST['cost'][$r]));
-        $item_purchased_qty = $_POST['purchased_qty'][$r];
-        $item_spec          = $_POST['spec'][$r];
-        $item_unit          = $_POST['item_unit'][$r]; // lbr, rim
+        $itemCode         = $_POST['product'][$r];
+        $itemCost         = round(filterDecimal($_POST['cost'][$r]));
+        $itemPurchasedQty = $_POST['purchased_qty'][$r];
+        $itemSpec         = $_POST['spec'][$r];
+        $itemUnit         = $_POST['item_unit'][$r]; // lbr, rim
 
-        if (isset($item_code) && isset($item_cost) && isset($item_purchased_qty)) {
-          $product = $this->site->getProductByCode($item_code);
+        if (isset($itemCode) && isset($itemCost) && isset($itemPurchasedQty)) {
+          $product = $this->site->getProductByCode($itemCode);
 
           $purchase_items[] = [
             'date'              => $date,
             'product_id'        => $product->id,
-            'cost'              => $item_cost,
+            'cost'              => $itemCost,
             'quantity'          => 0,
-            'purchased_qty'     => $item_purchased_qty,
+            'purchased_qty'     => $itemPurchasedQty,
             'warehouse_id'      => $warehouse_id,
             'status'            => $status,
-            'unit_id'           => $item_unit,
-            'spec'              => $item_spec,
+            'unit_id'           => $itemUnit,
+            'spec'              => $itemSpec,
             'created_by'        => $this->session->userdata('user_id')
           ];
 
-          $total += round($item_cost * $item_purchased_qty);
+          $total += round($itemCost * $itemPurchasedQty);
         }
       }
 
@@ -1410,27 +1427,6 @@ class Procurements extends MY_Controller
         'payment_term'   => $payment_term,
         'supplier_id'    => $supplier_id,
       ];
-      /*
-      if ($_FILES['document']['size'] > 0) {
-        $this->load->library('upload');
-        $config['upload_path']   = $this->upload_purchases_path;
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
-
-        $this->upload->initialize($config);
-
-        if (!$this->upload->do_upload('document')) {
-          $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
-        }
-
-        $photo = $this->upload->file_name;
-        $purchase_data['attachment'] = $photo;
-      }
-*/
     }
 
     if ($this->form_validation->run() == true) {
@@ -1553,24 +1549,15 @@ class Procurements extends MY_Controller
         $this->sma->md();
       }
 
-      if ($_FILES['payment_proof']['size'] > 0) {
-        checkPath($this->upload_purchases_path);
-        $this->load->library('upload');
-        $config['upload_path']   = $this->upload_purchases_path;
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
-        $this->upload->initialize($config);
+      $uploader = new FileUpload();
 
-        if (!$this->upload->do_upload('payment_proof')) {
-          $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+      if ($uploader->has('payment_proof')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $photo                 = $this->upload->file_name;
-        $payment['attachment'] = $photo;
+        $payment['attachment_id'] = $uploader->storeRandom();
       }
     } elseif (getPOST('add_payment')) {
       $this->session->set_flashdata('error', validation_errors());
@@ -1676,9 +1663,9 @@ class Procurements extends MY_Controller
       }
 
       for ($r = 0; $r < $i; $r++) {
-        $item_code           = $_POST['product'][$r];
-        $item_cost           = $_POST['cost'][$r];
-        $item_purchased_qty  = $_POST['purchased_qty'][$r];
+        $itemCode           = $_POST['product'][$r];
+        $itemCost           = $_POST['cost'][$r];
+        $itemPurchasedQty  = $_POST['purchased_qty'][$r];
         $item_received_qty_1 = filterDecimal($_POST['received_qty_1'][$r] ?? 0);
         $item_received_qty_2 = filterDecimal($_POST['received_qty_2'][$r] ?? 0);
         $item_received_qty_3 = filterDecimal($_POST['received_qty_3'][$r] ?? 0);
@@ -1686,19 +1673,19 @@ class Procurements extends MY_Controller
         $received_date_2     = $_POST['received_date_2'][$r];
         $received_date_3     = $_POST['received_date_3'][$r];
         $item_quantity       = $_POST['quantity'][$r];
-        $item_spec           = $_POST['spec'][$r];
-        $item_unit           = $_POST['item_unit'][$r];
+        $itemSpec           = $_POST['spec'][$r];
+        $itemUnit           = $_POST['item_unit'][$r];
 
-        if (isset($item_code) && isset($item_cost) && isset($item_purchased_qty)) {
-          $product = $this->site->getProductByCode($item_code);
+        if (isset($itemCode) && isset($itemCost) && isset($itemPurchasedQty)) {
+          $product = $this->site->getProductByCode($itemCode);
           $item_total_received_qty = 0;
 
           if ($postatus == 'received') {
             $this->site->updateProducts([[
               'product_id'  => $product->id,
               'order_date'  => $date,
-              'order_price' => $item_cost,
-              'sn' => toSN($item_code, $purchase->reference)
+              'order_price' => $itemCost,
+              'sn' => toSN($itemCode, $purchase->reference)
             ]]);
 
             // Received Qty Selector based on received date.
@@ -1712,23 +1699,23 @@ class Procurements extends MY_Controller
 
             $item_total_received_qty = ($item_received_qty_1 + $item_received_qty_2 + $item_received_qty_3);
 
-            if ($item_total_received_qty < $item_purchased_qty) {
+            if ($item_total_received_qty < $itemPurchasedQty) {
               $is_partial = TRUE;
             }
-            $balance += round($item_cost * $item_total_received_qty);
+            $balance += round($itemCost * $item_total_received_qty);
           }
 
           $product_data = [
             'date'              => $date,
             'product_id'        => $product->id,
             'product_code'      => $product->code,
-            'cost'              => $item_cost,
-            'purchased_qty'     => $item_purchased_qty,
+            'cost'              => $itemCost,
+            'purchased_qty'     => $itemPurchasedQty,
             'quantity'          => ($postatus == 'received' ? $item_total_received_qty : 0), // For edit only.
             'warehouse_id'      => $warehouse_id,
             'status'            => $postatus,
-            'unit_id'           => $item_unit,
-            'spec'              => $item_spec,
+            'unit_id'           => $itemUnit,
+            'spec'              => $itemSpec,
             'json_data'         => json_encode([
               'received_qty_1' => $item_received_qty_1,
               'received_qty_2' => $item_received_qty_2,
@@ -1742,7 +1729,7 @@ class Procurements extends MY_Controller
           // if ($this->Owner) d($product_data);
 
           $products[] = $product_data;
-          $total += round($item_cost * $item_purchased_qty);
+          $total += round($itemCost * $itemPurchasedQty);
         }
       }
 
@@ -1782,25 +1769,15 @@ class Procurements extends MY_Controller
         $purchase_data['due_date'] = $due_date;
       }
 
-      if ($_FILES['document']['size'] > 0) {
-        checkPath($this->upload_purchases_path);
-        $this->load->library('upload');
-        $config['upload_path']   = $this->upload_purchases_path;
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
+      $uploader = new FileUpload();
 
-        $this->upload->initialize($config);
-
-        if (!$this->upload->do_upload('document')) {
-          $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+      if ($uploader->has('document')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $photo = $this->upload->file_name;
-        $purchase_data['attachment'] = $photo;
+        $purchase_data['attachment_id'] = $uploader->storeRandom();
       }
     }
 
@@ -1949,21 +1926,15 @@ class Procurements extends MY_Controller
         $this->sma->md();
       }
 
-      if ($_FILES['userfile']['size'] > 0) {
-        $this->load->library('upload');
-        $config['upload_path']   = $this->upload_purchases_payments_path;
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
-        $this->upload->initialize($config);
-        if (!$this->upload->do_upload()) {
-          $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+      $uploader = new FileUpload();
+
+      if ($uploader->has('userfile')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect($_SERVER['HTTP_REFERER']);
         }
-        $photo                      = $this->upload->file_name;
-        $data_payment['attachment'] = $photo;
+
+        $data_payment['attachment_id'] = $uploader->storeRandom();
       }
     } elseif (getPOST('edit_payment')) {
       $this->session->set_flashdata('error', validation_errors());
@@ -2704,13 +2675,13 @@ class Procurements extends MY_Controller
 
       $i = isset($_POST['product_id']) ? sizeof($_POST['product_id']) : 0;
       for ($r = 0; $r < $i; $r++) {
-        $item_code          = $_POST['product_code'][$r];
+        $itemCode          = $_POST['product_code'][$r];
         $item_markon_price  = $_POST['markon_price'][$r];
         $item_quantity      = $_POST['quantity'][$r];
-        $item_spec          = $_POST['spec'][$r];
+        $itemSpec          = $_POST['spec'][$r];
 
-        if (isset($item_code) && isset($item_quantity)) {
-          $product = $this->site->getProductByCode($item_code);
+        if (isset($itemCode) && isset($item_quantity)) {
+          $product = $this->site->getProductByCode($itemCode);
           $from_warehouse_qty = $this->site->getStockQuantity($product->id, $warehouseIdFrom); // Get source stock.
 
           if ($from_warehouse_qty < $item_quantity) {
@@ -2722,7 +2693,7 @@ class Procurements extends MY_Controller
             'product_id' => $product->id,
             'quantity'   => $item_quantity,
             'price'      => round(filterDecimal($item_markon_price)),
-            'spec'       => $item_spec
+            'spec'       => $itemSpec
           ];
 
           $subtotal = round(filterDecimal($item_markon_price * $item_quantity)); // Get sell price to warehouse.
@@ -2748,22 +2719,15 @@ class Procurements extends MY_Controller
         'status'            => $status, // new add = packing
       ];
 
-      if ($_FILES['document']['size'] > 0) {
-        $this->load->library('upload');
-        $config['upload_path']   = $this->upload_transfers_path;
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
+      $uploader = new FileUpload();
 
-        $this->upload->initialize($config);
-        if (!$this->upload->do_upload('document')) {
-          $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+      if ($uploader->has('document')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect($_SERVER['HTTP_REFERER']);
         }
-        $photo = $this->upload->file_name;
-        $transferData['attachment'] = $photo;
+
+        $transferData['attachment_id'] = $uploader->storeRandom();
       }
     }
 
@@ -2842,23 +2806,20 @@ class Procurements extends MY_Controller
         $this->session->set_flashdata('error', 'Are you kidding me to pay 0 rupiah?');
         $this->sma->md();
       }
-      if ($_FILES['userfile']['size'] > 0) {
-        $this->load->library('upload');
-        $config['upload_path']   = $this->upload_transfers_payments_path;
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
-        $this->upload->initialize($config);
-        if (!$this->upload->do_upload()) {
-          $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          admin_redirect('procurements/transfers');
+
+      $uploader = new FileUpload();
+
+      if ($uploader->has('userfile')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect($_SERVER['HTTP_REFERER']);
         }
-        $uploaded_file      = $this->upload->file_name;
-        $data['attachment'] = $uploaded_file;
+
+        $data['attachment_id'] = $uploader->storeRandom();
       }
+
       $bank_from_balance = $this->site->getBankBalanceByID($data['from_bank_id']);
+
       if ($bank_from_balance < $data['amount']) {
         $this->session->set_flashdata('warning', lang('insufficient_funds'));
         admin_redirect('procurements/transfers');
@@ -2980,13 +2941,13 @@ class Procurements extends MY_Controller
 
       $i = isset($_POST['product_id']) ? count($_POST['product_id']) : 0;
       for ($r = 0; $r < $i; $r++) {
-        $item_code          = $_POST['product_code'][$r];
+        $itemCode          = $_POST['product_code'][$r];
         $item_markon_price  = filterDecimal($_POST['markon_price'][$r]);
         $item_quantity      = filterDecimal($_POST['quantity'][$r]);
-        $item_spec          = $_POST['spec'][$r];
+        $itemSpec          = $_POST['spec'][$r];
 
-        if (isset($item_code) && isset($item_quantity)) {
-          $product = $this->site->getProductByCode($item_code);
+        if (isset($itemCode) && isset($item_quantity)) {
+          $product = $this->site->getProductByCode($itemCode);
           $wh_product = $this->site->getWarehouseProduct($product->id, $warehouseIdFrom); // Get source stock.
           $from_warehouse_qty = ($wh_product ? $wh_product->quantity + $item_quantity : 0);
 
@@ -2999,7 +2960,7 @@ class Procurements extends MY_Controller
             'product_id'   => $product->id,
             'quantity'     => $item_quantity,
             'price'        => roundDecimal($item_markon_price),
-            'spec'         => $item_spec,
+            'spec'         => $itemSpec,
             'warehouse_id' => $warehouseIdTo
           ];
 
@@ -3035,25 +2996,15 @@ class Procurements extends MY_Controller
         $transferData['received_date'] = $this->serverDateTime;
       }
 
-      if ($_FILES['document']['size'] > 0) {
-        checkPath($this->upload_transfers_path);
-        $this->load->library('upload');
-        $config['upload_path']   = $this->upload_transfers_path;
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
+      $uploader = new FileUpload();
 
-        $this->upload->initialize($config);
-
-        if (!$this->upload->do_upload('document')) {
-          $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+      if ($uploader->has('document')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $photo = $this->upload->file_name;
-        $transferData['attachment'] = $photo;
+        $transferData['attachment_id'] = $uploader->storeRandom();
       }
     }
 
@@ -3174,21 +3125,15 @@ class Procurements extends MY_Controller
         $this->sma->md();
       }
 
-      if ($_FILES['userfile']['size'] > 0) {
-        $this->load->library('upload');
-        $config['upload_path']   = $this->upload_transfers_payments_path;
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
-        $this->upload->initialize($config);
-        if (!$this->upload->do_upload()) {
-          $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+      $uploader = new FileUpload();
+
+      if ($uploader->has('userfile')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect($_SERVER['HTTP_REFERER']);
         }
-        $photo                      = $this->upload->file_name;
-        $data_payment['attachment'] = $photo;
+
+        $data_payment['attachment_id'] = $uploader->storeRandom();
       }
     } elseif (getPOST('edit_payment')) {
       $this->session->set_flashdata('error', validation_errors());
@@ -3511,13 +3456,13 @@ class Procurements extends MY_Controller
 
       $i = isset($_POST['product_id']) ? count($_POST['product_id']) : 0;
       for ($r = 0; $r < $i; $r++) {
-        $item_code          = $_POST['product_code'][$r];
+        $itemCode          = $_POST['product_code'][$r];
         $item_markon_price  = filterDecimal($_POST['markon_price'][$r]);
         $item_quantity      = filterDecimal($_POST['quantity'][$r]);
-        $item_spec          = $_POST['spec'][$r];
+        $itemSpec          = $_POST['spec'][$r];
 
-        if (isset($item_code) && isset($item_markon_price) && isset($item_quantity)) {
-          $product  = $this->site->getProductByCode($item_code);
+        if (isset($itemCode) && isset($item_markon_price) && isset($item_quantity)) {
+          $product  = $this->site->getProductByCode($itemCode);
           /*$from_warehouse_qty = $this->site->getStockQuantity($product->id, $warehouseIdFrom) + $item_quantity; // Get source stock.
 
 		  		if ($from_warehouse_qty < $item_quantity) {
@@ -3529,7 +3474,7 @@ class Procurements extends MY_Controller
             'product_id'   => $product->id,
             'quantity'     => $item_quantity,
             'price'        => round($item_markon_price),
-            'spec'         => $item_spec,
+            'spec'         => $itemSpec,
             'warehouse_id' => $warehouseIdTo
           ];
 
@@ -3565,23 +3510,15 @@ class Procurements extends MY_Controller
         $transfer_data['received_date'] = $this->serverDateTime;
       }
 
-      if ($_FILES['document']['size'] > 0) {
-        checkPath($this->upload_transfers_path);
-        $this->load->library('upload');
-        $config['upload_path']   = $this->upload_transfers_path;
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
-        $this->upload->initialize($config);
+      $uploader = new FileUpload();
 
-        if (!$this->upload->do_upload('document')) {
-          $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+      if ($uploader->has('document')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect($_SERVER['HTTP_REFERER']);
         }
-        $photo = $this->upload->file_name;
-        $transfer_data['attachment'] = $photo;
+
+        $transfer_data['attachment_id'] = $uploader->storeRandom();
       }
     }
     if ($this->form_validation->run() == true) {

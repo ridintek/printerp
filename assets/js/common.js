@@ -357,13 +357,27 @@ function addConfirm(opt) {
 }
 
 function attachment(x) {
-  return (x == null
-    ? ''
-    : `<div class="text-center">
+  let r = '';
+
+  if (x == null) return r;
+
+  if (x.length > 0 && isNumber(x)) {
+    r =
+      `<div class="text-center">
         <a href="#" data-remote="${site.base_url}gallery/attachment/${x}?modal=1" data-toggle="modal" data-modal-class="modal-lg" data-target="#myModal">
           <i class="fad fa-file-download"></i>
         </a>
-      </div>`);
+      </div>`;
+  } else if (x != null && x.length > 10) {
+    r =
+      `<div class="text-center">
+        <a href="#" data-remote="${site.base_url}gallery/view?name=${x}" data-toggle="modal" data-modal-class="modal-lg" data-target="#myModal">
+          <i class="fad fa-file-download"></i>
+        </a>
+      </div>`;
+  }
+
+  return r;
 }
 
 function attachment1(x) {

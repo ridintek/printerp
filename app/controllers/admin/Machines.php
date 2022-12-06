@@ -633,11 +633,14 @@ class Machines extends MY_Controller
             $this->response(400, ['message' => 'Status harus <b>Solved</b> dahulu sebelum di <b>Good</b>.']);
           }
 
+          // Reset product.
           $this->site->updateProducts([[
             'product_id' => $product->id,
             'pic_id' => '', // TS
             'assigned_at' => '', // Assigned date
             'assigned_by' => '',
+            'note' => $note,
+            'pic_note' => $picNote
           ]]);
         }
 

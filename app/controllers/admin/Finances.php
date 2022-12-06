@@ -860,22 +860,16 @@ class Finances extends MY_Controller
         'payment_status'  => 'pending',
         'supplier_id'     => (getPOST('supplier') ?? 0)
       ];
-      if ($_FILES['userfile']['size'] > 0) {
-        checkPath($this->upload_expenses_path);
-        $this->load->library('upload');
-        $config['upload_path']   = $this->upload_expenses_path;
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['max_size']      = 5120; // Request mba Erik jadi 5MB. Sebelumnya 1MB.
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
-        $this->upload->initialize($config);
-        if (!$this->upload->do_upload()) {
-          $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+
+      $uploader = new FileUpload();
+
+      if ($uploader->has('userfile')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
           admin_redirect('finances/expenses');
         }
-        $photo              = $this->upload->file_name;
-        $data['attachment'] = $photo;
+
+        $data['attachment_id'] = $uploader->storeRandom();
       }
     } elseif (getPOST('add_expense')) {
       $this->session->set_flashdata('error', validation_errors());
@@ -980,21 +974,16 @@ class Finances extends MY_Controller
         'bank_id'      => getPOST('paid_by'),
         'supplier_id'  => getPOST('supplier')
       ];
-      if ($_FILES['userfile']['size'] > 0) {
-        $this->load->library('upload');
-        $config['upload_path']   = $this->upload_expenses_path;
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
-        $this->upload->initialize($config);
-        if (!$this->upload->do_upload()) {
-          $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          $this->sma->md();
+
+      $uploader = new FileUpload();
+
+      if ($uploader->has('userfile')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect('finances/expenses');
         }
-        $photo              = $this->upload->file_name;
-        $data['attachment'] = $photo;
+
+        $data['attachment_id'] = $uploader->storeRandom();
       }
     } elseif (getPOST('edit_expense')) {
       $this->session->set_flashdata('error', validation_errors());
@@ -1054,7 +1043,12 @@ class Finances extends MY_Controller
           expense_categories.name as category, expenses.amount, expenses.note,
           banks.name as bank_name, users.fullname as created_by,
           expenses.status, expenses.payment_date, expenses.payment_status,
-          suppliers.company as supplier_name, expenses.attachment")
+          suppliers.company as supplier_name, 
+          (CASE
+            WHEN expenses.attachment_id IS NOT NULL THEN expenses.attachment_id
+            WHEN expenses.attachment IS NOT NULL THEN expenses.attachment
+            ELSE ''
+          END) attachment")
         ->from('expenses')
         ->join('banks', 'banks.id=expenses.bank_id', 'left')
         ->join('expense_categories', 'expense_categories.id=expenses.category_id', 'left')
@@ -1323,30 +1317,21 @@ class Finances extends MY_Controller
         'bank_id'      => getPOST('transfer_to', TRUE)
       ];
 
-      if ($_FILES['userfile']['size'] > 0) {
-        checkPath($this->upload_incomes_path);
-        $this->load->library('upload');
-        $config['upload_path']   = $this->upload_incomes_path;
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
+      $uploader = new FileUpload();
 
-        $this->upload->initialize($config);
-
-        if (!$this->upload->do_upload()) {
-          $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+      if ($uploader->has('userfile')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
           admin_redirect('finances/incomes');
         }
 
-        $photo = $this->upload->file_name;
-        $income_data['attachment'] = $photo;
+        $income_data['attachment_id'] = $uploader->storeRandom();
       }
     } elseif (getPOST('add_income')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('finances/incomes');
     }
+
     if ($this->form_validation->run() == true) {
       if ($this->site->addIncome($income_data)) {
         $this->session->set_flashdata('message', lang('income_added'));
@@ -1400,23 +1385,15 @@ class Finances extends MY_Controller
         'bank_id'      => getPOST('transfer_to', TRUE)
       ];
 
-      if ($_FILES['userfile']['size'] > 0) {
-        $this->load->library('upload');
-        $config['upload_path']   = $this->upload_incomes_path;
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
+      $uploader = new FileUpload();
 
-        $this->upload->initialize($config);
-
-        if (!$this->upload->do_upload()) {
-          $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+      if ($uploader->has('userfile')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
           admin_redirect('finances/incomes');
         }
-        $photo              = $this->upload->file_name;
-        $income_data['attachment'] = $photo;
+
+        $income_data['attachment_id'] = $uploader->storeRandom();
       }
     } elseif (getPOST('edit_income')) {
       $this->session->set_flashdata('error', validation_errors());
@@ -1466,8 +1443,13 @@ class Finances extends MY_Controller
       ->select("incomes.id as id, incomes.date, incomes.reference, incomes.payment_reference,
         income_categories.name as category, incomes.amount, incomes.note,
         banks.name as bank_name,
-        users.fullname as created_by,
-        incomes.attachment")
+        users.fullname as created_by, (
+          CASE
+            WHEN incomes.attachment_id IS NOT NULL THEN incomes.attachment_id
+            WHEN incomes.attachment IS NOT NULL THEN incomes.attachment
+            ELSE ''
+          END
+        ) AS attachment")
       ->from('incomes')
       ->join('banks', 'banks.id=incomes.bank_id', 'left')
       ->join('income_categories', 'income_categories.id=incomes.category_id', 'left')
@@ -1548,13 +1530,14 @@ class Finances extends MY_Controller
 
   private function mutations_add()
   { // mutations
-    $use_payment_validation = FALSE;
+    $usePaymentValidation = FALSE;
     $this->sma->checkPermissions('add', TRUE, 'mutations');
     $this->form_validation->set_rules('from_bank_id', lang('account') . ' ' . lang('from'), 'required');
     $this->form_validation->set_rules('to_bank_id', lang('account') . ' ' . lang('to'), 'required');
     $this->form_validation->set_rules('amount', lang('amount'), 'required');
-    if ($this->form_validation->run() == TRUE) {
-      $date = $this->sma->fld(getPOST('date'));
+
+    if ($this->form_validation->run()) {
+      $date = getPOST('date');
       $data = [
         'date'           => $date,
         'from_bank_id'   => getPOST('from_bank_id'),
@@ -1578,27 +1561,21 @@ class Finances extends MY_Controller
       }*/
       // Payment validations in addBankMutation() since it must be created first before make payment validation.
       if ($data['paid_by'] == 'Transfer' && !$skip_payment_validation) {
-        $use_payment_validation = TRUE;
-      }
-      if ($_FILES['userfile']['size'] > 0) {
-        checkPath($this->upload_mutations_path);
-        $this->load->library('upload');
-        $config['upload_path']   = $this->upload_mutations_path;
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
-        $this->upload->initialize($config);
-        if (!$this->upload->do_upload()) {
-          $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          admin_redirect('finances/mutations');
-        }
-        $uploaded_file      = $this->upload->file_name;
-        $data['attachment'] = $uploaded_file;
+        $usePaymentValidation = TRUE;
       }
 
-      if ($this->site->addBankMutation($data, $use_payment_validation)) {
+      $uploader = new FileUpload();
+
+      if ($uploader->has('userfile')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Ukuran attachment tidak boleh lebih dari 2MB.');
+          admin_redirect('finances/mutations');
+        }
+
+        $data['attachment_id'] = $uploader->storeRandom();
+      }
+
+      if ($this->site->addBankMutation($data, $usePaymentValidation)) {
         $this->session->set_flashdata('message', lang('bank_mutation_added'));
         admin_redirect('finances/mutations');
       } else {
@@ -1652,7 +1629,8 @@ class Finances extends MY_Controller
     $mutation = $this->site->getBankMutationById($mutation_id);
 
     if ($this->form_validation->run() == TRUE) {
-      $date = $this->sma->fld(trim(getPOST('date')));
+      $date = getPOST('date');
+
       $data = [
         'date' => $date,
         'reference'      => getPOST('reference'),
@@ -1667,21 +1645,15 @@ class Finances extends MY_Controller
         'biller_id'      => getPOST('biller')
       ];
 
-      if ($_FILES['userfile']['size'] > 0) {
-        $this->load->library('upload');
-        $config['upload_path']   = $this->upload_mutations_path;
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
-        $this->upload->initialize($config);
-        if (!$this->upload->do_upload()) {
-          $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+      $uploader = new FileUpload();
+
+      if ($uploader->has('userfile')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
           admin_redirect('finances/mutations');
         }
-        $uploaded_file      = $this->upload->file_name;
-        $data['attachment'] = $uploaded_file;
+
+        $data['attachment_id'] = $uploader->storeRandom();
       }
 
       $bank_from = $this->site->getBankByID($data['from_bank_id']);
@@ -1743,8 +1715,12 @@ class Finances extends MY_Controller
     $this->datatables
       ->select("bank_mutations.id as id, date, reference, from_bank_name, to_bank_name, note, amount,
         users.fullname as creator, paid_by,
-        billers.name as biller_name, status,
-        attachment")
+        billers.name as biller_name, status, (
+          CASE
+            WHEN bank_mutations.attachment_id IS NOT NULL THEN bank_mutations.attachment_id
+            WHEN bank_mutations.attachment IS NOT NULL THEN bank_mutations.attachment
+          END
+        ) AS attachment")
       ->from('bank_mutations')
       ->join('users', 'users.id=bank_mutations.created_by', 'left')
       ->join('billers', 'billers.id=bank_mutations.biller_id', 'left');
@@ -2058,11 +2034,25 @@ class Finances extends MY_Controller
           banks.number as bank_number,
           payment_validations.amount, payment_validations.unique_code,
           (payment_validations.amount + payment_validations.unique_code) as total,
-          payment_validations.transaction_date,
-          (CASE
-            WHEN payment_validations.mutation_id IS NOT NULL THEN payment_mutation.attachment
-            WHEN payment_validations.sale_id IS NOT NULL THEN payment_sale.attachment
-          END) AS attachment,
+          payment_validations.transaction_date, (
+            CASE
+              WHEN payment_validations.mutation_id IS NOT NULL THEN (
+                CASE
+                  WHEN payment_mutation.attachment_id IS NOT NULL THEN payment_mutation.attachment_id
+                  WHEN payment_mutation.attachment IS NOT NULL THEN payment_mutation.attachment
+                  ELSE ''
+                END
+              )
+              WHEN payment_validations.sale_id IS NOT NULL THEN (
+                CASE
+                  WHEN payment_sale.attachment_id IS NOT NULL THEN payment_sale.attachment_id
+                  WHEN payment_sale.attachment IS NOT NULL THEN payment_sale.attachment
+                  ELSE ''
+                END
+              )
+              ELSE ''
+            END
+          ) AS attachment,
           payment_validations.description, payment_validations.status")
         ->from('payment_validations')
         ->join('sales', 'payment_validations.sale_id=sales.id', 'left')
@@ -2071,8 +2061,8 @@ class Finances extends MY_Controller
         ->join('users', 'users.id=payment_validations.created_by', 'left')
         ->join('billers', 'billers.id=payment_validations.biller_id', 'left')
         ->join('banks', 'banks.id=payment_validations.bank_id', 'left')
-        ->join('(SELECT mutation_id, attachment FROM payments GROUP BY id) payment_mutation', 'payment_mutation.mutation_id = payment_validations.mutation_id', 'left')
-        ->join('(SELECT sale_id, attachment FROM payments GROUP BY id) payment_sale', 'payment_sale.sale_id = payment_validations.sale_id', 'left');
+        ->join('(SELECT mutation_id, attachment_id, attachment FROM payments GROUP BY id) payment_mutation', 'payment_mutation.mutation_id = payment_validations.mutation_id', 'left')
+        ->join('(SELECT sale_id, attachment_id, attachment FROM payments GROUP BY id) payment_sale', 'payment_sale.sale_id = payment_validations.sale_id', 'left');
       if ($reference) {
         $this->datatables->like('payment_validations.reference', $reference, 'both');
       }
@@ -2296,51 +2286,35 @@ class Finances extends MY_Controller
         ]
       ];
 
-      $pv_options = [
+      $validationOptions = [
         'manual' => TRUE, /* Optional, but required for manual validation. */
         'mutation_id' => $paymentValidation->mutation_id,
         'sale_id' => $paymentValidation->sale_id,
       ];
 
-      if ($_FILES['userfile']['size'] > 0) {
-        $this->load->library('upload');
+      $uploader = new FileUpload();
 
-        if ($paymentValidation->sale_id) {
-          checkPath($this->upload_sales_payments_path);
-          $config['upload_path']   = $this->upload_sales_payments_path;
-        } else if ($paymentValidation->mutation_id) {
-          checkPath($this->upload_mutations_path);
-          $config['upload_path']   = $this->upload_mutations_path;
-        }
-
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
-        $this->upload->initialize($config);
-
-        if (!$this->upload->do_upload()) {
-          $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+      if ($uploader->has('userfile')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
           admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
         }
 
-        $photo = $this->upload->file_name;
-        $pv_options['attachment'] = $photo;
+        $validationOptions['attachment_id'] = $uploader->storeRandom();
       } else {
-        $this->session->set_flashdata('error', lang('attachment_required'));
+        XSession::set('error', 'Attachment dibutuhkan.');
         admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
       }
 
-      if ($this->site->validatePaymentValidation($data, $pv_options)) { // Validate manually.
-        $this->session->set_flashdata('message', lang('payment_verified'));
+      if ($this->site->validatePaymentValidation($data, $validationOptions)) { // Validate manually.
+        XSession::set('message', 'Pembayaran telah tervalidasi.');
         admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
       } else {
-        $this->session->set_flashdata('error', lang('payment_not_verified'));
+        XSession::set('error', 'Pembayaran gagal tervalidasi.');
         admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
       }
     } elseif (getPOST('manual_validation')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set('error', validation_errors());
       admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
     }
     $biller_id = $paymentValidation->biller_id;

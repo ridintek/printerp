@@ -258,7 +258,7 @@
                 <div class="col-md-4">
                   <div class="form-group">
                     <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                      <?php if ($Owner || $Admin || getPermission('internal_uses-consumable') || $iuse->category == 'consumable') : ?>
+                      <?php if ($Owner || $Admin || (getPermission('internal_uses-consumable') && $iuse->category != 'sparepart') || $iuse->category == 'consumable') : ?>
                         <label class="btn">
                           <input type="radio" name="category" id="category_consumable" value="consumable"> Consumable
                         </label>

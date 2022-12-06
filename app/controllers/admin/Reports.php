@@ -1007,105 +1007,50 @@ class Reports extends MY_Controller
   {
     $this->sma->checkPermissions('payments', true);
 
-    $users       = getGET('user');
-    $number      = getGET('number');
-    $banks       = getGET('bank');
-    $billers     = getGET('biller');
-    $payment_ref = getGET('payment_ref');
-    $paid_by     = getGET('paid_by');
-    $start_date  = getGET('start_date');
-    $end_date    = getGET('end_date');
+    $users        = getGET('user');
+    $number       = getGET('number');
+    $banks        = getGET('bank');
+    $billers      = getGET('biller');
+    $payment_ref  = getGET('payment_ref');
+    $paid_by      = getGET('paid_by');
+    $startDate    = getGET('start_date');
+    $endDate      = getGET('end_date');
+    $startRefDate = getGET('start_ref_date');
+    $endRefDate   = getGET('end_ref_date');
     $xls         = (getGET('xls') == 1 ? TRUE : FALSE);
-
-    if ($start_date) {
-      $start_date = $start_date . ' 00:00:00';
-      $end_date   = $end_date . ' 23:59:59';
-    }
 
     if (!$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
       $users[] = $this->session->userdata('user_id');
     }
+
     if ($this->session->userdata('biller_id')) {
       $billers[] = $this->session->userdata('biller_id');
     }
-    if (!$xls) { // WEB
-      $this->load->library('datatables');
-      $this->datatables
-        ->select("payments.date as date,
-        payments.reference as payment_ref,
-        users.username as pic_id,
-        users.fullname as pic_name,
-        billers.name as biller_name,
-        banks.name as bank_name, banks.holder as acc_holder,
-        banks.number as acc_number,
-        payments.method as payment_method,
-        payments.note as payment_note,
-        payments.amount as payment_amount,
-        payments.type as payment_type, payments.id as id")
-        ->from('payments')
-        ->join('sales', 'sales.id=payments.sale_id', 'left')
-        ->join('purchases', 'purchases.id=payments.purchase_id', 'left')
-        ->join('transfers', 'transfers.id=payments.transfer_id', 'left')
-        ->join('users', 'users.id=payments.created_by', 'left')
-        ->join('billers', 'billers.id=users.biller_id', 'left')
-        ->join('banks', 'banks.id=payments.bank_id', 'left')
-        ->group_by('payments.id');
 
-      if ($users) {
-        $this->datatables->group_start();
-        foreach ($users as $user) {
-          $this->datatables->or_where('payments.created_by', $user);
-        }
-        $this->datatables->group_end();
-      }
-      if ($number) {
-        $this->datatables->like('banks.number', $number, 'both');
-      }
-      if ($banks) {
-        $this->datatables->group_start();
-        foreach ($banks as $bank) {
-          $this->datatables->or_where('payments.bank_id', $bank);
-        }
-        $this->datatables->group_end();
-      }
-      if ($billers) {
-        $this->datatables->group_start();
-        foreach ($billers as $biller) {
-          $this->datatables->or_where('banks.biller_id', $biller);
-        }
-        $this->datatables->group_end();
-      }
-      if ($paid_by) {
-        $this->datatables->where('payments.method', $paid_by);
-      }
-      if ($payment_ref) {
-        $this->datatables->like('payments.reference', $payment_ref, 'both');
-      }
-      if ($start_date) {
-        $this->datatables->where('payments.date BETWEEN "' . $start_date . '" and "' . $end_date . '"');
-      }
-
-      echo $this->datatables->generate();
-    } else if ($xls) { // EXPORT EXCEL
+    if ($xls) { // EXPORT EXCEL
       $this->db
         ->select("DATE_FORMAT(payments.date, '%Y-%m-%d %T') as date,
-        payments.reference as payment_ref,
-        users.username as pic_id,
-        users.fullname as pic_name,
-        billers.name as biller_name,
-        banks.name as bank_name, banks.holder as acc_holder,
-        banks.number as acc_number,
-        payments.method as method,
-        payments.note as note,
-        payments.amount as amount,
-        payments.type as type")
+          payments.reference_date,
+          payments.reference as payment_ref,
+          users.username as pic_id,
+          users.fullname as pic_name,
+          billers.name as biller_name,
+          banks.name as bank_name, banks.holder as acc_holder,
+          banks.number as acc_number,
+          payments.method as method,
+          payments.note as note,
+          payments.amount as amount,
+          payments.type as type")
         ->from('payments')
-        ->join('sales', 'payments.sale_id=sales.id', 'left')
-        ->join('purchases', 'payments.purchase_id=purchases.id', 'left')
-        ->join('transfers', 'payments.transfer_id=transfers.id', 'left')
+        ->join('expenses', 'expenses.id = payments.expense_id', 'left')
+        ->join('incomes', 'incomes.id = payments.income_id', 'left')
+        ->join('bank_mutations', 'bank_mutations.id = payments.mutation_id', 'left')
+        ->join('purchases', 'purchases.id = payments.purchase_id', 'left')
+        ->join('sales', 'sales.id = payments.sale_id', 'left')
+        ->join('product_transfer', 'product_transfer.id = payments.transfer_id', 'left')
         ->join('users', 'users.id=payments.created_by', 'left')
-        ->join('billers', 'users.biller_id=billers.id', 'left')
-        ->join('banks', 'payments.bank_id=banks.id', 'left')
+        ->join('billers', 'billers.id = users.biller_id', 'left')
+        ->join('banks', 'banks.id = payments.bank_id', 'left')
         ->order_by('payments.date desc');
 
       if ($users) {
@@ -1138,12 +1083,16 @@ class Reports extends MY_Controller
       if ($payment_ref) {
         $this->db->like('payments.reference', $payment_ref, 'both');
       }
-      if ($start_date) {
-        $this->db->where('payments.date BETWEEN "' . $start_date . '" and "' . $end_date . '"');
+      if ($startDate) {
+        $this->db->where("payments.date BETWEEN '{$startDate} 00:00:00' AND '{$endDate} 23:59:59'");
+      }
+      if ($startRefDate) {
+        $this->db->where("payments.reference_date BETWEEN '{$startRefDate} 00:00:00' AND '{$endRefDate} 23:59:59'");
       }
 
       $q = $this->db->get();
-      if ($q->num_rows() > 0) {
+
+      if ($q && $q->num_rows() > 0) {
         foreach (($q->result()) as $row) {
           $payments[] = $row;
         }
@@ -1153,20 +1102,21 @@ class Reports extends MY_Controller
 
       if (!empty($payments)) {
         $excel = $this->ridintek->spreadsheet();
-        $excel->setTitle(lang('payments_report'));
-        $excel->setCellValue('A1', lang('date'));
-        $excel->setCellValue('B1', lang('payment_reference'));
-        $excel->setCellValue('C1', lang('pic_id'));
-        $excel->setCellValue('D1', lang('pic_name'));
-        $excel->setCellValue('E1', lang('biller'));
-        $excel->setCellValue('F1', lang('bank_name'));
-        $excel->setCellValue('G1', lang('account_holder'));
-        $excel->setCellValue('H1', lang('account_no'));
-        $excel->setCellValue('I1', lang('paid_by'));
-        $excel->setCellValue('J1', lang('note'));
-        $excel->setCellValue('K1', lang('amount_received'));
-        $excel->setCellValue('L1', lang('amount_sent'));
-        $excel->setCellValue('M1', lang('type'));
+        $excel->setTitle('Payment Report');
+        $excel->setCellValue('A1', 'Payment Date');
+        $excel->setCellValue('B1', 'Reference Date');
+        $excel->setCellValue('C1', 'Reference');
+        $excel->setCellValue('D1', 'PIC ID');
+        $excel->setCellValue('E1', 'PIC Name');
+        $excel->setCellValue('F1', 'Biller');
+        $excel->setCellValue('G1', 'Bank Name');
+        $excel->setCellValue('H1', 'Account Holder');
+        $excel->setCellValue('I1', 'Account No');
+        $excel->setCellValue('J1', 'Paid By');
+        $excel->setCellValue('K1', 'Note');
+        $excel->setCellValue('L1', 'Amount Received');
+        $excel->setCellValue('M1', 'Amount Sent');
+        $excel->setCellValue('N1', 'Type');
 
         $row   = 2;
         $receivedTotal = 0;
@@ -1176,29 +1126,30 @@ class Reports extends MY_Controller
           $receivedAmount = ($payment->type == 'received' ? $payment->amount : '');
           $sentAmount     = ($payment->type == 'sent'     ? $payment->amount : '');
 
-          $excel->setCellValue('A' . $row, $this->sma->hrld($payment->date));
-          $excel->setCellValue('B' . $row, $payment->payment_ref);
-          $excel->setCellValue('C' . $row, $payment->pic_id);
-          $excel->setCellValue('D' . $row, $payment->pic_name);
-          $excel->setCellValue('E' . $row, $payment->biller_name);
-          $excel->setCellValue('F' . $row, $payment->bank_name);
-          $excel->setCellValue('G' . $row, $payment->acc_holder);
-          $excel->setCellValue('H' . $row, $payment->acc_number, DataType::TYPE_STRING);
-          $excel->setCellValue('I' . $row, lang($payment->method));
-          $excel->setCellValue('J' . $row, htmlRemove($payment->note));
-          $excel->setCellValue('K' . $row, $receivedAmount);
-          $excel->setCellValue('L' . $row, $sentAmount);
-          $excel->setCellValue('M' . $row, $payment->type);
+          $excel->setCellValue('A' . $row, date('Y-m-d', strtotime($payment->date)));
+          $excel->setCellValue('B' . $row, (new DateTime($payment->reference_date))->format('Y-m-d'));
+          $excel->setCellValue('C' . $row, $payment->payment_ref);
+          $excel->setCellValue('D' . $row, $payment->pic_id);
+          $excel->setCellValue('E' . $row, $payment->pic_name);
+          $excel->setCellValue('F' . $row, $payment->biller_name);
+          $excel->setCellValue('G' . $row, $payment->bank_name);
+          $excel->setCellValue('H' . $row, $payment->acc_holder);
+          $excel->setCellValue('I' . $row, $payment->acc_number, DataType::TYPE_STRING);
+          $excel->setCellValue('J' . $row, lang($payment->method));
+          $excel->setCellValue('K' . $row, htmlRemove($payment->note));
+          $excel->setCellValue('L' . $row, $receivedAmount);
+          $excel->setCellValue('M' . $row, $sentAmount);
+          $excel->setCellValue('N' . $row, $payment->type);
 
           $receivedTotal += ($payment->type == 'received' ? $payment->amount : 0);
           $sentTotal     += ($payment->type == 'sent'     ? $payment->amount : 0);
           $row++;
         }
 
-        $excel->setCellValue('K' . $row, $receivedTotal);
-        $excel->setCellValue('L' . $row, $sentTotal);
-        $excel->setCellValue('K' . ($row + 1), 'Grand Total');
-        $excel->setCellValue('L' . ($row + 1), $receivedTotal - $sentTotal);
+        $excel->setCellValue('L' . $row, $receivedTotal);
+        $excel->setCellValue('M' . $row, $sentTotal);
+        $excel->setCellValue('L' . ($row + 1), 'Grand Total');
+        $excel->setCellValue('M' . ($row + 1), $receivedTotal - $sentTotal);
 
         $excel->setColumnAutoWidth('A');
         $excel->setColumnAutoWidth('B');
@@ -1210,18 +1161,82 @@ class Reports extends MY_Controller
         $excel->setColumnAutoWidth('H');
         $excel->setColumnAutoWidth('I');
         $excel->setColumnAutoWidth('J');
-        $excel->setColumnAutoWidth('K');
+        // $excel->setColumnAutoWidth('K'); // Too wide.
         $excel->setColumnAutoWidth('L');
         $excel->setColumnAutoWidth('M');
+        $excel->setColumnAutoWidth('N');
 
         $name = $this->session->userdata('fullname');
 
         $excel->export('PaymentReports-' . date('Ymd_His') . "-($name)");
       }
-
-      $this->session->set_flashdata('error', lang('nothing_found'));
-      redirect($_SERVER['HTTP_REFERER']);
     }
+
+    // Datatables.
+    $this->load->library('datatables');
+    $this->datatables
+      ->select("payments.date as date,
+        payments.reference_date,
+        payments.reference as payment_ref,
+        users.username as pic_id,
+        users.fullname as pic_name,
+        billers.name as biller_name,
+        banks.name as bank_name, banks.holder as acc_holder,
+        banks.number as acc_number,
+        payments.method as payment_method,
+        payments.note as payment_note,
+        payments.amount as payment_amount,
+        payments.type as payment_type, payments.id as id")
+      ->from('payments')
+      ->join('expenses', 'expenses.id = payments.expense_id', 'left')
+      ->join('incomes', 'incomes.id = payments.income_id', 'left')
+      ->join('bank_mutations', 'bank_mutations.id = payments.mutation_id', 'left')
+      ->join('purchases', 'purchases.id = payments.purchase_id', 'left')
+      ->join('sales', 'sales.id = payments.sale_id', 'left')
+      ->join('product_transfer', 'product_transfer.id = payments.transfer_id', 'left')
+      ->join('users', 'users.id=payments.created_by', 'left')
+      ->join('billers', 'billers.id=users.biller_id', 'left')
+      ->join('banks', 'banks.id=payments.bank_id', 'left')
+      ->group_by('payments.id');
+
+    if ($users) {
+      $this->datatables->group_start();
+      foreach ($users as $user) {
+        $this->datatables->or_where('payments.created_by', $user);
+      }
+      $this->datatables->group_end();
+    }
+    if ($number) {
+      $this->datatables->like('banks.number', $number, 'both');
+    }
+    if ($banks) {
+      $this->datatables->group_start();
+      foreach ($banks as $bank) {
+        $this->datatables->or_where('payments.bank_id', $bank);
+      }
+      $this->datatables->group_end();
+    }
+    if ($billers) {
+      $this->datatables->group_start();
+      foreach ($billers as $biller) {
+        $this->datatables->or_where('banks.biller_id', $biller);
+      }
+      $this->datatables->group_end();
+    }
+    if ($paid_by) {
+      $this->datatables->where('payments.method', $paid_by);
+    }
+    if ($payment_ref) {
+      $this->datatables->like('payments.reference', $payment_ref, 'both');
+    }
+    if ($startDate) {
+      $this->datatables->where("payments.date BETWEEN '{$startDate} 00:00:00' AND '{$endDate} 23:59:59'");
+    }
+    if ($startRefDate) {
+      $this->datatables->where("payments.reference_date BETWEEN '{$startRefDate} 00:00:00' AND '{$endRefDate} 23:59:59'");
+    }
+
+    echo $this->datatables->generate();
   }
 
   /**

@@ -190,9 +190,9 @@ class Site extends MY_Model
    * THE ONLY FUNCTION TO ADD BANK MUTATION.
    * @param array $data [ date, amount, from_bank_id, to_bank_id, paid_by(Cash, Transfer),
    *  note, created_by ]
-   * @param bool $use_payment_validation Use Payment Validation.
+   * @param bool $usePaymentValidation Use Payment Validation.
    */
-  public function addBankMutation($data, $use_payment_validation = FALSE)
+  public function addBankMutation($data, $usePaymentValidation = FALSE)
   {
     if (!empty($data)) {
       if (empty($data['date'])) $data['date'] = date('Y-m-d H:i:s');
@@ -207,7 +207,7 @@ class Site extends MY_Model
           $this->updateReference('mutation');
         }
 
-        if ($use_payment_validation) { // As known, use_payment_validation = TRUE = Transfer with unique id
+        if ($usePaymentValidation) { // As known, usePaymentValidation = TRUE = Transfer with unique id
           $pv_data = [
             'date'          => $data['date'],
             'expired_date'  => date('Y-m-d H:i:s', strtotime('+1 day', strtotime($data['date']))), // 24 jam
@@ -502,7 +502,7 @@ class Site extends MY_Model
 
   /**
    * THE ONLY PAYMENT GATEWAY FUNCTION FOR ANY TRANSACTIONS. DO NOT USE ANY PAYMENT GATEWAY FUNCTION EXCEPT THIS !!!
-   * @param array $data [date, (expense_id, income_id, mutation_id, sale_id, purchase_id, transfer_id)*,
+   * @param array $data [date, reference_date, (expense_id, income_id, mutation_id, sale_id, purchase_id, transfer_id)*,
    * bank_id*, method*(Cash/Transfer), amount*, created_by, attachment, status, type*(pending/sent/received), note]
    */
   public function addPayment($data = [])
@@ -526,10 +526,11 @@ class Site extends MY_Model
 
     if (empty($data['bank_id'])) return FALSE;
 
-    $data['date']       = ($data['date'] ?? date('Y-m-d H:i:s'));
-    $data['reference']  = $inv->reference;
-    $data['created_by'] = ($data['created_by'] ?? $this->session->userdata('user_id'));
-    $data['biller_id']  = ($inv->biller_id ?? NULL);
+    $data['date']           = ($data['date'] ?? date('Y-m-d H:i:s'));
+    $data['reference_date'] = ($data['reference_date'] ?? date('Y-m-d H:i:s'));
+    $data['reference']      = $inv->reference;
+    $data['created_by']     = ($data['created_by'] ?? $this->session->userdata('user_id'));
+    $data['biller_id']      = ($inv->biller_id ?? NULL);
 
     $this->db->insert('payments', $data); // Insert Payment.
     $insertId = $this->db->insert_id();
@@ -721,7 +722,6 @@ class Site extends MY_Model
     if (!empty($data['note']))        $reportData['note']       = $data['note'];
     if (!empty($data['pic_note']))    $reportData['pic_note']   = $data['pic_note'];
     if (!empty($data['attachment_id']))  $reportData['attachment_id'] = $data['attachment_id'];
-    if (!empty($data['attachment']))  $reportData['attachment'] = $data['attachment'];
     if (!empty($data['created_at']))  $reportData['created_at'] = $data['created_at'];
     if (!empty($data['created_by']))  $reportData['created_by'] = $data['created_by'];
 
@@ -1125,31 +1125,31 @@ class Site extends MY_Model
     $payment_term = ($payment_term > 0 ? $payment_term : 1);
 
     $sale_data = [
-      'date'           => $date,
-      'reference'      => $reference,
-      'customer_id'    => $customer->id,
-      'customer'       => $customer->name,
-      'biller_id'      => $biller->id,
-      'biller'         => $biller->name,
-      'warehouse_id'   => $warehouse->id,
-      'warehouse'      => $warehouse->name,
-      'no_po'          => ($data['no_po'] ?? NULL),
-      'note'           => ($data['note'] ?? NULL),
-      'discount'       => filterDecimal($data['discount'] ?? 0),
-      'total'          => roundDecimal($totalPrice),
-      'shipping'       => filterDecimal($data['shipping'] ?? 0),
-      'grand_total'    => roundDecimal($grandTotal), // IMPORTANT roundDecimal !!
-      'balance'        => $balance,
-      'status'         => ($data['status'] ?? 'need_payment'),
-      'payment_status' => ($data['payment_status'] ?? 'pending'),
-      'payment_term'   => $payment_term,
-      'created_by'     => ($data['created_by'] ?? $this->session->userdata('user_id')),
-      'total_items'    => $total_items,
-      'paid'           => filterDecimal($data['paid'] ?? 0),
-      'attachment'     => ($data['attachment'] ?? NULL),
-      'payment_method' => ($data['payment_method'] ?? NULL),
-      'use_tb'         => $use_tb,
-      'json_data'      => json_encode([
+      'date'            => $date,
+      'reference'       => $reference,
+      'customer_id'     => $customer->id,
+      'customer'        => $customer->name,
+      'biller_id'       => $biller->id,
+      'biller'          => $biller->name,
+      'warehouse_id'    => $warehouse->id,
+      'warehouse'       => $warehouse->name,
+      'no_po'           => ($data['no_po'] ?? NULL),
+      'note'            => ($data['note'] ?? NULL),
+      'discount'        => filterDecimal($data['discount'] ?? 0),
+      'total'           => roundDecimal($totalPrice),
+      'shipping'        => filterDecimal($data['shipping'] ?? 0),
+      'grand_total'     => roundDecimal($grandTotal), // IMPORTANT roundDecimal !!
+      'balance'         => $balance,
+      'status'          => ($data['status'] ?? 'need_payment'),
+      'payment_status'  => ($data['payment_status'] ?? 'pending'),
+      'payment_term'    => $payment_term,
+      'created_by'      => ($data['created_by'] ?? $this->session->userdata('user_id')),
+      'total_items'     => $total_items,
+      'paid'            => filterDecimal($data['paid'] ?? 0),
+      'attachment_id'   => ($data['attachment_id'] ?? NULL),
+      'payment_method'  => ($data['payment_method'] ?? NULL),
+      'use_tb'          => $use_tb,
+      'json_data'       => json_encode([
         'approved'          => ($data['approved'] ?? 0),
         'cashier_by'        => ($data['cashier_by'] ?? ''),
         'source'            => ($data['source'] ?? ''),
@@ -1348,7 +1348,9 @@ class Site extends MY_Model
     $balance = floatval($sale->grand_total) - floatval($sale->paid);
     if (floatval($data['amount']) > floatval($balance)) return FALSE;
 
-    // $payments = $this->getPayments(['sale_id' => $sale->id]);
+    $data['date']           = ($data['created_at'] ?? $data['date'] ?? date('Y-m-d H:i:s'));
+    $data['created_at']     = $data['date'];
+    $data['reference_date'] = $sale->created_at;
 
     if ($sale && $this->addPayment($data)) {
       // Update sale payment
@@ -1360,7 +1362,7 @@ class Site extends MY_Model
         $sale_data['cashier_by'] = $cashierBy;
       }
 
-      if (!empty($data['attachment'])) $sale_data['attachment'] = $data['attachment'];
+      if (!empty($data['attachment_id'])) $sale_data['attachment_id'] = $data['attachment_id'];
 
       // For W2P change order date if no payments before.
       // if (!$payments && $saleJS->source == 'W2P') {
@@ -1933,7 +1935,7 @@ class Site extends MY_Model
         'discount' => $discount_amount
       ];
 
-      if (isset($data['attachment'])) $purchase_data['attachment'] = $data['attachment']; // Payment attachment.
+      if (isset($data['attachment_id'])) $purchase_data['attachment_id'] = $data['attachment_id']; // Payment attachment.
 
       $this->db->update('purchases', $purchase_data, ['id' => $purchase_id]);
 
@@ -8526,14 +8528,14 @@ class Site extends MY_Model
         unset($bank);
       }
 
-      if (!empty($data['note']))       $mutation_data['note']       = $data['note'];
-      if (isset($data['amount']))      $mutation_data['amount']     = $data['amount'];
-      if (!empty($data['created_by'])) $mutation_data['created_by'] = $data['created_by'];
-      if (!empty($data['updated_by'])) $mutation_data['updated_by'] = $data['updated_by'];
-      if (!empty($data['paid_by']))    $mutation_data['paid_by']    = $data['paid_by'];
-      if (!empty($data['biller_id']))  $mutation_data['biller_id']  = $data['biller_id'];
-      if (!empty($data['status']))     $mutation_data['status']     = $data['status'];
-      if (!empty($data['attachment'])) $mutation_data['attachment'] = $data['attachment'];
+      if (!empty($data['note']))          $mutation_data['note']          = $data['note'];
+      if (isset($data['amount']))         $mutation_data['amount']        = $data['amount'];
+      if (!empty($data['created_by']))    $mutation_data['created_by']    = $data['created_by'];
+      if (!empty($data['updated_by']))    $mutation_data['updated_by']    = $data['updated_by'];
+      if (!empty($data['paid_by']))       $mutation_data['paid_by']       = $data['paid_by'];
+      if (!empty($data['biller_id']))     $mutation_data['biller_id']     = $data['biller_id'];
+      if (!empty($data['status']))        $mutation_data['status']        = $data['status'];
+      if (!empty($data['attachment_id'])) $mutation_data['attachment_id'] = $data['attachment_id'];
 
       $this->db->trans_start();
       $this->db->update('bank_mutations', $mutation_data, ['id' => $mutation_id]);
@@ -8778,24 +8780,24 @@ class Site extends MY_Model
 
       $payment_data = [];
 
-      if (!empty($data['date']))        $payment_data['date']        = $data['date'];
-      if (!empty($data['expense_id']))  $payment_data['expense_id']  = $data['expense_id'];
-      if (!empty($data['income_id']))   $payment_data['income_id']   = $data['income_id'];
-      if (!empty($data['mutation_id'])) $payment_data['mutation_id'] = $data['mutation_id'];
-      if (!empty($data['purchase_id'])) $payment_data['purchase_id'] = $data['purchase_id'];
-      if (!empty($data['sale_id']))     $payment_data['sale_id']     = $data['sale_id'];
-      if (!empty($data['transfer_id'])) $payment_data['transfer_id'] = $data['transfer_id'];
-      if (!empty($data['reference']))   $payment_data['reference']   = $data['reference'];
-      if (!empty($data['bank_id']))     $payment_data['bank_id']     = $data['bank_id'];
-      if (!empty($data['biller_id']))   $payment_data['biller_id']   = $data['biller_id'];
-      if (!empty($data['method']))      $payment_data['method']      = $data['method'];
-      if (isset($data['amount']))       $payment_data['amount']      = $data['amount'];
-      if (!empty($data['created_by']))  $payment_data['created_by']  = $data['created_by'];
-      if (!empty($data['updated_by']))  $payment_data['updated_by']  = $data['updated_by'];
-      if (isset($data['attachment']))   $payment_data['attachment']  = $data['attachment'];
-      if (isset($data['status']))       $payment_data['status']      = $data['status'];
-      if (!empty($data['type']))        $payment_data['type']        = $data['type'];
-      if (isset($data['note']))         $payment_data['note']        = $data['note'];
+      if (!empty($data['date']))          $payment_data['date']           = $data['date'];
+      if (!empty($data['expense_id']))    $payment_data['expense_id']     = $data['expense_id'];
+      if (!empty($data['income_id']))     $payment_data['income_id']      = $data['income_id'];
+      if (!empty($data['mutation_id']))   $payment_data['mutation_id']    = $data['mutation_id'];
+      if (!empty($data['purchase_id']))   $payment_data['purchase_id']    = $data['purchase_id'];
+      if (!empty($data['sale_id']))       $payment_data['sale_id']        = $data['sale_id'];
+      if (!empty($data['transfer_id']))   $payment_data['transfer_id']    = $data['transfer_id'];
+      if (!empty($data['reference']))     $payment_data['reference']      = $data['reference'];
+      if (!empty($data['bank_id']))       $payment_data['bank_id']        = $data['bank_id'];
+      if (!empty($data['biller_id']))     $payment_data['biller_id']      = $data['biller_id'];
+      if (!empty($data['method']))        $payment_data['method']         = $data['method'];
+      if (isset($data['amount']))         $payment_data['amount']         = $data['amount'];
+      if (!empty($data['created_by']))    $payment_data['created_by']     = $data['created_by'];
+      if (!empty($data['updated_by']))    $payment_data['updated_by']     = $data['updated_by'];
+      if (isset($data['attachment_id']))  $payment_data['attachment_id']  = $data['attachment_id'];
+      if (isset($data['status']))         $payment_data['status']         = $data['status'];
+      if (!empty($data['type']))          $payment_data['type']           = $data['type'];
+      if (isset($data['note']))           $payment_data['note']           = $data['note'];
 
       $this->db->trans_start();
       $this->db->update('payments', $payment_data, ['id' => $id]); // ORIGINAL UPDATE
@@ -9242,23 +9244,23 @@ class Site extends MY_Model
       $sale = $this->getSaleByID($sale_id);
 
       if ($sale) {
-        if (!empty($data['date']))          $sale_data['date']           = $data['date'];
-        if (isset($data['reference']))      $sale_data['reference']      = $data['reference'];
-        if (isset($data['no_po']))          $sale_data['no_po']          = $data['no_po'];
-        if (isset($data['note']))           $sale_data['note']           = $data['note'];
-        if (isset($data['discount']))       $sale_data['discount']       = $data['discount'];
-        if (isset($data['shipping']))       $sale_data['shipping']       = $data['shipping'];
-        if (isset($data['total']))          $sale_data['total']          = $data['total'];
-        if (isset($data['grand_total']))    $sale_data['grand_total']    = $data['grand_total'];
-        if (isset($data['balance']))        $sale_data['balance']        = $data['balance'];
-        if (isset($data['status']))         $sale_data['status']         = $data['status'];
-        if (isset($data['payment_status'])) $sale_data['payment_status'] = $data['payment_status'];
-        if (isset($data['due_date']))       $sale_data['due_date']       = $data['due_date'];
+        if (!empty($data['date']))          $sale_data['date']            = $data['date'];
+        if (isset($data['reference']))      $sale_data['reference']       = $data['reference'];
+        if (isset($data['no_po']))          $sale_data['no_po']           = $data['no_po'];
+        if (isset($data['note']))           $sale_data['note']            = $data['note'];
+        if (isset($data['discount']))       $sale_data['discount']        = $data['discount'];
+        if (isset($data['shipping']))       $sale_data['shipping']        = $data['shipping'];
+        if (isset($data['total']))          $sale_data['total']           = $data['total'];
+        if (isset($data['grand_total']))    $sale_data['grand_total']     = $data['grand_total'];
+        if (isset($data['balance']))        $sale_data['balance']         = $data['balance'];
+        if (isset($data['status']))         $sale_data['status']          = $data['status'];
+        if (isset($data['payment_status'])) $sale_data['payment_status']  = $data['payment_status'];
+        if (isset($data['due_date']))       $sale_data['due_date']        = $data['due_date'];
 
-        if (isset($data['created_by']))     $sale_data['created_by']     = $data['created_by'];
-        if (isset($data['paid']))           $sale_data['paid']           = $data['paid'];
-        if (isset($data['attachment']))     $sale_data['attachment']     = $data['attachment'];
-        if (isset($data['payment_method'])) $sale_data['payment_method'] = $data['payment_method'];
+        if (isset($data['created_by']))     $sale_data['created_by']      = $data['created_by'];
+        if (isset($data['paid']))           $sale_data['paid']            = $data['paid'];
+        if (isset($data['attachment_id']))  $sale_data['attachment_id']   = $data['attachment_id'];
+        if (isset($data['payment_method'])) $sale_data['payment_method']  = $data['payment_method'];
 
         if (!empty($data['updated_by'])) $sale_data['updated_by'] = $data['updated_by'];
         if (!empty($data['updated_at'])) $sale_data['updated_at'] = $data['updated_at'];
@@ -10423,16 +10425,17 @@ class Site extends MY_Model
               if ($pv->sale_id) { // If sale_id exists.
                 $sale = $this->getSaleByID($pv->sale_id);
                 $payment = [
-                  'date'       => date('Y-m-d H:i:s'), // $pv_updated->transaction_date,
-                  'sale_id'    => $pv->sale_id,
-                  'amount'     => $pv->amount,
-                  'method'     => 'Transfer',
-                  'bank_id'    => $bank->id,
-                  'created_by' => $pv->created_by,
-                  'type'       => 'received'
+                  'date'            => $this->serverDateTime, // $pv_updated->transaction_date,
+                  'reference_date'  => $sale->created_at,
+                  'sale_id'         => $pv->sale_id,
+                  'amount'          => $pv->amount,
+                  'method'          => 'Transfer',
+                  'bank_id'         => $bank->id,
+                  'created_by'      => $pv->created_by,
+                  'type'            => 'received'
                 ];
 
-                if (isset($options['attachment'])) $payment['attachment'] = $options['attachment'];
+                if (isset($options['attachment_id'])) $payment['attachment_id'] = $options['attachment_id'];
 
                 $this->addSalePayment($payment, TRUE); // Add real payment to sales. 2nd param must be TRUE if payment validation automated.
                 $customer = $this->getCustomerByID($sale->customer_id);
@@ -10457,17 +10460,18 @@ class Site extends MY_Model
               if ($pv->mutation_id) { // If mutation_id exists.
                 $mutation = $this->getBankMutationByID($pv->mutation_id);
                 $payment_from = [
-                  'date'        => $mutation->date,
-                  'mutation_id' => $mutation->id,
-                  'bank_id'     => $mutation->from_bank_id,
-                  'method'      => $mutation->paid_by,
-                  'amount'      => $mutation->amount + $pv->unique_code,
-                  'created_by'  => $mutation->created_by,
-                  'type'        => 'sent',
-                  'note'        => $mutation->note
+                  'date'            => $this->serverDateTime,
+                  'reference_date'  => $mutation->date,
+                  'mutation_id'     => $mutation->id,
+                  'bank_id'         => $mutation->from_bank_id,
+                  'method'          => $mutation->paid_by,
+                  'amount'          => $mutation->amount + $pv->unique_code,
+                  'created_by'      => $mutation->created_by,
+                  'type'            => 'sent',
+                  'note'            => $mutation->note
                 ];
 
-                if (isset($options['attachment'])) $payment_from['attachment'] = $options['attachment'];
+                if (isset($options['attachment_id'])) $payment_from['attachment_id'] = $options['attachment_id'];
 
                 if ($this->addPayment($payment_from)) {
                   $payment_to = [
@@ -10481,7 +10485,7 @@ class Site extends MY_Model
                     'note'        => $mutation->note
                   ];
 
-                  if (isset($options['attachment'])) $payment_to['attachment'] = $options['attachment'];
+                  if (isset($options['attachment_id'])) $payment_to['attachment_id'] = $options['attachment_id'];
 
                   if ($this->addPayment($payment_to)) {
                     $this->updateBankMutation($mutation->id, [

@@ -463,20 +463,15 @@ class Sales extends MY_Controller
         sendJSON(['error' => 1, 'msg' => 'Cannot pay more than grand total.']);
       }
 
-      if (isset($_FILES['userfile']) && $_FILES['userfile']['size'] > 0) {
-        checkPath($this->upload_sales_payments_path);
-        $this->load->library('upload');
-        $config['upload_path']   = $this->upload_sales_payments_path;
-        $config['allowed_types'] = $this->digital_file_types;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
-        $this->upload->initialize($config);
-        if (!$this->upload->do_upload()) {
-          sendJSON(['error' => 1, 'msg' => $this->upload->display_errors()]);
+      $uploader = new FileUpload();
+
+      if ($uploader->has('userfile')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect($_SERVER['HTTP_REFERER']);
         }
-        $photo                 = $this->upload->file_name;
-        $payment['attachment'] = $photo;
+
+        $payment['attachment_id'] = $uploader->storeRandom();
       }
 
       if ($payment['method'] == 'Transfer') { // Transfer will be validated automatically.
@@ -526,7 +521,7 @@ class Sales extends MY_Controller
               'manual'  => TRUE,
             ];
 
-            if (!empty($payment['attachment'])) $vpv_opts['attachment'] = $payment['attachment'];
+            if (!empty($payment['attachment_id'])) $vpv_opts['attachment_id'] = $payment['attachment_id'];
 
             $ret = $this->site->validatePaymentValidation($vpv_data, $vpv_opts);
 
@@ -1153,19 +1148,15 @@ class Sales extends MY_Controller
         }
       }
 
-      if (isset($_FILES['userfile']) && $_FILES['userfile']['size'] > 0) {
-        $this->load->library('upload');
-        $config['upload_path']   = $this->digital_upload_path;
-        $config['allowed_types'] = $this->digital_file_types;
-        $config['max_size']      = $this->allowed_file_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
-        $this->upload->initialize($config);
-        if (!$this->upload->do_upload()) {
-          sendJSON(['error' => 1, 'msg' => $this->upload->display_errors()]);
+      $uploader = new FileUpload();
+
+      if ($uploader->has('userfile')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect($_SERVER['HTTP_REFERER']);
         }
-        $photo                 = $this->upload->file_name;
-        $payment['attachment'] = $photo;
+
+        $payment['attachment_id'] = $uploader->storeRandom();
       }
     } elseif (getPOST('edit_payment')) {
       sendJSON(['error' => 1, 'msg' => validation_errors()]);

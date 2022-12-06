@@ -25,39 +25,69 @@ if ($gusers = getGET('user')) {
     $v .= '&user[]=' . $user;
   }
 }
-if ($gstart_date = getGET('start_date')) {
-  $v .= '&start_date=' . $gstart_date;
+if ($startDate = getGET('start_date')) {
+  $v .= '&start_date=' . $startDate;
 }
-if ($gend_date = getGET('end_date')) {
-  $v .= '&end_date=' . $gend_date;
+if ($endDate = getGET('end_date')) {
+  $v .= '&end_date=' . $endDate;
+}
+if ($startRefDate = getGET('start_ref_date')) {
+  $v .= '&start_ref_date=' . $startRefDate;
+}
+if ($endRefDate = getGET('end_ref_date')) {
+  $v .= '&end_ref_date=' . $endRefDate;
 }
 ?>
 <script>
-  $(document).ready(function () {
+  $(document).ready(function() {
     oTable = $('#PayRData').dataTable({
-      "aaSorting": [[0, "desc"]],
-      "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
+      "aaSorting": [
+        [0, "desc"]
+      ],
+      "aLengthMenu": [
+        [10, 25, 50, 100, -1],
+        [10, 25, 50, 100, "<?= lang('all') ?>"]
+      ],
       "iDisplayLength": <?= $Settings->rows_per_page ?>,
-      'bProcessing': true, 'bServerSide': true,
+      'bProcessing': true,
+      'bServerSide': true,
       'sAjaxSource': '<?= admin_url('reports/getPaymentsReport/?v=1' . $v) ?>',
-      'fnServerData': function (sSource, aoData, fnCallback) {
+      'fnServerData': function(sSource, aoData, fnCallback) {
         aoData.push({
           "name": "<?= $this->security->get_csrf_token_name() ?>",
           "value": "<?= $this->security->get_csrf_hash() ?>"
         });
-        $.ajax({'dataType': 'json', 'type': 'POST', 'url': sSource, 'data': aoData, 'success': fnCallback});
+        $.ajax({
+          'dataType': 'json',
+          'type': 'POST',
+          'url': sSource,
+          'data': aoData,
+          'success': fnCallback
+        });
       },
-      "aoColumns": [{"mRender": fld}, null, {"mRender": upperCase}, null, null, null, null, null, null, {"mRender": notes},
-      {"mRender": currencyFormat}, {"mRender": row_status}, {"bVisible": false}],
-      'fnRowCallback': function (nRow, aData, iDisplayIndex) {
-        nRow.id = aData[12];
-        nRow.className = "payment_link";
-        if (aData[10] == 'sent') {
-          nRow.className = "payment_link2 warning";
+      "aoColumns": [{
+          "mRender": fld
+        }, {
+          "mRender": fld
+        }, null, {
+          "mRender": upperCase
+        }, null, null, null, null, null, null, {
+          "mRender": notes
+        },
+        {
+          "mRender": currencyFormat
+        }, {
+          "mRender": renderStatus
+        }, {
+          "bVisible": false
         }
+      ],
+      'fnRowCallback': function(nRow, aData, iDisplayIndex) {
+        // nRow.id = aData[12];
+        // nRow.className = "payment_link";
         return nRow;
       },
-      "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
+      "fnFooterCallback": function(nRow, aaData, iStart, iEnd, aiDisplay) {
         var total = 0;
         for (var i = 0; i < aaData.length; i++) {
           let amount = parseFloat(aaData[aiDisplay[i]][10]);
@@ -93,91 +123,110 @@ if ($gend_date = getGET('end_date')) {
   });
 </script>
 <script type="text/javascript">
-  $(document).ready(function () {
+  $(document).ready(function() {
     <?php if (getPOST('biller')) {
-  ?>
-    $('#rbiller').select2({ allowClear: true });
+    ?>
+      $('#rbiller').select2({
+        allowClear: true
+      });
     <?php
-} ?>
+    } ?>
     <?php if (getPOST('supplier')) {
     ?>
-    $('#rsupplier').val(<?= getPOST('supplier') ?>).select2({
-      minimumInputLength: 1,
-      allowClear: true,
-      initSelection: function (element, callback) {
-        $.ajax({
-          type: "get", async: false,
-          url: "<?= admin_url('suppliers/getSupplier') ?>/" + $(element).val(),
-          dataType: "json",
-          success: function (data) {
-            callback(data[0]);
-          }
-        });
-      },
-      ajax: {
-        url: site.base_url + "suppliers/suggestions",
-        dataType: 'json',
-        delay: 1000,
-        data: function (term, page) {
-          return {
-            term: term,
-            limit: 10
-          };
+      $('#rsupplier').val(<?= getPOST('supplier') ?>).select2({
+        minimumInputLength: 1,
+        allowClear: true,
+        initSelection: function(element, callback) {
+          $.ajax({
+            type: "get",
+            async: false,
+            url: "<?= admin_url('suppliers/getSupplier') ?>/" + $(element).val(),
+            dataType: "json",
+            success: function(data) {
+              callback(data[0]);
+            }
+          });
         },
-        results: function (data, page) {
-          if (data.results != null) {
-            return {results: data.results};
-          } else {
-            return {results: [{id: '', text: 'No Match Found'}]};
+        ajax: {
+          url: site.base_url + "suppliers/suggestions",
+          dataType: 'json',
+          delay: 1000,
+          data: function(term, page) {
+            return {
+              term: term,
+              limit: 10
+            };
+          },
+          results: function(data, page) {
+            if (data.results != null) {
+              return {
+                results: data.results
+              };
+            } else {
+              return {
+                results: [{
+                  id: '',
+                  text: 'No Match Found'
+                }]
+              };
+            }
           }
         }
-      }
-    });
-    $('#rsupplier').val(<?= getPOST('supplier') ?>);
+      });
+      $('#rsupplier').val(<?= getPOST('supplier') ?>);
     <?php
-  } ?>
+    } ?>
     <?php if (getPOST('customer')) {
     ?>
-    $('#rcustomer').val(<?= getPOST('customer') ?>).select2({
-      minimumInputLength: 1,
-      allowClear: true,
-      initSelection: function (element, callback) {
-        $.ajax({
-          type: "get", async: false,
-          url: "<?= admin_url('customers/getCustomer') ?>/" + $(element).val(),
-          dataType: "json",
-          success: function (data) {
-            callback(data[0]);
-          }
-        });
-      },
-      ajax: {
-        url: site.base_url + "customers/suggestions",
-        dataType: 'json',
-        delay: 1000,
-        data: function (term, page) {
-          return {
-            term: term,
-            limit: 10
-          };
+      $('#rcustomer').val(<?= getPOST('customer') ?>).select2({
+        minimumInputLength: 1,
+        allowClear: true,
+        initSelection: function(element, callback) {
+          $.ajax({
+            type: "get",
+            async: false,
+            url: "<?= admin_url('customers/getCustomer') ?>/" + $(element).val(),
+            dataType: "json",
+            success: function(data) {
+              callback(data[0]);
+            }
+          });
         },
-        results: function (data, page) {
-          if (data.results != null) {
-            return {results: data.results};
-          } else {
-            return {results: [{id: '', text: 'No Match Found'}]};
+        ajax: {
+          url: site.base_url + "customers/suggestions",
+          dataType: 'json',
+          delay: 1000,
+          data: function(term, page) {
+            return {
+              term: term,
+              limit: 10
+            };
+          },
+          results: function(data, page) {
+            if (data.results != null) {
+              return {
+                results: data.results
+              };
+            } else {
+              return {
+                results: [{
+                  id: '',
+                  text: 'No Match Found'
+                }]
+              };
+            }
           }
         }
-      }
-    });
+      });
     <?php
-  } ?>
+    } ?>
   });
 </script>
 
 <div class="box">
   <div class="box-header">
-    <h2 class="blue"><i class="fa-fw fa fa-money-bill"></i><?= lang('payments_report'); ?> <?php
+    <h2 class="blue"><i class="fa-fw fa fa-money-bill"></i><?= lang('payments_report'); ?>
+      <?php
       if (getPOST('start_date')) {
         echo 'From ' . getPOST('start_date') . ' to ' . getPOST('end_date');
       } ?>
@@ -271,7 +320,7 @@ if ($gend_date = getGET('end_date')) {
             </div>
             <div class="col-sm-4">
               <div class="form-group">
-              <?=lang('paid_by', 'paid_by');?>
+                <?= lang('paid_by', 'paid_by'); ?>
                 <select name="paid_by" id="paid_by" class="paid_by select2" style="width:100%;">
                   <?= $this->sma->paid_opts(NULL, NULL, TRUE); ?>
                 </select>
@@ -281,14 +330,28 @@ if ($gend_date = getGET('end_date')) {
           <div class="row">
             <div class="col-sm-2">
               <div class="form-group">
-                <?= lang('start_date', 'start_date'); ?>                
-                <input type="date" id="start_date" name="start_date" class="form-control" value="<?= $gstart_date ?>">
+                <?= lang('start_date', 'start_date'); ?>
+                <input type="date" id="start_date" name="start_date" class="form-control" value="<?= $startDate ?>">
               </div>
             </div>
             <div class="col-sm-2">
               <div class="form-group">
                 <?= lang('end_date', 'end_date'); ?>
-                <input type="date" id="end_date" name="end_date" class="form-control" value="<?= $gend_date ?>">
+                <input type="date" id="end_date" name="end_date" class="form-control" value="<?= $endDate ?>">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm-2">
+              <div class="form-group">
+                <?= lang('start_reference_date', 'start_ref_date'); ?>
+                <input type="date" id="start_ref_date" name="start_ref_date" class="form-control" value="<?= $startRefDate ?>">
+              </div>
+            </div>
+            <div class="col-sm-2">
+              <div class="form-group">
+                <?= lang('end_reference_date', 'end_ref_date'); ?>
+                <input type="date" id="end_ref_date" name="end_ref_date" class="form-control" value="<?= $endRefDate ?>">
               </div>
             </div>
           </div>
@@ -314,32 +377,43 @@ if ($gend_date = getGET('end_date')) {
         <div class="table-responsive table-overflow">
           <table id="PayRData" class="table table-bordered table-hover table-striped table-condensed reports-table">
             <thead>
-            <tr>
-              <th><?= lang('date'); ?></th>
-              <th><?= lang('payment_ref'); ?></th>
-              <th><?= lang('pic_id'); ?></th>
-              <th><?= lang('pic_name'); ?></th>
-              <th><?= lang('biller'); ?></th>
-              <th><?= lang('bank_name'); ?></th>
-              <th><?= lang('account_holder'); ?></th>
-              <th><?= lang('account_no'); ?></th>
-              <th><?= lang('paid_by'); ?></th>
-              <th><?= lang('note'); ?></th>
-              <th><?= lang('amount'); ?></th>
-              <th><?= lang('type'); ?></th>
-              <th><?= lang('id'); ?></th>
-            </tr>
+              <tr>
+                <th>Payment Date</th>
+                <th>Reference Date</th>
+                <th>Reference</th>
+                <th>PIC ID</th>
+                <th>PIC Name</th>
+                <th>Biller</th>
+                <th>Bank Name</th>
+                <th>Account Holder</th>
+                <th>Account No</th>
+                <th>Paid By</th>
+                <th>Note</th>
+                <th>Amount</th>
+                <th>Type</th>
+              </tr>
             </thead>
             <tbody>
-            <tr>
-              <td colspan="15" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
-            </tr>
+              <tr>
+                <td colspan="13" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
+              </tr>
             </tbody>
             <tfoot class="dtFilter">
-            <tr class="active">
-              <th></th><th></th><th></th><th></th><th></th><th></th><th></th>
-              <th></th><th></th><th></th><th></th><th></th><th></th>
-            </tr>
+              <tr class="active">
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+              </tr>
             </tfoot>
           </table>
         </div>
@@ -349,16 +423,18 @@ if ($gend_date = getGET('end_date')) {
 </div>
 <script type="text/javascript" src="<?= $assets ?>js/html2canvas.min.js"></script>
 <script type="text/javascript">
-  $(document).ready(function () {
+  $(document).ready(function() {
     $('#dofilter').click(function() {
       let payment_ref = $('#payment_ref').val();
-      let number      = $('#number').val();
-      let banks       = $('#bank').val();
-      let billers     = $('#biller').val();
-      let users       = $('#user').val();
-      let paid_by     = $('#paid_by').val();
-      let start_date  = $('#start_date').val();
-      let end_date    = $('#end_date').val();
+      let number = $('#number').val();
+      let banks = $('#bank').val();
+      let billers = $('#biller').val();
+      let users = $('#user').val();
+      let paid_by = $('#paid_by').val();
+      let startDate = $('#start_date').val();
+      let endDate = $('#end_date').val();
+      let startRefDate = $('#start_ref_date').val();
+      let endRefDate = $('#end_ref_date').val();
       let q = '';
 
       if (payment_ref) {
@@ -391,34 +467,42 @@ if ($gend_date = getGET('end_date')) {
         q += '&paid_by=' + paid_by;
       }
 
-      if (start_date) {
-        q += '&start_date=' + start_date;
+      if (startDate) {
+        q += '&start_date=' + startDate;
       }
 
-      if (end_date) {
-        q += '&end_date=' + end_date;
+      if (endDate) {
+        q += '&end_date=' + endDate;
+      }
+
+      if (startRefDate) {
+        q += '&start_ref_date=' + startRefDate;
+      }
+
+      if (endRefDate) {
+        q += '&end_ref_date=' + endRefDate;
       }
 
       location.href = site.base_url + 'reports/payments?' + q;
     });
-    $('#xls').click(function (event) {
+    $('#xls').click(function(event) {
       event.preventDefault();
-      window.location.href = "<?=admin_url('reports/getPaymentsReport?xls=1' . $v)?>";
+      window.location.href = "<?= admin_url('reports/getPaymentsReport?xls=1' . $v) ?>";
       return false;
     });
-    $('#image').click(function (event) {
+    $('#image').click(function(event) {
       event.preventDefault();
       html2canvas($('.box'), {
-        onrendered: function (canvas) {
+        onrendered: function(canvas) {
           openImg(canvas.toDataURL());
         }
       });
       return false;
     });
-  <?php
-  if (isset($_POST['paid_by'])) { ?>
-    $('#paid_by').val('<?= $_POST['paid_by']; ?>').trigger('change');
-  <?php } ?>
+    <?php
+    if (isset($_POST['paid_by'])) { ?>
+      $('#paid_by').val('<?= $_POST['paid_by']; ?>').trigger('change');
+    <?php } ?>
 
   });
 </script>
