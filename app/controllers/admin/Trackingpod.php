@@ -217,20 +217,14 @@ class Trackingpod extends MY_Controller
         'created_by'   => getPOST('created_by')
       ];
 
-      // print_r($trackData); die();
-
       $uploader = new FileUpload();
 
-      if ($uploader->has('attachment') && !$uploader->isMoved()) {
-        checkPath($this->upload_trackingpod_path);
-
-        $attachment = $uploader->getRandomName();
-
-        if ($uploader->move($this->upload_trackingpod_path, $attachment)) {
-          $trackData['attachment'] = $attachment;
-        } else {
-          sendJSON(['success' => 0, 'message' => 'Attachment gagal di upload.']);
+      if ($uploader->has('attachment')) {
+        if ($uploader->getSize('mb') > 2) {
+          sendJSON(['success' => 0, 'message' => 'Attachment tidak boleh lebih dari 2MB.']);
         }
+
+        $trackData['attachment_id'] = $uploader->storeRandom();
       }
 
       if ($this->site->updateTrackingPOD($trackId, $trackData)) {

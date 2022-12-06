@@ -205,11 +205,12 @@ class Products extends MY_Controller
       $uploader = new FileUpload();
 
       if ($uploader->has('document')) {
-        $attachment = $uploader->getRandomName();
-
-        if ($uploader->move($this->digital_upload_path, $attachment)) {
-          $adjustmentData['attachment'] = $attachment;
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect($_SERVER['HTTP_REFERER'] ?? '/');
         }
+
+        $adjustmentData['attachment_id'] = $uploader->storeRandom();
       }
     }
 
@@ -967,23 +968,15 @@ class Products extends MY_Controller
         'note'         => $note,
       ];
 
-      if ($_FILES['document']['size'] > 0) {
-        checkPath($this->upload_adjustment_path);
+      $uploader = new FileUpload();
 
-        $this->load->library('upload');
-        $config['upload_path']   = $this->upload_adjustment_path;
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['max_size']      = $this->allowed_file_size;
-        $config['overwrite']     = false;
-        $config['encrypt_name']  = true;
-        $this->upload->initialize($config);
-        if (!$this->upload->do_upload('document')) {
-          $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+      if ($uploader->has('document')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect($_SERVER['HTTP_REFERER']);
         }
-        $photo              = $this->upload->file_name;
-        $adjustment_data['attachment'] = $photo;
+
+        $adjustment_data['attachment_id'] = $uploader->storeRandom();
       }
     }
 
@@ -3184,10 +3177,15 @@ class Products extends MY_Controller
         'note'              => $note
       ];
 
-      $upload = new FileUpload();
+      $uploader = new FileUpload();
 
-      if ($upload->has('attachment')) {
-        $ptData['attachment_id'] = $upload->storeRandom();
+      if ($uploader->has('attachment')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect($_SERVER['HTTP_REFERER']);
+        }
+
+        $ptData['attachment_id'] = $uploader->storeRandom();
       }
 
       if (ProductTransfer::add($ptData, $items)) {
@@ -3321,12 +3319,15 @@ class Products extends MY_Controller
         'note'              => $note
       ];
 
-      $upload = new FileUpload();
+      $uploader = new FileUpload();
 
-      if ($upload->has('attachment')) {
-        $name = $upload->getRandomName();
-        $upload->move(FCPATH . 'files/products/mutation/attachments', $name);
-        $pmData['attachment'] = $name;
+      if ($uploader->has('attachment')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect($_SERVER['HTTP_REFERER']);
+        }
+
+        $pmData['attachment_id'] = $uploader->storeRandom();
       }
 
       if ($this->site->addProductMutation($pmData, $items)) {
@@ -3414,12 +3415,15 @@ class Products extends MY_Controller
         'note'              => $note
       ];
 
-      $upload = new FileUpload();
+      $uploader = new FileUpload();
 
-      if ($upload->has('attachment')) {
-        $name = $upload->getRandomName();
-        $upload->move(FCPATH . 'files/products/mutation/attachments', $name);
-        $pmData['attachment'] = $name;
+      if ($uploader->has('attachment')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect($_SERVER['HTTP_REFERER']);
+        }
+
+        $pmData['attachment_id'] = $uploader->storeRandom();
       }
 
       if ($this->site->updateProductMutation($pmId, $pmData, $items)) {
@@ -3884,24 +3888,15 @@ class Products extends MY_Controller
         'created_by'   => $pic_id
       ];
 
-      if ($_FILES['document']['size'] > 0) {
-        checkPath($this->upload_products_so_path);
+      $uploader = new FileUpload();
 
-        $this->load->library('upload');
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['encrypt_name']  = TRUE;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = FALSE;
-        $config['upload_path']   = $this->upload_products_so_path;
-
-        $this->upload->initialize($config);
-
-        if (!$this->upload->do_upload('document')) {
-          $this->session->set_flashdata('error', $this->upload->display_errors());
-          admin_redirect('products/stock_opname/add');
+      if ($uploader->has('document')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $so_data['attachment'] = $this->upload->file_name;
+        $so_data['attachment_id'] = $uploader->storeRandom();
       } else {
         $this->session->set_flashdata('error', 'Attachment harus dilampirkan.');
         admin_redirect('products/stock_opname/add');
@@ -4012,24 +4007,15 @@ class Products extends MY_Controller
         admin_redirect("products/stock_opname/{$this->so_mode}/{$opname_id}");
       }
 
-      if ($_FILES['document']['size'] > 0) {
-        checkPath($this->upload_products_so_path);
+      $uploader = new FileUpload();
 
-        $this->load->library('upload');
-        $config['allowed_types'] = $this->upload_digital_type;
-        $config['encrypt_name']  = TRUE;
-        $config['max_size']      = $this->upload_allowed_size;
-        $config['overwrite']     = FALSE;
-        $config['upload_path']   = $this->upload_products_so_path;
-
-        $this->upload->initialize($config);
-
-        if (!$this->upload->do_upload('document')) {
-          $this->session->set_flashdata('error', $this->upload->display_errors());
-          admin_redirect("products/stock_opname/{$this->so_mode}/{$opname_id}");
+      if ($uploader->has('document')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $so_data['attachment'] = $this->upload->file_name;
+        $so_data['attachment_id'] = $uploader->storeRandom();
       } else if ($opname->status == 'checked' && $this->so_mode == 'confirm') { // If confirm checked, must include attachment.
         $this->session->set_flashdata('error', lang('attachment_required'));
         admin_redirect("products/stock_opname/{$this->so_mode}/{$opname_id}");
@@ -4512,12 +4498,15 @@ class Products extends MY_Controller
         'note'              => $note
       ];
 
-      $upload = new FileUpload();
+      $uploader = new FileUpload();
 
-      if ($upload->has('attachment')) {
-        $name = $upload->getRandomName();
-        $upload->move(FCPATH . 'files/products/transfer/attachments', $name);
-        $ptData['attachment'] = $name;
+      if ($uploader->has('attachment')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect($_SERVER['HTTP_REFERER']);
+        }
+
+        $ptData['attachment_id'] = $uploader->storeRandom();
       }
 
       if (ProductTransfer::add($ptData, $items)) {
@@ -4683,10 +4672,15 @@ class Products extends MY_Controller
         'note'              => htmlEncode($note)
       ];
 
-      $upload = new FileUpload();
+      $uploader = new FileUpload();
 
-      if ($upload->has('attachment')) {
-        $ptData['attachment_id'] = $upload->storeRandom();
+      if ($uploader->has('attachment')) {
+        if ($uploader->getSize('mb') > 2) {
+          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          admin_redirect($_SERVER['HTTP_REFERER']);
+        }
+
+        $ptData['attachment_id'] = $uploader->storeRandom();
       }
 
       if (ProductTransfer::update($ptId, $ptData, $items)) {

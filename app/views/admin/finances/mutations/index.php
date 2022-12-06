@@ -72,7 +72,7 @@ if ($biller_ids = getGET('biller')) {
           "mRender": pay_status
         }, {
           "bSortable": false,
-          "mRender": attachmentExpense
+          "mRender": attachment
         },
         {
           "bSortable": false

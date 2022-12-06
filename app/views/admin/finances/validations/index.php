@@ -32,31 +32,65 @@ if ($verify_status) {
 }
 ?>
 <script>
-  $(document).ready(function () {
+  $(document).ready(function() {
     oTable = $('#Table').dataTable({
-      "aaSorting": [[1, "desc"], [2, "desc"]],
-      "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
+      "aaSorting": [
+        [1, "desc"],
+        [2, "desc"]
+      ],
+      "aLengthMenu": [
+        [10, 25, 50, 100, -1],
+        [10, 25, 50, 100, "<?= lang('all') ?>"]
+      ],
       "iDisplayLength": <?= $Settings->rows_per_page ?>,
-      'bProcessing': true, 'bServerSide': true,
+      'bProcessing': true,
+      'bServerSide': true,
       'sAjaxSource': '<?= admin_url('finances/validations/getValidations' . $q) ?>',
-      'fnServerData': function (sSource, aoData, fnCallback) {
+      'fnServerData': function(sSource, aoData, fnCallback) {
         aoData.push({
           "name": "<?= $this->security->get_csrf_token_name() ?>",
           "value": "<?= $this->security->get_csrf_hash() ?>"
         });
-        $.ajax({'dataType': 'json', 'type': 'POST', 'url': sSource, 'data': aoData, 'success': fnCallback});
+        $.ajax({
+          'dataType': 'json',
+          'type': 'POST',
+          'url': sSource,
+          'data': aoData,
+          'success': fnCallback
+        });
       },
-      "aoColumns": [{"bSortable": false,"mRender": checkbox}, {"mRender": fld}, null, null, null, null, null, null, null,
-      {"mRender": currencyFormat}, null, {"mRender": currencyFormat}, {"mRender": fld},
-      {"mRender": attachment}, null,
-      {"mRender": payment_status}, {"bSortable": false}],
-      "fnRowCallback": function (nRow, aData, iDisplayIndex) {
+      "aoColumns": [{
+          "bSortable": false,
+          "mRender": checkbox
+        }, {
+          "mRender": fld
+        }, null, null, null, null, null, null, null,
+        {
+          "mRender": currencyFormat
+        },
+        null, {
+          "mRender": currencyFormat
+        }, {
+          "mRender": fld
+        },
+        {
+          "mRender": attachment
+        },
+        null,
+        {
+          "mRender": payment_status
+        }, {
+          "bSortable": false
+        }
+      ],
+      "fnRowCallback": function(nRow, aData, iDisplayIndex) {
         nRow.id = aData[0];
         nRow.className = "validation_link"; // validation link
         return nRow;
       },
-      "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
-        var amount = 0, total = 0;
+      "fnFooterCallback": function(nRow, aaData, iStart, iEnd, aiDisplay) {
+        var amount = 0,
+          total = 0;
         for (var i = 0; i < aaData.length; i++) {
           amount += parseFloat(aaData[aiDisplay[i]][9]);
           total += parseFloat(aaData[aiDisplay[i]][11]);
@@ -91,7 +125,7 @@ if ($verify_status) {
       <ul class="btn-tasks">
         <li class="dropdown">
           <a data-toggle="dropdown" class="dropdown-toggle" href="#">
-            <i class="icon fa fa-tasks tip"  data-placement="left" title="<?= lang('actions') ?>"></i>
+            <i class="icon fa fa-tasks tip" data-placement="left" title="<?= lang('actions') ?>"></i>
           </a>
           <ul class="dropdown-menu dropdown-menu-right tasks-menus" role="menu" aria-labelledby="dLabel">
             <li>
@@ -106,15 +140,13 @@ if ($verify_status) {
             </li>
             <li class="divider"></li>
             <li>
-              <a href="#" class="bpo" title="<b><?= $this->lang->line('delete_validation') ?></b>"
-               data-content="<p><?= lang('r_u_sure') ?></p><button type='button' class='btn btn-danger' id='delete' data-action='delete'><?= lang('i_m_sure') ?></a> <button class='btn bpo-close'><?= lang('no') ?></button>"
-               data-html="true" data-placement="left">
-               <i class="fa fa-fw fa-trash"></i> <?= lang('delete_payment_validations') ?>
-             </a>
-           </li>
-         </ul>
-       </li>
-       <li class="dropdown">
+              <a href="#" class="bpo" title="<b><?= $this->lang->line('delete_validation') ?></b>" data-content="<p><?= lang('r_u_sure') ?></p><button type='button' class='btn btn-danger' id='delete' data-action='delete'><?= lang('i_m_sure') ?></a> <button class='btn bpo-close'><?= lang('no') ?></button>" data-html="true" data-placement="left">
+                <i class="fa fa-fw fa-trash"></i> <?= lang('delete_payment_validations') ?>
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li class="dropdown">
           <a href="#" id="filter" title="Filter"><i class="icon fa fa-filter"></i></a>
         </li>
       </ul>
@@ -123,7 +155,7 @@ if ($verify_status) {
   <div class="box-content">
     <div class="row">
       <div class="col-lg-12">
-      <p class="introtext"><strong><?= lang('biller'); ?></strong>: <?= ($biller_id ? $biller->name : lang('all_billers')); ?></p>
+        <p class="introtext"><strong><?= lang('biller'); ?></strong>: <?= ($biller_id ? $biller->name : lang('all_billers')); ?></p>
         <div id="form_filter" class="closed well well-sm" style="display: none">
           <div class="row">
             <div class="col-sm-3">
@@ -209,47 +241,58 @@ if ($verify_status) {
           </div>
         </div>
         <div class="table-responsive">
-          <table id="Table" cellpadding="0" cellspacing="0" borders="0"
-               class="table table-bordered table-condensed table-hover table-striped">
+          <table id="Table" cellpadding="0" cellspacing="0" borders="0" class="table table-bordered table-condensed table-hover table-striped">
             <thead>
-            <tr class="active">
-              <th style="min-width:30px; width: 30px; text-align: center;">
-                <input class="checkbox checkft" type="checkbox" name="check"/>
-              </th>
-              <th><?= lang('date'); ?></th>
-              <th><?= lang('reference'); ?></th>
-              <th><?= lang('pic_id'); ?></th>
-              <th><?= lang('pic_name'); ?></th>
-              <th><?= lang('biller'); ?></th>
-              <th><?= lang('customer'); ?></th>
-              <th><?= lang('bank_name'); ?></th>
-              <th><?= lang('account_no'); ?></th>
-              <th><?= lang('amount'); ?></th>
-              <th><?= lang('unique_code'); ?></th>
-              <th><?= lang('total'); ?></th>
-              <!-- <th><?= lang('expired_date'); ?></th> -->
-              <th><?= lang('transaction_date'); ?></th>
-              <th><?= lang('attachment'); ?></th>
-              <th><?= lang('description'); ?></th>
-              <th><?= lang('status'); ?></th>
-              <th style="width:100px;"><?= lang('actions'); ?></th>
-            </tr>
+              <tr class="active">
+                <th style="min-width:30px; width: 30px; text-align: center;">
+                  <input class="checkbox checkft" type="checkbox" name="check" />
+                </th>
+                <th><?= lang('date'); ?></th>
+                <th><?= lang('reference'); ?></th>
+                <th><?= lang('pic_id'); ?></th>
+                <th><?= lang('pic_name'); ?></th>
+                <th><?= lang('biller'); ?></th>
+                <th><?= lang('customer'); ?></th>
+                <th><?= lang('bank_name'); ?></th>
+                <th><?= lang('account_no'); ?></th>
+                <th><?= lang('amount'); ?></th>
+                <th><?= lang('unique_code'); ?></th>
+                <th><?= lang('total'); ?></th>
+                <!-- <th><?= lang('expired_date'); ?></th> -->
+                <th><?= lang('transaction_date'); ?></th>
+                <th><?= lang('attachment'); ?></th>
+                <th><?= lang('description'); ?></th>
+                <th><?= lang('status'); ?></th>
+                <th style="width:100px;"><?= lang('actions'); ?></th>
+              </tr>
             </thead>
             <tbody>
-            <tr>
-              <td colspan="17" class="dataTables_empty"><?= lang('loading_data_from_server'); ?></td>
-            </tr>
+              <tr>
+                <td colspan="17" class="dataTables_empty"><?= lang('loading_data_from_server'); ?></td>
+              </tr>
             </tbody>
             <tfoot class="dtFilter">
-            <tr class="active">
-              <th style="min-width:30px; width: 30px; text-align: center;">
-                <input class="checkbox checkft" type="checkbox" name="check"/>
-              </th>
-              <th></th><th></th><th></th><th></th><th></th><th></th><th></th>
-              <th></th><th></th><th></th><th></th><th></th><th></th><th></th>
-              <th></th>
-              <th style="width:100px; text-align: center;"><?= lang('actions'); ?></th>
-            </tr>
+              <tr class="active">
+                <th style="min-width:30px; width: 30px; text-align: center;">
+                  <input class="checkbox checkft" type="checkbox" name="check" />
+                </th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th style="width:100px; text-align: center;"><?= lang('actions'); ?></th>
+              </tr>
             </tfoot>
           </table>
         </div>
@@ -258,34 +301,33 @@ if ($verify_status) {
   </div>
 </div>
 <script>
-  $(document).ready(function () {
-    $('#do_filter').click(function (e) {
+  $(document).ready(function() {
+    $('#do_filter').click(function(e) {
       e.preventDefault();
       filterValidation();
     });
 
-    $('#export_excel').click(function (e) {
+    $('#export_excel').click(function(e) {
       e.preventDefault();
       filterValidation(1);
     });
 
-    function filterValidation (xls = false)
-    {
+    function filterValidation(xls = false) {
       let q = '?';
-      let pic        = $('#pic').val();
-      let bank       = $('#bank').val();
-      let customer   = $('#customers').val();
-      let end_date   = $('#end_date').val();
-      let reference  = $('#reference').val();
+      let pic = $('#pic').val();
+      let bank = $('#bank').val();
+      let customer = $('#customers').val();
+      let end_date = $('#end_date').val();
+      let reference = $('#reference').val();
       let start_date = $('#start_date').val();
       let verify_status = $('#verify_status').val();
 
-      if (pic)          q += '&pic=' + pic;
-      if (bank)         q += '&bank=' + bank;
-      if (customer)     q += '&customer=' + customer;
-      if (end_date)     q += '&end_date=' + end_date;
-      if (reference)    q += '&reference=' + reference;
-      if (start_date)   q += '&start_date=' + start_date;
+      if (pic) q += '&pic=' + pic;
+      if (bank) q += '&bank=' + bank;
+      if (customer) q += '&customer=' + customer;
+      if (end_date) q += '&end_date=' + end_date;
+      if (reference) q += '&reference=' + reference;
+      if (start_date) q += '&start_date=' + start_date;
       if (verify_status) q += '&verify_status=' + verify_status;
 
       if (xls) {
@@ -296,5 +338,4 @@ if ($verify_status) {
       }
     }
   });
-
 </script>

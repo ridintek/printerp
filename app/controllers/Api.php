@@ -420,32 +420,22 @@ class Api extends MY_Controller
 
     $this->rdlog->info($data);
 
-    $pv_options = [
+    $validationOptions = [
       'manual' => TRUE, /* Optional, but required for manual validation. */
       'sale_id' => $sale->id
     ];
 
-    if (isset($_FILES['attachment']) && $_FILES['attachment']['size'] > 0) {
-      $this->load->library('upload');
+    $uploader = new FileUpload();
 
-      checkPath($this->upload_sales_payments_path);
-      $config['upload_path']   = $this->upload_sales_payments_path;
-      $config['allowed_types'] = $this->upload_digital_type;
-      $config['max_size']      = $this->upload_allowed_size;
-      $config['overwrite']     = false;
-      $config['encrypt_name']  = true;
-      $this->upload->initialize($config);
-
-      if (!$this->upload->do_upload()) {
-        $error = $this->upload->display_errors();
-        sendJSON(['error' => 1, 'message' => $error]);
+    if ($uploader->has('attachment_id')) {
+      if ($uploader->getSize('mb') > 2) {
+        $this->response(400, ['message' => 'Attachment size is exceed more than 2MB.']);
       }
 
-      $photo = $this->upload->file_name;
-      $pv_options['attachment'] = $photo;
+      $validationOptions['attachment_id'] = $uploader->storeRandom();
     }
 
-    if ($this->site->validatePaymentValidation($data, $pv_options)) {
+    if ($this->site->validatePaymentValidation($data, $validationOptions)) {
       sendJSON(['error' => 0, 'msg' => 'Payment has been validated successfully.']);
     }
     sendJSON(['error' => 1, 'msg' => 'Failed to validate payment.']);

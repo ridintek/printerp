@@ -147,14 +147,15 @@ class Finances_model extends CI_Model
       if ($this->db->trans_status() !== FALSE) {
         $expense = $this->getExpenseByID($id);
         $payment = [
-          'date'         => $expense->date,
-          'expense_id'   => $id,
-          'bank_id'      => $expense->bank_id,
-          'method'      => 'Transfer', // Diganti jika ada opsi.
-          'amount'       => $expense->amount,
-          'created_by'   => $expense->created_by,
-          'type'         => 'sent',
-          'note'         => $note
+          'date'            => $this->serverDateTime,
+          'reference_date'  => $expense->date,
+          'expense_id'      => $id,
+          'bank_id'         => $expense->bank_id,
+          'method'          => 'Transfer', // Diganti jika ada opsi.
+          'amount'          => $expense->amount,
+          'created_by'      => $expense->created_by,
+          'type'            => 'sent',
+          'note'            => $note
         ];
         if ($insert_id = $this->site->addPayment($payment)) {
           return $insert_id;

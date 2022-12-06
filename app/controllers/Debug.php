@@ -173,7 +173,7 @@ class Debug extends MY_Controller
 
     if ($this->requestMethod == 'POST') {
       if ($upload->has('attachment') && $upload->getSize('mb') < 2) {
-        if ($id = $upload->store()) {
+        if ($id = $upload->storeRandom()) {
           $this->response(201, ['message' => "Success {$id}"]);
         }
         $this->response(400, ['message' => 'Failed']);

@@ -9,6 +9,9 @@ class Gallery extends MY_Controller
     parent::__construct();
   }
 
+  /**
+   * New method to view attachment and download it.
+   */
   public function attachment($attachmentId = NULL)
   {
     $attachment = Attachment::getRow(['id' => $attachmentId]);
@@ -64,10 +67,10 @@ class Gallery extends MY_Controller
     return $filename;
   }
 
-  public function get() // Called by HTML modal.
+  public function get($name = NULL) // Called by HTML modal.
   {
     $download = (getGET('download') == 'true' ? TRUE : FALSE);
-    $name     = getGET('name');
+    $name     = ($name ?? getGET('name'));
 
     $filename = $this->getFile($name);
 
@@ -77,7 +80,7 @@ class Gallery extends MY_Controller
       }
       header('Content-Type: ' . mime_content_type($filename));
       echo (file_get_contents($filename));
-      die();
+      die;
     }
 
     sendJSON(['error' => 1, 'msg' => 'No file exists.']);
