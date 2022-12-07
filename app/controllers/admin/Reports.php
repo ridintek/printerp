@@ -837,6 +837,8 @@ class Reports extends MY_Controller
     $sheet = $this->ridintek->spreadsheet();
 
     $sheet->loadFile(FCPATH . 'files/templates/Sales_Piutang.xlsx');
+
+    // Piutang Sales Report
     $sheet->getSheetByName('Sheet1');
 
     $sales = $this->site->getSales(['start_date' => $startDate, 'end_date' => $endDate]);
@@ -943,7 +945,7 @@ class Reports extends MY_Controller
   }
 
   /**
-   * Get daily performance report. (PROGRESS)
+   * Get daily performance report.
    */
   public function getDailyPerformanceReport()
   {
