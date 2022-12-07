@@ -1048,7 +1048,7 @@ class Finances extends MY_Controller
             WHEN expenses.attachment_id IS NOT NULL THEN expenses.attachment_id
             WHEN expenses.attachment IS NOT NULL THEN expenses.attachment
             ELSE ''
-          END) attachment")
+          END) AS attachment")
         ->from('expenses')
         ->join('banks', 'banks.id=expenses.bank_id', 'left')
         ->join('expense_categories', 'expense_categories.id=expenses.category_id', 'left')

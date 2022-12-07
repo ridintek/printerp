@@ -97,7 +97,7 @@ class Machines extends MY_Controller
           $todayDate  = date('Y-m-d');
           $hasUpdated = ($todayCheck == $todayDate ? TRUE : FALSE);
 
-          return ($hasUpdated ? '<div class="text-center"><i class="fad fa-2x fa-thumbs-up"></i></div>' : '');
+          return ($hasUpdated ? '<div class="text-center"><i class="fad fa-2x fa-check"></i></div>' : '');
         });
 
       if ($code) {
@@ -118,151 +118,6 @@ class Machines extends MY_Controller
 
       $this->datatable->generate();
     }
-    // else { // Export Excel. WILL BE OBSOLETE. Use REPORT instead.
-    //   $this->db
-    //     ->select("products.id AS product_id, products.code AS product_code, products.name AS product_name,
-    //       products.json_data->>'$.sn' AS sn,
-    //       categories.name AS category_name,
-    //       subcategories.name AS subcategory_name,
-    //       products.json_data->>$.assigned_at' AS assigned_at,
-    //       products.json_data->>$.priority' AS priority,
-    //       products.json_data->>$.order_date' AS order_date,
-    //       products.json_data->>$.order_price' AS order_price,
-    //       products.json_data->>$.maintenance_qty' AS maintenance_qty,
-    //       products.json_data->>$.maintenance_cost' AS maintenance_cost,
-    //       products.json_data->>$.disposal_date' AS disposal_date,
-    //       products.json_data->>$.disposal_price' AS disposal_price,
-    //       products.active AS active, products.warehouses AS warehouses,
-    //       products.json_data->>'$.condition' AS last_condition,
-    //       products.json_data->>'$.note' AS note,
-    //       products.json_data->>'$.updated_at' AS last_update,
-    //       CONCAT(pic.first_name, ' ', pic.last_name) AS pic_name,
-    //       CONCAT(creator.first_name, ' ', creator.last_name) AS creator_name
-    //     ", FALSE)
-    //     ->from('products')
-    //     ->join('categories', 'categories.id = products.category_id', 'left')
-    //     ->join('categories AS subcategories', 'subcategories.id = products.subcategory_id', 'left')
-    //     ->join('users AS creator', "creator.id = JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.updated_by'))", 'left')
-    //     ->join('users AS pic', "pic.id = JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.pic_id'))", 'left')
-    //     // ->where('products.active', 1)
-    //     ->group_start()
-    //       ->like('categories.code', 'AST', 'none')
-    //       ->or_like('categories.code', 'EQUIP', 'none')
-    //     ->group_end();
-
-    //   if ($whNames) {
-    //     $this->db->group_start();
-    //     foreach ($whNames as $name) {
-    //       $this->db->or_like('products.warehouses', $name, 'none');
-    //     }
-    //     $this->db->group_end();
-    //   }
-
-    //   $rows = $this->db->get()->result();
-
-    //   $sheet = $this->ridintek->spreadsheet();
-    //   $sheet->loadFile(FCPATH . 'files/templates/Machine_Report.xlsx');
-    //   $sheet->getSheetByName('Sheet2');
-    //   $sheet->setTitle('Machine Report');
-
-    //   $r = 2;
-
-    //   foreach ($rows as $row) {
-    //     // if ($row->product_code != 'PCA2') continue; // TEMP
-
-    //     $reportBegin = '';
-    //     $reportEnd = '';
-
-    //     if ($row->last_condition != 'good') {
-    //       $duration = 0;
-
-    //       $reports = $this->site->getProductReports([
-    //         'product_id' => $row->product_id, 'order_by' => ['created_at', 'DESC']
-    //       ]);
-
-    //       // Count *FUCKED* duration by reports..
-    //       foreach ($reports as $report) {
-    //         if (empty($reportEnd)) $reportEnd = $report->created_at;
-
-    //         if ($report->condition == 'good') {
-    //           break;
-    //         }
-
-    //         $reportBegin = $row->created_at;
-    //       }
-    //     }
-
-    //     if (!empty($row->assigned_at)) { // If TS assigned, use assigned at as begin report date.
-    //       $reportBegin = $row->assigned_at;
-    //     }
-
-    //     $duration = ($reportBegin && $reportEnd ? getDaysInPeriod($reportBegin, $reportEnd) : 0);
-    //     if ($duration < 0) $duration = 0;
-
-    //     $sheet->setCellValue('A' . $r, $row->product_code);
-    //     $sheet->setCellValue('B' . $r, $row->product_name);
-    //     $sheet->setCellValue('C' . $r, $row->sn);
-    //     $sheet->setCellValue('D' . $r, $row->category_name);
-    //     $sheet->setCellValue('E' . $r, $row->subcategory_name);
-    //     $sheet->setCellValue('F' . $r, $row->priority);
-    //     $sheet->setCellValue('G' . $r, $row->order_date);
-    //     $sheet->setCellValue('H' . $r, $row->order_price);
-    //     $sheet->setCellValue('I' . $r, $row->disposal_date);
-    //     $sheet->setCellValue('J' . $r, $row->disposal_price);
-    //     $sheet->setCellValue('K' . $r, ($row->active ? 'Active' : 'Non Active'));
-    //     $sheet->setCellValue('L' . $r, $row->warehouses);
-    //     $sheet->setCellValue('M' . $r, $row->maintenance_qty);
-    //     $sheet->setCellValue('N' . $r, $row->maintenance_cost);
-    //     $sheet->setCellValue('O' . $r, lang($row->last_condition));
-    //     $sheet->setCellValue('P' . $r, htmlRemove($row->note));
-    //     $sheet->setCellValue('Q' . $r, $row->last_update);
-    //     $sheet->setCellValue('R' . $r, $row->pic_name);
-    //     $sheet->setCellValue('S' . $r, $duration); // Duration
-    //     $sheet->setCellValue('T' . $r, $row->creator_name);
-
-    //     $colorStatus = NULL;
-
-    //     switch ($row->last_condition) {
-    //       case 'good':
-    //         $colorStatus = '00FF00';
-    //         break;
-    //       case 'off':
-    //         $colorStatus = 'FF0000';
-    //         break;
-    //       case 'trouble':
-    //         $colorStatus = 'FF8000';
-    //     }
-
-    //     if ($colorStatus) {
-    //       $sheet->setFillColor('O' . $r, $colorStatus);
-    //     }
-
-    //     $r++;
-    //   }
-
-    //   $sheet->setColumnAutoWidth('A');
-    //   $sheet->setColumnAutoWidth('B');
-    //   $sheet->setColumnAutoWidth('C');
-    //   $sheet->setColumnAutoWidth('D');
-    //   $sheet->setColumnAutoWidth('E');
-    //   $sheet->setColumnAutoWidth('F');
-    //   $sheet->setColumnAutoWidth('G');
-    //   $sheet->setColumnAutoWidth('H');
-    //   $sheet->setColumnAutoWidth('I');
-    //   $sheet->setColumnAutoWidth('J');
-    //   $sheet->setColumnAutoWidth('K');
-    //   $sheet->setColumnAutoWidth('L');
-    //   $sheet->setColumnAutoWidth('M');
-    //   $sheet->setColumnAutoWidth('N');
-    //   $sheet->setColumnAutoWidth('O');
-    //   $sheet->setColumnAutoWidth('P');
-    //   $sheet->setColumnAutoWidth('Q');
-    //   $sheet->setColumnAutoWidth('R');
-    //   $sheet->setColumnAutoWidth('S');
-    //   $sheet->setColumnAutoWidth('T');
-
-    //   $sheet->export('PrintERP-MachinePerformance-' . date('Ymd_His'));
-    // }
   }
 
   public function index()
@@ -639,8 +494,8 @@ class Machines extends MY_Controller
             'pic_id' => '', // TS
             'assigned_at' => '', // Assigned date
             'assigned_by' => '',
-            'note' => $note,
-            'pic_note' => $picNote
+            // 'note' => '',
+            'pic_note' => ''
           ]]);
         }
 
