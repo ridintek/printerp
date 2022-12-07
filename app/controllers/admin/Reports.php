@@ -3073,6 +3073,7 @@ class Reports extends MY_Controller
       $sheet->setCellValue('F' . $r, ($pic ? $pic->fullname : ''));
       $sheet->setCellValue('G' . $r, $loc->name);
       $sheet->setCellValue('H' . $r, htmlRemove($row->note));
+      $sheet->setCellValue('I' . $r, htmlRemove($row->pic_note));
 
       $r++;
     }
