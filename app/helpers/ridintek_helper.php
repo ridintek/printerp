@@ -953,7 +953,9 @@ function getDailyPerformanceReport($opt)
         if (!$overTime) {
           $piutang  = round(DB::table('sales')
             ->selectSum('balance', 'total')
+            ->notLike('payment_status', 'paid')
             ->where('biller_id', $biller->id)
+            ->whereIn('status', ['waiting_production', 'completed_partial', 'completed'])
             ->where("date BETWEEN '{$beginDate->format('Y-m-d')} 00:00:00' AND '{$ymPeriod}-{$dt}%'")
             ->getRow()->total ?? 0);
         } else {
