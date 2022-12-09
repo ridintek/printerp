@@ -18,10 +18,10 @@ class Site extends MY_Model
     if (!empty($data) && is_array($data)) {
       $key_ids = [];
       foreach ($data as $key) {
-        $this->db->insert('api_keys', $key);
+        DB::table('api_keys')->insert($key);
 
-        if ($this->db->affected_rows()) {
-          $key_ids[] = $this->db->insert_id();
+        if (DB::affectedRows()) {
+          $key_ids[] = DB::insertID();
         }
       }
 
@@ -62,10 +62,10 @@ class Site extends MY_Model
 
       $adjustmentData = setCreatedBy($adjustmentData);
 
-      $this->db->insert('adjustments', $adjustmentData);
+      DB::table('adjustments')->insert($adjustmentData);
 
-      if ($this->db->affected_rows()) {
-        $adjustmentId = $this->db->insert_id();
+      if (DB::affectedRows()) {
+        $adjustmentId = DB::insertID();
 
         $this->updateReference('adjustment');
 
@@ -133,17 +133,15 @@ class Site extends MY_Model
       unset($data['date']);
     }
 
-    $this->db->insert('banks', $data);
+    DB::table('banks')->insert($data);
 
-    if ($this->db->affected_rows()) {
-      $insertId = $this->db->insert_id();
+    if (DB::affectedRows()) {
+      $insertId = DB::insertID();
 
       if (!empty($balance)) {
-        $q = $this->db->get_where('payments', [
+        $payment = DB::table('payments')->where([
           'bank_id' => $insertId, 'status' => 'beginning', 'type' => 'received'
-        ]);
-
-        $payment = ($q->num_rows() > 0 ? $q->row() : NULL);
+        ])->getRow();
 
         if ($balance > 0) {
           $payment_data = [
@@ -156,6 +154,7 @@ class Site extends MY_Model
             'type'       => 'received',
             'note'       => 'BEGINNING OF BANK'
           ];
+
           if ($payment) {
             $this->updatePayment($payment->id, $payment_data);
           } else {
@@ -198,10 +197,10 @@ class Site extends MY_Model
       if (empty($data['date'])) $data['date'] = date('Y-m-d H:i:s');
       $data['reference'] = $this->getReference('mutation');
 
-      $this->db->insert('bank_mutations', $data);
+      DB::table('bank_mutations')->insert($data);
 
-      if ($this->db->affected_rows()) {
-        $insert_id = $this->db->insert_id();
+      if (DB::affectedRows()) {
+        $insertID = DB::insertID();
 
         if ($this->getReference('mutation') == $data['reference']) {
           $this->updateReference('mutation');
@@ -212,19 +211,19 @@ class Site extends MY_Model
             'date'          => $data['date'],
             'expired_date'  => date('Y-m-d H:i:s', strtotime('+1 day', strtotime($data['date']))), // 24 jam
             'reference'     => $data['reference'],
-            'mutation_id'   => $insert_id,
+            'mutation_id'   => $insertID,
             'amount'        => $data['amount'],
             'description'   => $data['note']
           ];
 
           if ($this->addPaymentValidation($pv_data)) { // Add Payment Validation.
-            $this->db->update('bank_mutations', ['status' => 'waiting_transfer'], ['id' => $insert_id]);
+            DB::table('bank_mutations')->update(['status' => 'waiting_transfer'], ['id' => $insertID]);
           }
         } else {
           // Payment Sent by From Bank ID
           $payment_sent = [
             'date'         => $data['date'],
-            'mutation_id'  => $insert_id,
+            'mutation_id'  => $insertID,
             'bank_id'      => $data['from_bank_id'],
             'method'       => $data['paid_by'],
             'amount'       => $data['amount'],
@@ -237,7 +236,7 @@ class Site extends MY_Model
           // Payment Received by To Bank ID
           $payment_recv = [
             'date'         => $data['date'],
-            'mutation_id'  => $insert_id,
+            'mutation_id'  => $insertID,
             'bank_id'      => $data['to_bank_id'],
             'method'       => $data['paid_by'],
             'amount'       => $data['amount'],
@@ -256,21 +255,11 @@ class Site extends MY_Model
 
   public function addBiller($data = [])
   {
+    DB::table('billers')->insert($data);
     $this->db->insert('billers', $data);
 
-    if ($this->db->affected_rows()) {
-      return $this->db->insert_id();
-    }
-    return FALSE;
-  }
-
-  public function addCalendar($data)
-  {
-    $data = setCreatedBy($data);
-    $this->db->insert('calendar', $data);
-
-    if ($this->db->affected_rows()) {
-      return $this->db->insert_id();
+    if (DB::affectedRows()) {
+      return DB::insertID();
     }
     return FALSE;
   }
@@ -299,10 +288,10 @@ class Site extends MY_Model
       return FALSE;
     }
 
-    $this->db->insert('customers', $data);
+    DB::table('customers')->insert($data);
 
-    if (!$customer && $this->db->affected_rows()) {
-      $cid = $this->db->insert_id();
+    if (!$customer && DB::affectedRows()) {
+      $cid = DB::insertID();
 
       addEvent("Created User [{$cid}: {$data['name']}, {$data['phone']}]", 'info');
       return $cid;
@@ -310,27 +299,13 @@ class Site extends MY_Model
     return FALSE;
   }
 
-  public function addCustomerAddress($data)
-  {
-    $this->db->insert('addresses', $data);
-
-    if ($this->db->affected_rows()) {
-      return TRUE;
-    }
-    return FALSE;
-  }
-
-  public function addCustomerDeposit($customer_id, $data)
-  {
-    if ($this->db->insert('deposits', $data) && $this->db->update('customers', $data, ['id' => $customer_id])) {
-      return true;
-    }
-    return false;
-  }
-
   public function addCustomers($data)
   {
-    if ($this->db->insert_batch('customers', $data)) {
+    if (is_array($data)) {
+      foreach ($data as $d) {
+        $this->addCustomer($d);
+      }
+
       return TRUE;
     }
     return FALSE;
@@ -345,16 +320,16 @@ class Site extends MY_Model
   {
     $data['reference'] = $this->getReference('expense');
 
-    $this->db->insert('expenses', $data);
+    DB::table('expenses')->insert($data);
 
-    if ($this->db->affected_rows()) {
-      $expense_id = $this->db->insert_id();
+    if (DB::affectedRows()) {
+      $expenseId = DB::insertID();
 
       if ($this->getReference('expense') == $data['reference']) {
         $this->updateReference('expense');
       }
       // updateExpense: Add Payment after paid (not approved).
-      return $expense_id;
+      return $expenseId;
     }
     return FALSE;
   }
@@ -375,14 +350,14 @@ class Site extends MY_Model
         'note'         => $note
       ];
 
-      if ($insert_id = $this->addPayment($payment)) {
+      if ($insertId = $this->addPayment($payment)) {
         $expense_data = ['payment_date' => date('Y-m-d H:i:s'), 'payment_status' => $status, 'note' => $note];
-        $this->db->update('expenses', $expense_data, ['id' => $id]);
+        DB::table('expenses')->update($expense_data, ['id' => $id]);
 
-        if ($this->db->affected_rows()) {
-          return $insert_id;
+        if (DB::affectedRows()) {
+          return $insertId;
         } else {
-          $this->deletePayment($insert_id);
+          $this->deletePayment($insertId);
         }
       }
     }
@@ -396,7 +371,7 @@ class Site extends MY_Model
    */
   public function addGeolocation($data)
   {
-    $geo_data = [
+    $geoData = [
       'date'         => ($data['date']         ?? date('Y-m-d H:i:s')),
       'user_id'      => ($data['user_id']      ?? $this->session->userdata('user_id')      ?? NULL),
       'customer_id'  => ($data['customer_id']  ?? NULL),
@@ -407,39 +382,36 @@ class Site extends MY_Model
       'lon'          => ($data['lon']          ?? 0)
     ];
 
-    $this->db->trans_start();
-    $this->db->insert('geolocation', $geo_data);
-    $geo_id = $this->db->insert_id();
-    $this->db->trans_complete();
+    DB::table('geolocation')->insert($geoData);
 
-    if ($this->db->trans_status()) {
-      return $geo_id;
+    if (DB::affectedRows()) {
+      return DB::insertID();
     }
     return FALSE;
   }
 
   public function addHoliday($data)
   {
-    $this->db->insert('holiday', $data);
+    DB::table('holiday')->insert($data);
 
-    if ($this->db->affected_rows()) {
-      return $this->db->insert_id();
+    if (DB::affectedRows()) {
+      return DB::insertID();
     }
     return FALSE;
   }
 
   /**
    * THE ONLY FUNCTION TO ADD INCOME.
-   * @param object $data [ date, amount, note, created_by, attachment, category_id, biller_id, bank_id ]
+   * @param array $data [ date, amount, note, created_by, attachment, category_id, biller_id, bank_id ]
    */
   public function addIncome($data)
   {
     $data['reference'] = $this->getReference('income');
 
-    $this->db->insert('incomes', $data);
+    DB::table('incomes')->insert($data);
 
-    if ($this->db->affected_rows()) {
-      $income_id = $this->db->insert_id();
+    if (DB::affectedRows()) {
+      $incomeId = DB::insertID();
 
       if ($this->getReference('income') == $data['reference']) {
         $this->updateReference('income');
@@ -447,7 +419,7 @@ class Site extends MY_Model
 
       $payment = [
         'date'       => $data['date'],
-        'income_id'  => $income_id,
+        'income_id'  => $incomeId,
         'reference'  => $data['reference'],
         'bank_id'    => $data['bank_id'],
         'method'     => 'Transfer', // Diganti jika ada opsi.
@@ -458,7 +430,7 @@ class Site extends MY_Model
       ];
 
       if ($this->addPayment($payment)) {
-        return $income_id;
+        return $incomeId;
       }
     }
     return FALSE;
@@ -478,10 +450,10 @@ class Site extends MY_Model
    */
   public function addJob($data)
   {
-    $this->db->insert('jobs', $data);
+    DB::table('jobs')->insert($data);
 
-    if ($this->db->affected_rows()) {
-      return $this->db->insert_id();
+    if (DB::affectedRows()) {
+      return DB::insertID();
     }
     return FALSE;
   }
@@ -532,21 +504,22 @@ class Site extends MY_Model
     $data['created_by']     = ($data['created_by'] ?? $this->session->userdata('user_id'));
     $data['biller_id']      = ($inv->biller_id ?? NULL);
 
-    $this->db->insert('payments', $data); // Insert Payment.
-    $insertId = $this->db->insert_id();
+    DB::table('payments')->insert($data);
 
-    mutexRelease($hMutex);
+    if (DB::affectedRows()) {
+      $insertId = DB::insertID();
 
-    if ($this->db->trans_status() !== FALSE) {
       if ($data['type'] == 'received') {
         $this->increaseBankAmount($data['bank_id'], $data['amount']);
       } else if ($data['type'] == 'sent') {
         $this->decreaseBankAmount($data['bank_id'], $data['amount']);
       }
 
+      mutexRelease($hMutex);
       return $insertId;
     }
 
+    mutexRelease($hMutex);
     return FALSE;
   }
 
@@ -557,65 +530,53 @@ class Site extends MY_Model
    */
   public function addPaymentValidation($data)
   { // Add New: For payment transfer validation.
-    if (!empty($data)) {
-      $ci = $this;
-      $ret = $this->ridintek->mutex('payment_validation')->on('lock', function ($mutex) use ($ci, $data) {
-        $unique_code = 0;
-        $uqcodes = [];
+    $uniqueCode = 0;
+    $uqcodes = [];
 
-        if (empty($data['date'])) $data['date'] = date('Y-m-d H:i:s');
-        if (empty($data['expired_date'])) {
-          // Default expired: 2 day.
-          $date['expired_date'] = date('Y-m-d H:i:s', strtotime('+2 day', strtotime($data['date'])));
+    $data['date'] = ($data['date'] ?? date('Y-m-d H:i:s'));
+
+    if (empty($data['expired_date'])) {
+      // Default expired: 2 days.
+      $date['expired_date'] = date('Y-m-d H:i:s', strtotime('+2 day', strtotime($data['date'])));
+    }
+
+    if (!empty($data['unique_code']) && is_numeric($data['unique_code'])) {
+      $uniqueCode = $data['unique_code'];
+    }
+
+    if (!$uniqueCode) {
+      $uniqueCode = $this->generateUniqueCode();
+
+      $pvPendings = DB::table('payment_validations')->where(['status' => 'pending'])->get();
+
+      if ($pvPendings) {
+        foreach ($pvPendings as $row) {
+          $uqcodes[] = $row->unique_code;
         }
+      }
 
-        if (!empty($data['unique_code']) && is_numeric($data['unique_code'])) {
-          $unique_code = $data['unique_code'];
-        }
-
-        if (!$unique_code) {
-          $unique_code = $ci->generateUniqueCode();
-
-          $q = $ci->db->get_where('payment_validations', ['status' => 'pending']);
-
-          if ($q->num_rows() > 0) {
-            foreach ($q->result() as $row) {
-              $uqcodes[] = $row->unique_code;
-            }
-          }
-
-          if ($uqcodes) {
-            while (TRUE) {
-              if (array_search($unique_code, $uqcodes) === FALSE) {
-                break;
-              } else {
-                $unique_code = $ci->generateUniqueCode();
-              }
-            }
+      if ($uqcodes) {
+        while (TRUE) {
+          if (array_search($uniqueCode, $uqcodes) === FALSE) {
+            break;
+          } else {
+            $uniqueCode = $this->generateUniqueCode();
           }
         }
+      }
+    }
 
-        $data['unique_code'] = $unique_code;
-        $data['status']      = 'pending';
+    $data['unique_code'] = $uniqueCode;
+    $data['status']      = 'pending';
 
-        if (empty($data['created_by'])) {
-          $data['created_by'] = $ci->session->userdata('user_id');
-        }
-        if (empty($data['biller_id'])) {
-          $data['biller_id'] = $ci->session->userdata('biller_id') ?? $ci->Settings->default_biller;
-        }
+    $data['biller_id'] = ($data['biller_id'] ?? XSession::get('biller_id'));
 
-        $ci->db->trans_start();
-        $ci->db->insert('payment_validations', $data);
-        $insert_id = $ci->db->insert_id();
-        $ci->db->trans_complete();
+    $data = setCreatedBy($data);
 
-        if ($ci->db->trans_status() !== FALSE) {
-          return $insert_id;
-        }
-        return FALSE;
-      })->create()->close();
-      return $ret;
+    DB::table('payment_validations')->insert($data);
+
+    if (DB::affectedRows()) {
+      return DB::insertID();
     }
     return FALSE;
   }
@@ -629,8 +590,10 @@ class Site extends MY_Model
    */
   public function addProductCategory($data)
   {
-    if ($insert_id = $this->db->insert('categories', $data)) {
-      return $insert_id;
+    DB::table('categories')->insert($data);
+
+    if (DB::affectedRows()) {
+      return DB::insertID();
     }
     return FALSE;
   }
@@ -640,18 +603,18 @@ class Site extends MY_Model
     $result = false;
     if (!empty($categories)) {
       foreach ($categories as $category) {
-        $this->db->insert('categories', $category);
+        DB::table('categories')->insert($category);
       }
       $result = true;
     }
     if (!empty($subcategories)) {
       foreach ($subcategories as $category) {
         if (!empty($category['parent_code'])) {
-          $this->db->insert('categories', $category);
+          DB::table('categories')->insert($category);
         } else {
           if ($pcategory = $this->getCategoryByCode($category['parent_code'])) {
             $category['parent_code'] = $pcategory->code;
-            $this->db->insert('categories', $category);
+            DB::table('categories')->insert($category);
           }
         }
       }
@@ -674,7 +637,7 @@ class Site extends MY_Model
       $data['items'] = '';
 
       foreach ($items as $item) {
-        $product = $this->site->getProductByID($item['product_id']);
+        $product = Product::getRow(['id' => $item['product_id']]);
 
         if ($product) {
           $data['items'] .= "- ({$product->code}) " . getExcerpt($product->name) . '<br>';
@@ -682,10 +645,10 @@ class Site extends MY_Model
       }
     }
 
-    $this->db->insert('product_mutation', $data);
+    DB::table('product_mutation')->insert($data);
 
-    if ($this->db->affected_rows()) {
-      $insertId = $this->db->insert_id();
+    if (DB::affectedRows()) {
+      $insertId = DB::insertID();
 
       if ($items) {
         foreach ($items as $item) {
