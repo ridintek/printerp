@@ -2427,17 +2427,13 @@ function loginPage()
  */
 function mutexCreate($name = NULL, $wait = FALSE)
 {
-  if (empty($name)) {
-    $name = 'default';
-  }
+  $name = ($name ?? 'default');
 
   $hMutex = fopen(FCPATH . 'mutex/' . $name, 'w');
 
   $param = LOCK_EX; // Lock exclusive
 
-  if (!$wait) {
-    $param |= LOCK_NB;
-  }
+  if (!$wait) $param |= LOCK_NB;
 
   if ($hMutex && flock($hMutex, $param)) {
     return $hMutex;
@@ -2479,10 +2475,6 @@ function ocr($image)
   $output = [];
   $retval = 0;
 
-  // if (!is_file($exe)) {
-  //   setLastError("Tesseract for {$OS} is not found.");
-  //   return FALSE;
-  // }
   exec("$exe --version", $output, $retval);
 
   if ($retval != 0) {
@@ -2668,25 +2660,6 @@ function sendWA($phone, $text, $opt = [])
   return $res;
 }
 
-// function setCreatedAt($data)
-// {
-//   if (!empty($data['created_at'])) {
-//     try {
-//       $date = new DateTime($data['created_at']);
-
-//       $data['created_at'] = $date->format('Y-m-d H:i:s');
-
-//       unset($date);
-//     } catch (\Exception $err) {
-//       setLastError($err->getMessage());
-//     }
-//   } else {
-//     $data['created_at'] = date('Y-m-d H:i:s');
-//   }
-
-//   return $data;
-// }
-
 /**
  * Set created by data.
  *
@@ -2694,19 +2667,17 @@ function sendWA($phone, $text, $opt = [])
  */
 function setCreatedBy($data)
 {
-  $ci = &get_instance();
-
   $data['created_at'] = ($data['created_at'] ?? date('Y-m-d H:i:s'));
 
   if (!empty($data['created_by'])) {
-    if ($creator = $ci->site->getUserByID($data['created_by'])) {
+    if ($creator = User::getRow(['id' => $data['created_by']])) {
       $data['created_by'] = $creator->id;
     }
   } else {
     if ($creatorId = XSession::get('user_id')) {
       $data['created_by'] = $creatorId;
     } else {
-      $user = $ci->site->getUserByUsername('system');
+      $user = User::getRow(['username' => 'system']);
       $data['created_by'] = $user->id;
     }
   }
