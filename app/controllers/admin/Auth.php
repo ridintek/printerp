@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\Authenticate;
+
 defined('BASEPATH') or exit('No direct script access allowed');
 
 class Auth extends MY_Controller
@@ -10,7 +12,7 @@ class Auth extends MY_Controller
     $this->lang->admin_load('auth', $this->Settings->user_language);
     $this->load->library('form_validation');
     $this->form_validation->set_error_delimiters($this->config->item('error_start_delimiter', 'ion_auth'), $this->config->item('error_end_delimiter', 'ion_auth'));
-    $this->load->admin_model('auth_model');
+    // $this->load->admin_model('auth_model');
     $this->load->library('ion_auth');
 
     $this->digital_upload_path = 'files/';
@@ -208,7 +210,7 @@ class Auth extends MY_Controller
       sendJSON(['success' => 0, 'message' => lang('access_denied')]);
     }
 
-    if ($this->auth_model->delete_user($id)) {
+    if (User::delete(['id' => $id])) {
       sendJSON(['success' => 1, 'message' => 'User has been deleted successfully.']);
     }
     sendJSON(['success' => 0, 'message' => 'Failed to delete user.']);
@@ -544,7 +546,27 @@ class Auth extends MY_Controller
     }
   }
 
-  public function login($m = null)
+  /**
+   * New login method 2022-12-09 16:57:39
+   */
+  public function login()
+  {
+    $identity = (getPOST('identity') ?? '');
+    $password = (getPOST('password') ?? '');
+    $remember = ((getPOST('remember') == 1 ? TRUE : FALSE) ?? FALSE);
+
+    if ($this->requestMethod == 'POST') {
+      if (Authentication::login($identity, $password, $remember)) {
+        admin_redirect();
+      }
+    } else if (XSession::has('user_id')) {
+      admin_redirect();
+    }
+
+    $this->load->view($this->theme . 'auth/login', $this->data);
+  }
+
+  public function login_old()
   {
     if ($this->loggedIn) {
       $this->session->set_flashdata('error', $this->session->flashdata('error'));
@@ -555,13 +577,14 @@ class Auth extends MY_Controller
     if ($this->form_validation->run() == true) {
       $remember = getPOST('remember');
 
-      if ($this->auth_model->login(getPOST('identity'), getPOST('password'), $remember)) {
-        $this->session->set_flashdata('message', $this->ion_auth->messages());
-        admin_redirect($_SERVER['HTTP_REFERER']);
-      } else {
-        $this->session->set_flashdata('error', $this->ion_auth->errors());
-        admin_redirect($_SERVER['HTTP_REFERER']);
-      }
+      // if ($this->auth_model->login(getPOST('identity'), getPOST('password'), $remember)) {
+      //   $this->session->set_flashdata('message', $this->ion_auth->messages());
+      //   admin_redirect($_SERVER['HTTP_REFERER']);
+      // } else {
+      //   $this->session->set_flashdata('error', $this->ion_auth->errors());
+      //   admin_redirect($_SERVER['HTTP_REFERER']);
+      // }
+      admin_redirect();
     } else {
       $this->data['error']   = (validation_errors() ? validation_errors() : '');
       // $this->data['error']   = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
@@ -592,13 +615,7 @@ class Auth extends MY_Controller
 
   public function logout($m = null)
   {
-    if (!$this->session->userdata('logout_access')) {
-      //$this->session->set_flashdata('error', '<strong>Tidak bisa logout sampai waktu yang ditentukan.</strong>');
-      //admin_redirect($_SERVER['HTTP_REFERER'] ?? 'welcome');
-    }
-    $this->site->updateUser($this->session->userdata('user_id'), ['counter' => 0, 'token' => NULL, 'queue_category_id' => 0]);
-    $this->ion_auth->logout();
-    $this->session->set_flashdata('message', $this->ion_auth->messages());
+    Authentication::logout();
 
     admin_redirect('login/' . $m);
   }
@@ -970,12 +987,12 @@ class Auth extends MY_Controller
       }
     }
 
-    if ($this->form_validation->run() == true && $this->auth_model->updateAvatar($id, $photo)) {
+    if ($this->form_validation->run() == true) {
+      User::update((int)$id, ['avatar' => $photo]);
       unlink('assets/uploads/avatars/' . $user->avatar);
       unlink('assets/uploads/avatars/thumbs/' . $user->avatar);
       $this->session->set_userdata('avatar', $photo);
       $this->session->set_flashdata('message', lang('avatar_updated'));
-      //admin_redirect('auth/profile/' . $id);
       admin_redirect('users');
     } else {
       $this->session->set_flashdata('error', validation_errors());
@@ -1000,7 +1017,7 @@ class Auth extends MY_Controller
           } else {
             foreach ($_POST['val'] as $id) {
               if ($id != $this->session->userdata('user_id')) {
-                $this->auth_model->delete_user($id);
+                User::delete(['id' => $id]);
               }
             }
             $this->session->set_flashdata('message', lang('users_deleted'));

@@ -102,7 +102,7 @@ class Debug extends MY_Controller
 
   public function session()
   {
-    $r = XSession::get('user_id');
+    $r = XSession::all();
 
     echo '<pre>';
     print_r($r);

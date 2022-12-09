@@ -108,15 +108,17 @@ class MY_Controller extends CI_Controller
     $this->loggedIn         = XSession::has('user_id');
 
     if ($this->loggedIn) {
+      $group = Group::getRow(['id' => XSession::get('group_id')]);
+
       $this->default_currency         = $this->site->getCurrencyByCode($this->Settings->default_currency);
       $this->data['default_currency'] = $this->default_currency;
-      $this->Owner                    = $this->sma->in_group('owner') ? true : null;
+      $this->Owner                    = ($group->name == 'owner' ? TRUE : FALSE);
       $this->data['Owner']            = $this->Owner;
       $this->Customer                 = $this->sma->in_group('customer') ? true : null;
       $this->data['Customer']         = $this->Customer;
       $this->Supplier                 = $this->sma->in_group('supplier') ? true : null;
       $this->data['Supplier']         = $this->Supplier;
-      $this->Admin                    = $this->sma->in_group('admin') ? true : null;
+      $this->Admin                    = ($group->name == 'admin' ? TRUE : FALSE);
       $this->data['Admin']            = $this->Admin;
 
       $this->isAdmin = ($this->Owner || $this->Admin ? TRUE : FALSE);

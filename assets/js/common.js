@@ -221,9 +221,13 @@ $(document).on('click', '[data-action="confirm"]', function (e) {
         success: (data) => {
           if (isObject(data)) {
             if (data.status == 200 || data.success || (typeof data.error != 'undefined' && !data.error)) {
-              if (typeof oTable == 'object') oTable.fnDraw(false);
-              if (typeof Table == 'object') Table.draw(false);
-              if (typeof Table2 == 'object') Table2.draw(false);
+              if (typeof oTable == 'object') {
+                oTable.fnDraw(false);
+              } else if (typeof Table == 'object') {
+                Table.draw(false);
+              } else if (typeof Table2 == 'object') {
+                Table2.draw(false);
+              }
 
               if (data.msg) data.message = data.msg;
 
@@ -364,14 +368,14 @@ function attachment(x) {
   if (x.length > 0 && isNumber(x)) {
     r =
       `<div class="text-center">
-        <a href="#" data-remote="${site.base_url}gallery/attachment/${x}?modal=1" data-toggle="modal" data-modal-class="modal-lg" data-target="#myModal">
+        <a href="${site.base_url}gallery/attachment/${x}?modal=1" data-toggle="modal" data-modal-class="modal-lg" data-target="#myModal">
           <i class="fad fa-file-download"></i>
         </a>
       </div>`;
   } else if (x != null && x.length > 10) {
     r =
       `<div class="text-center">
-        <a href="#" data-remote="${site.base_url}gallery/view?name=${x}" data-toggle="modal" data-modal-class="modal-lg" data-target="#myModal">
+        <a href="${site.base_url}gallery/view?name=${x}" data-toggle="modal" data-modal-class="modal-lg" data-target="#myModal">
           <i class="fad fa-file-download"></i>
         </a>
       </div>`;

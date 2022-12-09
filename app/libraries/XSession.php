@@ -7,9 +7,19 @@ declare(strict_types=1);
  */
 class XSession
 {
+  public static function all()
+  {
+    return $_SESSION;
+  }
+
   public static function delete(string $name)
   {
     unset($_SESSION[$name]);
+  }
+
+  public static function destroy()
+  {
+    return session_destroy();
   }
 
   public static function has(string $name)
