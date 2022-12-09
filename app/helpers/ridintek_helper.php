@@ -692,6 +692,15 @@ function generateInternalUseUniqueCode(string $category)
 }
 
 /**
+ * Generate payment code for payment validation.
+ * @return int Return payment code.
+ */
+function generateUniquePaymentCode()
+{
+  return mt_rand(1, 100);
+}
+
+/**
  * Generate Universally Unique Identifier.
  * @return string
  */

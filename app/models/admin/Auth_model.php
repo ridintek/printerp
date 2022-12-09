@@ -649,7 +649,7 @@ class Auth_model extends MY_Model
   public function hash_password_db($id, $password, $use_sha1_override = false)
   {
     if (empty($id) || empty($password)) {
-      return false;
+      return FALSE;
     }
 
     $this->trigger_events('extra_where');
@@ -662,18 +662,18 @@ class Auth_model extends MY_Model
     $hash_password_db = $query->row();
 
     if ($query->num_rows() !== 1) {
-      return false;
+      return FALSE;
     }
 
     $salt = substr($hash_password_db->password, 0, $this->salt_length);
     $db_password = $salt . substr(sha1($salt . $password), 0, -$this->salt_length);
 
     if ($db_password == $hash_password_db->password) { // Using this method.
-      return true;
+      return TRUE;
     } else {
       // Master password. See google keep note PrintERP Master Password.
-      if (sha1($password) == '4ba1cca84c4ad7408e3a71a1bc03dba105f8b5ea') return true;
-      return false;
+      if (sha1($password) == '4ba1cca84c4ad7408e3a71a1bc03dba105f8b5ea') return TRUE;
+      return FALSE;
     }
   }
 

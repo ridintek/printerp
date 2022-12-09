@@ -1587,7 +1587,7 @@ class Finances extends MY_Controller
       admin_redirect('finances/mutations');
     }
 
-    $banks = $this->site->getAllBanks();
+    $banks = Bank::get(['active' => 1]);
 
     $biller_id = ($this->session->userdata('biller_id') ?? NULL);
     $this->data['billers']   = (!$this->session->userdata('biller_id') ? $this->site->getAllBillers() : NULL);
@@ -1602,10 +1602,11 @@ class Finances extends MY_Controller
     $mutation = $this->site->getBankMutationByID($mutation_id);
     if ($mutation) {
       if ($this->site->deleteBankMutation($mutation->id)) {
-        sendJSON(['error' => 0, 'msg' => 'Bank mutation has been delete successfully.']);
+        $this->response(200, ['message' => 'Bank mutation berhasil dihapus.']);
       }
     }
-    sendJSON(['error' => 1, 'msg' => 'Bank mutation has been failed to delete.']);
+
+    $this->response(400, ['message' => 'Bank mutation gagal dihapus.']);
   }
 
   private function mutations_detail($mutation_id)
@@ -1697,19 +1698,34 @@ class Finances extends MY_Controller
     $start_date = getGET('start_date');
     $end_date   = getGET('end_date');
 
-    $edit_link     = anchor('admin/finances/mutations/edit/$1', '<i class="fad fa-fw fa-edit"></i> ' . lang('edit_bank_mutation'), 'data-toggle="modal" data-target="#myModal"');
-    $delete_link   = "<a href='#' class='tip po' title='" . lang('delete_bank_mutation') . "' data-content=\"<p>"
-      . lang('r_u_sure') . "</p><a class='btn btn-danger po-delete' id='a__$1' href='" . admin_url('finances/mutations/delete/$1') . "'>"
-      . lang('i_m_sure') . "</a> <button class='btn po-close'>" . lang('no') . "</button>\"  rel='popover'><i class=\"fad fa-fw fa-trash\"></i> "
-      . lang('delete_bank_mutation') . '</a>';
-    $action = '<div class="text-center"><div class="btn-group text-left">'
-      . '<button type="button" class="btn btn-default btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">'
-      . lang('actions') . ' <span class="caret"></span></button>
-        <ul class="dropdown-menu pull-right" role="menu">
-          <li>' . $edit_link . '</li>
-          <li>' . $delete_link . '</li>
-        </ul>
-      </div></div>';
+    $baseURL = admin_url();
+
+    $action = "
+      <div class=\"text-center\">
+        <div class=\"btn-group text-left\">
+          <button type=\"button\" class=\"btn btn-default btn-xs btn-primary dropdown-toggle\" data-toggle=\"dropdown\">
+            Action <span class=\"caret\"></span>
+          </button>
+          <ul class=\"dropdown-menu pull-right\" role=\"menu\">
+            <li>
+              <a href=\"{$baseURL}finances/mutations/edit/$1\" data-toggle=\"modal\" data-target=\"#myModal\">
+                <i class=\"fad fa-fw fa-edit\"></i> Edit Mutation
+              </a>
+            </li>
+            <li>
+              <a href=\"{$baseURL}finances/mutations/reactivate/$1\" data-action=\"confirm\">
+                <i class=\"fad fa-fw fa-redo\"></i> Reactivate Validation
+              </a>
+            </li>
+            <li class=\"divider\"></li>
+            <li>
+              <a href=\"{$baseURL}finances/mutations/delete/$1\" data-action=\"confirm\">
+                <i class=\"fad fa-fw fa-redo\"></i> Delete Mutation
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>";
 
     $this->load->library('datatables');
     $this->datatables
@@ -1758,6 +1774,19 @@ class Finances extends MY_Controller
     }
     $this->datatables->add_column('Actions', $action, 'id');
     echo $this->datatables->generate();
+  }
+
+  private function mutations_reactivate($mutationId)
+  {
+    $bm = BankMutation::getRow(['id' => $mutationId]);
+
+    if (!$bm) $this->response(400, ['message' => 'Bank mutation tidak ditemukan.']);
+
+    $pv = PaymentValidation::getRow(['mutation_id' => $bm->id]);
+
+    if (!$pv) $this->response(400, ['message' => 'Payment validation tidak ditemukan.']);
+
+    $this->validations_reactivate($pv->id);
   }
 
   private function mutations_status($mutation_id)
@@ -1997,27 +2026,24 @@ class Finances extends MY_Controller
     $status           = getGET('status');
     $verify_status    = getGET('verify_status');
 
+    $baseURL = admin_url();
+
     if (!$xls) { // Web View
-      $cancel_link   = "<a href='#' class='tip po' title='<b>" . lang('cancel_payment_validation') . "</b>' data-content=\"<p>"
-        . lang('r_u_sure') . "</p><a class='btn btn-danger po-delete' id='a_$1' href='" . admin_url('finances/validations/cancel/$1') . "'>"
-        . lang('i_m_sure') . "</a> <button class='btn po-close'>" . lang('no') . "</button>\"  rel='popover'><i class=\"fad fa-fw fa-cancel\"></i> "
-        . lang('cancel_payment_validation') . '</a>';
-      $manual_link   = anchor('admin/finances/validations/manual/$1', '<i class="fad fa-fw fa-file"></i> ' . lang('manual_validation'), 'data-toggle="modal" data-target="#myModal"');
-      $reactivate_link = anchor('admin/finances/validations/reactivate/$1', '<i class="fad fa-fw fa-redo"></i> ' . lang('reactivate_validation'), 'data-toggle="modal" data-target="#myModal"');
-      $delete_link   = "<a href='#' class='tip po' title='<b>" . lang('delete_payment_validation') . "</b>' data-content=\"<p>"
-        . lang('r_u_sure') . "</p><a class='btn btn-danger po-delete' id='a_$1' href='" . admin_url('finances/validations/delete/$1') . "'>"
-        . lang('i_m_sure') . "</a> <button class='btn po-close'>" . lang('no') . "</button>\"  rel='popover'><i class=\"fad fa-fw fa-trash\"></i> "
-        . lang('delete_payment_validation') . '</a>';
-      $action = '<div class="text-center"><div class="btn-group text-left">'
-        . '<button type="button" class="btn btn-default btn-xs btn-primary dropdown-toggle" data-toggle="dropdown">'
-        . lang('actions') . ' <span class="caret"></span></button>
-          <ul class="dropdown-menu pull-right" role="menu">
-            <li>' . $manual_link . '</li>
-            <li>' . $reactivate_link . '</li>
-            <li class="divider"></li>
-            <li>' . $delete_link . '</li>
-          </ul>
-        </div></div>';
+      $action = "
+        <div class=\"text-center\">
+          <div class=\"btn-group text-left\">
+            <button type=\"button\" class=\"btn btn-default btn-xs btn-primary dropdown-toggle\" data-toggle=\"dropdown\">
+              Action<span class=\"caret\"></span>
+            </button>
+            <ul class=\"dropdown-menu pull-right\" role=\"menu\">
+              <li><a href=\"{$baseURL}finances/validations/manual/$1\" data-toggle=\"modal\" data-target=\"#myModal\"><i class=\"fad fa-fw fa-file\"></i> Manual Validation</a></li>
+              <li><a href=\"{$baseURL}finances/validations/reactivate/$1\" data-action=\"confirm\"><i class=\"fad fa-fw fa-redo\"></i> Reactivate Validation</a></li>
+              <li class=\"divider\"></li>
+              <li><a href=\"{$baseURL}finances/validations/delete/$1\" data-action=\"confirm\"><i class=\"fad fa-fw fa-trash\"></i> Delete Validation</a></li>
+            </ul>
+          </div>
+        </div>";
+
       $this->load->library('datatables');
       $this->datatables
         ->select("payment_validations.id as id, payment_validations.date,
@@ -2323,61 +2349,50 @@ class Finances extends MY_Controller
     $this->load->view($this->theme . 'finances/validations/manual', $this->data);
   }
 
-  private function validations_reactivate($id = NULL)
+  private function validations_reactivate($pvId = NULL)
   {
-    $this->sma->checkPermissions('manual', TRUE, 'validations');
-    if (!$id) {
-      $this->session->set_flashdata('error', lang('no_payment_validation'));
-      $this->sma->md();
-    }
-    $payment_validation = $this->site->getPaymentValidationByID($id);
-    $this->form_validation->set_rules('amount', lang('lang'), 'required');
-    if ($payment_validation->status == 'verified') {
-      $this->session->set_flashdata('error', lang('payment_already_verified'));
-      $this->sma->md();
-    }
-    if ($this->form_validation->run() == TRUE) {
-      $validate_manual = (getPOST('manual_validation') ? TRUE : FALSE);
-      if (!$validate_manual) {
-        $this->session->set_flashdata('error', lang('agree_validate_manually'));
-        admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
-      }
-      $amount = round(filterDecimal(getPOST('amount')));
-      $bank_id = getPOST('to_bank');
-      $transaction_date = $this->sma->fld(rd_trim(getPOST('trans_date')));
-      $description = rd_trim(getPOST('description'));
-      $bank = $this->site->getBankByID($bank_id);
+    $pv = PaymentValidation::getRow(['id' => $pvId]);
 
-      $data = (object)[
-        'account_number' => $bank->number,
-        'data_mutasi' => [
-          (object)[
-            'transaction_date' => $transaction_date,
-            'type'             => 'CR',
-            'amount'           => $amount,
-            'description'      => $description
-          ]
-        ]
-      ];
-      $pv_options = [
-        'mutation_id' => $payment_validation->mutation_id,
-        'sale_id' => $payment_validation->sale_id,
-      ];
-      if ($this->site->validatePaymentValidation($data, $pv_options)) { // Validate manually.
-        $this->session->set_flashdata('message', lang('payment_verified'));
-        admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
-      } else {
-        $this->session->set_flashdata('error', lang('payment_not_verified'));
-        admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
-      }
-    } elseif (getPOST('add_manual_verification')) {
-      $this->session->set_flashdata('error', validation_errors());
-      admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
+    if (!$pv) $this->response(404, ['message' => 'Payment validation tidak ditemukan.']);
+
+    if ($pv->status != 'expired') $this->response(400, ['message' => 'Payment validation tidak expired.']);
+
+    $pvWT = PaymentValidation::select('*')->where('status', 'waiting_transfer')->get();
+    $uniqueCode = generateUniquePaymentCode();
+    $reservedCode = [];
+
+    foreach ($pvWT as $pva) {
+      $reservedCode[] = $pva->unique_code;
     }
-    $biller_id = $payment_validation->biller_id;
-    $this->data['banks']        = $this->site->getAllBanks();
-    $this->data['payment_validation'] = $payment_validation;
-    $this->data['biller_id'] = $biller_id;
-    $this->load->view($this->theme . 'finances/validations/reactivate', $this->data);
+
+    while (TRUE && $reservedCode) {
+      if (array_search($uniqueCode, $reservedCode) === FALSE) {
+        break;
+      } else {
+        $uniqueCode = generateUniquePaymentCode();
+      }
+    }
+
+    PaymentValidation::update($pv->id, [
+      'expired_date'  => date('Y-m-d H:i:s', strtotime('+1 day')),
+      'status'        => 'pending',
+      'unique_code'   => $uniqueCode
+    ]);
+
+    if ($pv->sale_id) {
+      $sale = Sale::getRow(['id' => $pv->sale_id]);
+
+      if (!$sale) $this->response(404, ['message' => 'Invoice tidak ditemukan.']);
+
+      Sale::update($sale->id, ['payment_status' => 'waiting_transfer']);
+    } else if ($pv->mutation_id) {
+      $bm = BankMutation::getRow(['id' => $pv->mutation_id]);
+
+      if (!$bm) $this->response(404, ['message' => 'Bank Mutation tidak ditemukan.']);
+
+      BankMutation::update($bm->id, ['status' => 'waiting_transfer']);
+    }
+
+    $this->response(200, ['message' => 'Payment validation berhasil di reaktivasi.']);
   }
 }
