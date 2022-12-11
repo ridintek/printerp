@@ -101,7 +101,7 @@
       <div class="row">
         <div class="col-md-12">
           <div class="form-group">
-            <label for="note">User Note</label>
+            <label for="note">Notes by User</label>
             <textarea class="form-control" name="note"><?= $report->note ?></textarea>
           </div>
         </div>
@@ -109,7 +109,7 @@
       <div class="row">
         <div class="col-md-12">
           <div class="form-group">
-            <label for="note">PIC/TS Note</label>
+            <label for="note">Notes by PIC/TS</label>
             <textarea class="form-control" name="pic_note"><?= $report->pic_note ?></textarea>
           </div>
         </div>
