@@ -51,8 +51,6 @@ class Authentication
 
     $sessionData = [
       'fullname'          => $user->fullname,
-      'first_name'        => $user->first_name,
-      'last_name'         => $user->last_name,
       'username'          => $user->username,
       'email'             => $user->email,
       'phone'             => $user->phone,
@@ -63,12 +61,12 @@ class Authentication
       'gender'            => $user->gender,
       'group_id'          => (int)$user->group_id,
       'group_name'        => $group->name,
-      'warehouse_id'      => (int)$user->warehouse_id,
+      'warehouse_id'      => ($warehouse ? $warehouse->id : NULL),
       'warehouse_name'    => ($warehouse ? $warehouse->name : NULL),
       'view_right'        => $user->view_right,
       'edit_right'        => $user->edit_right,
       'allow_discount'    => $user->allow_discount,
-      'biller_id'         => (int)$user->biller_id,
+      'biller_id'         => ($biller ? $biller->id : NULL),
       'biller_name'       => ($biller ? $biller->name : NULL),
       'show_cost'         => $user->show_cost,
       'show_price'        => $user->show_price,
