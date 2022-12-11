@@ -1034,6 +1034,8 @@ class Reports extends MY_Controller
         ->select("DATE_FORMAT(payments.date, '%Y-%m-%d %T') as date,
           payments.reference_date,
           payments.reference as payment_ref,
+          payments.expense_id, payments.income_id, payments.mutation_id, payments.purchase_id,
+          payments.sale_id, payments.transfer_id,
           users.username as pic_id,
           users.fullname as pic_name,
           billers.name as biller_name,
@@ -1108,17 +1110,19 @@ class Reports extends MY_Controller
         $excel->setCellValue('A1', 'Payment Date');
         $excel->setCellValue('B1', 'Reference Date');
         $excel->setCellValue('C1', 'Reference');
-        $excel->setCellValue('D1', 'PIC ID');
-        $excel->setCellValue('E1', 'PIC Name');
-        $excel->setCellValue('F1', 'Biller');
-        $excel->setCellValue('G1', 'Bank Name');
-        $excel->setCellValue('H1', 'Account Holder');
-        $excel->setCellValue('I1', 'Account No');
-        $excel->setCellValue('J1', 'Paid By');
-        $excel->setCellValue('K1', 'Note');
-        $excel->setCellValue('L1', 'Amount Received');
-        $excel->setCellValue('M1', 'Amount Sent');
-        $excel->setCellValue('N1', 'Type');
+        $excel->setCellValue('D1', 'Category'); // sale, expense, dsb
+        $excel->setCellValue('E1', 'Customer'); // 
+        $excel->setCellValue('F1', 'PIC ID');
+        $excel->setCellValue('G1', 'PIC Name');
+        $excel->setCellValue('H1', 'Biller');
+        $excel->setCellValue('I1', 'Bank Name');
+        $excel->setCellValue('J1', 'Account Holder');
+        $excel->setCellValue('K1', 'Account No');
+        $excel->setCellValue('L1', 'Paid By');
+        $excel->setCellValue('M1', 'Note');
+        $excel->setCellValue('N1', 'Amount Received');
+        $excel->setCellValue('O1', 'Amount Sent');
+        $excel->setCellValue('P1', 'Type');
 
         $row   = 2;
         $receivedTotal = 0;
@@ -1128,30 +1132,52 @@ class Reports extends MY_Controller
           $receivedAmount = ($payment->type == 'received' ? $payment->amount : '');
           $sentAmount     = ($payment->type == 'sent'     ? $payment->amount : '');
 
+          $paymentCategory = '';
+          $paymentReceiver = '';
+
+          if ($payment->expense_id) {
+            $paymentCategory = 'Expense';
+          } else if ($payment->income_id) {
+            $paymentCategory = 'Income';
+          } else if ($payment->mutation_id) {
+            $paymentCategory = 'Bank Mutation';
+          } else if ($payment->purchase_id) {
+            $paymentCategory = 'Purchase';
+          } else if ($payment->sale_id) {
+            $paymentCategory = 'Sale';
+            $customer = Customer::getRow(['id' => Sale::getRow(['id' => $payment->sale_id])->customer_id]);
+            $paymentReceiver = $customer->name . ($customer->company ? "({$customer->company})" : '');
+          } else if ($payment->transfer_id) {
+            $paymentCategory = 'Product Transfer';
+            $paymentReceiver = '';
+          }
+
           $excel->setCellValue('A' . $row, date('Y-m-d', strtotime($payment->date)));
           $excel->setCellValue('B' . $row, (new DateTime($payment->reference_date))->format('Y-m-d'));
           $excel->setCellValue('C' . $row, $payment->payment_ref);
-          $excel->setCellValue('D' . $row, $payment->pic_id);
-          $excel->setCellValue('E' . $row, $payment->pic_name);
-          $excel->setCellValue('F' . $row, $payment->biller_name);
-          $excel->setCellValue('G' . $row, $payment->bank_name);
-          $excel->setCellValue('H' . $row, $payment->acc_holder);
-          $excel->setCellValue('I' . $row, $payment->acc_number, DataType::TYPE_STRING);
-          $excel->setCellValue('J' . $row, lang($payment->method));
-          $excel->setCellValue('K' . $row, htmlRemove($payment->note));
-          $excel->setCellValue('L' . $row, $receivedAmount);
-          $excel->setCellValue('M' . $row, $sentAmount);
-          $excel->setCellValue('N' . $row, $payment->type);
+          $excel->setCellValue('D' . $row, $paymentCategory);
+          $excel->setCellValue('E' . $row, $paymentReceiver);
+          $excel->setCellValue('F' . $row, $payment->pic_id);
+          $excel->setCellValue('G' . $row, $payment->pic_name);
+          $excel->setCellValue('H' . $row, $payment->biller_name);
+          $excel->setCellValue('I' . $row, $payment->bank_name);
+          $excel->setCellValue('J' . $row, $payment->acc_holder);
+          $excel->setCellValue('K' . $row, $payment->acc_number, DataType::TYPE_STRING);
+          $excel->setCellValue('L' . $row, lang($payment->method));
+          $excel->setCellValue('M' . $row, htmlRemove($payment->note));
+          $excel->setCellValue('N' . $row, $receivedAmount);
+          $excel->setCellValue('O' . $row, $sentAmount);
+          $excel->setCellValue('P' . $row, $payment->type);
 
           $receivedTotal += ($payment->type == 'received' ? $payment->amount : 0);
           $sentTotal     += ($payment->type == 'sent'     ? $payment->amount : 0);
           $row++;
         }
 
-        $excel->setCellValue('L' . $row, $receivedTotal);
-        $excel->setCellValue('M' . $row, $sentTotal);
-        $excel->setCellValue('L' . ($row + 1), 'Grand Total');
-        $excel->setCellValue('M' . ($row + 1), $receivedTotal - $sentTotal);
+        $excel->setCellValue('N' . $row, $receivedTotal);
+        $excel->setCellValue('O' . $row, $sentTotal);
+        $excel->setCellValue('N' . ($row + 1), 'Grand Total');
+        $excel->setCellValue('O' . ($row + 1), $receivedTotal - $sentTotal);
 
         $excel->setColumnAutoWidth('A');
         $excel->setColumnAutoWidth('B');
@@ -1163,10 +1189,12 @@ class Reports extends MY_Controller
         $excel->setColumnAutoWidth('H');
         $excel->setColumnAutoWidth('I');
         $excel->setColumnAutoWidth('J');
-        // $excel->setColumnAutoWidth('K'); // Too wide.
+        $excel->setColumnAutoWidth('K');
         $excel->setColumnAutoWidth('L');
-        $excel->setColumnAutoWidth('M');
+        // $excel->setColumnAutoWidth('M'); // Too wide.
         $excel->setColumnAutoWidth('N');
+        $excel->setColumnAutoWidth('O');
+        $excel->setColumnAutoWidth('P');
 
         $name = $this->session->userdata('fullname');
 
