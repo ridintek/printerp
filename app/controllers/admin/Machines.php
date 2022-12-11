@@ -21,7 +21,7 @@ class Machines extends MY_Controller
     $endDate    = (getGET('end_date') ?? date('Y-m-d'));
     $condition  = getGET('condition');
     $code       = getGET('code');
-    $warehouses = $this->session->userdata('warehouse_id') ?? getGET('warehouse');
+    $warehouses = XSession::get('warehouse_id') ?? getGET('warehouse');
     $whNames = [];
 
     if ($warehouses) {
@@ -348,7 +348,7 @@ class Machines extends MY_Controller
 
       if (empty($picId)) $picId = NULL;
 
-      if (empty($condition)) $this->response(400, ['message' => 'Condition must be set.']);
+      if (empty($condition)) $this->response(400, ['message' => 'Condition harus di isi.']);
 
       if (($condition == 'off' || $condition == 'trouble') && empty($note)) {
         $this->response(400, ['message' => 'Note tidak boleh kosong.']);
