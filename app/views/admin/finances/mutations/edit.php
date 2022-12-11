@@ -139,7 +139,7 @@
     <?php
         $bal = [];
         foreach ($banks as $bank) {
-          $bal[$bank->id] = $bank->balance;
+          $bal[$bank->id] = $bank->amount;
         }
     ?>
       let bal = JSON.parse('<?= json_encode($bal); ?>');
@@ -149,7 +149,7 @@
     <?php
         $bal = [];
         foreach ($banks as $bank) {
-          $bal[$bank->id] = $bank->balance;
+          $bal[$bank->id] = $bank->amount;
         }
     ?>
       let bal = JSON.parse('<?= json_encode($bal); ?>');

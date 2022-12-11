@@ -17,25 +17,28 @@
         </div>
       </div>
       <div class="col-md-6">
-        <?php if ($Owner || $Admin || !$this->session->userdata('biller_id')) { ?>
-        <div class="form-group">
-          <?= lang('biller', 'biller'); ?>
-          <?php
-          $bl[''] = '';
-          if ($billers) {
-            foreach ($billers as $biller) {
+        <?php if ($Owner || $Admin || !XSession::get('biller_id')) { ?>
+          <div class="form-group">
+            <?= lang('biller', 'biller'); ?>
+            <?php
+            $bl = [];
+            $bl[''] = '';
+            if ($billerId = XSession::get('biller_id')) {
+              $biller = Biller::getRow(['id' => $billerId]);
               $bl[$biller->id] = $biller->name;
+            } else {
+              foreach (Biller::get(['active' => 1]) as $biller) {
+                $bl[$biller->id] = $biller->name;
+              }
             }
-          } else {
-            $bl[$biller->id] = $biller->name;
-          }
-          echo form_dropdown('biller', $bl, ($biller_id ?? $this->Settings->default_biller), 'id="biller" class="form-control input-tip select2" placeholder="Select Biller" style="width:100%;"');
-          ?>
-        </div>
+
+            echo form_dropdown('biller', $bl, '', 'id="biller" class="form-control input-tip select2" data-placeholder="Select Biller" style="width:100%;"');
+            ?>
+          </div>
         <?php } else { ?>
-        <div class="form-group">
-          <input name="biller" type="hidden" value="<?= ($biller_id ?? $this->Settings->default_biller); ?>" />
-        </div>
+          <div class="form-group">
+            <input name="biller" type="hidden" value="<?= XSession::get('biller_id'); ?>" />
+          </div>
         <?php } ?>
       </div>
     </div>
@@ -52,7 +55,7 @@
         <div class="col-md-6">
           <div class="form-group">
             <?= lang('amount', 'amount'); ?>
-            <input name="amount" type="text" id="amount" value="" class="pa form-control kb-pad currency" required="required"/>
+            <input name="amount" type="text" id="amount" value="" class="pa form-control kb-pad currency" required="required" />
           </div>
         </div>
       </div>
@@ -67,11 +70,9 @@
                 <?php
                 $bk = [];
                 $bk[''] = '';
-                if ( ! empty($banks)) {
-                  foreach ($banks as $bank) {
-                    if ($biller_id && $biller_id != $bank->biller_id) continue;
-                    $bk[$bank->id] = $bank->name . ($bank->type != 'Cash' ? ' (' . $bank->number . ')' : '');
-                  }
+                foreach (Bank::get(['active' => 1]) as $bank) {
+                  if (XSession::get('biller_id') && XSession::get('biller_id') != $bank->biller_id) continue;
+                  $bk[$bank->id] = $bank->name . ($bank->type != 'Cash' ? ' (' . $bank->number . ')' : '');
                 }
                 ?>
                 <?= form_dropdown('from_bank_id', $bk, '', 'class="form-control tip from_bank select2" id="from_bank_id" data-placeholder="Select Account From" required="required" style="width:100%;"'); ?>
@@ -89,27 +90,23 @@
                 <?php
                 $bk = [];
                 $bk[''] = '';
-                if ( ! empty($banks)) {
-                  foreach ($banks as $bank) {
-                    if ($biller_id && $biller_id != $bank->biller_id) continue;
-                    if ($bank->type != 'Cash') continue;
-                    $bk[$bank->id] = $bank->name . ' (' . $bank->number . ')';
-                  }
+                foreach (Bank::get(['active' => 1]) as $bank) {
+                  if (XSession::get('biller_id') && XSession::get('biller_id') != $bank->biller_id) continue;
+                  if ($bank->type != 'Cash') continue;
+                  $bk[$bank->id] = $bank->name . ' (' . $bank->number . ')';
                 }
                 ?>
                 <?= form_dropdown('to_bank_id', $bk, '', 'class="form-control tip to_bank to_cash select2" id="to_cash" data-placeholder="Select Account To" required="required" style="width:100%;"'); ?>
               </div>
               <div class="col-md-6" id="paid_transfer">
-              <?= lang('account', 'account') . ' ' . lang('to', 'to_transfer'); ?>
+                <?= lang('account', 'account') . ' ' . lang('to', 'to_transfer'); ?>
                 <?php
                 $bk = [];
                 $bk[''] = '';
-                if ( ! empty($banks)) {
-                  foreach ($banks as $bank) {
-                    if ($biller_id && $biller_id != $bank->biller_id) continue;
-                    if ($bank->type == 'Cash') continue;
-                    $bk[$bank->id] = $bank->name . ' (' . $bank->number . ')';
-                  }
+                foreach (Bank::get(['active' => 1]) as $bank) {
+                  if (XSession::get('biller_id') && XSession::get('biller_id') != $bank->biller_id) continue;
+                  if ($bank->type == 'Cash') continue;
+                  $bk[$bank->id] = $bank->name . ' (' . $bank->number . ')';
                 }
                 ?>
                 <?= form_dropdown('to_bank_id', $bk, '', 'class="form-control tip to_bank to_transfer select2" id="to_transfer" data-placeholder="Select Account To" required="required" style="width:100%;"'); ?>
@@ -127,8 +124,7 @@
       <div class="col-md-12">
         <div class="form-group">
           <?= lang('attachment', 'attachment') ?>
-          <input id="attachment" type="file" data-browse-label="<?= lang('browse'); ?>" name="userfile" data-show-upload="false"
-          data-show-preview="false" class="form-control file">
+          <input id="attachment" type="file" data-browse-label="<?= lang('browse'); ?>" name="userfile" data-show-upload="false" data-show-preview="false" class="form-control file">
         </div>
       </div>
     </div>
@@ -144,9 +140,9 @@
   <div class="modal-footer">
     <div class="row">
       <div class="col-md-6">
-      <?php if ($Owner || $Admin || $GP['mutations-manual']) { ?>
-        <label><input type="checkbox" name="skip_pv" value="1"> Skip Payment Validation</label>
-      <?php } ?>
+        <?php if ($Owner || $Admin || $GP['mutations-manual']) { ?>
+          <label><input type="checkbox" name="skip_pv" value="1"> Skip Payment Validation</label>
+        <?php } ?>
       </div>
       <div class="col-md-6">
         <?php echo form_submit('add_bank_mutation', lang('add_bank_mutation'), 'class="btn btn-primary"'); ?>
@@ -158,11 +154,12 @@
 <script type="text/javascript" src="<?= $assets ?>js/custom.js"></script>
 <script src="<?= $assets ?>js/modal.js?v=<?= $res_hash ?>"></script>
 <script type="text/javascript" charset="UTF-8">
-  $(document).ready(function () {
-    let to_old_value = 0, from_old_value = 0;
+  $(document).ready(function() {
+    let to_old_value = 0,
+      from_old_value = 0;
     let paid_by = $('#paid_by').val();
 
-    $('#paid_by').on('select2-close', function () {
+    $('#paid_by').on('select2-close', function() {
       paid_by = $(this).val();
       if (paid_by == 'Cash') {
         $('#paid_transfer').hide();
@@ -181,19 +178,19 @@
     $('#paid_cash').hide();
     $('.to_cash').prop('disabled', true);
 
-    $('.from_bank').on('select2:open', function () {
+    $('.from_bank').on('select2:open', function() {
       from_old_value = $(this).val();
     }).on('select2:select', function() {
       if ($(this).val() != '' && $(this).val() == $(`#to_${paid_by.toLowerCase()}`).val()) {
         $(this).val(from_old_value).trigger('change');
         bootbox.alert('Akun bank tidak boleh sama.');
       }
-    <?php
-        $bal = [];
-        foreach ($banks as $bank) {
-          $bal[$bank->id] = $bank->balance;
-        }
-    ?>
+      <?php
+      $bal = [];
+      foreach (Bank::get(['active' => 1]) as $bank) {
+        $bal[$bank->id] = $bank->amount;
+      }
+      ?>
       let bal = JSON.parse('<?= json_encode($bal); ?>');
       $('#balance_from').html(currencyFormat(bal[$(this).val()]));
     });
@@ -205,17 +202,17 @@
         $(this).val(to_old_value).trigger('change');
         bootbox.alert('Akun bank tidak boleh sama.');
       }
-    <?php
-        $bal = [];
-        foreach ($banks as $bank) {
-          $bal[$bank->id] = $bank->balance;
-        }
-    ?>
+      <?php
+      $bal = [];
+      foreach (Bank::get(['active' => 1]) as $bank) {
+        $bal[$bank->id] = $bank->amount;
+      }
+      ?>
       let bal = JSON.parse('<?= json_encode($bal); ?>');
       $('#balance_to').html(currencyFormat(bal[$(this).val()]));
     });
 
-    $.fn.datetimepicker.dates['sma'] = <?=$dp_lang?>;
+    $.fn.datetimepicker.dates['sma'] = <?= $dp_lang ?>;
     $("#date").datetimepicker({
       format: site.dateFormats.js_ldate,
       autoclose: true,
