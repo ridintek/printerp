@@ -17,6 +17,38 @@ class Debug extends MY_Controller
     echo "Index";
   }
 
+  public function fix_sales_20221212()
+  {
+    $sales = DB::table('sales')->orderBy('id', 'DESC')->get();
+    $oldRef = '';
+
+    foreach ($sales as $sale) {
+      // if (strcasecmp($oldRef, $sale->reference) == 0) {
+      //   // INV-2022/12/2009
+      //   $num = intval(explode('/', $sale->reference)[2]);
+      //   $num++;
+      //   Sale::update((int)$sale->id, ['reference' => substr($sale->reference, 0, 12)]);
+      //   continue;
+      // }
+
+      if (strlen($sale->reference) == 12) {
+        if (strlen($oldRef) <= 12) continue;
+
+        $num = intval(explode('/', $oldRef)[2]);
+        $num++;
+
+        $ref = $sale->reference . $num;
+        $oldRef = $ref;
+
+        Sale::update((int)$sale->id, ['reference' => $ref]);
+      }
+
+      if (strlen($sale->reference) > 12) $oldRef = $sale->reference;
+    }
+
+    echo "OK";
+  }
+
   public function gencode()
   {
     $r = generateInternalUseUniqueCode('sparepart');

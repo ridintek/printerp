@@ -129,6 +129,8 @@ class Sale
         ]);
       }
 
+      OrderRef::updateReference('sale');
+
       if ($isSpecialCustomer) addSaleDueDate($sale->id);
 
       addEvent("Created Sale [{$sale->id}: {$sale->reference}]");
