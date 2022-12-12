@@ -14,7 +14,7 @@
               <?php $users = $this->site->getUsers(); ?>
               <?php foreach ($users as $user) :
                 if (!$isAdmin) {
-                  if ($user->id != $this->session->userdata('user_id')) continue;
+                  if ($user->id != XSession::get('user_id')) continue;
                 }
               ?>
                 <option value="<?= $user->id ?>"><?= $user->first_name . ' ' . $user->last_name ?></option>

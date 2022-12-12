@@ -14,7 +14,7 @@
               <?php $users = $this->site->getUsers(); ?>
               <?php foreach ($users as $user) :
                 if (!$isAdmin && ($review->created_by != $user->id)) {
-                  if ($user->id != $this->session->userdata('user_id')) continue;
+                  if ($user->id != XSession::get('user_id')) continue;
                 }
               ?>
                 <option value="<?= $user->id ?>" <?= $review->created_by == $user->id ? ' selected' : '' ?>><?= $user->fullname ?></option>
@@ -39,8 +39,8 @@
                 $selected = '';
 
                 if (!$isAdmin) {
-                  if ($this->session->userdata('biller_id')) {
-                    if ($biller->id != $this->session->userdata('biller_id')) continue;
+                  if (XSession::get('biller_id')) {
+                    if ($biller->id != XSession::get('biller_id')) continue;
                   }
                 }
               ?>
@@ -57,7 +57,7 @@
               <?php $users = $this->site->getUsers(); ?>
               <?php foreach ($users as $user) :
                 if (!$isAdmin && ($review->pic_id != $user->id)) {
-                  if ($user->id != $this->session->userdata('user_id')) continue;
+                  if ($user->id != XSession::get('user_id')) continue;
                 }
               ?>
                 <option value="<?= $user->id ?>" <?= $review->pic_id == $user->id ? ' selected' : '' ?>><?= $user->fullname ?></option>

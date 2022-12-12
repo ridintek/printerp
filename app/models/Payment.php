@@ -26,32 +26,35 @@ class Payment
       $inv = Sale::getRow(['id' => $data['sale_id']]);
     } else if (isset($data['purchase_id'])) {
       $inv = Purchase::getRow(['id' => $data['purchase_id']]);
-    } else if (isset($data['pt_id'])) {
-      // Since ProductTransfer using same transfer_id in payments. We filtered it.
-      $inv = ProductTransfer::getRow(['id' => $data['pt_id']]);
-      $data['transfer_id'] = $data['pt_id'];
-      unset($data['pt_id']);
     } else if (isset($data['transfer_id'])) {
-      $inv = Transfer::getRow(['id' => $data['transfer_id']]);
+      $inv = ProductTransfer::getRow(['id' => $data['transfer_id']]);
     } else if (isset($data['mutation_id'])) {
       $inv = BankMutation::getRow(['id' => $data['mutation_id']]);
     }
 
     $bank = Bank::getRow(['id' => $data['bank_id']]);
 
-    $data['type'] = ($data['type'] ?? ($data['amount'] > 0 ? 'received' : 'sent')); // As info only.
+    if (!$bank) {
+      setLastError('Bank is not valid.');
+      mutexRelease($hMutex);
+      return FALSE;
+    }
 
-    $data['reference'] = $inv->reference;
-    $data['biller_id'] = $bank->biller_id;
+    // If type is not defined, sent or received depended on amount.
+    $data['type'] = ($data['type'] ?? ($data['amount'] < 0 ? 'sent' : 'received'));
+
+    $data['reference_date'] = ($data['reference_date'] ?? $inv->created_at);
+    $data['reference']      = $inv->reference;
+    $data['biller_id']      = $bank->biller_id;
 
     DB::table('payments')->insert($data);
 
     if (DB::affectedRows()) {
       $insertId = DB::insertID();
 
-      if ($data['amount'] > 0) {
+      if ($data['type'] == 'received') {
         Bank::amountIncrease((int)$bank->id, floatval($data['amount']));
-      } else if ($data['amount'] < 0) {
+      } else if ($data['type'] == 'sent') {
         Bank::amountDecrease((int)$bank->id, floatval($data['amount']));
       } else {
         setLastError('Amount is zero.');
@@ -66,7 +69,7 @@ class Payment
   }
 
   /**
-   * Add new payment.
+   * Add new payment. DON'T USE IT!
    * If **amount** is plus the type is received, sent if minus.
    * 
    * @param array $data [date, *(expense_id, income_id, mutation_id, sale_id, purchase_id, transfer_id),

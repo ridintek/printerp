@@ -279,7 +279,7 @@ class Sales extends MY_Controller
         if ($customerGroup->name == 'TOP') { // Prevent CS create sale without attachment for Customer TOP.
           $this->session->set_flashdata('error', lang('top_no_attachment'));
           redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
-        } else if ($this->session->userdata('group_name') == 'tl' && $saleOptions !== 'noattachment') {
+        } else if (XSession::get('group_name') == 'tl' && $saleOptions !== 'noattachment') {
           // If TL add sale not from counter. must include attachment.
           $this->session->set_flashdata('error', lang('attachment_required'));
           redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
@@ -287,8 +287,8 @@ class Sales extends MY_Controller
       }
     }
 
-    if ($this->form_validation->run() == true) {
-      if ($sale_id = $this->site->addSale($saleData, $sale_items)) {
+    if ($this->form_validation->run()) {
+      if ($sale_id = Sale::add($saleData, $sale_items)) {
         $sale = $this->site->getSaleByID($sale_id);
 
         $paymentDueDate = date('Y-m-d H:i:s', strtotime('+1 days')); // 1 day expired.
@@ -303,14 +303,14 @@ class Sales extends MY_Controller
             'created_by'   => $created_by
           ];
 
-          if ($this->site->addPaymentValidation($pv_data)) {
-            $this->site->updateSale($sale_id, [
+          if (PaymentValidation::add($pv_data)) {
+            Sale::update((int)$sale_id, [
               'payment_due_date' => $paymentDueDate,
               'payment_status' => 'waiting_transfer'
             ]);
 
             $hMutex = mutexCreate('syncSales', TRUE);
-            $this->site->syncSales(['sale_id' => $sale_id]);
+            Sale::sync(['sale_id' => $sale_id]);
             mutexRelease($hMutex);
           }
         }
@@ -392,7 +392,7 @@ class Sales extends MY_Controller
 
   public function add_payment($sale_id = null) // Add Payment for Sale
   {
-    if ($this->session->userdata('biller_name') != 'Online') { // Online can always use transfer.
+    if (XSession::get('biller_name') != 'Online') { // Online can always use transfer.
       // $this->sma->checkUserPermissions('sales-payments', 0, ['modal' => TRUE]); // New Check Permissions method.
     }
 
@@ -405,6 +405,7 @@ class Sales extends MY_Controller
     mutexRelease($hMutex);
 
     $sale = $this->site->getSaleByID($sale_id);
+
     if ($sale->payment_status == 'paid' && $sale->grand_total == $sale->paid) {
       $this->session->set_flashdata('error', lang('sale_already_paid'));
       $this->sma->md();
@@ -424,7 +425,6 @@ class Sales extends MY_Controller
       $created_by              = getPOST('created_by');
       $date                    = $this->serverDateTime;
       $payment_method          = getPOST('payment_method');
-      $sale                    = $this->site->getSaleByID($sale_id);
       $skip_payment_validation = (getPOST('skip_payment_validation') == 'true' ? TRUE : FALSE);
       $user                    = $this->site->getUserByID($created_by);
       $customer                = $this->site->getCustomerByID($sale->customer_id);
@@ -455,7 +455,7 @@ class Sales extends MY_Controller
         'bank_id'    => $bank_id,
         'method'     => $payment_method, // Cash / EDC / Transfer
         'note'       => htmlEncode(getPOST('note')),
-        'created_by' => (!empty($created_by) ? $created_by : $this->session->userdata('user_id')),
+        'created_by' => (!empty($created_by) ? $created_by : XSession::get('user_id')),
         'type'       => 'received' // Always received.
       ];
 
@@ -478,33 +478,30 @@ class Sales extends MY_Controller
         if (empty($customer->payment_term)) $customer->payment_term = 1; // If empty customer payment term, set it to 1.
         $expired_date = strtotime("+2 days", strtotime($date)); // Expired date always 2 days.
 
-        $pv_data = [
+        $pvData = [
           'date'         => $date,
           'expired_date' => date('Y-m-d H:i:s', $expired_date),
           'reference'    => $sale->reference,
           'sale_id'      => $payment['sale_id'],
           'amount'       => $payment['amount'],
           'created_by'   => $payment['created_by'],
-          'biller_id'    => (isset($bank) ? $bank->biller_id : $this->session->userdata('biller_id')), // Do not change.
+          'biller_id'    => (isset($bank) ? $bank->biller_id : $sale->biller_id), // Do not change.
           'unique_code'  => (!empty(getPOST('use_unique_code')) ? getPOST('unique_code') : NULL)
         ];
 
-        if ($this->Owner) {
-          //rd_print($pv_data); die();
-        }
+        if ($pvId = PaymentValidation::add($pvData)) {
+          $pv = PaymentValidation::getRow(['id' => $pvId]);
 
-        if ($pv_id = $this->site->addPaymentValidation($pv_data)) {
-          $pv = $this->site->getPaymentValidationByID($pv_id); // Get new payment validation id.
-          $this->site->updateSale($pv_data['sale_id'], [
+          Sale::update((int)$pvData['sale_id'], [
             'payment_status' => 'waiting_transfer'
           ]);
 
           $hMutex = mutexCreate('syncSales', TRUE);
-          $this->site->syncSales(['sale_id' => $pv_data['sale_id']]);
+          Sale::sync(['sale_id' => $pvData['sale_id']]);
           mutexRelease($hMutex);
 
           if ($skip_payment_validation) {
-            $vpv_data = (object)[
+            $vpvData = (object)[
               'account_number' => $bank->number,
               'data_mutasi' => [
                 (object)[
@@ -516,14 +513,14 @@ class Sales extends MY_Controller
               ]
             ];
 
-            $vpv_opts = [
+            $vpvOpts = [
               'sale_id' => $sale_id,
               'manual'  => TRUE,
             ];
 
-            if (!empty($payment['attachment_id'])) $vpv_opts['attachment_id'] = $payment['attachment_id'];
+            if (!empty($payment['attachment_id'])) $vpvOpts['attachment_id'] = $payment['attachment_id'];
 
-            $ret = $this->site->validatePaymentValidation($vpv_data, $vpv_opts);
+            $ret = $this->site->validatePaymentValidation($vpvData, $vpvOpts);
 
             if ($ret) {
               sendJSON(['error' => 0, 'msg' => 'Manual payment validation has been added successfully.']);
@@ -531,9 +528,9 @@ class Sales extends MY_Controller
               sendJSON(['error' => 1, 'msg' => 'Manual payment validation has been failed to add.']);
             }
           }
-          sendJSON(['error' => 0, 'msg' => lang('payment_validation_added')]);
+          sendJSON(['error' => 0, 'msg' => 'Payment Validation berhasil ditambahkan.']);
         } else {
-          sendJSON(['error' => 1, 'msg' => lang('payment_validation_add_fail')]);
+          sendJSON(['error' => 1, 'msg' => 'Payment Validation gagal ditambahkan']);
         }
       }
     } elseif (getPOST('add_payment')) {
@@ -541,8 +538,7 @@ class Sales extends MY_Controller
     }
 
     if ($this->form_validation->run() == true) {
-      if ($this->site->addSalePayment($payment)) { // Add Sale payment.
-        //$this->email_sale_status($id, lang('waiting_production'));
+      if (Sale::addPayment($payment)) { // Add Sale payment.
         sendJSON(['error' => 0, 'msg' => lang('payment_added')]);
       } else {
         sendJSON(['error' => 1, 'msg' => 'Add Payment Failed']);
@@ -551,11 +547,11 @@ class Sales extends MY_Controller
       if (getPOST('add_payment')) {
         sendJSON(['error' => 1, 'msg' => 'Add Payment Failed']);
       }
-      $payment_validation = $this->site->getPaymentValidationBySaleID($sale->id);
+      $paymentValidation = PaymentValidation::getRow(['sale_id' => $sale->id]);
 
-      $this->data['customer']           = $this->site->getCustomerByID($sale->customer_id);
-      $this->data['payment_validation'] = ($payment_validation ?? NULL);
-      $this->data['waiting_transfer']    = ($sale->payment_status == 'waiting_transfer' ? 1 : 0);
+      $this->data['customer']           = Customer::getRow(['id' => $sale->customer_id]);
+      $this->data['payment_validation'] = ($paymentValidation ?? NULL);
+      $this->data['waiting_transfer']   = ($sale->payment_status == 'waiting_transfer' ? 1 : 0);
       $this->data['inv']                = $sale;
       $this->data['settings_json']      = json_decode($this->site->get_setting()->settings_json);
 
@@ -707,7 +703,7 @@ class Sales extends MY_Controller
               'amount'     => $sale->grand_total - $discount,
               'method'     => 'Transfer',
               'bank_id'    => $bankId,
-              'created_by' => $this->session->userdata('user_id'),
+              'created_by' => XSession::get('user_id'),
               'type'       => 'received'
             ]);
             $hMutex = mutexCreate('syncSales', TRUE);
@@ -748,7 +744,7 @@ class Sales extends MY_Controller
         $this->editMode == 'edit' && !getPermission('sales-edit') ||
         $this->editMode == 'operator' && !getPermission('sales-edit_operator')
       ) {
-        if ($sale->status != 'draft' || $sale->created_by != $this->session->userdata('user_id')) {
+        if ($sale->status != 'draft' || $sale->created_by != XSession::get('user_id')) {
           $this->session->set_flashdata('error', lang('access_denied'));
           redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
         }
@@ -887,7 +883,7 @@ class Sales extends MY_Controller
         'status'         => $status,
         'discount'       => $discount,
         'payment_status' => $payment_status,
-        'updated_by'     => $this->session->userdata('user_id'),
+        'updated_by'     => XSession::get('user_id'),
         'updated_at'     => date('Y-m-d H:i:s'),
         'approved'       => $approved
       ];
@@ -1051,7 +1047,7 @@ class Sales extends MY_Controller
       $this->data['inv_items'] = json_encode($pr);
 
       $this->data['id']        = $id;
-      $this->data['billers']    = ($this->Owner || $this->Admin || !$this->session->userdata('biller_id')) ? $this->site->getAllBillers() : null;
+      $this->data['billers']    = ($this->Owner || $this->Admin || !XSession::get('biller_id')) ? $this->site->getAllBillers() : null;
       $this->data['units']      = $this->site->getAllBaseUnits();
       $this->data['warehouses'] = $this->site->getWarehouses();
       $this->data['edit_mode']  = $this->editMode;
@@ -1117,7 +1113,7 @@ class Sales extends MY_Controller
         'bank_id'       => $bank_id,
         'method'        => $payment_method, // Cash / EDC / Transfer
         'note'          => $this->sma->clear_tags(getPOST('note')),
-        'created_by'    => ($created_by ?? $this->session->userdata('user_id')),
+        'created_by'    => ($created_by ?? XSession::get('user_id')),
         'type'          => 'received'
       ];
 
@@ -1300,8 +1296,8 @@ class Sales extends MY_Controller
     $group_by       = getGET('group_by')   ?? 'sale';
     $xls            = (getGET('xls') == 1 ? TRUE : FALSE);
 
-    if (!$this->Owner && !$this->Admin && $this->session->userdata('biller_id')) {
-      $user = $this->site->getUserByID($this->session->userdata('user_id'));
+    if (!$this->Owner && !$this->Admin && XSession::get('biller_id')) {
+      $user = $this->site->getUserByID(XSession::get('user_id'));
       $userJS = getJSON($user->json_data);
 
       if (isset($userJS->biller_access)) { // Add new access to specified billers.
@@ -1310,12 +1306,12 @@ class Sales extends MY_Controller
         }
       }
 
-      $biller_id = $this->session->userdata('biller_id');
+      $biller_id = XSession::get('biller_id');
       $billers[] = $biller_id;
     }
 
-    if (!$this->Owner && !$this->Admin && $this->session->userdata('warehouse_id')) {
-      $warehouse_id = $this->session->userdata('warehouse_id');
+    if (!$this->Owner && !$this->Admin && XSession::get('warehouse_id')) {
+      $warehouse_id = XSession::get('warehouse_id');
       $warehouses[] = $warehouse_id;
     }
 
@@ -1479,10 +1475,10 @@ class Sales extends MY_Controller
         $this->datatables->where('payment_status !=', 'paid')->where('attachment !=', null);
       }
 
-      if (!$this->Customer && !$this->Supplier && !$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
-        $this->datatables->where('created_by', $this->session->userdata('user_id'));
+      if (!$this->Customer && !$this->Supplier && !$this->Owner && !$this->Admin && !XSession::get('view_right')) {
+        $this->datatables->where('created_by', XSession::get('user_id'));
       } elseif ($this->Customer) {
-        $this->datatables->where('customer_id', $this->session->userdata('user_id'));
+        $this->datatables->where('customer_id', XSession::get('user_id'));
       }
 
       if (!empty($group_by)) {
@@ -1585,10 +1581,10 @@ class Sales extends MY_Controller
         $this->db->where('payment_status !=', 'paid')->where('attachment !=', null);
       }
 
-      if (!$this->Customer && !$this->Supplier && !$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
-        $this->db->where('created_by', $this->session->userdata('user_id'));
+      if (!$this->Customer && !$this->Supplier && !$this->Owner && !$this->Admin && !XSession::get('view_right')) {
+        $this->db->where('created_by', XSession::get('user_id'));
       } elseif ($this->Customer) {
-        $this->db->where('customer_id', $this->session->userdata('user_id'));
+        $this->db->where('customer_id', XSession::get('user_id'));
       }
 
       $this->db->order_by('sales.id', 'DESC');
@@ -1891,11 +1887,11 @@ class Sales extends MY_Controller
     $this->data['biller'] = $this->site->getBillerByID($biller_id);
 
     if (!$this->Owner && !$this->Admin) {
-      if ($this->session->userdata('biller_id')) {
+      if (XSession::get('biller_id')) {
         $this->data['billers'] = [$biller_id];
       }
 
-      if ($this->session->userdata('warehouse_id')) {
+      if (XSession::get('warehouse_id')) {
         $this->data['warehouses'] = [$warehouse_id];
       }
     }
@@ -1919,15 +1915,15 @@ class Sales extends MY_Controller
     $this->sma->checkPermissions('index');
 
     $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
-    if ($this->Owner || $this->Admin || !$this->session->userdata('warehouse_id')) {
+    if ($this->Owner || $this->Admin || !XSession::get('warehouse_id')) {
       $this->data['warehouses']   = $this->site->getAllWarehouses();
       $this->data['warehouse_id'] = $warehouse_id;
       $this->data['warehouse']    = $warehouse_id ? $this->site->getWarehouseByID($warehouse_id) : null;
     } else {
-      $warehouse_id = $this->session->userdata('warehouse_id');
+      $warehouse_id = XSession::get('warehouse_id');
       $this->data['warehouses']   = null;
       $this->data['warehouse_id'] = $warehouse_id;
-      $this->data['warehouse']    = $this->session->userdata('warehouse_id') ? $this->site->getWarehouseByID($warehouse_id) : null;
+      $this->data['warehouse']    = XSession::get('warehouse_id') ? $this->site->getWarehouseByID($warehouse_id) : null;
     }
 
     $bc   = [['link' => base_url(), 'page' => lang('home')], ['link' => '#', 'page' => lang('sales_item_status')]];
@@ -1948,7 +1944,7 @@ class Sales extends MY_Controller
     $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
     $sale_item           = $this->site->getSaleItemByID($id);
     $inv                 = $this->site->getSaleByID($sale_item->sale_id);
-    if (!$this->session->userdata('view_right')) {
+    if (!XSession::get('view_right')) {
       $this->sma->view_rights($inv->created_by, true);
     }
     $this->data['payments']    = $this->site->getPaymentsBySaleID($inv->id);
@@ -1977,7 +1973,7 @@ class Sales extends MY_Controller
     $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
     $inv = $this->site->getSaleByID($sale_id);
 
-    if (!$this->session->userdata('view_right')) {
+    if (!XSession::get('view_right')) {
       $this->sma->view_rights($inv->created_by, true);
     }
 
@@ -2280,7 +2276,7 @@ class Sales extends MY_Controller
     }
     $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
     $inv                 = $this->site->getSaleByID($id);
-    if (!$this->session->userdata('view_right')) {
+    if (!XSession::get('view_right')) {
       $this->sma->view_rights($inv->created_by, true);
     }
     $this->data['payments']    = $this->site->getPaymentsBySaleID($id);
@@ -2457,7 +2453,7 @@ class Sales extends MY_Controller
     }
     $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
     $inv                 = $this->site->getSaleByID($id);
-    if (!$this->session->userdata('view_right')) {
+    if (!XSession::get('view_right')) {
       $this->sma->view_rights($inv->created_by);
     }
     $this->data['barcode']     = "<img src='" . admin_url('products/gen_barcode/' . $inv->reference) . "' alt='" . $inv->reference . "' class='pull-left' />";

@@ -144,7 +144,7 @@ class Main extends MY_Controller // From MY_Shop_Controller
         }
 
         $this->session->set_flashdata('message', $this->ion_auth->messages());
-        $referrer = ($this->session->userdata('requested_page') && $this->session->userdata('requested_page') != 'admin') ? $this->session->userdata('requested_page') : '/';
+        $referrer = (XSession::get('requested_page') && XSession::get('requested_page') != 'admin') ? XSession::get('requested_page') : '/';
         redirect($referrer);
       } else {
         $this->session->set_flashdata('error', $this->ion_auth->errors());
@@ -214,7 +214,7 @@ class Main extends MY_Controller // From MY_Shop_Controller
       $name = getGET('name');
 
       if ($name) {
-        if ($permissions = $this->session->userdata('permissions')) {
+        if ($permissions = XSession::get('permissions')) {
           $permissions->{$name} = 1;
           $this->session->set_userdata('permissions', $permissions);
           sendJSON(['error' => 0, 'msg' => 'Set permission success.']);
@@ -237,7 +237,7 @@ class Main extends MY_Controller // From MY_Shop_Controller
       redirect('/');
     }
     if ( ! defined(SHOP) || $this->Staff) {
-      redirect('admin/users/profile/' . $this->session->userdata('user_id'));
+      redirect('admin/users/profile/' . XSession::get('user_id'));
     }
     $user = $this->ion_auth->user()->row();
     if ($act == 'user') {
@@ -296,7 +296,7 @@ class Main extends MY_Controller // From MY_Shop_Controller
         $this->session->set_flashdata('error', validation_errors());
         redirect('profile');
       } else {
-        $identity = $this->session->userdata($this->config->item('identity', 'ion_auth'));
+        $identity = XSession::get($this->config->item('identity', 'ion_auth'));
         $change   = $this->ion_auth->change_password($identity, getPOST('old_password'), getPOST('new_password'));
 
         if ($change) {
@@ -310,7 +310,7 @@ class Main extends MY_Controller // From MY_Shop_Controller
     }
 
     $this->data['featured_products'] = $this->shop_model->getFeaturedProducts();
-    $this->data['customer']          = $this->site->getCompanyByID($this->session->userdata('company_id'));
+    $this->data['customer']          = $this->site->getCompanyByID(XSession::get('company_id'));
     $this->data['user']              = $this->site->getUser();
     $this->data['page_title']        = lang('profile');
     $this->data['page_desc']         = $this->shop_settings->description;

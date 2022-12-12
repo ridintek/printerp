@@ -21,7 +21,7 @@ class Ion_auth
         //auto-login the user if they are remembered
         if (!$this->logged_in() && get_cookie('identity') && get_cookie('remember_code')) {
             if ($this->auth_model->login_remembered_user()) {
-                redirect($this->session->userdata('requested_page') ? $this->session->userdata('requested_page') : (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'admin/welcome'));
+                redirect(XSession::get('requested_page') ? XSession::get('requested_page') : (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'admin/welcome'));
             }
         }
 
@@ -164,7 +164,7 @@ class Ion_auth
 
     public function get_user_id()
     {
-        $user_id = $this->session->userdata('user_id');
+        $user_id = XSession::get('user_id');
         if (!empty($user_id)) {
             return $user_id;
         }
@@ -173,7 +173,7 @@ class Ion_auth
 
     public function getUserGroup($user_id = false)
     {
-        $user_id || $user_id = $this->session->userdata('user_id');
+        $user_id || $user_id = XSession::get('user_id');
 
         $group_id = $this->getUserGroupID($user_id);
         return $this->ion_auth->group($group_id)->row();
@@ -181,7 +181,7 @@ class Ion_auth
 
     public function getUserGroupID($user_id = false)
     {
-        $user_id || $user_id = $this->session->userdata('user_id');
+        $user_id || $user_id = XSession::get('user_id');
 
         $user = $this->ion_auth->user($user_id)->row();
         return $user->group_id;
@@ -191,7 +191,7 @@ class Ion_auth
     {
         $this->auth_model->trigger_events('in_group');
 
-        $id || $id = $this->session->userdata('user_id');
+        $id || $id = XSession::get('user_id');
 
         $group = $this->getUserGroup($id);
 
@@ -206,7 +206,7 @@ class Ion_auth
     {
         $this->auth_model->trigger_events('logged_in');
 
-        return (bool)$this->session->userdata('identity');
+        return (bool)XSession::get('identity');
     }
 
     public function logout()

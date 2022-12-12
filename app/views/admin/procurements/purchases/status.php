@@ -176,7 +176,7 @@
                 <?= form_input('reference', $purchase->reference, 'class="form-control" id="poref" readonly="readonly" required="required"'); ?>
               </div>
             </div>
-            <?php if ($Owner || $Admin || ! $this->session->userdata('warehouse_id')) { ?>
+            <?php if ($Owner || $Admin || ! XSession::get('warehouse_id')) { ?>
             <div class="col-md-4">
               <div class="form-group">
                 <?= lang('warehouse', 'powarehouse'); ?>
@@ -195,7 +195,7 @@
                   'type'  => 'hidden',
                   'name'  => 'warehouse',
                   'id'    => 'powarehouse',
-                  'value' => $this->session->userdata('warehouse_id'),
+                  'value' => XSession::get('warehouse_id'),
                 ];
                 echo form_input($warehouse_input);
                   } ?>

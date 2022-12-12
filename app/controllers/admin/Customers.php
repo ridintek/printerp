@@ -138,7 +138,7 @@ class Customers extends MY_Controller
         'paid_by'    => getPOST('paid_by'),
         'note'       => getPOST('note'),
         'customer_id' => $customer->id,
-        'created_by' => $this->session->userdata('user_id'),
+        'created_by' => XSession::get('user_id'),
       ];
 
       $cdata = [
@@ -491,7 +491,7 @@ class Customers extends MY_Controller
         'paid_by'    => getPOST('paid_by'),
         'note'       => getPOST('note'),
         'customer_id' => $deposit->customer_id,
-        'updated_by' => $this->session->userdata('user_id'),
+        'updated_by' => XSession::get('user_id'),
         'updated_at' => $date = date('Y-m-d H:i:s'),
       ];
 

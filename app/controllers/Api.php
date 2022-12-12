@@ -283,7 +283,7 @@ class Api extends MY_Controller
     $lat = getPOST('lat');
     $lon = getPOST('lon');
 
-    $user = $this->site->getUserByID($this->session->userdata('user_id'));
+    $user = $this->site->getUserByID(XSession::get('user_id'));
     if ($user) {
       $geo_data = [
         'user_id' => $user->id,
@@ -454,12 +454,12 @@ class Api extends MY_Controller
       $biller = $this->site->getBillerByName('online'); // Online.
 
       $pv_data = [
-        'date'         => date('Y-m-d H:i:s'),
-        'expired_date' => date('Y-m-d H:i:s', strtotime("+1 day", strtotime($date))),
-        'reference'    => 'W2P',
-        'amount'       => $amount,
-        'biller_id'    => $biller->id,
-        'created_by'   => $user->id
+        'created_at'    => date('Y-m-d H:i:s'),
+        'expired_date'  => date('Y-m-d H:i:s', strtotime("+1 day", strtotime($date))),
+        'reference'     => 'W2P',
+        'amount'        => $amount,
+        'biller_id'     => $biller->id,
+        'created_by'    => $user->id
       ];
 
       if ($pv_id = $this->site->addPaymentValidation($pv_data)) {
@@ -617,13 +617,13 @@ class Api extends MY_Controller
       $expired_date = strtotime("+2 days"); // Expired date always 2 days.
 
       $pv_data = [
-        'date' => date('Y-m-d H:i:s'),
-        'expired_date' => date('Y-m-d H:i:s', $expired_date),
-        'reference'    => $sale->reference,
-        'sale_id'      => $sale->id,
-        'amount'       => $sale->grand_total,
-        'created_by'   => $sale->created_by,
-        'biller_id'    => $sale->biller_id,
+        'created_at'    => date('Y-m-d H:i:s'),
+        'expired_date'  => date('Y-m-d H:i:s', $expired_date),
+        'reference'     => $sale->reference,
+        'sale_id'       => $sale->id,
+        'amount'        => $sale->grand_total,
+        'created_by'    => $sale->created_by,
+        'biller_id'     => $sale->biller_id,
       ];
 
       if ($this->site->addPaymentValidation($pv_data)) {
@@ -1019,13 +1019,13 @@ class Api extends MY_Controller
           if ($sale) {
             if ($use_transfer) { // If using bank transfer. Add new payment validation.
               $pv_data = [
-                'date'         => $date,
-                'expired_date' => $paymentDueDate,
-                'reference'    => $sale->reference,
-                'sale_id'      => $sale->id,
-                'amount'       => $total,
-                'biller_id'    => $biller->id,
-                'created_by'   => $sale_data['created_by']
+                'created_at'    => $date,
+                'expired_date'  => $paymentDueDate,
+                'reference'     => $sale->reference,
+                'sale_id'       => $sale->id,
+                'amount'        => $total,
+                'biller_id'     => $biller->id,
+                'created_by'    => $sale_data['created_by']
               ];
 
               $this->site->addPaymentValidation($pv_data);

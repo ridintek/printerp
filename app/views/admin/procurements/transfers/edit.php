@@ -170,7 +170,7 @@
             </div>
 
             <div class="col-md-12">
-              <?php if ($Owner || $Admin || !$this->session->userdata('warehouse_id')) {
+              <?php if ($Owner || $Admin || !XSession::get('warehouse_id')) {
                   ?>
               <div class="panel panel-warning">
                 <div class="panel-heading"><?= lang('please_select_these_before_adding_product') ?></div>
@@ -394,10 +394,10 @@
     });
   });
 </script>
-<?php if (!$Owner || !$Admin || $this->session->userdata('warehouse_id')) { ?>
+<?php if (!$Owner || !$Admin || XSession::get('warehouse_id')) { ?>
 <script class="procurements-transfers-status">
   $(document).ready(function() {
-		$("#to_warehouse option[value='<?= $this->session->userdata('warehouse_id'); ?>']").attr('disabled', 'disabled');
+		$("#to_warehouse option[value='<?= XSession::get('warehouse_id'); ?>']").attr('disabled', 'disabled');
   });
 </script>
 <?php } ?>

@@ -250,7 +250,7 @@ class Trackingpod extends MY_Controller
 
     $this->load->library('datatable');
 
-    if ($whId = $this->session->userdata('warehouse_id')) {
+    if ($whId = XSession::get('warehouse_id')) {
       $warehouses[] = $whId;
     }
 

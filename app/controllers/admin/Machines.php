@@ -21,7 +21,7 @@ class Machines extends MY_Controller
     $endDate    = (getGET('end_date') ?? date('Y-m-d'));
     $condition  = getGET('condition');
     $code       = getGET('code');
-    $warehouses = $this->session->userdata('warehouse_id') ?? getGET('warehouse');
+    $warehouses = XSession::get('warehouse_id') ?? getGET('warehouse');
     $whNames = [];
 
     if ($warehouses) {
@@ -335,7 +335,7 @@ class Machines extends MY_Controller
     $productJS = getJSON($product->json_data);
 
     $this->data['product'] = $product;
-    $this->data['creator'] = $this->site->getUserByID($this->session->userdata('user_id'));
+    $this->data['creator'] = $this->site->getUserByID(XSession::get('user_id'));
 
     if ($this->requestMethod == 'POST') {
       $createdBy    = getPOST('created_by');
@@ -348,7 +348,7 @@ class Machines extends MY_Controller
 
       if (empty($picId)) $picId = NULL;
 
-      if (empty($condition)) $this->response(400, ['message' => 'Condition must be set.']);
+      if (empty($condition)) $this->response(400, ['message' => 'Condition harus di isi.']);
 
       if (($condition == 'off' || $condition == 'trouble') && empty($note)) {
         $this->response(400, ['message' => 'Note tidak boleh kosong.']);
@@ -582,7 +582,7 @@ class Machines extends MY_Controller
 
       if (empty($productJS->pic_id)) {
         $productData['assigned_at'] = $this->serverDateTime;
-        $productData['assigned_by'] = $this->session->userdata('user_id');
+        $productData['assigned_by'] = XSession::get('user_id');
       }
 
       if ($this->site->updateProducts([$productData])) {
@@ -627,7 +627,7 @@ class Machines extends MY_Controller
         $reportData = [
           'product_id'   => $product->id,
           'warehouse_id' => $warehouse->id,
-          'created_by'   => $this->session->userdata('user_id'),
+          'created_by'   => XSession::get('user_id'),
           'created_at'   => $this->serverDateTime,
           'condition'    => 'good',
           'note'         => 'OK'
@@ -743,7 +743,7 @@ class Machines extends MY_Controller
     $this->data['product']    = $product;
     $this->data['productJS']  = json_decode($product->json_data);
     $this->data['report']     = $report;
-    $this->data['creator']    = $this->site->getUserByID($this->session->userdata('user_id'));
+    $this->data['creator']    = $this->site->getUserByID(XSession::get('user_id'));
 
     $this->load->view($this->theme . 'machines/report/edit', $this->data);
   }
@@ -825,7 +825,7 @@ class Machines extends MY_Controller
     $product = $this->site->getProductByID($productId);
 
     $this->data['product'] = $product;
-    $this->data['creator'] = $this->site->getUserByID($this->session->userdata('user_id'));
+    $this->data['creator'] = $this->site->getUserByID(XSession::get('user_id'));
 
     if ($this->requestMethod == 'POST') {
       $createdBy    = getPOST('created_by');

@@ -11,17 +11,6 @@ class Sales_model extends CI_Model
     $this->load->admin_model('settings_model');
   }
 
-  public function addDelivery($data = [])
-  {
-    if ($this->db->insert('deliveries', $data)) {
-      if ($this->site->getReference('do') == $data['do_reference']) {
-        $this->site->updateReference('do');
-      }
-      return true;
-    }
-    return false;
-  }
-
   /* ----------------- Gift Cards --------------------- */
 
   public function addGiftCard($data = [], $ca_data = [], $sa_data = [])
@@ -56,104 +45,12 @@ class Sales_model extends CI_Model
     if (floatval($data['amount']) > floatval($balance)) return FALSE;
     //if ($data['amount'] == 0) return FALSE;
 
-    if ($this->site->addPayment($data)) {
+    if (Payment::add($data)) {
       // Update sale payment
       $this->db->update('sales', ['payment_method' => $data['method']], ['id' => $data['sale_id']]);
 
       $this->site->syncSales($data['sale_id']); // Update status.
       return true;
-    }
-    return false;
-  }
-
-  public function addSale ($data = [], $items = [], $payment = [], $si_return = []) // NOT USED.
-  {
-    $hMutex = rd_mutex_create('sale');
-    $this->db->trans_start();
-
-    $data['reference'] = $this->site->getReference('sale');
-    if ($this->db->insert('sales', $data)) {
-      $sale_id = $this->db->insert_id();
-      if ($this->site->getReference('sale') == $data['reference']) {
-        $this->site->updateReference('sale');
-      }
-
-      foreach ($items as $item) {
-        $item['sale_id'] = $sale_id;
-        $this->db->insert('sale_items', $item);
-
-        if (json_decode($item['json_data'])->status == 'completed') { // JASA EDIT DESIGN.
-          if ($item['product_type'] == 'service') {
-            $this->site->addStockQuantity([
-              'date'         => $data['date'],
-              'sale_id'      => $sale_id,
-              'product_id'   => $item['product_id'],
-              'quantity'     => $item['quantity'],
-              'status'       => 'received',
-              'warehouse_id' => $item['warehouse_id']
-            ]);
-          }
-        }
-      }
-    }
-    $this->db->trans_complete();
-
-    rd_mutex_release($hMutex);
-    
-    if ($this->db->trans_status() === false) {
-      log_message('error', 'An errors has been occurred while adding the sale (Add:Sales_model.php)');
-    } else {
-      return $sale_id;
-    }
-
-    return false;
-  }
-
-  public function deleteDelivery($id)
-  {
-    if ($this->db->delete('deliveries', ['id' => $id])) {
-      return true;
-    }
-    return false;
-  }
-
-  public function deleteGiftCard($id)
-  {
-    if ($this->db->delete('gift_cards', ['id' => $id])) {
-      return true;
-    }
-    return false;
-  }
-
-  public function deletePayment ($id)
-  {
-    $opay = $this->getPaymentByID($id);
-    if ($this->site->deletePayment($id)) {
-      $this->site->syncSales($opay->sale_id);
-      return true;
-    }
-    return false;
-  }
-
-  public function deleteSale ($id)
-  {
-    if ($this->site->deleteSale($id)) {
-      return TRUE;
-    }
-    return false;
-  }
-
-  public function getAllGCTopups ($card_id)
-  {
-    $this->db->select("{$this->db->dbprefix('gift_card_topups')}.*, {$this->db->dbprefix('users')}.first_name, {$this->db->dbprefix('users')}.last_name, {$this->db->dbprefix('users')}.email")
-    ->join('users', 'users.id=gift_card_topups.created_by', 'left')
-    ->order_by('id', 'desc')->limit(10);
-    $q = $this->db->get_where('gift_card_topups', ['card_id' => $card_id]);
-    if ($q->num_rows() > 0) {
-      foreach (($q->result()) as $row) {
-        $data[] = $row;
-      }
-      return $data;
     }
     return false;
   }

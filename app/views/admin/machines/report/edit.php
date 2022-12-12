@@ -15,7 +15,7 @@
               <?php $users = $this->site->getUsers(); ?>
               <?php foreach ($users as $user) :
                 if (!$isAdmin) {
-                  if ($user->id != $this->session->userdata('user_id')) continue;
+                  if ($user->id != XSession::get('user_id')) continue;
                 }
               ?>
                 <option value="<?= $user->id ?>"><?= $user->fullname ?></option>
@@ -38,8 +38,8 @@
               <?php $warehouses = $this->site->getAllWarehouses(); ?>
               <?php foreach ($warehouses as $warehouse) :
                 if (!$isAdmin) {
-                  if ($this->session->userdata('warehouse_id')) {
-                    if ($warehouse->id != $this->session->userdata('warehouse_id')) continue;
+                  if (XSession::get('warehouse_id')) {
+                    if ($warehouse->id != XSession::get('warehouse_id')) continue;
                   }
                 }
 
@@ -101,7 +101,7 @@
       <div class="row">
         <div class="col-md-12">
           <div class="form-group">
-            <label for="note">User Note</label>
+            <label for="note">Notes by User</label>
             <textarea class="form-control" name="note"><?= $report->note ?></textarea>
           </div>
         </div>
@@ -109,7 +109,7 @@
       <div class="row">
         <div class="col-md-12">
           <div class="form-group">
-            <label for="note">PIC/TS Note</label>
+            <label for="note">Notes by PIC/TS</label>
             <textarea class="form-control" name="pic_note"><?= $report->pic_note ?></textarea>
           </div>
         </div>

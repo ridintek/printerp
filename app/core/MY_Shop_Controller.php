@@ -86,8 +86,8 @@ class MY_Shop_Controller extends CI_Controller
         }
 
         $this->customer = $this->warehouse = $this->customer_group = false;
-        if ($this->session->userdata('company_id')) {
-            $this->customer       = $this->site->getCompanyByID($this->session->userdata('company_id'));
+        if (XSession::get('company_id')) {
+            $this->customer       = $this->site->getCompanyByID(XSession::get('company_id'));
             $this->customer_group = $this->shop_model->getCustomerGroup($this->customer->customer_group_id);
         } elseif (isset($this->shop_settings) && $this->shop_settings->warehouse) {
             $this->warehouse = $this->site->getWarehouseByID($this->shop_settings->warehouse);

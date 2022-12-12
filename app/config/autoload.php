@@ -138,7 +138,7 @@ $autoload['language'] = array();
 // 'site' will be OBSOLETE!!! AND REMOVED!!! Replace by individual table name, Ex. Payment.
 $autoload['model'] = [
   'app', 'site', 'Adjustment', 'Attachment', 'Authentication', 'Bank', 'BankMutation', 'Biller',
-  'Category', 'CronModel', 'Customer',
+  'Category', 'ComboItem', 'CronModel', 'Customer',
   'DB', 'Expense',
   'GoogleReview', 'Group', 'InternalUse', 'MaintenanceLog',
   'OrderRef',

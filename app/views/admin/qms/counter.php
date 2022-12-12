@@ -132,7 +132,7 @@
       status: null
     };
 
-    let counter_number = <?= $this->session->userdata('counter'); ?>; // Updated by get_counter_number() function.
+    let counter_number = <?= XSession::get('counter'); ?>; // Updated by get_counter_number() function.
 
     // ACTION CONTROL
     let btnCall    = $('#btn-call');

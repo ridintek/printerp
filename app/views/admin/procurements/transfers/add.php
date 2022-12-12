@@ -1,6 +1,6 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <script type="text/javascript">
-  <?php if ($this->session->userdata('remove_tols')) { ?>
+  <?php if (XSession::get('remove_tols')) { ?>
   if (localStorage.getItem('toitems')) {
     localStorage.removeItem('toitems');
   }
@@ -178,7 +178,7 @@
             </div>
 
             <div class="col-md-12">
-              <?php if ($Owner || $Admin || !$this->session->userdata('warehouse_id')) {
+              <?php if ($Owner || $Admin || !XSession::get('warehouse_id')) {
                   ?>
               <div class="panel panel-warning">
                 <div class="panel-heading"><?= lang('please_select_these_before_adding_product') ?></div>
@@ -214,7 +214,7 @@
                     'type'  => 'hidden',
                     'name'  => 'from_warehouse',
                     'id'    => 'from_warehouse',
-                    'value' => $this->session->userdata('warehouse_id'),
+                    'value' => XSession::get('warehouse_id'),
                   ];
                   echo form_input($warehouse_input);
                 } ?>
@@ -355,10 +355,10 @@
     </div>
   </div>
 </div>
-<?php if (!$Owner || !$Admin || $this->session->userdata('warehouse_id')) { ?>
+<?php if (!$Owner || !$Admin || XSession::get('warehouse_id')) { ?>
 <script>
   $(document).ready(function() {
-    $("#to_warehouse option[value='<?= $this->session->userdata('warehouse_id'); ?>']").attr('disabled', 'disabled');
+    $("#to_warehouse option[value='<?= XSession::get('warehouse_id'); ?>']").attr('disabled', 'disabled');
   });
 </script>
 <?php } ?>

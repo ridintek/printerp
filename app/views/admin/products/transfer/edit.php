@@ -39,7 +39,7 @@
                 $selected = '';
 
                 if (!$isAdmin) {
-                  if ($this->session->userdata('warehouse_id') || $mode == 'status') {
+                  if (XSession::get('warehouse_id') || $mode == 'status') {
                     if ($warehouse->id != $pt->warehouse_id_from) continue;
                   }
                 }
@@ -58,7 +58,7 @@
                 $selected = '';
 
                 if (!$isAdmin) {
-                  if ($this->session->userdata('warehouse_id') || $mode == 'status') {
+                  if (XSession::get('warehouse_id') || $mode == 'status') {
                     if ($warehouse->id != $pt->warehouse_id_to) continue;
                   }
                 }

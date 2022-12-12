@@ -114,7 +114,7 @@
       localStorage.removeItem('remove_slls');
     }
 
-    <?php if ($this->session->userdata('remove_slls')) {
+    <?php if (XSession::get('remove_slls')) {
   ?>
     if (localStorage.getItem('slitems')) {
       localStorage.removeItem('slitems');

@@ -118,7 +118,7 @@
               </div>
             </div>
 
-            <?php if ($Owner || $Admin || !$this->session->userdata('warehouse_id')) {
+            <?php if ($Owner || $Admin || !XSession::get('warehouse_id')) {
           ?>
               <div class="col-md-4">
                 <div class="form-group">
@@ -137,7 +137,7 @@
             'type'  => 'hidden',
             'name'  => 'warehouse',
             'id'    => 'qawarehouse',
-            'value' => $this->session->userdata('warehouse_id'),
+            'value' => XSession::get('warehouse_id'),
           ];
 
           echo form_input($warehouse_input);

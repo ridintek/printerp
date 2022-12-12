@@ -189,12 +189,12 @@
                 echo '<tr><td>' . lang('price') . '</td><td>' . formatCurrency($product->price) . '</td></tr>';
                 echo '<tr><td>' . lang('markon_price') . '</td><td>' . formatCurrency($product->markon_price) . '</td></tr>';
               } else if ($product->type == 'standard') {
-                if ($this->session->userdata('show_cost')) {
+                if (XSession::get('show_cost')) {
                   echo '<tr><td>Average Cost</td><td>' . formatCurrency($product->avg_cost) . '</td></tr>';
                   echo '<tr><td>' . lang('cost') . '</td><td>' . formatCurrency($product->cost) . '</td></tr>';
                   echo '<tr><td>' . lang('markon_percent') . '</td><td>' . formatDecimal($product->markon_price) . '</td></tr>';
                 }
-                if ($this->session->userdata('show_price')) {
+                if (XSession::get('show_price')) {
                   echo '<tr><td>' . lang('price') . '</td><td>' . formatCurrency($product->price) . '</td></tr>';
                   echo '<tr><td>' . lang('markon_price') . '</td><td>' . formatCurrency($product->markon_price) . '</td></tr>';
                 }
@@ -235,8 +235,8 @@
                     <tbody>
                       <?php
                       foreach ($warehouses as $warehouse) {
-                        if ($this->session->userdata('warehouse_id')) {
-                          if ($this->session->userdata('warehouse_id') != $warehouse->id) continue;
+                        if (XSession::get('warehouse_id')) {
+                          if (XSession::get('warehouse_id') != $warehouse->id) continue;
                         }
                         echo '<tr><td>' . $warehouse->name . ' (' . $warehouse->code . ')</td>';
                         echo '<td class="text-right"><strong>' . formatStock($warehouse->quantity) . '</strong>' . '</td></tr>';
@@ -262,8 +262,8 @@
                   <?php
                   if (!empty($warehouses)) {
                     foreach ($warehouses as $wh) {
-                      if ($this->session->userdata('warehouse_id')) {
-                        if ($this->session->userdata('warehouse_id') != $wh->id) continue;
+                      if (XSession::get('warehouse_id')) {
+                        if (XSession::get('warehouse_id') != $wh->id) continue;
                       } ?>
                       <tr>
                         <td><?= $wh->name; ?></td>

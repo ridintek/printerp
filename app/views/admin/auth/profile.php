@@ -88,7 +88,7 @@
                         <input type="number" class="form-control" name="acc_no" value="<?= $acc_no; ?>">
                       </div>
 
-                      <?php if ($Owner || $Admin || $id == $this->session->userdata('user_id')) { ?>
+                      <?php if ($Owner || $Admin || $id == XSession::get('user_id')) { ?>
                         <div class="form-group">
                           <?php echo lang('username', 'username'); ?>
                           <input type="text" name="username" class="form-control" id="username" value="<?= $user->username ?>" autocomplete="off" required="required" />
@@ -124,7 +124,7 @@
 
                     </div>
                     <div class="col-md-6 col-md-offset-1">
-                      <?php if (($Owner || $Admin) && $id != $this->session->userdata('user_id')) { ?>
+                      <?php if (($Owner || $Admin) && $id != XSession::get('user_id')) { ?>
                         <div class="row">
                           <div class="panel panel-warning">
                             <div class="panel-heading"><?= lang('user_options') ?></div>
@@ -348,7 +348,7 @@
       });*/
     });
   </script>
-  <?php if (($Owner || $Admin) && $id != $this->session->userdata('user_id')) { ?>
+  <?php if (($Owner || $Admin) && $id != XSession::get('user_id')) { ?>
     <script type="text/javascript" charset="utf-8">
       $(document).ready(function() {
         $('#group').change(function(event) {

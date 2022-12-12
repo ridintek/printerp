@@ -39,7 +39,7 @@ class Calendar_model extends CI_Model
         $this->db->select('id, title, start, end, description, color');
         $this->db->where('start >=', $start)->where('start <=', $end);
         if ($this->Settings->restrict_calendar) {
-            $this->db->where('user_id', $this->session->userdata('user_id'));
+            $this->db->where('user_id', XSession::get('user_id'));
         }
 
         $q = $this->db->get('calendar');

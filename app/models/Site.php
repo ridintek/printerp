@@ -106,7 +106,7 @@ class Site extends MY_Model
             'adjustment_qty' => $product['quantity'],
             'status'         => $adjusted['type'],
             'warehouse_id'   => $data['warehouse_id'],
-            'created_by'     => ($data['created_by'] ?? $this->session->userdata('user_id'))
+            'created_by'     => ($data['created_by'] ?? XSession::get('user_id'))
           ]);
         }
 
@@ -149,7 +149,7 @@ class Site extends MY_Model
             'bank_id'    => $insertId,
             'method'     => $data['type'],
             'amount'     => $balance,
-            'created_by' => $this->session->userdata('user_id'),
+            'created_by' => XSession::get('user_id'),
             'status'     => 'beginning',
             'type'       => 'received',
             'note'       => 'BEGINNING OF BANK'
@@ -158,7 +158,7 @@ class Site extends MY_Model
           if ($payment) {
             $this->updatePayment($payment->id, $payment_data);
           } else {
-            $this->addPayment($payment_data);
+            Payment::add($payment_data);
           }
         } else if ($payment) {
           $this->deletePayment($payment->id);
@@ -232,7 +232,7 @@ class Site extends MY_Model
             'note'         => $data['note']
           ];
 
-          $this->addPayment($payment_sent);
+          Payment::add($payment_sent);
           // Payment Received by To Bank ID
           $payment_recv = [
             'date'         => $data['date'],
@@ -245,7 +245,7 @@ class Site extends MY_Model
             'note'         => $data['note']
           ];
 
-          $this->addPayment($payment_recv);
+          Payment::add($payment_recv);
         }
         return TRUE;
       }
@@ -350,7 +350,7 @@ class Site extends MY_Model
         'note'         => $note
       ];
 
-      if ($insertId = $this->addPayment($payment)) {
+      if ($insertId = Payment::add($payment)) {
         $expense_data = ['payment_date' => date('Y-m-d H:i:s'), 'payment_status' => $status, 'note' => $note];
         DB::table('expenses')->update($expense_data, ['id' => $id]);
 
@@ -373,10 +373,10 @@ class Site extends MY_Model
   {
     $geoData = [
       'date'         => ($data['date']         ?? date('Y-m-d H:i:s')),
-      'user_id'      => ($data['user_id']      ?? $this->session->userdata('user_id')      ?? NULL),
+      'user_id'      => ($data['user_id']      ?? XSession::get('user_id')      ?? NULL),
       'customer_id'  => ($data['customer_id']  ?? NULL),
-      'biller_id'    => ($data['biller_id']    ?? $this->session->userdata('biller_id')    ?? NULL),
-      'warehouse_id' => ($data['warehouse_id'] ?? $this->session->userdata('warehouse_id') ?? NULL),
+      'biller_id'    => ($data['biller_id']    ?? XSession::get('biller_id')    ?? NULL),
+      'warehouse_id' => ($data['warehouse_id'] ?? XSession::get('warehouse_id') ?? NULL),
       'type'         => ($data['type']         ?? 'log'), // log, presence
       'lat'          => ($data['lat']          ?? 0),
       'lon'          => ($data['lon']          ?? 0)
@@ -418,18 +418,18 @@ class Site extends MY_Model
       }
 
       $payment = [
-        'date'       => $data['date'],
+        'created_at' => $data['date'],
         'income_id'  => $incomeId,
         'reference'  => $data['reference'],
         'bank_id'    => $data['bank_id'],
         'method'     => 'Transfer', // Diganti jika ada opsi.
         'amount'     => $data['amount'],
-        'created_by' => ($data['created_by'] ?? $this->session->userdata('user_id')),
+        'created_by' => ($data['created_by'] ?? XSession::get('user_id')),
         'type'       => 'received',
         'note'       => $data['note']
       ];
 
-      if ($this->addPayment($payment)) {
+      if (Payment::add($payment)) {
         return $incomeId;
       }
     }
@@ -470,57 +470,6 @@ class Site extends MY_Model
 
     setLastError(DB::error()['message']);
     return NULL;
-  }
-
-  /**
-   * THE ONLY PAYMENT GATEWAY FUNCTION FOR ANY TRANSACTIONS. DO NOT USE ANY PAYMENT GATEWAY FUNCTION EXCEPT THIS !!!
-   * @param array $data [date, reference_date, (expense_id, income_id, mutation_id, sale_id, purchase_id, transfer_id)*,
-   * bank_id*, method*(Cash/Transfer), amount*, created_by, attachment, status, type*(pending/sent/received), note]
-   */
-  public function addPayment($data = [])
-  { // Add New: For global payments.
-    $hMutex = mutexCreate('Site_addPayment', TRUE);
-
-    if (isset($data['expense_id'])) {
-      $inv = $this->getExpenseByID($data['expense_id']);
-    } else if (isset($data['income_id'])) {
-      $inv = $this->getIncomeByID($data['income_id']);
-    } else if (isset($data['sale_id'])) {
-      $inv = $this->getSaleByID($data['sale_id']);
-    } else if (isset($data['purchase_id'])) {
-      $inv = $this->getStockPurchaseByID($data['purchase_id']);
-    } else if (isset($data['transfer_id'])) {
-      $inv = $this->getStockTransferByID($data['transfer_id']);
-      $inv->biller_id = warehouseToBiller($inv->to_warehouse_id);
-    } else if (isset($data['mutation_id'])) {
-      $inv = $this->getBankMutationByID($data['mutation_id']);
-    }
-
-    if (empty($data['bank_id'])) return FALSE;
-
-    $data['date']           = ($data['date'] ?? date('Y-m-d H:i:s'));
-    $data['reference_date'] = ($data['reference_date'] ?? date('Y-m-d H:i:s'));
-    $data['reference']      = $inv->reference;
-    $data['created_by']     = ($data['created_by'] ?? $this->session->userdata('user_id'));
-    $data['biller_id']      = ($inv->biller_id ?? NULL);
-
-    DB::table('payments')->insert($data);
-
-    if (DB::affectedRows()) {
-      $insertId = DB::insertID();
-
-      if ($data['type'] == 'received') {
-        $this->increaseBankAmount($data['bank_id'], $data['amount']);
-      } else if ($data['type'] == 'sent') {
-        $this->decreaseBankAmount($data['bank_id'], $data['amount']);
-      }
-
-      mutexRelease($hMutex);
-      return $insertId;
-    }
-
-    mutexRelease($hMutex);
-    return FALSE;
   }
 
   /**
@@ -1106,7 +1055,7 @@ class Site extends MY_Model
       'status'          => ($data['status'] ?? 'need_payment'),
       'payment_status'  => ($data['payment_status'] ?? 'pending'),
       'payment_term'    => $payment_term,
-      'created_by'      => ($data['created_by'] ?? $this->session->userdata('user_id')),
+      'created_by'      => ($data['created_by'] ?? XSession::get('user_id')),
       'total_items'     => $total_items,
       'paid'            => filterDecimal($data['paid'] ?? 0),
       'attachment_id'   => ($data['attachment_id'] ?? NULL),
@@ -1311,17 +1260,16 @@ class Site extends MY_Model
     $balance = floatval($sale->grand_total) - floatval($sale->paid);
     if (floatval($data['amount']) > floatval($balance)) return FALSE;
 
-    $data['date']           = ($data['created_at'] ?? $data['date'] ?? date('Y-m-d H:i:s'));
-    $data['created_at']     = $data['date'];
+    $data['created_at']     = ($data['created_at'] ?? $data['date'] ?? date('Y-m-d H:i:s'));
     $data['reference_date'] = $sale->created_at;
 
-    if ($sale && $this->addPayment($data)) {
+    if ($sale && Payment::add($data)) {
       // Update sale payment
       $sale_data = [
         'payment_method' => $data['method']
       ];
 
-      if ($cashierBy = $this->session->userdata('user_id')) {
+      if ($cashierBy = XSession::get('user_id')) {
         $sale_data['cashier_by'] = $cashierBy;
       }
 
@@ -1377,7 +1325,7 @@ class Site extends MY_Model
   {
     $saleTBData = $data;
 
-    $saleTBData['created_by'] = ($data['created_by'] ?? $this->session->userdata('user_id'));
+    $saleTBData['created_by'] = ($data['created_by'] ?? XSession::get('user_id'));
 
     $this->db->trans_start();
     $this->db->insert('sales_tb', $saleTBData);
@@ -1451,7 +1399,7 @@ class Site extends MY_Model
         'biller_id' => $billerOut->id,
         'amount' => $salesTB[0]->amount,
         'note' => $noteMsg,
-        'created_by' => $this->session->userdata('user_id'),
+        'created_by' => XSession::get('user_id'),
         'category_id' => $expenseCategory->id,
         'payment_status' => 'pending',
         'status' => 'need_approval'
@@ -1466,7 +1414,7 @@ class Site extends MY_Model
               'date' => $date,
               'amount' => $salesTB[0]->amount,
               'note' => $noteMsg,
-              'created_by' => $this->session->userdata('user_id'),
+              'created_by' => XSession::get('user_id'),
               'category_id' => $incomeCategory->id,
               'biller_id' => $billerIn->id,
               'bank_id' => $banksIn[0]->id
@@ -1541,7 +1489,7 @@ class Site extends MY_Model
           'adjustment_qty' => $product['adjustment_qty'],
           'status'         => $product['type'],
           'warehouse_id'   => $product['warehouse_id'],
-          'created_by'     => ($data['created_by'] ?? $this->session->userdata('user_id'))
+          'created_by'     => ($data['created_by'] ?? XSession::get('user_id'))
         ]);
       }
 
@@ -1784,7 +1732,7 @@ class Site extends MY_Model
     $supplier = $this->getSupplierByID($data['supplier_id']);
 
     $data['reference']     = $this->getReference('purchase');
-    $data['created_by']    = ($data['created_by'] ?? $this->session->userdata('user_id'));
+    $data['created_by']    = ($data['created_by'] ?? XSession::get('user_id'));
     $data['supplier_name'] = $supplier->name;
 
     $this->db->insert('purchases', $data);
@@ -1855,7 +1803,7 @@ class Site extends MY_Model
             'status'        => 'need_approval',
             'unit_id'       => $item->purchase_unit,
             'spec'          => '',
-            'created_by'    => $this->session->userdata('user_id')
+            'created_by'    => XSession::get('user_id')
           ];
 
           $purchase_items[] = $purchase_item;
@@ -1868,7 +1816,7 @@ class Site extends MY_Model
           'warehouse_id'   => $warehouse->id,
           'note'           => '',
           'grand_total'    => $grand_total,
-          'created_by'     => $this->session->userdata('user_id'),
+          'created_by'     => XSession::get('user_id'),
           'payment_status' => 'pending', // Payment must pending after add stock purchase.
           'status'         => 'need_approval',
           'payment_term'   => $supplier->payment_term,
@@ -2015,267 +1963,6 @@ class Site extends MY_Model
       return FALSE;
     })->create()->close();
     return $ret;
-  }
-
-  /**
-   * THE ONLY FUNCTION TO TRANSFER STOCK.
-   * $data [date*, from_warehouse_id*, to_warehouse_id*]
-   * $items []
-   */
-  public function addStockTransfer($data, $items = [])
-  { // verified.
-    $data['reference'] = $this->getReference('transfer');
-    $data['created_by'] = ($data['created_by'] ?? $this->session->userdata('user_id'));
-    $warehouse_from = $this->getWarehouseByID($data['from_warehouse_id']);
-    $warehouse_to   = $this->getWarehouseByID($data['to_warehouse_id']);
-    $data['from_warehouse_code'] = $warehouse_from->code;
-    $data['from_warehouse_name'] = $warehouse_from->name;
-    $data['to_warehouse_code']   = $warehouse_to->code;
-    $data['to_warehouse_name']   = $warehouse_to->name;
-
-    $this->db->trans_start();
-    $this->db->insert('transfers', $data);
-    $transferId = $this->db->insert_id();
-    $this->db->trans_complete();
-
-    if ($this->db->trans_status() !== FALSE) {
-      if ($this->getReference('transfer') == $data['reference']) {
-        $this->updateReference('transfer');
-      }
-
-      $transfer = $this->getStockTransferByID($transferId);
-
-      foreach ($items as $item) {
-        $this->addStockQuantity([
-          'date'         => $data['date'],
-          'transfer_id'  => $transferId,
-          'product_id'   => $item['product_id'],
-          'price'        => $item['price'], // Mark-On Price.
-          'quantity'     => $item['quantity'],
-          'spec'         => $item['spec'],
-          'status'       => $data['status'],
-          'warehouse_id' => $data['from_warehouse_id']
-        ]);
-      }
-
-      addEvent("Created Transfer [{$transfer->id}: {$transfer->reference}]");
-
-      return $transferId;
-    }
-
-    return FALSE;
-  }
-
-  /**
-   * Add new stock transfer. (NEW).
-   * @param array $data [ *from_warehouse_id, *to_warehouse_id, note, attachment ]
-   * @param array $items [[ *product_id, *price, *quantity, spec ]]
-   */
-  public function addTransfer($data, $items)
-  {
-    $data['reference'] = $this->getReference('transfer');
-
-    if ($whFrom = $this->getWarehouseByID($data['from_warehouse_id'])) {
-      $data['from_warehouse_code'] = $whFrom->code;
-    }
-
-    if ($whTo = $this->getWarehouseByID($data['to_warehouse_id'])) {
-      $data['to_warehouse_code'] = $whTo->code;
-    }
-
-    $data['payment_status'] = 'pending'; // Default
-    $data['status'] = 'packing'; // Default
-
-    $data = setCreatedBy($data);
-
-    if ($items && is_array($items)) {
-      $grandTotal = 0;
-
-      foreach ($items as $item) {
-        $grandTotal += ($item['price'] * $item['quantity']);
-      }
-
-      $data['grand_total'] = $grandTotal;
-    }
-
-    $this->db->insert('transfers', $data);
-
-    if ($this->db->affected_rows()) {
-      $transferId = $this->db->insert_id();
-
-      if ($this->getReference('transfer') == $data['reference']) {
-        $this->updateReference('transfer');
-      }
-
-      foreach ($items as $item) {
-        $this->addStockQuantity([
-          'date'         => $data['date'],
-          'transfer_id'  => $transferId,
-          'product_id'   => $item['product_id'],
-          'price'        => $item['price'], // MUST be Mark-On Price.
-          'quantity'     => $item['quantity'],
-          'spec'         => $item['spec'],
-          'status'       => $data['status'],
-          'warehouse_id' => $data['from_warehouse_id']
-        ]);
-      }
-
-      addEvent("Created Transfer [{$transferId}: {$data['reference']}]");
-
-      return $transferId;
-    }
-
-    return FALSE;
-  }
-
-  /**
-   * Add stock transfer by warehouse id.
-   * @param int $warehouse_id Warehouse ID.
-   */
-  public function addStockTransferByWarehouseID($warehouse_id) // FIXME
-  {
-    if ($warehouse_id) {
-      $from_warehouse   = $this->getWarehouseByCode('LUC'); // Default to_warehouse of transfer.
-      $to_warehouse     = $this->getWarehouseByID($warehouse_id);
-      $settingsJSON     = $this->getSettingsJSON();
-      // Return [start_date, end_date, days]
-      $opt              = getPastMonthPeriod($settingsJSON->safety_stock_period);
-      // Remove unnecessary 'days'
-      unset($opt['days']);
-      // Get sold items by warehouse id.
-      $warehouse_stocks = $this->getSoldItemsByWarehouseID($warehouse_id, $opt);
-
-      if ($warehouse_stocks && $to_warehouse) {
-        $date           = date('Y-m-d H:i:s');
-        $grand_total    = 0;
-        $transfer_items = [];
-        $transfer_qty   = 0;
-
-        foreach ($warehouse_stocks as $stock) {
-          $item = $this->getProductByID($stock->product_id);
-          // No transfer item if safety_stock is 0 or not valid integer > 0
-          // If safety stock = 0 or
-          if ($item->safety_stock <= 0 || !$item->safety_stock) continue;
-          // Get warehouse products.
-          $whp_from = $this->getWarehouseProduct($item->id, $from_warehouse->id);
-          $whp_to   = $this->getWarehouseProduct($item->id, $to_warehouse->id);
-
-          if ($whp_from->quantity <= 0) continue; // Ignore if no stock available from source.
-
-          // Calculate formula to get quantity of transfer.
-          $transfer_qty = getOrderStock($whp_to->quantity, $item->min_order_qty, $whp_to->safety_stock);
-
-          if ($transfer_qty <= 0) continue; // If transfer qty is 0 or less then ignore.
-
-          // if ($item->code == 'POCT15') {
-          //   sendJSON(['error' => 1, 'msg' => [
-          //       'product_code' => $item->code,
-          //       'whp_quantity' => $whp->quantity,
-          //       'min_order' => $item->min_order_qty,
-          //       'safety_stock' => $whp->safety_stock,
-          //       'transfer_qty' => $transfer_qty
-          //     ]
-          //   ]);
-          // }
-
-          $transfer_item = [
-            'product_code' => $item->code, // For debugging only.
-            'product_id'   => $item->id, // Required.
-            'quantity'     => $transfer_qty,
-            'price'        => roundDecimal($item->markon_price),
-            'spec'         => ''
-          ];
-
-          $transfer_items[] = $transfer_item;
-          $grand_total += ($transfer_qty * $item->markon_price);
-        }
-
-        $transfer_data = [
-          'date'              => $date,
-          'from_warehouse_id' => $from_warehouse->id,
-          'to_warehouse_id'   => $to_warehouse->id,
-          'note'              => '',
-          'grand_total'       => $grand_total,
-          'created_by'        => $this->session->userdata('user_id'),
-          'payment_status'    => 'pending',
-          'status'            => 'packing', // add new = packing
-        ];
-
-        // sendJSON(['error' => 1, 'msg' => [
-        //   'transfer_data'  => $transfer_data,
-        //   'transfer_items' => $transfer_items
-        // ]]);
-
-        if ($this->addStockTransfer($transfer_data, $transfer_items)) {
-          return TRUE;
-        }
-      }
-    }
-    return FALSE;
-  }
-
-  /**
-   * THE ONLY FUNCTION TO ADD PAYMENT OF STOCK TRANSFER.
-   * @param int $transfer_id Transfer ID.
-   * @param array $data Array of data.
-   */
-  public function addStockTransferPayment($transfer_id, $data)
-  {
-    $transfer = $this->getStockTransferByID($transfer_id);
-
-    if ($transfer) {
-      $created_by = ($data['created_by'] ?? $this->session->userdata('user_id'));
-      $from_bank = $this->getBankByID($data['from_bank_id']);
-
-      $payment_out_data = [
-        'date'        => $data['date'],
-        'transfer_id' => $transfer_id,
-        'bank_id'     => $from_bank->id,
-        'method'      => $from_bank->type,
-        'amount'      => $data['amount'],
-        'created_by'  => $created_by,
-        'type'        => 'sent',
-        'note'        => $data['note']
-      ];
-
-      if ($payment_out_id = $this->addPayment($payment_out_data)) {
-        $to_bank = $this->getBankByID($data['to_bank_id']);
-        $payment_in_data = [
-          'date'        => $data['date'],
-          'transfer_id' => $transfer_id,
-          'bank_id'     => $to_bank->id,
-          'method'      => $to_bank->type,
-          'amount'      => $data['amount'],
-          'created_by'  => $created_by,
-          'type'        => 'received',
-          'note'        => $data['note']
-        ];
-
-        if ($this->addPayment($payment_in_data)) {
-          $transfer_data = [];
-
-          if ($data['amount'] == ($transfer->grand_total - $transfer->paid)) {
-            $transfer_data['payment_status'] = 'paid';
-          } else if ($data['amount'] > 0 && ($data['amount'] < $transfer->grand_total)) {
-            $transfer_data['payment_status'] = 'partial';
-          }
-
-          $transfer_data['paid'] = $data['amount'] + $transfer->paid;
-
-          $this->db->trans_start();
-          $this->db->update('transfers', $transfer_data, ['id' => $transfer_id]);
-          $this->db->trans_complete();
-
-          if ($this->db->trans_status() !== FALSE) {
-            addEvent("Created Payment Transfer [{$transfer->id}: {$transfer->reference}; amount: {$data['amount']}]");
-            return TRUE;
-          }
-        } else {
-          $this->deletePayment($payment_out_id); // Delete out payment if in payment error occurred.
-        }
-      }
-    }
-    return FALSE;
   }
 
   public function addSupplier($data)
@@ -2558,7 +2245,7 @@ class Site extends MY_Model
 
     if ($saleItem) {
       $completedQty = $data['quantity']; // Quantity to complete.
-      $createdBy    = ($data['created_by'] ?? $this->session->userdata('user_id'));
+      $createdBy    = ($data['created_by'] ?? XSession::get('user_id'));
       $sale         = $this->getSaleByID($saleItem->sale_id);
       $saleItemData = [];
       $saleItemJS   = getJSON($saleItem->json_data);
@@ -2705,7 +2392,7 @@ class Site extends MY_Model
 
   public function checkPermissions()
   {
-    $q = $this->db->get_where('permissions', ['group_id' => $this->session->userdata('group_id')], 1);
+    $q = $this->db->get_where('permissions', ['group_id' => XSession::get('group_id')], 1);
     if ($q->num_rows() > 0) {
       return $q->result_array();
     }
@@ -2777,7 +2464,7 @@ class Site extends MY_Model
     if ($user_id) {
       $user = $this->getUserByID($user_id);
     } else {
-      $user = $this->getUserByID($this->session->userdata('user_id')); // Default as current user.
+      $user = $this->getUserByID(XSession::get('user_id')); // Default as current user.
     }
 
     if ($user->group_id == 1 || $user->group_id == 2) return TRUE; // Owner || Admin always TRUE
@@ -2848,7 +2535,7 @@ class Site extends MY_Model
         }
 
         if ($payment->transfer_id) {
-          $transfer = $this->getStockTransferByID($payment->transfer_id);
+          $transfer = ProductTransfer::getRow(['id' => $payment->transfer_id]);
 
           if (empty($transfer)) {
             $deletePayment = TRUE;
@@ -3633,26 +3320,6 @@ class Site extends MY_Model
       return FALSE;
     })->create()->close();
     return $ret;
-  }
-
-  public function deleteStockTransfer($transfer_id)
-  {
-    $transfer = $this->getStockTransferByID($transfer_id);
-    if ($transfer && $this->deleteStockQuantity(['transfer_id' => $transfer_id])) {
-      if ($this->db->delete('transfers', ['id' => $transfer_id])) {
-        $opayments = $this->getStockTransferPayments($transfer_id);
-        if ($opayments) {
-          $this->deletePayments(['transfer_id' => $transfer_id]);
-        }
-        if ($transfer->attachment) {
-          $this->deleteAttachment($transfer->attachment);
-        }
-
-        addEvent("Deleted Transfer [{$transfer->id}: $transfer->reference]", 'warning');
-        return TRUE;
-      }
-    }
-    return FALSE;
   }
 
   public function deleteSupplier($supplier_id)
@@ -6635,92 +6302,6 @@ class Site extends MY_Model
     return [];
   }
 
-  /**
-   * THE ONLY FUNCTION TO LIST ALL STOCK TRANSFER BY TRANSFER ID.
-   */
-  public function getStockTransferByID($transfer_id)
-  {
-    $q = $this->db->get_where('transfers', ['id' => $transfer_id]);
-    if ($q->num_rows() > 0) {
-      return $q->row();
-    }
-    return NULL;
-  }
-
-  /**
-   * THE ONLY FUNCTION TO GET STOCK TRANSFER ITEMS BY TRANSFER ID.
-   */
-  public function getStockTransferItemsByTransferID($transfer_id)
-  {
-    $transfer = $this->getStockTransferByID($transfer_id);
-
-    $clauses['transfer_id'] = $transfer_id;
-
-    if ($transfer->status == 'received') {
-      $clauses['status'] = 'received';
-    }
-
-    return $this->getStocks($clauses);
-  }
-
-  public function getStockTransferPayments($transfer_id)
-  {
-    $q = $this->db->get_where('payments', ['transfer_id' => $transfer_id]);
-    if ($q->num_rows() > 0) {
-      return $q->result();
-    }
-    return [];
-  }
-
-  /**
-   * THE ONLY FUNCTION TO GET STOCK TRANSFERS.
-   * @param array $clause [ id, from_warehouse_id to_warehouse_id, start_date, end_date ]
-   */
-  public function getStockTransfers($clause = [])
-  {
-    if (!empty($clause['reference'])) {
-      $this->db->like('reference', $clause['reference'], 'none');
-      unset($clause['reference']);
-    }
-
-    if (isset($clause['from_warehouse_id'])) {
-      if (gettype($clause['from_warehouse_id']) == 'array') {
-        $from_warehouses = implode(',', $clause['from_warehouse_id']);
-        $this->db->where("from_warehouse_id IN ({$from_warehouses})");
-        unset($clause['from_warehouse_id']);
-      }
-    }
-
-    if (isset($clause['to_warehouse_id'])) {
-      if (gettype($clause['to_warehouse_id']) == 'array') {
-        $to_warehouses = implode(',', $clause['to_warehouse_id']);
-        $this->db->where("to_warehouse_id IN ({$to_warehouses})");
-        unset($clause['to_warehouse_id']);
-      }
-    }
-
-    if (!empty($clause['start_date'])) {
-      $this->db->where("date >= '{$clause['start_date']} 00:00:00'");
-      unset($clause['start_date']);
-    }
-    if (!empty($clause['end_date'])) {
-      $this->db->where("date <= '{$clause['end_date']} 23:59:59'");
-      unset($clause['end_date']);
-    }
-
-    if (!empty($clause['order']) && gettype($clause['order']) == 'array') {
-      $this->db->order_by($clause['order'][0], $clause['order'][1]);
-      unset($clause['order']);
-    }
-
-    $q = $this->db->get_where('transfers', $clause);
-
-    if ($q && $q->num_rows() > 0) {
-      return $q->result();
-    }
-    return [];
-  }
-
   public function getSubCategories($parent_code)
   {
     $this->db->like('parent_code', $parent_code, 'none')->order_by('name');
@@ -7177,7 +6758,7 @@ class Site extends MY_Model
   public function getUserGroup($user_id = 0)
   {
     if (!$user_id) {
-      $groupId = $this->session->userdata('group_id');
+      $groupId = XSession::get('group_id');
     } else {
       $user = $this->getUserByID($user_id);
       $groupId = $user->group_id;
@@ -7219,7 +6800,7 @@ class Site extends MY_Model
     if ($user_id) {
       $user = $this->getUserByID($user_id);
     } else {
-      $user = $this->getUserByID($this->session->userdata('user_id'));
+      $user = $this->getUserByID(XSession::get('user_id'));
     }
 
     $perms = $this->getGroupPermissions($user->group_id, TRUE);
@@ -7954,13 +7535,13 @@ class Site extends MY_Model
         }
       }
     } else if (isset($data['transfer_id'])) { // Transfer
-      $transfer = $this->getStockTransferByID($data['transfer_id']);
+      $transfer = ProductTransfer::getRow(['id' => $data['transfer_id']]);
       if ($transfer) {
-        $transfer_items = $this->getStockTransferItemsByTransferID($transfer->id);
+        $transfer_items = ProductTransferItem::get(['transfer_id' => $transfer->id]);
         if ($transfer_items) {
           foreach ($transfer_items as $transfer_item) {
-            $this->syncProductQty($transfer_item->product_id, $transfer->from_warehouse_id);
-            $this->syncProductQty($transfer_item->product_id, $transfer->to_warehouse_id);
+            $this->syncProductQty($transfer_item->product_id, $transfer->warehouse_id_from);
+            $this->syncProductQty($transfer_item->product_id, $transfer->warehouse_id_to);
           }
           return TRUE;
         }
@@ -8304,11 +7885,6 @@ class Site extends MY_Model
     }
   }
 
-  public function syncStockTransfer($transfer_id)
-  {
-    $items = $this->getStockTransferItemsByTransferID($transfer_id);
-  }
-
   /**
    * Sync transfer safety stock.
    * @param int $product_id Product ID.
@@ -8636,7 +8212,7 @@ class Site extends MY_Model
         ) {
           $bank = $this->getBankByID($expense->bank_id);
 
-          $this->addPayment([
+          Payment::add([
             'expense_id' => $expense_id,
             'bank_id'    => $expense->bank_id,
             'method'     => $bank->type,
@@ -9183,7 +8759,7 @@ class Site extends MY_Model
             'status'        => $data['status'],
             'warehouse_id'  => $data['warehouse_id'],
             'created_by'    => ($data['created_by'] ?? $purchase->created_by),
-            'updated_by'    => ($data['updated_by'] ?? $this->session->userdata('user_id')),
+            'updated_by'    => ($data['updated_by'] ?? XSession::get('user_id')),
             'json_data'     => $item['json_data']
           ]);
         }
@@ -9556,7 +9132,7 @@ class Site extends MY_Model
           'status'         => $product['type'],
           'warehouse_id'   => $product['warehouse_id'],
           'created_by'     => ($data['created_by'] ?? $adjustment->created_by),
-          'updated_by'     => $this->session->userdata('user_id')
+          'updated_by'     => XSession::get('user_id')
         ]);
       }
 
@@ -9606,7 +9182,7 @@ class Site extends MY_Model
             'ucr'             => $item['ucr'],
             'unique_code'     => $item['unique_code'],
             'created_by'      => ($data['created_by'] ?? $iuse->created_by),
-            'updated_by'      => $this->session->userdata('user_id')
+            'updated_by'      => XSession::get('user_id')
           ]);
         }
       }
@@ -9788,7 +9364,7 @@ class Site extends MY_Model
             'unit_id'       => $item['unit_id'],
             'warehouse_id'  => $data['warehouse_id'],
             'created_by'    => ($data['created_by'] ?? $purchase->created_by),
-            'updated_by'    => ($data['updated_by'] ?? $this->session->userdata('user_id')),
+            'updated_by'    => ($data['updated_by'] ?? XSession::get('user_id')),
             'json_data'     => $item['json_data']
           ]);
         }
@@ -9951,199 +9527,6 @@ class Site extends MY_Model
       return FALSE;
     })->create()->close();
     return $ret;
-  }
-
-  /**
-   * THE ONLY FUNCTION TO EDIT/UPDATE STOCK TRANSFER.
-   */
-  public function updateStockTransfer($transfer_id, $data, $items = [])
-  {
-    $transfer = $this->getStockTransferByID($transfer_id);
-    $transferJS = getJSON($transfer->json);
-    $warehouse_from = $this->getWarehouseByID($data['from_warehouse_id']);
-    $warehouse_to   = $this->getWarehouseByID($data['to_warehouse_id']);
-    $data['from_warehouse_code'] = $warehouse_from->code;
-    $data['from_warehouse_name'] = $warehouse_from->name;
-    $data['to_warehouse_code']   = $warehouse_to->code;
-    $data['to_warehouse_name']   = $warehouse_to->name;
-
-    if (!empty($data['sent_date'])) {
-      $transferJS->sent_date = $data['sent_date'];
-      unset($data['sent_date']);
-    }
-
-    if (!empty($data['received_date'])) {
-      $transferJS->received_date = $data['received_date'];
-      unset($data['received_date']);
-    }
-
-    if ($transferJS) {
-      $data['json'] = json_encode($transferJS);
-    }
-
-    $this->db->trans_start();
-    $this->db->update('transfers', $data, ['id' => $transfer_id]);
-    $this->db->trans_complete();
-
-    if ($this->db->trans_status()) {
-      $transfer = $this->getStockTransferByID($transfer_id);
-      $transferJS = getJSON($transfer->json);
-
-      if ($items) {
-        $this->deleteStockQuantity(['transfer_id' => $transfer_id]);
-
-        foreach ($items as $item) {
-          if ($data['status'] == 'received') {
-            $this->increaseStockQuantity([
-              'date'         => ($transferJS->received_date ?? $transfer->date),
-              'transfer_id'  => $transfer_id,
-              'product_id'   => $item['product_id'],
-              'price'        => $item['price'], // Must mark-on price.
-              'quantity'     => $item['quantity'],
-              'spec'         => $item['spec'],
-              'warehouse_id' => $data['to_warehouse_id'],
-              'created_by'   => $data['created_by'],
-              'updated_by'   => $this->session->userdata('user_id'),
-              'updated_at'   => date('Y-m-d H:i:s')
-            ]);
-
-            $this->decreaseStockQuantity([
-              'date'         => ($transferJS->sent_date ?? $transfer->date),
-              'transfer_id'  => $transfer_id,
-              'product_id'   => $item['product_id'],
-              'price'        => $item['price'], // Must mark-on price.
-              'quantity'     => $item['quantity'],
-              'spec'         => $item['spec'],
-              'warehouse_id' => $data['from_warehouse_id'],
-              'created_by'   => $data['created_by'],
-              'updated_by'   => $this->session->userdata('user_id'),
-              'updated_at'   => date('Y-m-d H:i:s')
-            ]);
-          } else {
-            $this->addStockQuantity([
-              'date'         => $data['date'],
-              'transfer_id'  => $transfer_id,
-              'product_id'   => $item['product_id'],
-              'price'        => $item['price'], // Must mark-on price / warehouse price.
-              'quantity'     => $item['quantity'],
-              'spec'         => $item['spec'],
-              'status'       => $data['status'],
-              'warehouse_id' => $data['from_warehouse_id'],
-              'created_by'   => $data['created_by'],
-              'updated_by'   => $this->session->userdata('user_id'),
-              'updated_at'   => date('Y-m-d H:i:s')
-            ]);
-          }
-        }
-      }
-
-      return TRUE;
-    }
-    return FALSE;
-  }
-
-  /**
-   * Update stock transfer (NEW)
-   * @param int $transferId Transfer ID
-   * @param array $data [ from_warehouse_id, to_warehouse_id, note, paid, payment_status, status,
-   *  received_date, sent_date, attachment ]
-   * @param array $items [ *product_id, *price, *quantity, spec ]
-   */
-  public function updateTransfer($transferId, $data, $items = [])
-  {
-    $transfer = $this->getTransfer(['id' => $transferId]);
-    $transferJS = getJSON($transfer->json);
-
-    if ($whFrom = $this->getWarehouse(['id' => $data['from_warehouse_id']])) {
-      $data['from_warehouse_code'] = $whFrom->code;
-    }
-
-    if ($whTo = $this->getWarehouse(['id' => $data['to_warehouse_id']])) {
-      $data['to_warehouse_code'] = $whTo->code;
-    }
-
-    if (!empty($data['sent_date'])) {
-      $transferJS->sent_date = $data['sent_date'];
-      unset($data['sent_date']);
-    }
-
-    if (!empty($data['received_date'])) {
-      $transferJS->received_date = $data['received_date'];
-      unset($data['received_date']);
-    }
-
-    if ($transferJS) {
-      $data['json'] = json_encode($transferJS);
-    }
-
-    if ($items && is_array($items)) {
-      $grandTotal = 0;
-
-      foreach ($items as $item) {
-        $grandTotal += ($item['price'] * $item['quantity']);
-      }
-
-      $data['grand_total'] = $grandTotal;
-    }
-
-    $data = setUpdatedBy($data);
-
-    $this->db->update('transfers', $data, ['id' => $transferId]);
-
-    if ($this->db->affected_rows()) {
-      $transfer = $this->getTransfer(['id' => $transferId]);
-      $transferJS = getJSON($transfer->json);
-
-      if ($items) {
-        $this->deleteStockQuantity(['transfer_id' => $transferId]);
-
-        foreach ($items as $item) {
-          if ($data['status'] == 'received' || $data['status'] == 'received_partial') {
-            $this->increaseStockQuantity([
-              'date'         => ($transferJS->received_date ?? $transfer->date),
-              'transfer_id'  => $transferId,
-              'product_id'   => $item['product_id'],
-              'price'        => $item['price'], // Must mark-on price.
-              'quantity'     => $item['quantity'],
-              'spec'         => $item['spec'],
-              'warehouse_id' => $data['to_warehouse_id'],
-              'created_by'   => ($data['created_by'] ?? $transfer->created_by),
-              'updated_by'   => $data['updated_by'],
-              'updated_at'   => date('Y-m-d H:i:s')
-            ]);
-
-            $this->decreaseStockQuantity([
-              'date'         => ($transferJS->sent_date ?? $transfer->date),
-              'transfer_id'  => $transferId,
-              'product_id'   => $item['product_id'],
-              'price'        => $item['price'], // Must mark-on price.
-              'quantity'     => $item['quantity'],
-              'spec'         => $item['spec'],
-              'warehouse_id' => $data['from_warehouse_id'],
-              'created_by'   => ($data['created_by'] ?? $transfer->created_by),
-              'updated_by'   => $data['updated_by'],
-              'updated_at'   => date('Y-m-d H:i:s')
-            ]);
-          } else { // packing, sent
-            $this->addStockQuantity([
-              'date'         => $data['date'],
-              'transfer_id'  => $transferId,
-              'product_id'   => $item['product_id'],
-              'price'        => $item['price'], // Must mark-on price / warehouse price.
-              'quantity'     => $item['quantity'],
-              'spec'         => $item['spec'],
-              'status'       => $data['status'],
-              'warehouse_id' => $data['from_warehouse_id'],
-              'created_by'   => ($data['created_by'] ?? $transfer->created_by),
-              'updated_by'   => $data['updated_by'],
-              'updated_at'   => date('Y-m-d H:i:s')
-            ]);
-          }
-        }
-      }
-      return TRUE;
-    }
-    return FALSE;
   }
 
   public function updateSupplier($supplier_id, $data)
@@ -10436,7 +9819,7 @@ class Site extends MY_Model
 
                 if (isset($options['attachment_id'])) $payment_from['attachment_id'] = $options['attachment_id'];
 
-                if ($this->addPayment($payment_from)) {
+                if (Payment::add($payment_from)) {
                   $payment_to = [
                     'date'        => $mutation->date,
                     'mutation_id' => $mutation->id,
@@ -10450,7 +9833,7 @@ class Site extends MY_Model
 
                   if (isset($options['attachment_id'])) $payment_to['attachment_id'] = $options['attachment_id'];
 
-                  if ($this->addPayment($payment_to)) {
+                  if (Payment::add($payment_to)) {
                     $this->updateBankMutation($mutation->id, [
                       'status' => 'paid'
                     ]);

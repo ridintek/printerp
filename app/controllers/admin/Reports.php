@@ -388,7 +388,7 @@ class Reports extends MY_Controller
     $sheet->setCellValue('E50', $exCategory['K028']); // Prive
     $sheet->setCellValue('E51', $pembayaranVendor); // Pembayaran hutang ke vendor.
 
-    $name = $this->session->userdata('fullname');
+    $name = XSession::get('fullname');
 
     $sheet->export('PrintERP-BalanceSheet-' . date('Ymd_His') . "-($name)");
   }
@@ -512,7 +512,7 @@ class Reports extends MY_Controller
     $sheet->setCellValue('A1', date('F Y', strtotime($startDate)));
     $sheet->setBold('A1');
 
-    $name = $this->session->userdata('fullname');
+    $name = XSession::get('fullname');
 
     $sheet->export('PrintERP-Setoran_COH-' . date('Ymd_His') . "-($name)");
   }
@@ -819,7 +819,7 @@ class Reports extends MY_Controller
 
     $sheet->getSheet(0)->setBold('A1');
 
-    $name = $this->session->userdata('fullname') ?? 'System';
+    $name = XSession::get('fullname') ?? 'System';
 
     $r = $sheet->export('PrintERP-SalesReport-' . date('Ymd_His') . "-($name)");
 
@@ -923,7 +923,7 @@ class Reports extends MY_Controller
 
     $sheet->setCellValue('A1', date('F Y', strtotime($startDate)));
 
-    $name = $this->session->userdata('fullname');
+    $name = XSession::get('fullname');
 
     $sheet->export('PrintERP-SalesPiutang-' . date('Ymd_His') . "-($name)");
   }
@@ -999,7 +999,7 @@ class Reports extends MY_Controller
         $r1++;
       }
 
-      $name = $this->session->userdata('fullname');
+      $name = XSession::get('fullname');
 
       $excel->export('PrintERP-DailyPerformance-' . date('Ymd_His') . "-($name)");
     }
@@ -1021,12 +1021,12 @@ class Reports extends MY_Controller
     $endRefDate   = getGET('end_ref_date');
     $xls         = (getGET('xls') == 1 ? TRUE : FALSE);
 
-    if (!$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
-      $users[] = $this->session->userdata('user_id');
+    if (!$this->Owner && !$this->Admin && !XSession::get('view_right')) {
+      $users[] = XSession::get('user_id');
     }
 
-    if ($this->session->userdata('biller_id')) {
-      $billers[] = $this->session->userdata('biller_id');
+    if (XSession::get('biller_id')) {
+      $billers[] = XSession::get('biller_id');
     }
 
     if ($xls) { // EXPORT EXCEL
@@ -1034,6 +1034,8 @@ class Reports extends MY_Controller
         ->select("DATE_FORMAT(payments.date, '%Y-%m-%d %T') as date,
           payments.reference_date,
           payments.reference as payment_ref,
+          payments.expense_id, payments.income_id, payments.mutation_id, payments.purchase_id,
+          payments.sale_id, payments.transfer_id,
           users.username as pic_id,
           users.fullname as pic_name,
           billers.name as biller_name,
@@ -1050,8 +1052,8 @@ class Reports extends MY_Controller
         ->join('purchases', 'purchases.id = payments.purchase_id', 'left')
         ->join('sales', 'sales.id = payments.sale_id', 'left')
         ->join('product_transfer', 'product_transfer.id = payments.transfer_id', 'left')
-        ->join('users', 'users.id=payments.created_by', 'left')
-        ->join('billers', 'billers.id = users.biller_id', 'left')
+        ->join('users', 'users.id = payments.created_by', 'left')
+        ->join('billers', 'billers.id = payments.biller_id', 'left')
         ->join('banks', 'banks.id = payments.bank_id', 'left')
         ->order_by('payments.date desc');
 
@@ -1108,17 +1110,19 @@ class Reports extends MY_Controller
         $excel->setCellValue('A1', 'Payment Date');
         $excel->setCellValue('B1', 'Reference Date');
         $excel->setCellValue('C1', 'Reference');
-        $excel->setCellValue('D1', 'PIC ID');
-        $excel->setCellValue('E1', 'PIC Name');
-        $excel->setCellValue('F1', 'Biller');
-        $excel->setCellValue('G1', 'Bank Name');
-        $excel->setCellValue('H1', 'Account Holder');
-        $excel->setCellValue('I1', 'Account No');
-        $excel->setCellValue('J1', 'Paid By');
-        $excel->setCellValue('K1', 'Note');
-        $excel->setCellValue('L1', 'Amount Received');
-        $excel->setCellValue('M1', 'Amount Sent');
-        $excel->setCellValue('N1', 'Type');
+        $excel->setCellValue('D1', 'Category'); // sale, expense, dsb
+        $excel->setCellValue('E1', 'Customer'); // 
+        $excel->setCellValue('F1', 'PIC ID');
+        $excel->setCellValue('G1', 'PIC Name');
+        $excel->setCellValue('H1', 'Biller');
+        $excel->setCellValue('I1', 'Bank Name');
+        $excel->setCellValue('J1', 'Account Holder');
+        $excel->setCellValue('K1', 'Account No');
+        $excel->setCellValue('L1', 'Paid By');
+        $excel->setCellValue('M1', 'Note');
+        $excel->setCellValue('N1', 'Amount Received');
+        $excel->setCellValue('O1', 'Amount Sent');
+        $excel->setCellValue('P1', 'Type');
 
         $row   = 2;
         $receivedTotal = 0;
@@ -1128,30 +1132,52 @@ class Reports extends MY_Controller
           $receivedAmount = ($payment->type == 'received' ? $payment->amount : '');
           $sentAmount     = ($payment->type == 'sent'     ? $payment->amount : '');
 
-          $excel->setCellValue('A' . $row, date('Y-m-d', strtotime($payment->date)));
-          $excel->setCellValue('B' . $row, (new DateTime($payment->reference_date))->format('Y-m-d'));
+          $paymentCategory = '';
+          $paymentReceiver = '';
+
+          if ($payment->expense_id) {
+            $paymentCategory = 'Expense';
+          } else if ($payment->income_id) {
+            $paymentCategory = 'Income';
+          } else if ($payment->mutation_id) {
+            $paymentCategory = 'Bank Mutation';
+          } else if ($payment->purchase_id) {
+            $paymentCategory = 'Purchase';
+          } else if ($payment->sale_id) {
+            $paymentCategory = 'Sale';
+            $customer = Customer::getRow(['id' => Sale::getRow(['id' => $payment->sale_id])->customer_id]);
+            $paymentReceiver = $customer->name . ($customer->company ? "({$customer->company})" : '');
+          } else if ($payment->transfer_id) {
+            $paymentCategory = 'Product Transfer';
+            $paymentReceiver = '';
+          }
+
+          $excel->setCellValue('A' . $row, date('Y-m-d H:i:s', strtotime($payment->date)));
+          $excel->setCellValue('B' . $row, date('Y-m-d H:i:s', strtotime($payment->reference_date)));
           $excel->setCellValue('C' . $row, $payment->payment_ref);
-          $excel->setCellValue('D' . $row, $payment->pic_id);
-          $excel->setCellValue('E' . $row, $payment->pic_name);
-          $excel->setCellValue('F' . $row, $payment->biller_name);
-          $excel->setCellValue('G' . $row, $payment->bank_name);
-          $excel->setCellValue('H' . $row, $payment->acc_holder);
-          $excel->setCellValue('I' . $row, $payment->acc_number, DataType::TYPE_STRING);
-          $excel->setCellValue('J' . $row, lang($payment->method));
-          $excel->setCellValue('K' . $row, htmlRemove($payment->note));
-          $excel->setCellValue('L' . $row, $receivedAmount);
-          $excel->setCellValue('M' . $row, $sentAmount);
-          $excel->setCellValue('N' . $row, $payment->type);
+          $excel->setCellValue('D' . $row, $paymentCategory);
+          $excel->setCellValue('E' . $row, $paymentReceiver);
+          $excel->setCellValue('F' . $row, $payment->pic_id);
+          $excel->setCellValue('G' . $row, $payment->pic_name);
+          $excel->setCellValue('H' . $row, $payment->biller_name);
+          $excel->setCellValue('I' . $row, $payment->bank_name);
+          $excel->setCellValue('J' . $row, $payment->acc_holder);
+          $excel->setCellValue('K' . $row, $payment->acc_number, DataType::TYPE_STRING);
+          $excel->setCellValue('L' . $row, lang($payment->method));
+          $excel->setCellValue('M' . $row, htmlRemove($payment->note));
+          $excel->setCellValue('N' . $row, $receivedAmount);
+          $excel->setCellValue('O' . $row, $sentAmount);
+          $excel->setCellValue('P' . $row, $payment->type);
 
           $receivedTotal += ($payment->type == 'received' ? $payment->amount : 0);
           $sentTotal     += ($payment->type == 'sent'     ? $payment->amount : 0);
           $row++;
         }
 
-        $excel->setCellValue('L' . $row, $receivedTotal);
-        $excel->setCellValue('M' . $row, $sentTotal);
-        $excel->setCellValue('L' . ($row + 1), 'Grand Total');
-        $excel->setCellValue('M' . ($row + 1), $receivedTotal - $sentTotal);
+        $excel->setCellValue('N' . $row, $receivedTotal);
+        $excel->setCellValue('O' . $row, $sentTotal);
+        $excel->setCellValue('N' . ($row + 1), 'Grand Total');
+        $excel->setCellValue('O' . ($row + 1), $receivedTotal - $sentTotal);
 
         $excel->setColumnAutoWidth('A');
         $excel->setColumnAutoWidth('B');
@@ -1163,12 +1189,14 @@ class Reports extends MY_Controller
         $excel->setColumnAutoWidth('H');
         $excel->setColumnAutoWidth('I');
         $excel->setColumnAutoWidth('J');
-        // $excel->setColumnAutoWidth('K'); // Too wide.
+        $excel->setColumnAutoWidth('K');
         $excel->setColumnAutoWidth('L');
-        $excel->setColumnAutoWidth('M');
+        // $excel->setColumnAutoWidth('M'); // Too wide.
         $excel->setColumnAutoWidth('N');
+        $excel->setColumnAutoWidth('O');
+        $excel->setColumnAutoWidth('P');
 
-        $name = $this->session->userdata('fullname');
+        $name = XSession::get('fullname');
 
         $excel->export('PaymentReports-' . date('Ymd_His') . "-($name)");
       }
@@ -1196,9 +1224,9 @@ class Reports extends MY_Controller
       ->join('purchases', 'purchases.id = payments.purchase_id', 'left')
       ->join('sales', 'sales.id = payments.sale_id', 'left')
       ->join('product_transfer', 'product_transfer.id = payments.transfer_id', 'left')
-      ->join('users', 'users.id=payments.created_by', 'left')
-      ->join('billers', 'billers.id=users.biller_id', 'left')
-      ->join('banks', 'banks.id=payments.bank_id', 'left')
+      ->join('users', 'users.id = payments.created_by', 'left')
+      ->join('billers', 'billers.id = payments.biller_id', 'left')
+      ->join('banks', 'banks.id = payments.bank_id', 'left')
       ->group_by('payments.id');
 
     if ($users) {
@@ -1366,7 +1394,7 @@ class Reports extends MY_Controller
         $col++;
       }
 
-      $name = $this->session->userdata('fullname');
+      $name = XSession::get('fullname');
 
       $excel->export('IncomeStatement-' . date('Ymd_His') . "-($name)");
     }
@@ -1754,7 +1782,7 @@ class Reports extends MY_Controller
         }
       }
 
-      $name = $this->session->userdata('fullname');
+      $name = XSession::get('fullname');
 
       $excel->export('PrintERP-InventoryBalance-ByItem-' . date('Ymd_His') . "-($name)");
     } else if ($xls == 2) { //! Export Warehouse Summary Details.
@@ -1822,7 +1850,7 @@ class Reports extends MY_Controller
         $excel->setColumnAutoWidth('A');
         $excel->setColumnAutoWidth('B');
 
-        $name = $this->session->userdata('fullname');
+        $name = XSession::get('fullname');
 
         $excel->export('Warehouse_Summary_Details_' . date('Ymd_His') . "-($name)");
       }
@@ -1943,7 +1971,7 @@ class Reports extends MY_Controller
       $r++;
     }
 
-    $name = $this->session->userdata('fullname');
+    $name = XSession::get('fullname');
 
     $sheet->export('PrintERP-SparepartUsabilityReport-' . date('Ymd_His') . "-($name)");
   }
@@ -1952,7 +1980,7 @@ class Reports extends MY_Controller
   { // Added Custom
     $this->sma->checkPermissions('quantity_alerts', true);
     if (!$this->Owner && !$warehouse_id) {
-      $user         = $this->site->getUser($this->session->userdata('user_id'));
+      $user         = $this->site->getUser(XSession::get('user_id'));
       $warehouse_id = $user->warehouse_id;
     }
 
@@ -2113,14 +2141,14 @@ class Reports extends MY_Controller
     $start_date   = getGET('start_date');
     $end_date     = getGET('end_date');
 
-    $warehouse = ($this->session->userdata('warehouse_id') ?? $warehouse);
+    $warehouse = (XSession::get('warehouse_id') ?? $warehouse);
 
     if ($start_date) {
       $start_date = $start_date . ' 00:00:00';
       $end_date   = $end_date . ' 23:59:59';
     }
-    if (!$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
-      $users[] = $this->session->userdata('user_id');
+    if (!$this->Owner && !$this->Admin && !XSession::get('view_right')) {
+      $users[] = XSession::get('user_id');
     }
 
     if (!$xls) { // WEB
@@ -2561,7 +2589,7 @@ class Reports extends MY_Controller
         $excel->setColumnAutoWidth('Q');
         $excel->setColumnAutoWidth('R');
 
-        $name = $this->session->userdata('fullname');
+        $name = XSession::get('fullname');
         $file_group_by = ($group_by ? '-' . lang($group_by) : '');
 
         $filename = 'PrintERP-Sales_Status-' . date('Ymd_His') . $file_group_by . "-($name)";
@@ -2625,7 +2653,7 @@ class Reports extends MY_Controller
     }
 
     $date = date('Ymd_His');
-    $user = $this->session->userdata('fullname');
+    $user = XSession::get('fullname');
 
     if ($stocks) {
       $lr = ($r - 1);
@@ -3086,7 +3114,7 @@ class Reports extends MY_Controller
     $sheet->setCellValue('A1', date('F Y', strtotime($startDate)));
     $sheet->setBold('A1');
 
-    $name = $this->session->userdata('fullname');
+    $name = XSession::get('fullname');
 
     $sheet->export('PrintERP-MachinePerformance-' . date('Ymd_His') . "-($name)");
   }
@@ -3417,7 +3445,7 @@ class Reports extends MY_Controller
     $sheet->setCellValue('A1', date('F Y', strtotime($startDate)));
     $sheet->setBold('A1');
 
-    $name = $this->session->userdata('fullname');
+    $name = XSession::get('fullname');
 
     $sheet->export('PrintERP-TrackingPOD-' . date('Ymd_His') . "-($name)");
   }

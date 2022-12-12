@@ -201,7 +201,7 @@ class Products_model extends CI_Model
 	{
 		$adjustment = $this->getAdjustmentByID($id);
 		$adj_items = $this->getAdjustmentItems($id);
-		$created_by = $this->session->userdata('user_id');
+		$created_by = XSession::get('user_id');
 		$date = date('Y-m-d H:i:s');
 		$this->reverseAdjustment($id); // Zeroing quantity
 		if ($this->db->delete('adjustments', ['id' => $id]) && $this->db->delete('adjustment_items', ['adjustment_id' => $id])) {

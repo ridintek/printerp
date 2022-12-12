@@ -80,7 +80,7 @@
               <th style="vertical-align:middle;"><?= lang('description'); ?></th>
               <th style="vertical-align:middle;"><?= lang('spec'); ?></th>
               <th style="text-align:center; vertical-align:middle;"><?= lang('purchased_quantity'); ?></th>
-              <?php if ($Owner || $Admin || $this->session->userdata('view_right')) { ?>
+              <?php if ($Owner || $Admin || XSession::get('view_right')) { ?>
               <th style="text-align:center; vertical-align:middle;"><?= lang('received_qty'); ?></th>
               <th style="text-align:center; vertical-align:middle;"><?= lang('unit_cost'); ?></th>
               <th style="text-align:center; vertical-align:middle;"><?= lang('subtotal'); ?></th>
@@ -104,7 +104,7 @@
               </td>
               <td class="col-md-4"><?= ( ! empty($row->spec) ? $row->spec : '-'); ?></td>
               <td class="text-center" style="width:80px; "><?= ceil($row->purchased_qty) . ' ' . $row->unit_code; ?></td>
-              <?php if ($Owner || $Admin || $this->session->userdata('view_right')) { ?>
+              <?php if ($Owner || $Admin || XSession::get('view_right')) { ?>
               <td class="text-right"><?= ceil($row->quantity) . ' ' . $row->unit_code; ?></td>
               <td class="text-right"><?= formatCurrency($row->cost); ?></td>
               <td class="text-right"><?= formatCurrency($total); ?></td>
@@ -115,7 +115,7 @@
             }
           } ?>
           </tbody>
-          <?php if ($Owner || $Admin || $this->session->userdata('view_right')) { ?>
+          <?php if ($Owner || $Admin || XSession::get('view_right')) { ?>
           <tfoot>
             <tr>
               <td class="text-right" colspan="6"><strong>Grand Total</strong></td>

@@ -110,7 +110,7 @@ class Schedule extends MY_Controller
 
     $billers = []; // by Name
 
-    if ($billerId = $this->session->userdata('biller_id')) {
+    if ($billerId = XSession::get('biller_id')) {
       $billers[] = $this->site->getBiller(['id' => $billerId])->name;
     }
 
@@ -160,7 +160,7 @@ class Schedule extends MY_Controller
 
     $billers = [];
 
-    if ($billerId = $this->session->userdata('biller_id')) {
+    if ($billerId = XSession::get('biller_id')) {
       $billers[] = $billerId;
     }
 

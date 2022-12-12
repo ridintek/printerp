@@ -143,7 +143,7 @@
                 <?php echo form_input('no_po', $inv->no_po, "class=\"form-control input-tip{$readOnly}\" id=\"no_po\""); ?>
               </div>
             </div>
-            <?php if ($Owner || $Admin || !$this->session->userdata('biller_id')) { ?>
+            <?php if ($Owner || $Admin || !XSession::get('biller_id')) { ?>
               <div class="col-md-4">
                 <div class="form-group">
                   <?= lang('biller', 'slbiller'); ?>
@@ -153,7 +153,7 @@
                     if (
                       $edit_mode != 'edit' &&
                       !$this->Owner && !$this->Admin &&
-                      $this->session->userdata('biller_id') != $biller->id
+                      XSession::get('biller_id') != $biller->id
                     ) continue;
                     $bl[$biller->id] = $biller->name;
                   }
@@ -161,7 +161,7 @@
                 </div>
               </div>
             <?php } else { ?>
-              <input type="hidden" name="biller" value="<?= $this->session->userdata('biller_id'); ?>">
+              <input type="hidden" name="biller" value="<?= XSession::get('biller_id'); ?>">
             <?php  } ?>
             <?php if ($Owner || $Admin || ($creator->username == 'w2p') || getPermission('sales-edit')) { ?>
               <div class="col-md-4">
@@ -170,7 +170,7 @@
                   <?php
                   $users = $this->site->getUsers();
                   foreach ($users as $user) {
-                    if ($creator->username == 'w2p' && $this->session->userdata('user_id') != $user->id) continue;
+                    if ($creator->username == 'w2p' && XSession::get('user_id') != $user->id) continue;
                     $group = $this->site->getUserGroup($user->id);
                     //if ($group->name != 'cs' && $group->name != 'tl') continue;
                     $usr[$user->id] = $user->fullname;
@@ -180,8 +180,8 @@
                 </div>
               </div>
             <?php } else {
-              $blr[$this->session->userdata('user_id')] = $this->session->userdata('biller_id'); ?>
-              <input type="hidden" id="slpic" name="created_by" value="<?= $this->session->userdata('user_id'); ?>">
+              $blr[XSession::get('user_id')] = XSession::get('biller_id'); ?>
+              <input type="hidden" id="slpic" name="created_by" value="<?= XSession::get('user_id'); ?>">
             <?php } ?>
             <div class="col-md-4">
               <div class="form-group">
@@ -189,7 +189,7 @@
                 <?php
                 $userData = [];
 
-                if ($billerId = $this->session->userdata('biller_id')) {
+                if ($billerId = XSession::get('biller_id')) {
                   $userData['biller_id'] = $billerId;
                 }
 
@@ -224,7 +224,7 @@
               <div class="panel panel-warning">
                 <div class="panel-heading"><?= lang('please_select_these_before_adding_product') ?></div>
                 <div class="panel-body" style="padding: 5px;">
-                  <?php if ($Owner || $Admin || !$this->session->userdata('warehouse_id')) { ?>
+                  <?php if ($Owner || $Admin || !XSession::get('warehouse_id')) { ?>
                     <div class="col-md-4">
                       <div class="form-group">
                         <?= lang('warehouse', 'slwarehouse'); ?>
@@ -238,7 +238,7 @@
                             if (
                               $edit_mode != 'edit' &&
                               !$this->Owner && !$this->Admin &&
-                              $this->session->userdata('warehouse_id') != $warehouse->id &&
+                              XSession::get('warehouse_id') != $warehouse->id &&
                               $warehouse->id != $inv->warehouse_id
                             ) continue;
 

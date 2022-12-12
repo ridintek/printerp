@@ -62,12 +62,12 @@
                     'settingsJSON' => json_decode($Settings->settings_json),
                     'url' => base_url()
                   ]) ?>;
-    window.biller_id = <?= ($this->session->userdata('biller_id') ?? $Settings->default_biller ?? 'null'); ?>;
-    window.user_id = <?= ($this->session->userdata('user_id') ?? 'null'); ?>;
+    window.biller_id = <?= (XSession::get('biller_id') ?? $Settings->default_biller ?? 'null'); ?>;
+    window.user_id = <?= (XSession::get('user_id') ?? 'null'); ?>;
     window.session = <?= json_encode([
-                        'group_id' => $this->session->userdata('group_id')
+                        'group_id' => XSession::get('group_id')
                       ]) ?>;
-    window.warehouse_id = <?= ($this->session->userdata('warehouse_id') ?? $Settings->default_warehouse ?? 'null'); ?>;
+    window.warehouse_id = <?= (XSession::get('warehouse_id') ?? $Settings->default_warehouse ?? 'null'); ?>;
   </script>
   <script src="<?= $assets ?>qms/js/ridintek.js?<?= $res_hash ?>"></script>
   <script src="<?= $assets ?>qms/js/counter.js?<?= $res_hash ?>"></script>
@@ -78,7 +78,7 @@
       }
     </style>
   </noscript>
-  <?php $warehouse_id = ($this->session->userdata('warehouse_id') ?? $Settings->default_warehouse); ?>
+  <?php $warehouse_id = (XSession::get('warehouse_id') ?? $Settings->default_warehouse); ?>
   <?php if ($Settings->user_rtl) { ?>
     <link href="<?= $assets ?>styles/helpers/bootstrap-rtl.min.css" rel="stylesheet" />
     <link href="<?= $assets ?>styles/style-rtl.css" rel="stylesheet" />
@@ -93,7 +93,7 @@
       $("#loading").fadeOut("slow");
     });
 
-    let biller_name = '<?= $this->session->userdata('biller_name'); ?>';
+    let biller_name = '<?= XSession::get('biller_name'); ?>';
   </script>
 </head>
 
@@ -104,15 +104,15 @@
       <div class="container">
         <a class="navbar-brand" href="<?= admin_url() ?>">
           <span class="logo"><?= $Settings->site_name ?></span>
-          <?php if ($this->session->userdata('biller_name')) { ?>
-            <span>(<?= $this->session->userdata('biller_name'); ?>)</span>
+          <?php if (XSession::get('biller_name')) { ?>
+            <span>(<?= XSession::get('biller_name'); ?>)</span>
           <?php } ?>
         </a>
         <div class="btn-group visible-xs btn-visible-sm">
           <button class="navbar-toggle btn" type="button" data-toggle="collapse" data-target="#sidebar_menu">
             <span class="fad fa-2x fa-bars"></span>
           </button>
-          <a href="<?= admin_url('users/profile/' . $this->session->userdata('user_id')); ?>" class="btn">
+          <a href="<?= admin_url('users/profile/' . XSession::get('user_id')); ?>" class="btn">
             <span class="fad fa-2x fa-user" style="color:#4080FF;"></span>
           </a>
           <a href="#" class="btn clearAllNotifications">
@@ -127,31 +127,31 @@
             <li class="dropdown">
               <a class="btn account dropdown-toggle" data-toggle="dropdown" href="#">
                 <?php
-                if ($this->session->userdata('avatar')) {
-                  $avatar_img = 'assets/uploads/avatars/thumbs/' . $this->session->userdata('avatar');
+                if (XSession::get('avatar')) {
+                  $avatar_img = 'assets/uploads/avatars/thumbs/' . XSession::get('avatar');
 
                   if (file_exists(FCPATH . $avatar_img)) {
                     $avatar_img_url = base_url($avatar_img);
                   } else { // Default
-                    $avatar_img_url = base_url('assets/images/' . $this->session->userdata('gender') . '.png');
+                    $avatar_img_url = base_url('assets/images/' . XSession::get('gender') . '.png');
                   }
                 } else { // Default
-                  $avatar_img_url = base_url('assets/images/' . $this->session->userdata('gender') . '.png');
+                  $avatar_img_url = base_url('assets/images/' . XSession::get('gender') . '.png');
                 }
                 ?>
                 <img alt="" src="<?= $avatar_img_url; ?>" class="mini_avatar img-rounded">
                 <div class="user">
-                  <span><?= $this->session->userdata('fullname'); ?> (<?= strtoupper($this->session->userdata('username')); ?>)</span>
+                  <span><?= XSession::get('fullname'); ?> (<?= strtoupper(XSession::get('username')); ?>)</span>
                 </div>
               </a>
               <ul class="dropdown-menu pull-right">
                 <li>
-                  <a href="<?= admin_url('users/profile/' . $this->session->userdata('user_id')); ?>">
+                  <a href="<?= admin_url('users/profile/' . XSession::get('user_id')); ?>">
                     <i class="fad fa-user"></i> <?= lang('profile'); ?>
                   </a>
                 </li>
                 <li>
-                  <a href="<?= admin_url('users/profile/' . $this->session->userdata('user_id') . '/#cpassword'); ?>"><i class="fad fa-key"></i> <?= lang('change_password'); ?>
+                  <a href="<?= admin_url('users/profile/' . XSession::get('user_id') . '/#cpassword'); ?>"><i class="fad fa-key"></i> <?= lang('change_password'); ?>
                   </a>
                 </li>
                 <li class="divider"></li>
@@ -782,7 +782,7 @@
                           <?php if (
                             $isAdmin ||
                             ($GP['sales-add'] && !$GP['sales-add_qms_only']) ||
-                            ($GP['sales-add'] && $this->session->userdata('biller_name') == 'Online')
+                            ($GP['sales-add'] && XSession::get('biller_name') == 'Online')
                           ) : ?>
                             <li id="sales_add">
                               <a class="submenu" href="<?= admin_url('sales/add'); ?>">
@@ -1125,7 +1125,7 @@
                       endforeach;
                       ?>
                       <li class="right_log hidden-xs">
-                        <?= "<span class='hidden-sm'>" . lang('last_login_at') . ': ' . date($dateFormats['php_ldate'], $this->session->userdata('old_last_login')) . '</span>'; ?>
+                        <?= "<span class='hidden-sm'>" . lang('last_login_at') . ': ' . date($dateFormats['php_ldate'], XSession::get('old_last_login')) . '</span>'; ?>
                       </li>
                     </ul>
                   </div>
@@ -1153,7 +1153,7 @@
                     <?php
                     if ($info) :
                       foreach ($info as $n) :
-                        if (!$this->session->userdata('hidden' . $n->id)) : ?>
+                        if (!XSession::get('hidden' . $n->id)) : ?>
                           <div class="alert alert-<?= $n->type; ?>">
                             <a href="#" id="<?= $n->id ?>" class="close hideComment external" data-dismiss="alert">&times;</a>
                             <?= $n->comment; ?>
