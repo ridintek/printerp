@@ -14,23 +14,24 @@
       <table id="TableModal" class="table table-bordered table-hover table-striped">
         <thead>
           <tr>
-            <th><?= lang('date'); ?></th>
-            <th><?= lang('reference'); ?></th>
-            <th><?= lang('amount'); ?></th>
-            <th><?= lang('method'); ?></th>
-            <th><?= lang('type'); ?></th>
-            <th><?= lang('actions'); ?></th>
+            <th>ID</th>
+            <th>Payment Date</th>
+            <th>Reference Date</th>
+            <th>Reference</th>
+            <th>Amount</th>
+            <th>Method</th>
+            <th>Type</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
           <?php if (!empty($payments)) :
             foreach ($payments as $payment) :
-              // Since ProductTransfer using same transfer_id in payments. We filtered it.
-              if ($payment->reference != $pt->reference) continue;
-
               $bank = Bank::getRow(['id' => $payment->bank_id]); ?>
               <tr class="row<?= $payment->id ?>">
-                <td><?= $payment->date; ?></td>
+                <td><?= $payment->id; ?></td>
+                <td><?= $payment->created_at; ?></td>
+                <td><?= $payment->reference_date; ?></td>
                 <td><?= $payment->reference; ?></td>
                 <td><?= formatCurrency($payment->amount) . ' ' . ($payment->attachment ? '<a href="' . admin_url('welcome/download/' . $payment->attachment) . '"><i class="fad fa-chain"></i></a>' : ''); ?></td>
                 <td><?= $bank->name; ?></td>

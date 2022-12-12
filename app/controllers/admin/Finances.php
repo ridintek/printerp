@@ -44,7 +44,7 @@ class Finances extends MY_Controller
   {
     $this->sma->checkPermissions('index', NULL, 'banks');
 
-    $biller_id = getGET('biller') ?? $this->session->userdata('biller_id');
+    $biller_id = getGET('biller') ?? XSession::get('biller_id');
 
     if ($biller_id) {
       $this->data['biller']  = $this->site->getBillerByID($biller_id);
@@ -851,7 +851,7 @@ class Finances extends MY_Controller
         'date'            => $date,
         'reference'       => $this->site->getReference('expense'),
         'amount'          => roundDecimal(getPOST('amount')),
-        'created_by'      => $this->session->userdata('user_id'),
+        'created_by'      => XSession::get('user_id'),
         'note'            => getPOST('note', TRUE),
         'category_id'     => getPOST('category', TRUE),
         'biller_id'       => getPOST('biller', TRUE),
@@ -901,7 +901,7 @@ class Finances extends MY_Controller
       $data = [
         'status'      => getPOST('status'),
         'note'        => getPOST('note'),
-        'approved_by' => $this->session->userdata('user_id')
+        'approved_by' => XSession::get('user_id')
       ];
       if ($data['status'] == 'need_approval') {
         $this->session->set_flashdata('error', lang('status_not_changed'));
@@ -1092,8 +1092,8 @@ class Finances extends MY_Controller
         $this->datatables->where('expenses.payment_date BETWEEN "' . $start_payment_date . '" AND "' . $end_payment_date . '"');
       }
 
-      if (!$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
-        $this->datatables->where('expenses.created_by', $this->session->userdata('user_id'));
+      if (!$this->Owner && !$this->Admin && !XSession::get('view_right')) {
+        $this->datatables->where('expenses.created_by', XSession::get('user_id'));
       }
 
       $this->datatables->add_column('Actions', $action, 'id');
@@ -1150,8 +1150,8 @@ class Finances extends MY_Controller
         $this->db->where('expenses.payment_date BETWEEN "' . $start_payment_date . '" AND "' . $end_payment_date . '"');
       }
 
-      if (!$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
-        $this->db->where('expenses.created_by', $this->session->userdata('user_id'));
+      if (!$this->Owner && !$this->Admin && !XSession::get('view_right')) {
+        $this->db->where('expenses.created_by', XSession::get('user_id'));
       }
 
       $this->db->order_by('expenses.id', 'DESC');
@@ -1310,7 +1310,7 @@ class Finances extends MY_Controller
         'date'         => rd_trim(getPOST('date')),
         'reference'    => $this->site->getReference('income'),
         'amount'       => round(filterDecimal(getPOST('amount'))),
-        'created_by'   => $this->session->userdata('user_id'),
+        'created_by'   => XSession::get('user_id'),
         'note'         => getPOST('note'),
         'category_id'  => getPOST('category', true),
         'biller_id'    => getPOST('biller', true),
@@ -1417,7 +1417,7 @@ class Finances extends MY_Controller
   private function incomes_getIncomes($biller_id = NULL)
   { // incomes
     $this->sma->checkPermissions('index', TRUE, 'incomes');
-    $biller_id = $this->session->userdata('biller_id') ?? $biller_id;
+    $biller_id = XSession::get('biller_id') ?? $biller_id;
     $reference = getGET('reference') ?? NULL;
     $category  = getGET('category') ?? NULL;
     $paid_by   = getGET('paid_by') ?? NULL;
@@ -1469,8 +1469,8 @@ class Finances extends MY_Controller
       $to_date   = $this->sma->fsd($to_date) . ' 23:59:59';
       $this->datatables->where('incomes.date BETWEEN "' . $from_date . '" AND "' . $to_date . '"');
     }
-    if (!$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
-      $this->datatables->where('created_by', $this->session->userdata('user_id'));
+    if (!$this->Owner && !$this->Admin && !XSession::get('view_right')) {
+      $this->datatables->where('created_by', XSession::get('user_id'));
     }
     if (!$this->Owner && !$this->Admin && $biller_id) {
       $this->datatables->where('biller_id', $biller_id);
@@ -1546,7 +1546,7 @@ class Finances extends MY_Controller
         'to_bank_name'   => $this->site->getBankById(getPOST('to_bank_id'))->name,
         'note'           => getPOST('note'),
         'amount'         => round(filterDecimal(getPOST('amount'))),
-        'created_by'     => $this->session->userdata('user_id'),
+        'created_by'     => XSession::get('user_id'),
         'paid_by'        => getPOST('paid_by'),
         'biller_id'      => getPOST('biller'),
         'status'         => 'paid'
@@ -1589,8 +1589,8 @@ class Finances extends MY_Controller
 
     $banks = Bank::get(['active' => 1]);
 
-    $biller_id = ($this->session->userdata('biller_id') ?? NULL);
-    $this->data['billers']   = (!$this->session->userdata('biller_id') ? $this->site->getAllBillers() : NULL);
+    $biller_id = (XSession::get('biller_id') ?? NULL);
+    $this->data['billers']   = (!XSession::get('biller_id') ? $this->site->getAllBillers() : NULL);
     $this->data['biller']    = $this->site->getBillerByID($biller_id);
     $this->data['biller_id'] = $biller_id;
     $this->data['banks']        = $banks;
@@ -1642,7 +1642,7 @@ class Finances extends MY_Controller
         'note'           => getPOST('note'),
         'new_amount'     => round(filterDecimal(getPOST('new_amount'))),
         'old_amount'     => round(filterDecimal(getPOST('old_amount'))),
-        'updated_by'     => $this->session->userdata('user_id'),
+        'updated_by'     => XSession::get('user_id'),
         'biller_id'      => getPOST('biller')
       ];
 
@@ -1766,11 +1766,11 @@ class Finances extends MY_Controller
       $end_date   = $this->sma->fsd($end_date) . ' 23:59:59';
       $this->datatables->where('bank_mutations.date BETWEEN "' . $start_date . '" AND "' . $end_date . '"');
     }
-    if (!$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
-      $this->datatables->where('created_by', $this->session->userdata('user_id'));
+    if (!$this->Owner && !$this->Admin && !XSession::get('view_right')) {
+      $this->datatables->where('created_by', XSession::get('user_id'));
     }
-    if (!$this->Owner && !$this->Admin && $this->session->userdata('biller_id')) {
-      $this->datatables->where('billers.id', $this->session->userdata('biller_id'));
+    if (!$this->Owner && !$this->Admin && XSession::get('biller_id')) {
+      $this->datatables->where('billers.id', XSession::get('biller_id'));
     }
     $this->datatables->add_column('Actions', $action, 'id');
     echo $this->datatables->generate();
@@ -1913,9 +1913,9 @@ class Finances extends MY_Controller
     }
 
     $this->sma->checkPermissions('index', NULL, 'validations');
-    $biller_id = (getGET('biller') ?? $this->session->userdata('biller_id'));
+    $biller_id = (getGET('biller') ?? XSession::get('biller_id'));
     $this->site->syncPaymentValidations(); // Sync all payment validations.
-    $this->data['billers']   = (!$this->session->userdata('biller_id') ? $this->site->getAllbillers() : NULL);
+    $this->data['billers']   = (!XSession::get('biller_id') ? $this->site->getAllbillers() : NULL);
     $this->data['biller']    = $this->site->getbillerByID($biller_id);
     $this->data['biller_id'] = $biller_id;
 
@@ -1954,7 +1954,7 @@ class Finances extends MY_Controller
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('finances/validations');
     }
-    $biller_id = ($this->session->userdata('biller_id') ?? $biller_id);
+    $biller_id = (XSession::get('biller_id') ?? $biller_id);
     $this->load->view($this->theme . 'finances/validations/add', $this->data);
   }
 
@@ -1998,9 +1998,9 @@ class Finances extends MY_Controller
   private function validations_index($biller_id = NULL)
   {
     $this->sma->checkPermissions('index', NULL, 'validations');
-    $biller_id = ($this->session->userdata('biller_id') ?? $biller_id);
+    $biller_id = (XSession::get('biller_id') ?? $biller_id);
     $this->site->syncPaymentValidations(); // Sync all payment validations.
-    $this->data['billers']   = (!$this->session->userdata('biller_id') ? $this->site->getAllbillers() : NULL);
+    $this->data['billers']   = (!XSession::get('biller_id') ? $this->site->getAllbillers() : NULL);
     $this->data['biller']    = $this->site->getbillerByID($biller_id);
     $this->data['biller_id'] = $biller_id;
     $bc   = [ // Breadcrumbs
@@ -2124,11 +2124,11 @@ class Finances extends MY_Controller
         $end_date   = $end_date . ' 23:59:59';
         $this->datatables->where('payment_validations.date BETWEEN "' . $start_date . '" AND "' . $end_date . '"');
       }
-      if (!$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
-        $this->datatables->where('created_by', $this->session->userdata('user_id'));
+      if (!$this->Owner && !$this->Admin && !XSession::get('view_right')) {
+        $this->datatables->where('created_by', XSession::get('user_id'));
       }
-      if (!$this->Owner && !$this->Admin && $this->session->userdata('biller_id')) {
-        $this->datatables->where('billers.id', $this->session->userdata('biller_id'));
+      if (!$this->Owner && !$this->Admin && XSession::get('biller_id')) {
+        $this->datatables->where('billers.id', XSession::get('biller_id'));
       }
       $this->datatables->add_column('Actions', $action, 'id');
       echo $this->datatables->generate();
@@ -2186,11 +2186,11 @@ class Finances extends MY_Controller
         $end_date   = $end_date . ' 23:59:59';
         $this->db->where('payment_validations.date BETWEEN "' . $start_date . '" AND "' . $end_date . '"');
       }
-      if (!$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
-        $this->db->where('created_by', $this->session->userdata('user_id'));
+      if (!$this->Owner && !$this->Admin && !XSession::get('view_right')) {
+        $this->db->where('created_by', XSession::get('user_id'));
       }
-      if (!$this->Owner && !$this->Admin && $this->session->userdata('biller_id')) {
-        $this->db->where('billers.id', $this->session->userdata('biller_id'));
+      if (!$this->Owner && !$this->Admin && XSession::get('biller_id')) {
+        $this->db->where('billers.id', XSession::get('biller_id'));
       }
 
       $this->db->order_by('payment_validations.date', 'DESC');

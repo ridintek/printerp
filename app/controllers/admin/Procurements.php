@@ -362,7 +362,7 @@ class Procurements extends MY_Controller
         'note'              => $note,
         'supplier_id'       => $supplierId,
         'ts_id'             => $tsId,
-        'updated_by'        => $this->session->userdata('user_id'),
+        'updated_by'        => XSession::get('user_id'),
         'status'            => $status,
       ];
 
@@ -501,7 +501,7 @@ class Procurements extends MY_Controller
     $category     = getGET('category');
     $xls = (getGET('xls') == 1 ? TRUE : FALSE);
 
-    $warehouse_id = $this->session->userdata('warehouse_id');
+    $warehouse_id = XSession::get('warehouse_id');
 
     if ($xls) { // EXCEL REPORT
       $query = "stocks.date, internal_uses.reference,
@@ -669,7 +669,7 @@ class Procurements extends MY_Controller
 
   private function internal_uses_index()
   {
-    $warehouse_id = $this->session->userdata('warehouse_id');
+    $warehouse_id = XSession::get('warehouse_id');
     $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
     $this->data['warehouse_id'] = $warehouse_id;
     $this->data['warehouses']   = $this->site->getAllWarehouses();
@@ -1055,14 +1055,14 @@ class Procurements extends MY_Controller
     $this->lang->admin_load('purchases', $this->Settings->user_language);
 
     $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
-    if ($this->Owner || $this->Admin || !$this->session->userdata('warehouse_id')) {
+    if ($this->Owner || $this->Admin || !XSession::get('warehouse_id')) {
       $this->data['warehouses']   = $this->site->getAllWarehouses();
       $this->data['warehouse_id'] = $warehouse_id;
       $this->data['warehouse']    = $warehouse_id ? $this->site->getWarehouseByID($warehouse_id) : null;
     } else {
       $this->data['warehouses']   = null;
-      $this->data['warehouse_id'] = $this->session->userdata('warehouse_id');
-      $this->data['warehouse']    = $this->session->userdata('warehouse_id') ? $this->site->getWarehouseByID($this->session->userdata('warehouse_id')) : null;
+      $this->data['warehouse_id'] = XSession::get('warehouse_id');
+      $this->data['warehouse']    = XSession::get('warehouse_id') ? $this->site->getWarehouseByID(XSession::get('warehouse_id')) : null;
     }
 
     $bc   = [
@@ -1403,7 +1403,7 @@ class Procurements extends MY_Controller
             'status'            => $status,
             'unit_id'           => $itemUnit,
             'spec'              => $itemSpec,
-            'created_by'        => $this->session->userdata('user_id')
+            'created_by'        => XSession::get('user_id')
           ];
 
           $total += round($itemCost * $itemPurchasedQty);
@@ -1421,7 +1421,7 @@ class Procurements extends MY_Controller
         'warehouse_id'   => $warehouse_id,
         'note'           => $note,
         'grand_total'    => $total,
-        'created_by'     => $this->session->userdata('user_id'),
+        'created_by'     => XSession::get('user_id'),
         'payment_status' => 'pending', // Payment must pending after add stock purchase.
         'status'         => $status,
         'payment_term'   => $payment_term,
@@ -1448,7 +1448,7 @@ class Procurements extends MY_Controller
       $this->load->helper('string');
       $value = random_string('alnum', 20);
       $this->session->set_userdata('user_csrf', $value);
-      $this->data['csrf'] = $this->session->userdata('user_csrf');
+      $this->data['csrf'] = XSession::get('user_csrf');
       $bc                 = [
         ['link' => base_url(), 'page' => lang('home')],
         ['link' => '#', 'page' => lang('procurements')],
@@ -1532,7 +1532,7 @@ class Procurements extends MY_Controller
         'bank_id'         => $bank->id,
         'method'          => $bank->type,
         'amount'          => round(filterDecimal($amount)),
-        'created_by'      => $this->session->userdata('user_id'),
+        'created_by'      => XSession::get('user_id'),
         'status'          => 'need_approval',
         'type'            => 'pending', // will be received if paid, after approved.
         'note'            => htmlEncode(getPOST('note'))
@@ -1632,7 +1632,7 @@ class Procurements extends MY_Controller
       redirect($_SERVER['HTTP_REFERER'] ?? admin_url('procurements/purchases'));
     }
 
-    if (!$this->session->userdata('edit_right')) {
+    if (!XSession::get('edit_right')) {
       $this->sma->view_rights($purchase->created_by);
     }
 
@@ -1945,7 +1945,7 @@ class Procurements extends MY_Controller
       //   'reference'         => $purchase->reference,
       //   'payment_reference' => $data_payment['reference'],
       //   'description'       => "Payment has been edited, from amount <b>{$this->sma->formatMoney($old_amount)}</b> to <b>{$this->sma->formatMoney($new_amount)}</b>, paid by <b>{$bank->name}</b>.",
-      //   'user_id'           => $this->session->userdata('user_id')
+      //   'user_id'           => XSession::get('user_id')
       // ]);
       $this->session->set_flashdata('message', lang('payment_added'));
       redirect($_SERVER['HTTP_REFERER']);
@@ -2155,8 +2155,8 @@ class Procurements extends MY_Controller
       } else if ($end_payment_date) {
         $this->db->where("payment_date <= '{$end_payment_date}'");
       }
-      if (!$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
-        $this->db->where('created_by', $this->session->userdata('user_id'));
+      if (!$this->Owner && !$this->Admin && !XSession::get('view_right')) {
+        $this->db->where('created_by', XSession::get('user_id'));
       }
 
       $q = $this->db->get();
@@ -2261,7 +2261,7 @@ class Procurements extends MY_Controller
     }
     $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
     $inv                 = $this->site->getStockPurchaseByID($purchase_id);
-    if (!$this->session->userdata('view_right')) {
+    if (!XSession::get('view_right')) {
       $this->sma->view_rights($inv->created_by, true);
     }
     $this->data['logo']            = TRUE;
@@ -2338,7 +2338,7 @@ class Procurements extends MY_Controller
         'reference'         => $purchase->reference,
         'payment_reference' => $payment->reference,
         'description'       => $stat,
-        'user_id'           => $this->session->userdata('user_id')
+        'user_id'           => XSession::get('user_id')
       ]);*/
         $this->session->set_flashdata('message', $stat);
       } else {
@@ -2396,7 +2396,7 @@ class Procurements extends MY_Controller
             'status'        => 'need_approval',
             'unit_id'       => $items[0]->unit_id,
             'spec'          => $items[0]->spec,
-            'created_by'    => $this->session->userdata('user_id')
+            'created_by'    => XSession::get('user_id')
           ];
 
           if ($items[0]->purchased_qty == $new_qty) { // If equal, remove stock from old po
@@ -2422,7 +2422,7 @@ class Procurements extends MY_Controller
             'warehouse_id' => $warehouse->id,
             'note' => '',
             'grand_total' => $total,
-            'created_by' => $this->session->userdata('user_id'),
+            'created_by' => XSession::get('user_id'),
             'payment_status' => 'pending',
             'status' => 'need_approval',
             'payment_term' => 1,
@@ -2589,7 +2589,7 @@ class Procurements extends MY_Controller
     $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
     $purchase = $this->site->getStockPurchaseByID($purchase_id);
 
-    if (!$this->session->userdata('view_right')) {
+    if (!XSession::get('view_right')) {
       $this->sma->view_rights($purchase->created_by);
     }
 
@@ -2623,7 +2623,7 @@ class Procurements extends MY_Controller
 
   private function transfers_index($warehouse_id = NULL)
   { // transfers
-    $wh_id = $warehouse_id ?? $this->session->userdata('warehouse_id') ?? $this->Settings->default_warehouse;
+    $wh_id = $warehouse_id ?? XSession::get('warehouse_id') ?? $this->Settings->default_warehouse;
 
     $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
     $this->data['warehouse_id'] = $wh_id;
@@ -2714,7 +2714,7 @@ class Procurements extends MY_Controller
         'to_warehouse_id'   => $warehouseIdTo,
         'note'              => $note,
         'grand_total'       => $grand_total,
-        'created_by'        => $this->session->userdata('user_id'),
+        'created_by'        => XSession::get('user_id'),
         'payment_status'    => 'pending',
         'status'            => $status, // new add = packing
       ];
@@ -2795,7 +2795,7 @@ class Procurements extends MY_Controller
         'to_bank_id'      => getPOST('to_bank_id'),
         'note'            => getPOST('note'),
         'amount'          => round(filterDecimal(getPOST('amount'))),
-        'created_by'      => $this->session->userdata('user_id')
+        'created_by'      => XSession::get('user_id')
       ];
 
       if ($data['amount'] > ($transfer->grand_total - $transfer->paid)) {
@@ -2923,7 +2923,7 @@ class Procurements extends MY_Controller
       admin_redirect('procurements/transfers');
     }
 
-    if (!$this->session->userdata('edit_right')) {
+    if (!XSession::get('edit_right')) {
       $this->sma->view_rights($transfer->created_by);
     }
 
@@ -2984,7 +2984,7 @@ class Procurements extends MY_Controller
         'note'              => $note,
         'grand_total'       => $grand_total,
         'created_by'        => $transfer->created_by,
-        'updated_by'        => $this->session->userdata('user_id'),
+        'updated_by'        => XSession::get('user_id'),
         'status'            => $status,
       ];
 
@@ -3210,9 +3210,9 @@ class Procurements extends MY_Controller
 		</ul>
     </div></div>';
 
-    if ($this->session->userdata('warehouse_id')) { // Make sure to protect other warehouse.
+    if (XSession::get('warehouse_id')) { // Make sure to protect other warehouse.
       $warehouse_to = [];
-      $warehouse_to[] = $this->session->userdata('warehouse_id');
+      $warehouse_to[] = XSession::get('warehouse_id');
     }
 
     if (!$xls) { // View Web.
@@ -3263,8 +3263,8 @@ class Procurements extends MY_Controller
       } else if ($end_date) {
         $this->datatables->where("date <= '{$end_date} 23:59:59'");
       }
-      if (!$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
-        $this->datatables->where('created_by', $this->session->userdata('user_id'));
+      if (!$this->Owner && !$this->Admin && !XSession::get('view_right')) {
+        $this->datatables->where('created_by', XSession::get('user_id'));
       }
       $this->datatables->add_column('Actions', $action, 'id')
         ->unset_column('fcode')
@@ -3315,8 +3315,8 @@ class Procurements extends MY_Controller
       } else if ($end_date) {
         $this->db->where("date <= '{$end_date}'");
       }
-      if (!$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
-        $this->db->where('created_by', $this->session->userdata('user_id'));
+      if (!$this->Owner && !$this->Admin && !XSession::get('view_right')) {
+        $this->db->where('created_by', XSession::get('user_id'));
       }
 
       $q = $this->db->get();
@@ -3425,7 +3425,7 @@ class Procurements extends MY_Controller
       admin_redirect('procurements/transfers');
     }
 
-    if (!$this->session->userdata('edit_right')) {
+    if (!XSession::get('edit_right')) {
       $this->sma->view_rights($transfer->created_by);
     }
 
@@ -3498,7 +3498,7 @@ class Procurements extends MY_Controller
         'note'              => $note,
         'grand_total'       => $grand_total,
         'created_by'        => $transfer->created_by,
-        'updated_by'        => $this->session->userdata('user_id'),
+        'updated_by'        => XSession::get('user_id'),
         'status'            => $status
       ];
 
@@ -3769,7 +3769,7 @@ class Procurements extends MY_Controller
 
     $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
     $transfer            = $this->site->getStockTransferByID($transfer_id);
-    if (!$this->session->userdata('view_right')) {
+    if (!XSession::get('view_right')) {
       $this->sma->view_rights($transfer->created_by, true);
     }
     $this->data['rows']           = $this->site->getStockTransferItemsByTransferID($transfer_id);

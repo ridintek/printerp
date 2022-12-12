@@ -205,8 +205,8 @@
                 $billers = $this->site->getAllBillers();
 
                 foreach ($billers as $biller) {
-                  if ($this->session->userdata('biller_id')) {
-                    if ($biller->id != $this->session->userdata('biller_id')) continue;
+                  if (XSession::get('biller_id')) {
+                    if ($biller->id != XSession::get('biller_id')) continue;
                   }
                   $bl[$biller->id] = $biller->name;
                 }
@@ -216,7 +216,7 @@
               </div>
             </div>
 
-            <?php if ($Owner || $Admin || !$this->session->userdata('warehouse_id')) { ?>
+            <?php if ($Owner || $Admin || !XSession::get('warehouse_id')) { ?>
               <div class="col-md-4">
                 <div class="form-group">
                   <?= lang('warehouse', 'powarehouse'); ?>
@@ -235,7 +235,7 @@
                 'type'  => 'hidden',
                 'name'  => 'warehouse',
                 'id'    => 'powarehouse',
-                'value' => $this->session->userdata('warehouse_id'),
+                'value' => XSession::get('warehouse_id'),
               ];
               echo form_input($warehouse_input);
             } ?>

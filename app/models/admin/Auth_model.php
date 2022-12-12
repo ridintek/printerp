@@ -551,7 +551,7 @@ class Auth_model extends MY_Model
     $this->trigger_events('get_users_group');
 
     //if no id was passed use the current users id
-    $id || $id = $this->session->userdata('user_id');
+    $id || $id = XSession::get('user_id');
 
     return $this->db->select($this->tables['groups'] . '.id as id, ' . $this->tables['groups'] . '.name, ' . $this->tables['groups'] . '.description')
       ->where($this->tables['groups'] . '.id', $id)
@@ -1359,7 +1359,7 @@ class Auth_model extends MY_Model
     $this->trigger_events('users');
 
     //if no id was passed use the current users id
-    $id || $id = $this->session->userdata('user_id');
+    $id || $id = XSession::get('user_id');
 
     $this->limit(1);
     $this->where($this->tables['users'] . '.id', $id);

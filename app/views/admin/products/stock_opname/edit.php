@@ -52,7 +52,7 @@
 
                 if ($allUsers) {
                   foreach ($allUsers as $user) {
-                    if ( ! $Owner && ! $Admin && $this->session->userdata('user_id') != $user->id) continue;
+                    if ( ! $Owner && ! $Admin && XSession::get('user_id') != $user->id) continue;
                     $users[$user->id] = $user->fullname;
                   }
                 }
@@ -60,7 +60,7 @@
               </div>
             </div>
 
-            <?php if ($Owner || $Admin || !$this->session->userdata('warehouse_id')) { ?>
+            <?php if ($Owner || $Admin || !XSession::get('warehouse_id')) { ?>
               <div class="col-md-3">
                 <div class="form-group">
                   <?= lang('warehouse', 'so_warehouse'); ?>
@@ -75,7 +75,7 @@
                 </div>
               </div>
             <?php } else { ?>
-              <input type="hidden" id="so_warehouse" name="warehouse" value="<?= $this->session->userdata('warehouse_id'); ?>">
+              <input type="hidden" id="so_warehouse" name="warehouse" value="<?= XSession::get('warehouse_id'); ?>">
             <?php } ?>
             <div class="col-md-12">
               <div class="control-group table-group">
@@ -138,7 +138,7 @@
                 $opt = [];
                 $opt[$opname->status] = lang($opname->status);
                 ?>
-                <?= form_dropdown('status', $opt, $opname->status, 'class="form-control select"'); ?>
+                <?= form_dropdown('status', $opt, $opname->status, 'class="form-control select2"'); ?>
               </div>
             </div>
             <div class="col-md-4">
@@ -185,7 +185,7 @@
       let warehouse_id = $('#so_warehouse').val();
       $.ajax({
         data: {
-          user: '<?= $this->session->userdata('user_id'); ?>',
+          user: '<?= XSession::get('user_id'); ?>',
           warehouse: warehouse_id
         },
         method: 'GET',

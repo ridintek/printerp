@@ -257,7 +257,7 @@ class Products extends MY_Controller
         'warehouse_id' => $warehouse_id,
         'mode'         => $mode,
         'note'         => $note,
-        'created_by'   => $this->session->userdata('user_id'),
+        'created_by'   => XSession::get('user_id'),
         'end_date'     => $date
       ];
 
@@ -366,7 +366,7 @@ class Products extends MY_Controller
   // public function addByAjax()
   // {
   //   return FALSE;
-  //   if (getGET('token') && getGET('token') == $this->session->userdata('user_csrf') && $this->input->is_ajax_request()) {
+  //   if (getGET('token') && getGET('token') == XSession::get('user_csrf') && $this->input->is_ajax_request()) {
   //     $product = getGET('product');
   //     if (!isset($product['code']) || empty($product['code'])) {
   //       exit(json_encode(['msg' => lang('product_code_is_required')]));
@@ -699,7 +699,7 @@ class Products extends MY_Controller
   //       'initial_file'   => $name,
   //       'products'       => $pr,
   //       'rows'           => $rw,
-  //       'created_by'     => $this->session->userdata('user_id'),
+  //       'created_by'     => XSession::get('user_id'),
   //     ];
   //   }
 
@@ -1226,7 +1226,7 @@ class Products extends MY_Controller
     $stockClause = '';
 
     if (!$this->isAdmin && !$warehouse_id) {
-      $warehouse_id = $this->session->userdata('warehouse_id');
+      $warehouse_id = XSession::get('warehouse_id');
     }
 
     $warehouse = ($warehouse_id ? $this->site->getWarehouseByID($warehouse_id) : NULL);
@@ -1347,12 +1347,12 @@ class Products extends MY_Controller
     }
 
     if (!$this->isAdmin) {
-      if (!$this->session->userdata('show_cost')) {
+      if (!XSession::get('show_cost')) {
         $this->datatables->unset_column('cost');
         $this->datatables->unset_column('markon_price');
       }
 
-      if (!$this->session->userdata('show_price')) {
+      if (!XSession::get('show_price')) {
         $this->datatables->unset_column('price');
       }
     }
@@ -3055,14 +3055,14 @@ class Products extends MY_Controller
     // $this->isAdmin = FALSE;
     // $this->data['isAdmin'] = FALSE;
 
-    if ($this->isAdmin || !$this->session->userdata('warehouse_id')) {
+    if ($this->isAdmin || !XSession::get('warehouse_id')) {
       $this->data['warehouses']   = $this->site->getAllWarehouses();
       $this->data['warehouse_id'] = $warehouse_id;
       $this->data['warehouse']    = $warehouse_id ? $this->site->getWarehouseByID($warehouse_id) : null;
     } else {
       $this->data['warehouses']   = null;
-      $this->data['warehouse_id'] = $this->session->userdata('warehouse_id');
-      $this->data['warehouse']    = $this->session->userdata('warehouse_id') ? $this->site->getWarehouseByID($this->session->userdata('warehouse_id')) : null;
+      $this->data['warehouse_id'] = XSession::get('warehouse_id');
+      $this->data['warehouse']    = XSession::get('warehouse_id') ? $this->site->getWarehouseByID(XSession::get('warehouse_id')) : null;
     }
 
     $this->data['supplier'] = (getGET('supplier') ? $this->site->getSupplierByID(getGET('supplier')) : NULL);
@@ -3776,12 +3776,12 @@ class Products extends MY_Controller
   {
     $this->sma->checkPermissions('adjustments');
 
-    if ($this->Owner || $this->Admin || !$this->session->userdata('warehouse_id')) {
+    if ($this->Owner || $this->Admin || !XSession::get('warehouse_id')) {
       $this->data['warehouses'] = $this->site->getAllWarehouses();
       $this->data['warehouse']  = $warehouse_id ? $this->site->getWarehouseByID($warehouse_id) : null;
     } else {
       $this->data['warehouses'] = null;
-      $this->data['warehouse']  = $this->session->userdata('warehouse_id') ? $this->site->getWarehouseByID($this->session->userdata('warehouse_id')) : null;
+      $this->data['warehouse']  = XSession::get('warehouse_id') ? $this->site->getWarehouseByID(XSession::get('warehouse_id')) : null;
     }
 
     $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
@@ -3949,7 +3949,7 @@ class Products extends MY_Controller
   {
     $items = [];
     $this->data['mode'] = $this->so_mode;
-    $granted = ($this->session->userdata('group_id') == 6 ? TRUE : FALSE);
+    $granted = (XSession::get('group_id') == 6 ? TRUE : FALSE);
 
     $this->form_validation->set_rules('warehouse', 'Warehouse', 'required');
 
@@ -3978,7 +3978,7 @@ class Products extends MY_Controller
         'note'         => htmlEncode(getPOST('note')),
         'status'       => getPOST('status'),
         'warehouse_id' => getPOST('warehouse'),
-        'updated_by'   => $this->session->userdata('user_id'),
+        'updated_by'   => XSession::get('user_id'),
         'updated_at'   => date('Y-m-d H:i:s')
       ];
 
@@ -4085,7 +4085,7 @@ class Products extends MY_Controller
         ->join('warehouses', 'warehouses.id = stock_opnames.warehouse_id', 'left')
         ->join('(SELECT id, fullname FROM users) AS creator', 'creator.id = stock_opnames.created_by', 'left');
 
-      if ($warehouse_id = $this->session->userdata('warehouse_id')) {
+      if ($warehouse_id = XSession::get('warehouse_id')) {
         $this->db->where('stock_opnames.warehouse_id', $warehouse_id);
       }
 
@@ -4212,7 +4212,7 @@ class Products extends MY_Controller
       ->join('warehouses', 'warehouses.id = stock_opnames.warehouse_id', 'left')
       ->join('(SELECT id, fullname FROM users) AS creator', 'creator.id = stock_opnames.created_by', 'left');
 
-    if ($warehouse_id = $this->session->userdata('warehouse_id')) {
+    if ($warehouse_id = XSession::get('warehouse_id')) {
       $this->datatable->where('stock_opnames.warehouse_id', $warehouse_id);
     }
 
@@ -4531,7 +4531,7 @@ class Products extends MY_Controller
       $note        = htmlEncode(getPOST('note'));
 
       $paymentData = [
-        'pt_id'        => $pt->id,
+        'transfer_id'        => $pt->id,
         'bank_id_from' => $bankIdFrom,
         'bank_id_to'   => $bankIdTo,
         'amount'       => $amount,
@@ -4689,7 +4689,7 @@ class Products extends MY_Controller
       $this->response(400, ['message' => 'Failed to update Product Transfer.']);
     }
 
-    $ptitems = ProductTransferItem::get(['pt_id' => $ptId]);
+    $ptitems = ProductTransferItem::get(['transfer_id' => $ptId]);
     $items = [];
 
     foreach ($ptitems as $ptitem) {
@@ -4726,7 +4726,7 @@ class Products extends MY_Controller
     $warehousesFrom = getGET('warehouse_id_from');
     $warehousesTo   = getGET('warehouse_id_to');
 
-    if ($whId = $this->session->userdata('warehouse_id')) {
+    if ($whId = XSession::get('warehouse_id')) {
       $warehousesTo = [];
       $warehousesTo[] = $whId;
     }
@@ -4896,7 +4896,7 @@ class Products extends MY_Controller
   {
     checkPermission('products-transfer_view');
 
-    $ptitems = ProductTransferItem::get(['pt_id' => $ptId]);
+    $ptitems = ProductTransferItem::get(['transfer_id' => $ptId]);
     $items = [];
 
     foreach ($ptitems as $ptitem) {

@@ -388,7 +388,7 @@ class Reports extends MY_Controller
     $sheet->setCellValue('E50', $exCategory['K028']); // Prive
     $sheet->setCellValue('E51', $pembayaranVendor); // Pembayaran hutang ke vendor.
 
-    $name = $this->session->userdata('fullname');
+    $name = XSession::get('fullname');
 
     $sheet->export('PrintERP-BalanceSheet-' . date('Ymd_His') . "-($name)");
   }
@@ -512,7 +512,7 @@ class Reports extends MY_Controller
     $sheet->setCellValue('A1', date('F Y', strtotime($startDate)));
     $sheet->setBold('A1');
 
-    $name = $this->session->userdata('fullname');
+    $name = XSession::get('fullname');
 
     $sheet->export('PrintERP-Setoran_COH-' . date('Ymd_His') . "-($name)");
   }
@@ -819,7 +819,7 @@ class Reports extends MY_Controller
 
     $sheet->getSheet(0)->setBold('A1');
 
-    $name = $this->session->userdata('fullname') ?? 'System';
+    $name = XSession::get('fullname') ?? 'System';
 
     $r = $sheet->export('PrintERP-SalesReport-' . date('Ymd_His') . "-($name)");
 
@@ -923,7 +923,7 @@ class Reports extends MY_Controller
 
     $sheet->setCellValue('A1', date('F Y', strtotime($startDate)));
 
-    $name = $this->session->userdata('fullname');
+    $name = XSession::get('fullname');
 
     $sheet->export('PrintERP-SalesPiutang-' . date('Ymd_His') . "-($name)");
   }
@@ -999,7 +999,7 @@ class Reports extends MY_Controller
         $r1++;
       }
 
-      $name = $this->session->userdata('fullname');
+      $name = XSession::get('fullname');
 
       $excel->export('PrintERP-DailyPerformance-' . date('Ymd_His') . "-($name)");
     }
@@ -1021,12 +1021,12 @@ class Reports extends MY_Controller
     $endRefDate   = getGET('end_ref_date');
     $xls         = (getGET('xls') == 1 ? TRUE : FALSE);
 
-    if (!$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
-      $users[] = $this->session->userdata('user_id');
+    if (!$this->Owner && !$this->Admin && !XSession::get('view_right')) {
+      $users[] = XSession::get('user_id');
     }
 
-    if ($this->session->userdata('biller_id')) {
-      $billers[] = $this->session->userdata('biller_id');
+    if (XSession::get('biller_id')) {
+      $billers[] = XSession::get('biller_id');
     }
 
     if ($xls) { // EXPORT EXCEL
@@ -1052,8 +1052,8 @@ class Reports extends MY_Controller
         ->join('purchases', 'purchases.id = payments.purchase_id', 'left')
         ->join('sales', 'sales.id = payments.sale_id', 'left')
         ->join('product_transfer', 'product_transfer.id = payments.transfer_id', 'left')
-        ->join('users', 'users.id=payments.created_by', 'left')
-        ->join('billers', 'billers.id = users.biller_id', 'left')
+        ->join('users', 'users.id = payments.created_by', 'left')
+        ->join('billers', 'billers.id = payments.biller_id', 'left')
         ->join('banks', 'banks.id = payments.bank_id', 'left')
         ->order_by('payments.date desc');
 
@@ -1152,8 +1152,8 @@ class Reports extends MY_Controller
             $paymentReceiver = '';
           }
 
-          $excel->setCellValue('A' . $row, date('Y-m-d', strtotime($payment->date)));
-          $excel->setCellValue('B' . $row, (new DateTime($payment->reference_date))->format('Y-m-d'));
+          $excel->setCellValue('A' . $row, date('Y-m-d H:i:s', strtotime($payment->date)));
+          $excel->setCellValue('B' . $row, date('Y-m-d H:i:s', strtotime($payment->reference_date)));
           $excel->setCellValue('C' . $row, $payment->payment_ref);
           $excel->setCellValue('D' . $row, $paymentCategory);
           $excel->setCellValue('E' . $row, $paymentReceiver);
@@ -1196,7 +1196,7 @@ class Reports extends MY_Controller
         $excel->setColumnAutoWidth('O');
         $excel->setColumnAutoWidth('P');
 
-        $name = $this->session->userdata('fullname');
+        $name = XSession::get('fullname');
 
         $excel->export('PaymentReports-' . date('Ymd_His') . "-($name)");
       }
@@ -1224,9 +1224,9 @@ class Reports extends MY_Controller
       ->join('purchases', 'purchases.id = payments.purchase_id', 'left')
       ->join('sales', 'sales.id = payments.sale_id', 'left')
       ->join('product_transfer', 'product_transfer.id = payments.transfer_id', 'left')
-      ->join('users', 'users.id=payments.created_by', 'left')
-      ->join('billers', 'billers.id=users.biller_id', 'left')
-      ->join('banks', 'banks.id=payments.bank_id', 'left')
+      ->join('users', 'users.id = payments.created_by', 'left')
+      ->join('billers', 'billers.id = payments.biller_id', 'left')
+      ->join('banks', 'banks.id = payments.bank_id', 'left')
       ->group_by('payments.id');
 
     if ($users) {
@@ -1394,7 +1394,7 @@ class Reports extends MY_Controller
         $col++;
       }
 
-      $name = $this->session->userdata('fullname');
+      $name = XSession::get('fullname');
 
       $excel->export('IncomeStatement-' . date('Ymd_His') . "-($name)");
     }
@@ -1782,7 +1782,7 @@ class Reports extends MY_Controller
         }
       }
 
-      $name = $this->session->userdata('fullname');
+      $name = XSession::get('fullname');
 
       $excel->export('PrintERP-InventoryBalance-ByItem-' . date('Ymd_His') . "-($name)");
     } else if ($xls == 2) { //! Export Warehouse Summary Details.
@@ -1850,7 +1850,7 @@ class Reports extends MY_Controller
         $excel->setColumnAutoWidth('A');
         $excel->setColumnAutoWidth('B');
 
-        $name = $this->session->userdata('fullname');
+        $name = XSession::get('fullname');
 
         $excel->export('Warehouse_Summary_Details_' . date('Ymd_His') . "-($name)");
       }
@@ -1971,7 +1971,7 @@ class Reports extends MY_Controller
       $r++;
     }
 
-    $name = $this->session->userdata('fullname');
+    $name = XSession::get('fullname');
 
     $sheet->export('PrintERP-SparepartUsabilityReport-' . date('Ymd_His') . "-($name)");
   }
@@ -1980,7 +1980,7 @@ class Reports extends MY_Controller
   { // Added Custom
     $this->sma->checkPermissions('quantity_alerts', true);
     if (!$this->Owner && !$warehouse_id) {
-      $user         = $this->site->getUser($this->session->userdata('user_id'));
+      $user         = $this->site->getUser(XSession::get('user_id'));
       $warehouse_id = $user->warehouse_id;
     }
 
@@ -2141,14 +2141,14 @@ class Reports extends MY_Controller
     $start_date   = getGET('start_date');
     $end_date     = getGET('end_date');
 
-    $warehouse = ($this->session->userdata('warehouse_id') ?? $warehouse);
+    $warehouse = (XSession::get('warehouse_id') ?? $warehouse);
 
     if ($start_date) {
       $start_date = $start_date . ' 00:00:00';
       $end_date   = $end_date . ' 23:59:59';
     }
-    if (!$this->Owner && !$this->Admin && !$this->session->userdata('view_right')) {
-      $users[] = $this->session->userdata('user_id');
+    if (!$this->Owner && !$this->Admin && !XSession::get('view_right')) {
+      $users[] = XSession::get('user_id');
     }
 
     if (!$xls) { // WEB
@@ -2589,7 +2589,7 @@ class Reports extends MY_Controller
         $excel->setColumnAutoWidth('Q');
         $excel->setColumnAutoWidth('R');
 
-        $name = $this->session->userdata('fullname');
+        $name = XSession::get('fullname');
         $file_group_by = ($group_by ? '-' . lang($group_by) : '');
 
         $filename = 'PrintERP-Sales_Status-' . date('Ymd_His') . $file_group_by . "-($name)";
@@ -2653,7 +2653,7 @@ class Reports extends MY_Controller
     }
 
     $date = date('Ymd_His');
-    $user = $this->session->userdata('fullname');
+    $user = XSession::get('fullname');
 
     if ($stocks) {
       $lr = ($r - 1);
@@ -3114,7 +3114,7 @@ class Reports extends MY_Controller
     $sheet->setCellValue('A1', date('F Y', strtotime($startDate)));
     $sheet->setBold('A1');
 
-    $name = $this->session->userdata('fullname');
+    $name = XSession::get('fullname');
 
     $sheet->export('PrintERP-MachinePerformance-' . date('Ymd_His') . "-($name)");
   }
@@ -3445,7 +3445,7 @@ class Reports extends MY_Controller
     $sheet->setCellValue('A1', date('F Y', strtotime($startDate)));
     $sheet->setBold('A1');
 
-    $name = $this->session->userdata('fullname');
+    $name = XSession::get('fullname');
 
     $sheet->export('PrintERP-TrackingPOD-' . date('Ymd_His') . "-($name)");
   }

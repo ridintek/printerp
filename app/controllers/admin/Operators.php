@@ -150,7 +150,7 @@ class Operators extends MY_Controller
     $end_date     = getGET('end_date');
     $warehouses   = getGET('warehouses');
 
-    $warehouse_id = $this->session->userdata('warehouse_id');
+    $warehouse_id = XSession::get('warehouse_id');
 
 
     $this->load->library('datatables');

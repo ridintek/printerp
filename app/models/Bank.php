@@ -35,7 +35,7 @@ class Bank
             'bank_id'    => $insertId,
             'method'     => $data['type'],
             'amount'     => $balance,
-            'created_by' => $this->session->userdata('user_id'),
+            'created_by' => XSession::get('user_id'),
             'status'     => 'beginning',
             'type'       => 'received',
             'note'       => 'BEGINNING OF BANK'

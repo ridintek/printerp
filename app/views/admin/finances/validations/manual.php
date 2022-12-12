@@ -29,9 +29,7 @@
       <div class="col-xs-12">
         <div class="form-group">
           <?= lang('amount', 'amount'); ?>
-          <input name="amount" type="text" id="amount"
-            value="<?= $this->sma->formatMoney($payment_validation->amount + $payment_validation->unique_code, 'none'); ?>"
-            class="pa form-control kb-pad currency">
+          <input name="amount" type="text" id="amount" value="<?= $this->sma->formatMoney($payment_validation->amount + $payment_validation->unique_code, 'none'); ?>" class="pa form-control kb-pad currency">
         </div>
       </div>
     </div>
@@ -40,15 +38,12 @@
         <div class="form-group">
           <?= lang('to_bank', 'to_bank'); ?>
           <?php
-            $bk = [];
-            $bk[''] = '';
-            $banks = $this->site->getAllBanks();
-            if ( ! empty($banks)) {
-              foreach ($banks as $bank) {
-                if ($bank->biller_id != $payment_validation->biller_id) continue;
-                $bk[$bank->id] = $bank->name . ($bank->type != 'Cash' ? ' (' . $bank->number . '/' . $bank->holder . ')' : '');
-              }
-            }
+          $bk = [];
+          $bk[''] = '';
+          foreach (Bank::get(['active' => 1]) as $bank) {
+            if ($bank->biller_id != $payment_validation->biller_id) continue;
+            $bk[$bank->id] = $bank->name . ($bank->type != 'Cash' ? ' (' . $bank->number . '/' . $bank->holder . ')' : '');
+          }
           ?>
           <?= form_dropdown('to_bank', $bk, '', 'class="form-control select2" data-placeholder="Select Account To" id="to_bank" required="required" style="width:100%;"'); ?>
         </div>
@@ -58,8 +53,7 @@
       <div class="col-xs-12">
         <div class="form-group">
           <?= lang('attachment', 'attachment'); ?>
-          <input id="attachment" type="file" data-browse-label="<?= lang('browse'); ?>" name="userfile"
-            data-show-upload="false" data-show-preview="false" class="form-control file">
+          <input id="attachment" type="file" data-browse-label="<?= lang('browse'); ?>" name="userfile" data-show-upload="false" data-show-preview="false" class="form-control file">
         </div>
       </div>
     </div>

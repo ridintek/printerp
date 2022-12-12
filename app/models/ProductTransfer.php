@@ -46,7 +46,7 @@ class ProductTransfer
         foreach ($items as $item) {
           $product = Product::getRow(['id' => $item['product_id']]);
 
-          $item['pt_id']        = $insertId;
+          $item['transfer_id']        = $insertId;
           $item['product_code'] = $product->code;
           $item['status']       = 'packing';
 
@@ -133,23 +133,23 @@ class ProductTransfer
 
   /**
    * Add product transfer payment.
-   * @param array $data [ *pt_id, *bank_id_from, *bank_id_to, *amount, created_at, created_by ]
+   * @param array $data [ *transfer_id, *bank_id_from, *bank_id_to, *amount, created_at, created_by ]
    */
   public static function addPayment($data)
   {
     $bankFrom = Bank::getRow(['id' => $data['bank_id_from']]);
     $bankTo   = Bank::getRow(['id' => $data['bank_id_to']]);
-    $pt       = self::getRow(['id' => $data['pt_id']]);
+    $pt       = self::getRow(['id' => $data['transfer_id']]);
 
     if (!$pt) {
-      setLastError("Product Transfer ID:{$data['pt_id']} not found.");
+      setLastError("Product Transfer ID:{$data['transfer_id']} not found.");
       return FALSE;
     }
 
     $data = setCreatedBy($data); // created_at, created_by
 
     $paymentDataFrom = [
-      'pt_id'       => $data['pt_id'],
+      'transfer_id' => $data['transfer_id'],
       'reference'   => $pt->reference,
       'bank_id'     => $bankFrom->id,
       'method'      => $bankFrom->type,
@@ -161,7 +161,7 @@ class ProductTransfer
     ];
 
     $paymentDataTo = [
-      'pt_id'       => $data['pt_id'],
+      'transfer_id' => $data['transfer_id'],
       'reference'   => $pt->reference,
       'bank_id'     => $bankTo->id,
       'method'      => $bankTo->type,
@@ -172,7 +172,7 @@ class ProductTransfer
       'created_by' => $data['created_by']
     ];
 
-    if (Payment::addOld($paymentDataFrom) && Payment::addOld($paymentDataTo)) {
+    if (Payment::add($paymentDataFrom) && Payment::add($paymentDataTo)) {
       return TRUE;
     }
     setLastError("Failed to add payment.");
@@ -193,9 +193,9 @@ class ProductTransfer
       DB::table('product_transfer')->delete(['id' => $pt->id]);
 
       if (DB::affectedRows()) {
-        $ptitems = ProductTransferItem::get(['pt_id' => $pt->id]);
+        $ptitems = ProductTransferItem::get(['transfer_id' => $pt->id]);
 
-        ProductTransferItem::delete(['pt_id' => $pt->id]);
+        ProductTransferItem::delete(['transfer_id' => $pt->id]);
         Stock::delete(['transfer_id' => $pt->id]);
 
         foreach ($ptitems as $ptitem) {
@@ -333,7 +333,7 @@ class ProductTransfer
 
     if (DB::affectedRows()) {
       if ($items) {
-        ProductTransferItem::delete(['pt_id' => $ptId]);
+        ProductTransferItem::delete(['transfer_id' => $ptId]);
         Stock::delete(['transfer_id' => $ptId]);
 
         $receivedTotal = 0;
@@ -343,7 +343,7 @@ class ProductTransfer
           $product = Product::getRow(['id' => $item['product_id']]);
 
           if ($product) {
-            $item['pt_id'] = $pt->id;
+            $item['transfer_id'] = $pt->id;
             $item['product_code'] = $product->code;
             $item['status'] = ($item['status'] ?? $pt->status);
 

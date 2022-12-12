@@ -109,7 +109,7 @@ class Auth extends MY_Controller
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('auth/profile/' . $user->id . '/#cpassword');
     } else {
-      $identity = $this->session->userdata($this->config->item('identity', 'ion_auth'));
+      $identity = XSession::get($this->config->item('identity', 'ion_auth'));
 
       $change = $this->ion_auth->change_password($identity, getPOST('old_password'), getPOST('new_password'));
 
@@ -218,14 +218,14 @@ class Auth extends MY_Controller
 
   public function delete_avatar($id = null, $avatar = null)
   {
-    if (!$this->ion_auth->logged_in() || (!$this->Owner && !$this->Admin) && $id != $this->session->userdata('user_id')) {
+    if (!$this->ion_auth->logged_in() || (!$this->Owner && !$this->Admin) && $id != XSession::get('user_id')) {
       $this->session->set_flashdata('warning', lang('access_denied'));
       die("<script type='text/javascript'>setTimeout(function(){ window.top.location.href = '" . $_SERVER['HTTP_REFERER'] . "'; }, 0);</script>");
       redirect($_SERVER['HTTP_REFERER']);
     } else {
       unlink('assets/uploads/avatars/' . $avatar);
       unlink('assets/uploads/avatars/thumbs/' . $avatar);
-      if ($id == $this->session->userdata('user_id')) {
+      if ($id == XSession::get('user_id')) {
         $this->session->unset_userdata('avatar');
       }
       $this->db->update('user', ['avatar' => null], ['id' => $id]);
@@ -242,7 +242,7 @@ class Auth extends MY_Controller
     }
     $this->data['title'] = lang('edit_user');
 
-    if (!$this->loggedIn || (!$this->Admin && !$this->Owner) && $id != $this->session->userdata('user_id')) {
+    if (!$this->loggedIn || (!$this->Admin && !$this->Owner) && $id != XSession::get('user_id')) {
       $this->session->set_flashdata('warning', lang('access_denied'));
       redirect($_SERVER['HTTP_REFERER']);
     }
@@ -260,7 +260,7 @@ class Auth extends MY_Controller
       $userJS = getJSON($user->json_data);
 
       if ($this->Owner || $this->Admin) {
-        if ($id == $this->session->userdata('user_id')) {
+        if ($id == XSession::get('user_id')) {
           $userJS->acc_no = getPOST('acc_no');
 
           $data = [
@@ -622,7 +622,7 @@ class Auth extends MY_Controller
 
   public function profile($id = null)
   {
-    if (!$this->ion_auth->logged_in() || (!$this->Owner && !$this->Admin) && $id != $this->session->userdata('user_id')) {
+    if (!$this->ion_auth->logged_in() || (!$this->Owner && !$this->Admin) && $id != XSession::get('user_id')) {
       $this->session->set_flashdata('warning', lang('access_denied'));
       redirect($_SERVER['HTTP_REFERER'] ?? 'admin');
     }
@@ -935,7 +935,7 @@ class Auth extends MY_Controller
       $id = getPOST('id');
     }
 
-    if (!$this->ion_auth->logged_in() || (!$this->Owner && !$this->Admin) && $id != $this->session->userdata('user_id')) {
+    if (!$this->ion_auth->logged_in() || (!$this->Owner && !$this->Admin) && $id != XSession::get('user_id')) {
       $this->session->set_flashdata('warning', lang('access_denied'));
       redirect($_SERVER['HTTP_REFERER']);
     }
@@ -1016,7 +1016,7 @@ class Auth extends MY_Controller
             $this->session->set_flashdata('warning', lang('access_denied'));
           } else {
             foreach ($_POST['val'] as $id) {
-              if ($id != $this->session->userdata('user_id')) {
+              if ($id != XSession::get('user_id')) {
                 User::delete(['id' => $id]);
               }
             }

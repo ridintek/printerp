@@ -331,7 +331,7 @@ class Sma
     if (!$this->logged_in()) {
       return false;
     }
-    $id || $id = $this->session->userdata('user_id');
+    $id || $id = XSession::get('user_id');
     $group     = $this->site->getUserGroup($id);
 
     if ($group && $group->name === $check_group) {
@@ -357,7 +357,7 @@ class Sma
 
   public function logged_in()
   {
-    return (bool) $this->session->userdata('identity');
+    return (bool) XSession::get('identity');
   }
 
   public function makecomma($input)
@@ -379,7 +379,7 @@ class Sma
   { // ADDED : 2020-04-29 13:20
     $opts = '';
     $banks = $this->finances_model->getAllBanks();
-    $biller_id = ($this->session->userdata('biller_id') ?? NULL);
+    $biller_id = (XSession::get('biller_id') ?? NULL);
     $biller    = $this->site->getBillerByID($biller_id);
 
     if (!empty($banks)) {
@@ -404,7 +404,7 @@ class Sma
       $opts .= '<option value="">' . lang('select') . ' ' . lang('bank_account') . '</option>';
     }
     $banks = $this->finances_model->getBanksByType($type);
-    $biller_id = ($this->session->userdata('biller_id') ?? NULL);
+    $biller_id = (XSession::get('biller_id') ?? NULL);
     $biller    = $this->site->getBillerByID($biller_id);
 
     if (!empty($banks)) {
@@ -460,7 +460,7 @@ class Sma
 
   public function qrcode($type = 'text', $text = 'http://indoprinting.co.id', $size = 2, $level = 'H', $sq = null)
   {
-    $file_name = 'assets/uploads/qrcode' . $this->session->userdata('user_id') . ($sq ? $sq : '') . ($this->Settings->barcode_img ? '.png' : '.svg');
+    $file_name = 'assets/uploads/qrcode' . XSession::get('user_id') . ($sq ? $sq : '') . ($this->Settings->barcode_img ? '.png' : '.svg');
     if ($type == 'link') {
       $text = urldecode($text);
     }
@@ -571,7 +571,7 @@ class Sma
 
   public function unset_data($ud)
   {
-    if ($this->session->userdata($ud)) {
+    if (XSession::get($ud)) {
       $this->session->unset_userdata($ud);
       return true;
     }
@@ -611,7 +611,7 @@ class Sma
   public function view_rights($check_id, $js = null)
   {
     if (!$this->Owner && !$this->Admin) {
-      if ($check_id != $this->session->userdata('user_id') && !$this->session->userdata('view_right')) {
+      if ($check_id != XSession::get('user_id') && !XSession::get('view_right')) {
         $this->session->set_flashdata('warning', '<strong>Access denied</strong>. You are not authorized.');
 
         if ($js) {

@@ -383,7 +383,9 @@ if ($filter = getGET('f')) {
   }
 
   function reloadContextMenu() {
-    let privilege = '<?= $Owner ?? $Admin ?? $this->session->userdata('group_id'); ?>';
+    // 6 = finance
+    let hasAccess = <?= (($isAdmin || XSession::get('group_id') == 6) ? 1 : 0); ?>;
+    console.log(hasAccess);
     let contextMenuOpt = {
       selector: '.opname_link',
       callback: function(key, opt) {
@@ -446,7 +448,7 @@ if ($filter = getGET('f')) {
       name: 'Confirm Stock Opname',
       icon: 'fas fa-box-check'
     };
-    if (privilege == 1 || privilege == 2 || privilege == 6) { // 6 = finance
+    if (hasAccess) { // 6 = finance
       contextMenuOpt.items['delete'] = {
         name: 'Delete Stock Opname',
         icon: 'fas fa-trash-alt'

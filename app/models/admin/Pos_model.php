@@ -284,7 +284,7 @@ class Pos_model extends CI_Model
     public function bills_count()
     {
         if (!$this->Owner && !$this->Admin) {
-            $this->db->where('created_by', $this->session->userdata('user_id'));
+            $this->db->where('created_by', XSession::get('user_id'));
         }
         return $this->db->count_all_results('suspended_bills');
     }
@@ -292,10 +292,10 @@ class Pos_model extends CI_Model
     public function closeRegister($rid, $user_id, $data)
     {
         if (!$rid) {
-            $rid = $this->session->userdata('register_id');
+            $rid = XSession::get('register_id');
         }
         if (!$user_id) {
-            $user_id = $this->session->userdata('user_id');
+            $user_id = XSession::get('user_id');
         }
         if ($data['transfer_opened_bills'] == -1) {
             $this->db->delete('suspended_bills', ['created_by' => $user_id]);
@@ -328,7 +328,7 @@ class Pos_model extends CI_Model
     public function fetch_bills($limit, $start)
     {
         if (!$this->Owner && !$this->Admin) {
-            $this->db->where('created_by', $this->session->userdata('user_id'));
+            $this->db->where('created_by', XSession::get('user_id'));
         }
         $this->db->limit($limit, $start);
         $this->db->order_by('id', 'asc');
@@ -684,10 +684,10 @@ class Pos_model extends CI_Model
     public function getRegisterAuthorizeSales($date, $user_id = null)
     {
         if (!$date) {
-            $date = $this->session->userdata('register_open_time');
+            $date = XSession::get('register_open_time');
         }
         if (!$user_id) {
-            $user_id = $this->session->userdata('user_id');
+            $user_id = XSession::get('user_id');
         }
         $this->db->select('COUNT(' . $this->db->dbprefix('payments') . '.id) as total_cheques, SUM( COALESCE( grand_total, 0 ) ) AS total, SUM( COALESCE( amount, 0 ) ) AS paid', false)
             ->join('sales', 'sales.id=payments.sale_id', 'left')
@@ -704,10 +704,10 @@ class Pos_model extends CI_Model
     public function getRegisterCashRefunds($date, $user_id = null)
     {
         if (!$date) {
-            $date = $this->session->userdata('register_open_time');
+            $date = XSession::get('register_open_time');
         }
         if (!$user_id) {
-            $user_id = $this->session->userdata('user_id');
+            $user_id = XSession::get('user_id');
         }
         $this->db->select('SUM( COALESCE( grand_total, 0 ) ) AS total, SUM( COALESCE( amount, 0 ) ) AS returned', false)
             ->join('sales', 'sales.id=payments.return_id', 'left')
@@ -724,10 +724,10 @@ class Pos_model extends CI_Model
     public function getRegisterCashSales($date, $user_id = null)
     {
         if (!$date) {
-            $date = $this->session->userdata('register_open_time');
+            $date = XSession::get('register_open_time');
         }
         if (!$user_id) {
-            $user_id = $this->session->userdata('user_id');
+            $user_id = XSession::get('user_id');
         }
         $this->db->select('SUM( COALESCE( grand_total, 0 ) ) AS total, SUM( COALESCE( amount, 0 ) ) AS paid', false)
             ->join('sales', 'sales.id=payments.sale_id', 'left')
@@ -744,10 +744,10 @@ class Pos_model extends CI_Model
     public function getRegisterCCSales($date, $user_id = null)
     {
         if (!$date) {
-            $date = $this->session->userdata('register_open_time');
+            $date = XSession::get('register_open_time');
         }
         if (!$user_id) {
-            $user_id = $this->session->userdata('user_id');
+            $user_id = XSession::get('user_id');
         }
         $this->db->select('COUNT(' . $this->db->dbprefix('payments') . '.id) as total_cc_slips, SUM( COALESCE( grand_total, 0 ) ) AS total, SUM( COALESCE( amount, 0 ) ) AS paid', false)
             ->join('sales', 'sales.id=payments.sale_id', 'left')
@@ -764,10 +764,10 @@ class Pos_model extends CI_Model
     public function getRegisterChSales($date, $user_id = null)
     {
         if (!$date) {
-            $date = $this->session->userdata('register_open_time');
+            $date = XSession::get('register_open_time');
         }
         if (!$user_id) {
-            $user_id = $this->session->userdata('user_id');
+            $user_id = XSession::get('user_id');
         }
         $this->db->select('COUNT(' . $this->db->dbprefix('payments') . '.id) as total_cheques, SUM( COALESCE( grand_total, 0 ) ) AS total, SUM( COALESCE( amount, 0 ) ) AS paid', false)
             ->join('sales', 'sales.id=payments.sale_id', 'left')
@@ -784,10 +784,10 @@ class Pos_model extends CI_Model
     public function getRegisterExpenses($date, $user_id = null)
     {
         if (!$date) {
-            $date = $this->session->userdata('register_open_time');
+            $date = XSession::get('register_open_time');
         }
         if (!$user_id) {
-            $user_id = $this->session->userdata('user_id');
+            $user_id = XSession::get('user_id');
         }
         $this->db->select('SUM( COALESCE( amount, 0 ) ) AS total', false)
             ->where('date >', $date);
@@ -803,10 +803,10 @@ class Pos_model extends CI_Model
     public function getRegisterGCSales($date, $user_id = null)
     {
         if (!$date) {
-            $date = $this->session->userdata('register_open_time');
+            $date = XSession::get('register_open_time');
         }
         if (!$user_id) {
-            $user_id = $this->session->userdata('user_id');
+            $user_id = XSession::get('user_id');
         }
         $this->db->select('COUNT(' . $this->db->dbprefix('payments') . '.id) as total_cheques, SUM( COALESCE( grand_total, 0 ) ) AS total, SUM( COALESCE( amount, 0 ) ) AS paid', false)
             ->join('sales', 'sales.id=payments.sale_id', 'left')
@@ -823,10 +823,10 @@ class Pos_model extends CI_Model
     public function getRegisterPPPSales($date, $user_id = null)
     {
         if (!$date) {
-            $date = $this->session->userdata('register_open_time');
+            $date = XSession::get('register_open_time');
         }
         if (!$user_id) {
-            $user_id = $this->session->userdata('user_id');
+            $user_id = XSession::get('user_id');
         }
         $this->db->select('COUNT(' . $this->db->dbprefix('payments') . '.id) as total_cheques, SUM( COALESCE( grand_total, 0 ) ) AS total, SUM( COALESCE( amount, 0 ) ) AS paid', false)
             ->join('sales', 'sales.id=payments.sale_id', 'left')
@@ -843,10 +843,10 @@ class Pos_model extends CI_Model
     public function getRegisterRefunds($date, $user_id = null)
     {
         if (!$date) {
-            $date = $this->session->userdata('register_open_time');
+            $date = XSession::get('register_open_time');
         }
         if (!$user_id) {
-            $user_id = $this->session->userdata('user_id');
+            $user_id = XSession::get('user_id');
         }
         $this->db->select('SUM( COALESCE( grand_total, 0 ) ) AS total, SUM( COALESCE( amount, 0 ) ) AS returned', false)
             ->join('sales', 'sales.id=payments.return_id', 'left')
@@ -863,10 +863,10 @@ class Pos_model extends CI_Model
     public function getRegisterReturns($date, $user_id = null)
     {
         if (!$date) {
-            $date = $this->session->userdata('register_open_time');
+            $date = XSession::get('register_open_time');
         }
         if (!$user_id) {
-            $user_id = $this->session->userdata('user_id');
+            $user_id = XSession::get('user_id');
         }
         $this->db->select('SUM( COALESCE( grand_total, 0 ) ) AS total', false)
         ->where('date >', $date)
@@ -882,10 +882,10 @@ class Pos_model extends CI_Model
     public function getRegisterSales($date, $user_id = null)
     {
         if (!$date) {
-            $date = $this->session->userdata('register_open_time');
+            $date = XSession::get('register_open_time');
         }
         if (!$user_id) {
-            $user_id = $this->session->userdata('user_id');
+            $user_id = XSession::get('user_id');
         }
         $this->db->select('SUM( COALESCE( grand_total, 0 ) ) AS total, SUM( COALESCE( amount, 0 ) ) AS paid', false)
             ->join('sales', 'sales.id=payments.sale_id', 'left')
@@ -902,10 +902,10 @@ class Pos_model extends CI_Model
     public function getRegisterStripeSales($date, $user_id = null)
     {
         if (!$date) {
-            $date = $this->session->userdata('register_open_time');
+            $date = XSession::get('register_open_time');
         }
         if (!$user_id) {
-            $user_id = $this->session->userdata('user_id');
+            $user_id = XSession::get('user_id');
         }
         $this->db->select('COUNT(' . $this->db->dbprefix('payments') . '.id) as total_cheques, SUM( COALESCE( grand_total, 0 ) ) AS total, SUM( COALESCE( amount, 0 ) ) AS paid', false)
             ->join('sales', 'sales.id=payments.sale_id', 'left')
@@ -949,7 +949,7 @@ class Pos_model extends CI_Model
     public function getSuspendedSales($user_id = null)
     {
         if (!$user_id) {
-            $user_id = $this->session->userdata('user_id');
+            $user_id = XSession::get('user_id');
         }
         $q = $this->db->get_where('suspended_bills', ['created_by' => $user_id]);
         if ($q->num_rows() > 0) {
@@ -1221,7 +1221,7 @@ class Pos_model extends CI_Model
     public function registerData($user_id)
     {
         if (!$user_id) {
-            $user_id = $this->session->userdata('user_id');
+            $user_id = XSession::get('user_id');
         }
         $q = $this->db->get_where('pos_register', ['user_id' => $user_id, 'status' => 'open'], 1);
         if ($q->num_rows() > 0) {
@@ -1277,7 +1277,7 @@ class Pos_model extends CI_Model
             'total'             => $data['grand_total'],
             'order_tax_id'      => $data['order_tax_id'],
             'order_discount_id' => $data['order_discount_id'],
-            'created_by'        => $this->session->userdata('user_id'),
+            'created_by'        => XSession::get('user_id'),
         ];
 
         if ($did) {

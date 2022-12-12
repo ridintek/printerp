@@ -27,7 +27,7 @@ class Finances_model extends CI_Model
               'bank_id'    => $bank_id,
               'method'     => $data['type'],
               'amount'     => $balance,
-              'created_by' => $this->session->userdata('user_id'),
+              'created_by' => XSession::get('user_id'),
               'status'     => 'beginning',
               'type'       => 'received',
               'note'       => 'BEGINNING OF BANK'
@@ -35,7 +35,7 @@ class Finances_model extends CI_Model
             if ($payment) {
               $this->site->updatePayment($payment->id, $payment_data);
             } else {
-              $this->site->addPayment($payment_data);
+              Payment::add($payment_data);
             }
           } else if ($payment) {
             $this->site->deletePayment($payment->id);
@@ -100,7 +100,7 @@ class Finances_model extends CI_Model
             'type'         => 'sent',
             'note'         => $data['note']
           ];
-          $this->site->addPayment($payment_sent);
+          Payment::add($payment_sent);
           // Payment Received by To Bank ID
           $payment_recv = [
             'date'         => $data['date'],
@@ -112,7 +112,7 @@ class Finances_model extends CI_Model
             'type'         => 'received',
             'note'         => $data['note']
           ];
-          $this->site->addPayment($payment_recv);
+          Payment::add($payment_recv);
         }
         return TRUE;
       }
@@ -157,7 +157,7 @@ class Finances_model extends CI_Model
           'type'            => 'sent',
           'note'            => $note
         ];
-        if ($insert_id = $this->site->addPayment($payment)) {
+        if ($insert_id = Payment::add($payment)) {
           return $insert_id;
         }
       }
@@ -188,7 +188,7 @@ class Finances_model extends CI_Model
         'type'       => 'received',
         'note'       => $data['note']
       ];
-      if ($this->site->addPayment($payment)) {
+      if (Payment::add($payment)) {
         return $income_id;
       }
     }
@@ -453,7 +453,7 @@ class Finances_model extends CI_Model
             'bank_id'    => $id,
             'method'     => $data['type'],
             'amount'     => $data['balance'],
-            'created_by' => $this->session->userdata('user_id'),
+            'created_by' => XSession::get('user_id'),
             'status'     => 'beginning',
             'type'       => 'received',
             'note'       => 'BEGINNING OF BANK'
@@ -461,7 +461,7 @@ class Finances_model extends CI_Model
           if ($payment) {
             $this->site->updatePayment($payment->id, $data_payment);
           } else {
-            $this->site->addPayment($data_payment);
+            Payment::add($data_payment);
           }
         } else if ($payment) {
           $this->site->deletePayment($payment->id);
@@ -550,7 +550,7 @@ class Finances_model extends CI_Model
             'type'       => 'sent',
             'note'       => $data['note']
           ];
-          $this->site->addPayment($exp_payment);
+          Payment::add($exp_payment);
         }
         return TRUE;
       }

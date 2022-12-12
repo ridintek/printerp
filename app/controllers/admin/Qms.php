@@ -42,8 +42,8 @@ class Qms extends MY_Controller
   public function callQueue($warehouse_id = NULL)
   {
     $call_data = [
-      'user_id' => $this->session->userdata('user_id'),
-      'counter' => $this->session->userdata('counter'),
+      'user_id' => XSession::get('user_id'),
+      'counter' => XSession::get('counter'),
       'warehouse_id' => $warehouse_id
     ];
 
@@ -66,7 +66,7 @@ class Qms extends MY_Controller
     ];
     $this->data = array_merge($this->data, $meta);
 
-    $warehouse_id = ($this->session->userdata('warehouse_id') ?? $this->Settings->default_warehouse);
+    $warehouse_id = (XSession::get('warehouse_id') ?? $this->Settings->default_warehouse);
 
     $this->data['warehouse'] = $this->site->getWarehouseByID($warehouse_id);
 
@@ -248,7 +248,7 @@ class Qms extends MY_Controller
   {
     $startDate = (getGET('start_date') ?? date('Y-m-') . '01');
     $endDate   = (getGET('end_date') ?? date('Y-m-d'));
-    $warehouses = $this->session->userdata('warehouse_id') ?? getGET('warehouse');
+    $warehouses = XSession::get('warehouse_id') ?? getGET('warehouse');
     $xls = getGET('xls');
     $whNames = [];
 
@@ -420,7 +420,7 @@ class Qms extends MY_Controller
       $sheet->setColumnAutoWidth('J');
       $sheet->setColumnAutoWidth('K');
 
-      $name = $this->session->userdata('fullname');
+      $name = XSession::get('fullname');
 
       $sheet->export('PrintERP-QueueReport-' . date('Ymd_His') . "-($name)");
     } else if ($xls == 2) {
@@ -583,7 +583,7 @@ class Qms extends MY_Controller
       $sheet->setColumnAutoWidth('M');
       $sheet->setColumnAutoWidth('N');
 
-      $name = $this->session->userdata('fullname');
+      $name = XSession::get('fullname');
 
       $sheet->export('PrintERP-QMS-' . date('Ymd_His') . "-($name)");
     }
@@ -621,7 +621,7 @@ class Qms extends MY_Controller
 
   public function sendReport()
   {
-    $user_id = $this->session->userdata('user_id');
+    $user_id = XSession::get('user_id');
 
     $hMutex = mutexCreate('QMS_sendReport', TRUE);
 
@@ -656,8 +656,8 @@ class Qms extends MY_Controller
   public function setCounter()
   {
     $counter = intval(getPOST('counter'));
-    $user_id = $this->session->userdata('user_id');
-    $warehouse_id = ($this->session->userdata('warehouse_id') ?? $this->Settings->default_warehouse);
+    $user_id = XSession::get('user_id');
+    $warehouse_id = (XSession::get('warehouse_id') ?? $this->Settings->default_warehouse);
 
     if ($this->site->updateUser($user_id, ['counter' => $counter])) {
       $online_counters = $this->Qms_model->getTodayOnlineCounters($warehouse_id);
@@ -704,7 +704,7 @@ class Qms extends MY_Controller
 
   public function startRest()
   {
-    if ($this->Qms_model->startRest($this->session->userdata('user_id'))) {
+    if ($this->Qms_model->startRest(XSession::get('user_id'))) {
       sendJSON(['error' => 0, 'msg' => 'OK']);
     }
     sendJSON(['error' => 1, 'msg' => 'You cannot rest.']);

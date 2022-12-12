@@ -146,7 +146,7 @@ class Db_model extends CI_Model
   public function getLatestPurchases()
   {
     if (!$this->Owner && !$this->Admin && !getPermission('purchases-index')) {
-      $this->db->where('created_by', $this->session->userdata('user_id'));
+      $this->db->where('created_by', XSession::get('user_id'));
     }
 
     $this->db->order_by('id', 'desc');
@@ -166,8 +166,8 @@ class Db_model extends CI_Model
     if (!$this->Owner && !$this->Admin && !getPermission('sales-index')) {
       $this->db
       ->group_start()
-        ->where('warehouse_id', $this->session->userdata('warehouse_id'))
-        ->or_where('created_by', $this->session->userdata('user_id'))
+        ->where('warehouse_id', XSession::get('warehouse_id'))
+        ->or_where('created_by', XSession::get('user_id'))
       ->group_end();
     }
 
@@ -211,7 +211,7 @@ class Db_model extends CI_Model
   public function getLatestTransfers()
   {
     if (!$this->Owner && !$this->Admin && !getPermission('transfers-index')) {
-      $this->db->where('to_warehouse_id', $this->session->userdata('warehouse_id'));
+      $this->db->where('to_warehouse_id', XSession::get('warehouse_id'));
     }
 
     $this->db->order_by('id', 'desc');

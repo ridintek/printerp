@@ -335,7 +335,7 @@ class Machines extends MY_Controller
     $productJS = getJSON($product->json_data);
 
     $this->data['product'] = $product;
-    $this->data['creator'] = $this->site->getUserByID($this->session->userdata('user_id'));
+    $this->data['creator'] = $this->site->getUserByID(XSession::get('user_id'));
 
     if ($this->requestMethod == 'POST') {
       $createdBy    = getPOST('created_by');
@@ -582,7 +582,7 @@ class Machines extends MY_Controller
 
       if (empty($productJS->pic_id)) {
         $productData['assigned_at'] = $this->serverDateTime;
-        $productData['assigned_by'] = $this->session->userdata('user_id');
+        $productData['assigned_by'] = XSession::get('user_id');
       }
 
       if ($this->site->updateProducts([$productData])) {
@@ -627,7 +627,7 @@ class Machines extends MY_Controller
         $reportData = [
           'product_id'   => $product->id,
           'warehouse_id' => $warehouse->id,
-          'created_by'   => $this->session->userdata('user_id'),
+          'created_by'   => XSession::get('user_id'),
           'created_at'   => $this->serverDateTime,
           'condition'    => 'good',
           'note'         => 'OK'
@@ -743,7 +743,7 @@ class Machines extends MY_Controller
     $this->data['product']    = $product;
     $this->data['productJS']  = json_decode($product->json_data);
     $this->data['report']     = $report;
-    $this->data['creator']    = $this->site->getUserByID($this->session->userdata('user_id'));
+    $this->data['creator']    = $this->site->getUserByID(XSession::get('user_id'));
 
     $this->load->view($this->theme . 'machines/report/edit', $this->data);
   }
@@ -825,7 +825,7 @@ class Machines extends MY_Controller
     $product = $this->site->getProductByID($productId);
 
     $this->data['product'] = $product;
-    $this->data['creator'] = $this->site->getUserByID($this->session->userdata('user_id'));
+    $this->data['creator'] = $this->site->getUserByID(XSession::get('user_id'));
 
     if ($this->requestMethod == 'POST') {
       $createdBy    = getPOST('created_by');

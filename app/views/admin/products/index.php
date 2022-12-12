@@ -40,14 +40,14 @@ if ($end_date) {
 		text-align: right;
 	}
 
-	<?php if ($isAdmin || $this->session->userdata('show_cost')) {
+	<?php if ($isAdmin || XSession::get('show_cost')) {
 	?>#PRData td:nth-child(9) {
 		text-align: right;
 	}
 
 	<?php
 	}
-	if ($isAdmin || $this->session->userdata('show_price')) {
+	if ($isAdmin || XSession::get('show_price')) {
 	?>#PRData td:nth-child(8) {
 		text-align: right;
 	}
@@ -112,10 +112,10 @@ if ($end_date) {
 					echo '{"mRender": currencyFormat},';
 					echo '{"mRender": formatStock},';
 				} else {
-					if ($this->session->userdata('show_cost')) {
+					if (XSession::get('show_cost')) {
 						echo '{"mRender": currencyFormat},';
 					}
-					if ($this->session->userdata('show_cost')) {
+					if (XSession::get('show_cost')) {
 						echo '{"mRender": currencyFormat},';
 					}
 					if (getPermission('products-quantity')) {
@@ -289,7 +289,7 @@ if ($end_date) {
 								<i class="fa fa-fw fa-plus-circle"></i> <?= lang('add_product') ?>
 							</a>
 						</li>
-						<?php if ($isAdmin || !$this->session->userdata('warehouse_id')) { ?>
+						<?php if ($isAdmin || !XSession::get('warehouse_id')) { ?>
 							<li>
 								<a href="#" id="activate_product" data-action="activate_product">
 									<i class="fa fa-fw fa-check"></i> <?= lang('activate_product') ?>
@@ -381,7 +381,7 @@ if ($end_date) {
 								$opt[''] = 'Select Warehouse';
 								$warehouses = $this->site->getAllWarehouses();
 								foreach ($warehouses as $wh) {
-									if ($wh_id = $this->session->userdata('warehouse_id')) {
+									if ($wh_id = XSession::get('warehouse_id')) {
 										if ($wh->id != $wh_id) continue;
 									}
 									$opt[$wh->id] = $wh->name;
@@ -445,10 +445,10 @@ if ($end_date) {
 									echo '<th>Mark-On Price</th>';
 									echo '<th>' . lang('quantity') . '</th>';
 								} else {
-									if ($this->session->userdata('show_cost')) {
+									if (XSession::get('show_cost')) {
 										echo '<th>' . lang('cost') . '</th>';
 									}
-									if ($this->session->userdata('show_cost')) {
+									if (XSession::get('show_cost')) {
 										echo '<th>Mark-On Price</th>';
 									}
 									if (getPermission('products-quantity')) {
@@ -486,10 +486,10 @@ if ($end_date) {
 									echo '<th></th>';
 									echo '<th></th>';
 								} else {
-									if ($this->session->userdata('show_cost')) {
+									if (XSession::get('show_cost')) {
 										echo '<th></th>';
 									}
-									if ($this->session->userdata('show_cost')) {
+									if (XSession::get('show_cost')) {
 										echo '<th></th>';
 									}
 									if (getPermission('products-quantity')) {

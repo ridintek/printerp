@@ -59,7 +59,7 @@ class Authentication
       'last_ip'           => $user->last_ip_address,
       'avatar'            => $user->avatar,
       'gender'            => $user->gender,
-      'group_id'          => (int)$user->group_id,
+      'group_id'          => (int)$group->id,
       'group_name'        => $group->name,
       'warehouse_id'      => ($warehouse ? $warehouse->id : NULL),
       'warehouse_name'    => ($warehouse ? $warehouse->name : NULL),

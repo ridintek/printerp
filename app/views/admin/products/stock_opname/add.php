@@ -2,7 +2,7 @@
 <script>
   $(document).ready(function() {
     if (!localStorage.getItem('so_pic')) {
-      localStorage.setItem('so_pic', "<?= $this->session->userdata('user_id'); ?>");
+      localStorage.setItem('so_pic', "<?= XSession::get('user_id'); ?>");
     }
 
     if ($.cookie('so_remove') == 1) {
@@ -49,7 +49,7 @@
 
                 if ($allUsers) {
                   foreach ($allUsers as $user) {
-                    if (!$isAdmin && $this->session->userdata('user_id') != $user->id) continue;
+                    if (!$isAdmin && XSession::get('user_id') != $user->id) continue;
                     $users[$user->id] = $user->fullname;
                   }
                 }
@@ -57,7 +57,7 @@
               </div>
             </div>
 
-            <?php if ($Owner || $Admin || !$this->session->userdata('warehouse_id')) { ?>
+            <?php if ($Owner || $Admin || !XSession::get('warehouse_id')) { ?>
               <div class="col-md-3">
                 <div class="form-group">
                   <?= lang('warehouse', 'so_warehouse'); ?>
@@ -71,7 +71,7 @@
                 </div>
               </div>
             <?php } else { ?>
-              <input type="hidden" id="so_warehouse" name="warehouse" value="<?= $this->session->userdata('warehouse_id'); ?>">
+              <input type="hidden" id="so_warehouse" name="warehouse" value="<?= XSession::get('warehouse_id'); ?>">
             <?php } ?>
             <div class="col-md-3">
               <div class="form-group">

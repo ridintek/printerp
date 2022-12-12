@@ -13,20 +13,18 @@ use Dompdf\Dompdf;
  */
 function addEvent($message, string $type = 'info')
 {
-  $ci = &get_instance();
+  $system     = User::getRow(['username' => 'system']); // Default system.
+  $warehouse  = Warehouse::getRow(['code' => 'LUC']); // Default Lucretai
 
-  $system = $ci->site->getUserByUsername('system'); // Default system.
-  $warehouse = $ci->site->getWarehouseByCode('LUC'); // Default Lucretai
-
-  $eventData = [
-    'warehouse_id' => ($ci->session->userdata('warehouse_id') ?? $warehouse->id),
+  $eventData  = [
+    'warehouse_id' => (XSession::get('warehouse_id') ?? $warehouse->id),
     'type'         => $type,
     'message'      => $message,
-    'created_by'   => ($ci->session->userdata('user_id') ?? $system->id)
+    'created_by'   => (XSession::get('user_id') ?? $system->id)
   ];
 
-  $ci->db->insert('events', $eventData);
-  return $ci->db->insert_id();
+  DB::table('events')->insert($eventData);
+  return DB::insertID();
 }
 
 /**
@@ -2361,8 +2359,7 @@ function isW2PUser($user_id)
 
 function isWeb2Print($sale_id)
 {
-  $ci = &get_instance();
-  $sale = $ci->site->getSaleByID($sale_id);
+  $sale = Sale::getRow(['id' => $sale_id]);
 
   if ($sale) {
     $saleJS = getJSON($sale->json_data);
@@ -2672,11 +2669,11 @@ function sendWA($phone, $text, $opt = [])
 /**
  * Set created by data.
  *
- * @param array $data [ created_by ]
+ * @param array $data [ created_at, created_by, date ]
  */
 function setCreatedBy($data)
 {
-  $data['created_at'] = ($data['created_at'] ?? date('Y-m-d H:i:s'));
+  $data['created_at'] = ($data['date'] ?? $data['created_at'] ?? date('Y-m-d H:i:s'));
 
   if (!empty($data['created_by'])) {
     if ($creator = User::getRow(['id' => $data['created_by']])) {

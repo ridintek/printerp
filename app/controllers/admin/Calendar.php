@@ -33,7 +33,7 @@ class Calendar extends MY_Controller
                 'end'         => getPOST('end') ? $this->sma->fld(getPOST('end')) : null,
                 'description' => getPOST('description'),
                 'color'       => getPOST('color') ? getPOST('color') : '#000000',
-                'user_id'     => $this->session->userdata('user_id'),
+                'user_id'     => XSession::get('user_id'),
             ];
 
             if ($this->calendar_model->addEvent($data)) {
@@ -50,7 +50,7 @@ class Calendar extends MY_Controller
     {
         if ($this->input->is_ajax_request()) {
             if ($event = $this->calendar_model->getEventByID($id)) {
-                if (!$this->Owner && $event->user_id != $this->session->userdata('user_id')) {
+                if (!$this->Owner && $event->user_id != XSession::get('user_id')) {
                     $res = ['error' => 1, 'msg' => lang('access_denied')];
                     sendJSON($res);
                 }
@@ -154,7 +154,7 @@ class Calendar extends MY_Controller
         if ($this->form_validation->run() == true) {
             $id = getPOST('id');
             if ($event = $this->calendar_model->getEventByID($id)) {
-                if (!$this->Owner && $event->user_id != $this->session->userdata('user_id')) {
+                if (!$this->Owner && $event->user_id != XSession::get('user_id')) {
                     $res = ['error' => 1, 'msg' => lang('access_denied')];
                     sendJSON($res);
                 }
@@ -165,7 +165,7 @@ class Calendar extends MY_Controller
                 'end'         => getPOST('end') ? $this->sma->fld(getPOST('end')) : null,
                 'description' => getPOST('description'),
                 'color'       => getPOST('color') ? getPOST('color') : '#000000',
-                'user_id'     => $this->session->userdata('user_id'),
+                'user_id'     => XSession::get('user_id'),
             ];
 
             if ($this->calendar_model->updateEvent($id, $data)) {

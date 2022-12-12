@@ -10,18 +10,30 @@ class Income
    */
   public static function add(array $data)
   {
-    $data['reference'] = OrderRef::getReference('expense');
+    $data['reference'] = OrderRef::getReference('income');
 
     DB::table('incomes')->insert($data);
 
     if (DB::affectedRows()) {
-      $insertID = DB::insertID();
+      $incomeId = DB::insertID();
 
-      OrderRef::updateReference('expense');
+      $payment = [
+        'created_at' => $data['date'],
+        'income_id'  => $incomeId,
+        'reference'  => $data['reference'],
+        'bank_id'    => $data['bank_id'],
+        'method'     => 'Transfer', // Diganti jika ada opsi.
+        'amount'     => $data['amount'],
+        'created_by' => ($data['created_by'] ?? XSession::get('user_id')),
+        'type'       => 'received',
+        'note'       => $data['note']
+      ];
 
-      return $insertID;
+      if (Payment::add($payment)) {
+        OrderRef::updateReference('income');
+        return $incomeId;
+      }
     }
-
     return FALSE;
   }
 

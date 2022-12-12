@@ -66,7 +66,7 @@
               <?php $users = User::get(['active' => '1']); ?>
               <?php foreach ($users as $user) :
                 if (!$isAdmin) {
-                  if ($user->id != $this->session->userdata('user_id')) continue;
+                  if ($user->id != XSession::get('user_id')) continue;
                 }
               ?>
                 <option value="<?= $user->id ?>"><?= $user->fullname ?></option>
@@ -89,8 +89,8 @@
               <?php $warehouses = Warehouse::get(['active' => '1']); ?>
               <?php foreach ($warehouses as $warehouse) :
                 if (!$isAdmin) {
-                  if ($this->session->userdata('warehouse_id')) {
-                    if ($warehouse->id != $this->session->userdata('warehouse_id')) continue;
+                  if (XSession::get('warehouse_id')) {
+                    if ($warehouse->id != XSession::get('warehouse_id')) continue;
                   }
                 }
 
@@ -124,7 +124,7 @@
               <?php $users = User::get(['active' => '1']); ?>
               <?php foreach ($users as $user) :
                 if (!$isAdmin) {
-                  if ($user->id != $this->session->userdata('user_id')) continue;
+                  if ($user->id != XSession::get('user_id')) continue;
                 }
               ?>
                 <option value="<?= $user->id ?>"><?= $user->fullname ?></option>

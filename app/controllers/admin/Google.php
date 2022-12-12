@@ -180,7 +180,7 @@ class Google extends MY_Controller
 
     $this->load->library('datatable');
 
-    if ($billerId = $this->session->userdata('biller_id')) {
+    if ($billerId = XSession::get('biller_id')) {
       $billers[] = $billerId;
     }
 

@@ -21,10 +21,10 @@
                 <?php $users = $this->site->getUsers(); ?>
                 <?php foreach ($users as $user) : ?>
                   <?php if (!$this->Owner && !$this->Admin) {
-                    if ($this->session->userdata('user_id') != $user->id) continue;
+                    if (XSession::get('user_id') != $user->id) continue;
                   }
 
-                  $selected = ($this->session->userdata('user_id') == $user->id ? ' selected' : '');
+                  $selected = (XSession::get('user_id') == $user->id ? ' selected' : '');
                   ?>
                   <option value="<?= $user->id ?>" <?= $selected ?>><?= $user->first_name . ' ' . $user->last_name ?></option>
                 <?php endforeach; ?>
