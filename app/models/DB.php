@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 /**
- * Convenient class for database connection.
+ * Convenient static class for CI3 database.
+ * 
+ * Usage: place it on app/models/DB.php
  * 
  * Copyright (C) 2022 Ridintek Industri.
  */
@@ -27,13 +29,16 @@ class DB
     return (int)get_instance()->db->affected_rows();
   }
 
+  /**
+   * Manual begin transaction.
+   */
   public static function beginTransaction()
   {
     return get_instance()->db->trans_begin();
   }
 
   /**
-   * End and commit transaction.
+   * Automatic end and commit transaction.
    */
   public static function completeTransaction()
   {
@@ -41,20 +46,23 @@ class DB
   }
 
   /**
-   * Start transaction.
+   * Automatic commit start transactions.
    */
   public static function startTransaction()
   {
     return get_instance()->db->trans_start();
   }
 
+  /**
+   * Get transaction status.
+   */
   public static function statusTransaction()
   {
-    return get_instance()->db->trans_status();
+    return (bool)get_instance()->db->trans_status();
   }
 
   /**
-   * Commit transaction.
+   * Manual commit transaction.
    */
   public static function commitTransaction()
   {
@@ -206,6 +214,9 @@ class DB
     return self::$classInstance;
   }
 
+  /**
+   * Order by
+   */
   public function orderBy($orderBy, $direction = '', $escape = NULL)
   {
     self::$ciInstance->db->order_by($orderBy, $direction, $escape);
@@ -243,7 +254,7 @@ class DB
   }
 
   /**
-   * Rollback Transaction.
+   * Manual rollback transaction.
    */
   public static function rollbackTransaction()
   {
