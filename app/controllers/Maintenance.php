@@ -14,7 +14,6 @@ class Maintenance extends MY_Controller // From MY_Shop_Controller
       'end_date' => $this->maintenance_end_date
     ];
     
-    // $this->load->view('maintenance/index', $meta);
-    echo "Maaf PrintERP sedang maintenance.";
+    $this->load->view('maintenance/index', $meta);
   }
 }
