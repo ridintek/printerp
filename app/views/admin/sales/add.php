@@ -438,18 +438,6 @@
                 <?php } else {
                       echo form_hidden('payment_status', 'pending');
                     } ?>
-                <!-- <div class="col-sm-4">
-                  <div class="form-group">
-                    <label for="production_pic">Production PIC</label>
-                    <?= form_dropdown('production_pic', '', '', 'class="user select2" data-placeholder="Select Production PIC" style="width:100%;"'); ?>
-                  </div>
-                </div>
-                <div class="col-sm-4">
-                  <div class="form-group">
-                    <?= lang('production_due_date', 'production_due_date'); ?>
-                    <input type="text" class="form-control datetime" name="production_due_date" id="production_due_date">
-                  </div>
-                </div> -->
                 <div class="clearfix"></div>
               </div>
             </div>
