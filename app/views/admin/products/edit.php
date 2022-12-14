@@ -101,6 +101,17 @@
                 </div>
               </div>
             </div>
+            <div class="row">
+              <div class="col-sm-12">
+                <div class="form-group">
+                  <?= lang('purchase_source', 'purchase_source'); ?>
+                  <select id="purchase_source" class="select2" name="purchase_source" style="width:100%;">
+                    <option value="import">Import</option>
+                    <option value="local">Local</option>
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="panel panel-primary autocomplete">
@@ -590,6 +601,11 @@
     let autocomplete = '<?= ($productJS->autocomplete ?? 0); ?>';
     let pic_ids = JSON.parse('<?= json_encode($pic_ids); ?>');
     let wh_ids = JSON.parse('<?= json_encode($wh_ids); ?>');
+    let purchase_source = '<?= $productJS->purchase_source ?? '' ?>';
+
+    if (purchase_source) {
+      $('#purchase_source').val(purchase_source).trigger('change');
+    }
 
     if (cbitems) {
       localStorage.setItem('cbitems', JSON.stringify(cbitems));

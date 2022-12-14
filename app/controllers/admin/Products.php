@@ -77,6 +77,7 @@ class Products extends MY_Controller
         'sn'                 => getPOST('sn'),
         'priority'           => getPOST('priority'),
         'purchased_at'       => getPOST('purchased_at'),
+        'purchase_source'    => getPOST('purchase_source')
       ];
 
       if ($product_type == 'combo') {
@@ -800,32 +801,33 @@ class Products extends MY_Controller
     if ($this->form_validation->run()) {
       $product_type = getPOST('type');
       $product_data = [
-        'product_id'         => $product_id,
-        'code'               => getPOST('code'),
-        'name'               => getPOST('name'),
-        'unit'               => getPOST('unit'),
-        'cost'               => filterDecimal(getPOST('cost')),
-        'price'              => filterDecimal(getPOST('price')),
-        'warehouses'         => getPOST('warehouses'),
-        'markon_price'       => filterDecimal(getPOST('markon_price')),
-        'markon'             => getPOST('markon'),
-        'safety_stock_ratio' => getPOST('safety_stock_ratio'),
-        'min_order_qty'      => getPOST('min_order_qty'),
-        'iuse_type'          => getPOST('iuse_type'),
-        'active'             => (getPOST('active') ?? 0),
-        'autocomplete'       => (getPOST('autocomplete') ?? 0),
-        'category_id'        => ($category ? $category->id : NULL),
-        'subcategory_id'     => ($subcategory ? $subcategory->id : NULL),
-        'type'               => getPOST('type'),
-        'supplier_id'        => getPOST('supplier'),
-        'sale_unit'          => getPOST('sale_unit'),
-        'purchase_unit'      => getPOST('purchase_unit'),
-        'price_ranges_value' => getPOST('price_ranges_value'),
-        'min_prod_time'      => getPOST('min_prod_time'),
-        'prod_time_qty'      => getPOST('prod_time_qty'),
-        'sn'                 => getPOST('sn'),
-        'priority'           => getPOST('priority'),
-        'purchased_at'       => getPOST('purchased_at'),
+        'product_id'          => $product_id,
+        'code'                => getPOST('code'),
+        'name'                => getPOST('name'),
+        'unit'                => getPOST('unit'),
+        'cost'                => filterDecimal(getPOST('cost')),
+        'price'               => filterDecimal(getPOST('price')),
+        'warehouses'          => getPOST('warehouses'),
+        'markon_price'        => filterDecimal(getPOST('markon_price')),
+        'markon'              => getPOST('markon'),
+        'safety_stock_ratio'  => getPOST('safety_stock_ratio'),
+        'min_order_qty'       => getPOST('min_order_qty'),
+        'iuse_type'           => getPOST('iuse_type'),
+        'active'              => (getPOST('active') ?? 0),
+        'autocomplete'        => (getPOST('autocomplete') ?? 0),
+        'category_id'         => ($category ? $category->id : NULL),
+        'subcategory_id'      => ($subcategory ? $subcategory->id : NULL),
+        'type'                => getPOST('type'),
+        'supplier_id'         => getPOST('supplier'),
+        'sale_unit'           => getPOST('sale_unit'),
+        'purchase_unit'       => getPOST('purchase_unit'),
+        'price_ranges_value'  => getPOST('price_ranges_value'),
+        'min_prod_time'       => getPOST('min_prod_time'),
+        'prod_time_qty'       => getPOST('prod_time_qty'),
+        'sn'                  => getPOST('sn'),
+        'priority'            => getPOST('priority'),
+        'purchased_at'        => getPOST('purchased_at'),
+        'purchase_source'     => getPOST('purchase_source')
       ];
 
       if ($product_type == 'combo') {
@@ -2510,7 +2512,7 @@ class Products extends MY_Controller
     $headers = [ // ss = safety_stock
       'action', 'code', 'name', 'unit', 'category_code', 'subcategory_code',
       'iuse_type', 'active', 'cost', 'markon', 'ss_ratio', 'min_order_qty', 'supplier',
-      'warehouses', 'sn', 'priority', 'purchased_at',
+      'warehouses', 'sn', 'priority', 'purchased_at', 'purchase_source',
       'lucretia_pic', 'lucretia_cycle', 'durian_pic', 'durian_cycle', 'fatmawati_pic', 'fatmawati_cycle',
       'gajah_pic', 'gajah_cycle', 'ngesrep_pic', 'ngesrep_cycle', 'pleburan_pic', 'pleburan_cycle',
       'salatiga_pic', 'salatiga_cycle', 'tembalang_pic', 'tembalang_cycle',
@@ -2594,6 +2596,7 @@ class Products extends MY_Controller
           'sn'                  => trim($csv['sn']),
           'priority'            => strtolower($csv['priority']),
           'purchased_at'        => trim($csv['purchased_at']),
+          'purchase_source'     => strtolower($csv['purchase_source']),
           'stock_opname'        => $stockOpname
         ];
       } else { // Add new items.
@@ -2644,6 +2647,7 @@ class Products extends MY_Controller
           'sn'                  => trim($csv['sn']),
           'priority'            => strtolower($csv['priority']),
           'purchased_at'        => trim($csv['purchased_at']),
+          'purchase_source'     => strtolower($csv['purchase_source']),
           'stock_opname'        => $stockOpname
         ];
       }

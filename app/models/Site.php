@@ -726,27 +726,28 @@ class Site extends MY_Model
           'sale_unit'          => ($product['sale_unit'] ?? $product['unit']),
           'purchase_unit'      => ($product['purchase_unit'] ?? $product['unit']),
           'json_data'          => json_encode([
-            'assigned_at'   => ($product['assigned_at'] ?? ''),
-            'assigned_by'   => ($product['assigned_by'] ?? ''),
-            'autocomplete'  => ($product['autocomplete'] ?? 0),
-            'condition'     => ($product['condition'] ?? ''),
-            'min_prod_time' => ($product['min_prod_time'] ?? ''),
-            'note'          => ($product['note'] ?? ''),
-            'pic_note'      => ($product['pic_note'] ?? ''),
-            'priority'      => ($product['priority'] ?? ''),
-            'prod_time_qty' => ($product['prod_time_qty'] ?? ''),
-            'disposal_date' => ($product['disposal_date'] ?? ''),
-            'disposal_price' => ($product['disposal_price'] ?? ''),
-            'maintenance_qty' => ($product['maintenance_qty'] ?? ''),
-            'maintenance_cost' => ($product['maintenance_cost'] ?? ''),
-            'order_date'     => ($product['order_date'] ?? ''),
-            'order_price'    => ($product['order_price'] ?? ''),
-            'pic_id'         => ($product['pic_id'] ?? ''), // AKA ts_id (TS=Team Support)
-            'priority'       => ($product['priority'] ?? ''),
-            'purchased_at'   => ($product['purchased_at'] ?? $this->serverDateTime),
-            'sn'             => ($product['sn'] ?? ''),
-            'updated_at'     => ($product['updated_at'] ?? ''),
-            'updated_by'     => ($product['updated_by'] ?? ''),
+            'assigned_at'       => ($product['assigned_at'] ?? ''),
+            'assigned_by'       => ($product['assigned_by'] ?? ''),
+            'autocomplete'      => ($product['autocomplete'] ?? 0),
+            'condition'         => ($product['condition'] ?? ''),
+            'min_prod_time'     => ($product['min_prod_time'] ?? ''),
+            'note'              => ($product['note'] ?? ''),
+            'pic_note'          => ($product['pic_note'] ?? ''),
+            'priority'          => ($product['priority'] ?? ''),
+            'prod_time_qty'     => ($product['prod_time_qty'] ?? ''),
+            'disposal_date'     => ($product['disposal_date'] ?? ''),
+            'disposal_price'    => ($product['disposal_price'] ?? ''),
+            'maintenance_qty'   => ($product['maintenance_qty'] ?? ''),
+            'maintenance_cost'  => ($product['maintenance_cost'] ?? ''),
+            'order_date'        => ($product['order_date'] ?? ''),
+            'order_price'       => ($product['order_price'] ?? ''),
+            'pic_id'            => ($product['pic_id'] ?? ''), // AKA ts_id (TS=Team Support)
+            'priority'          => ($product['priority'] ?? ''),
+            'purchased_at'      => ($product['purchased_at'] ?? $this->serverDateTime),
+            'purchase_source'   => ($product['purchase_source'] ?? 'local'), // Default local.
+            'sn'                => ($product['sn'] ?? ''),
+            'updated_at'        => ($product['updated_at'] ?? ''),
+            'updated_by'        => ($product['updated_by'] ?? ''),
           ])
         ];
 
@@ -8549,6 +8550,7 @@ class Site extends MY_Model
         if (isset($product['pic_id'])) $productJS->pic_id = filterDecimal($product['pic_id']);
         if (isset($product['priority'])) $productJS->priority = trim($product['priority']);
         if (isset($product['purchased_at'])) $productJS->purchased_at = trim($product['purchased_at']);
+        if (isset($product['purchase_source'])) $productJS->purchase_source = $product['purchase_source'];
         if (isset($product['sn'])) $productJS->sn = trim($product['sn']);
         if (isset($product['updated_at'])) $productJS->updated_at = trim($product['updated_at']);
         if (!empty($product['updated_by'])) $productJS->updated_by = filterDecimal($product['updated_by']);
