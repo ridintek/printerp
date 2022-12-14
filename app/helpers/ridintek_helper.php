@@ -2674,16 +2674,18 @@ function sendWA($phone, $text, $opt = [])
 function setCreatedBy($data)
 {
   $data['created_at'] = ($data['date'] ?? $data['created_at'] ?? date('Y-m-d H:i:s'));
-  $system = User::getRow(['username' => 'system']);
 
   if (!empty($data['created_by'])) {
-    $creator = User::getRow(['id' => $data['created_by']]);
-
-    $data['created_by'] = ($creator ? $creator->id : $system->id);
+    if ($creator = User::getRow(['id' => $data['created_by']])) {
+      $data['created_by'] = $creator->id;
+    }
   } else {
-    $creatorId = XSession::get('user_id');
-
-    $data['created_by'] = ($creatorId ? $creatorId : $system->id);
+    if ($creatorId = XSession::get('user_id')) {
+      $data['created_by'] = $creatorId;
+    } else {
+      $user = User::getRow(['username' => 'system']);
+      $data['created_by'] = $user->id;
+    }
   }
 
   return $data;
