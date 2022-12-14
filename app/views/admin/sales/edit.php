@@ -339,7 +339,7 @@
                   $sst['waiting_production'] = lang('waiting_production');
                 }
 
-                echo form_dropdown('status', $sst, $inv->status, 'class="select2" required="required" id="slsale_status"');
+                echo form_dropdown('status', $sst, $inv->status, 'class="select2" required="required" id="slsale_status" style="width:100%"');
                 ?>
               </div>
             </div>
