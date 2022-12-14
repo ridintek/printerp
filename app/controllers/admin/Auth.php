@@ -557,7 +557,7 @@ class Auth extends MY_Controller
 
     if ($this->requestMethod == 'POST') {
       if (Authentication::login($identity, $password, $remember)) {
-        admin_redirect();
+        redirect($_SERVER['HTTP_REFERER'] ?? '/');
       }
     } else if (XSession::has('user_id')) {
       admin_redirect();
