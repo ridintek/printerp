@@ -2689,6 +2689,7 @@ function setCreatedBy($data)
 function setLastError(string $msg = NULL)
 {
   if ($msg && strlen($msg)) {
+    log_message('error', $msg);
     XSession::set('lastErrorMsg', $msg);
   } else {
     XSession::delete('lastErrorMsg');
