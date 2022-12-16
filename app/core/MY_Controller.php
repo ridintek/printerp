@@ -30,8 +30,6 @@ class MY_Controller extends CI_Controller
     Kint\Renderer\RichRenderer::$folder = FALSE;
     $this->res_hash = 'v=' . date('YmdH'); // For resource hash.
     // $this->res_hash = 'v=' . bin2hex(random_bytes(4)); // For resource hash.
-    $this->rdlog = $this->ridintek->logger();
-    $this->rdlog->setPath(APPPATH . 'logs');
     // $this->cache = $this->ridintek->cache();
 
     $this->errorMsg = 'success';

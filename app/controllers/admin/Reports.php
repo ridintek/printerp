@@ -445,7 +445,7 @@ class Reports extends MY_Controller
         $sheet->setCellValue($A1DateGrid[$x] . '2', $dayName[$dayIndex]);
 
         foreach ($mutations as $mut) {
-          if (date('j', strtotime($mut->date)) == $x) {
+          if (date('j', strtotime($mut->created_at)) == $x) {
             $isChecked = TRUE;
             $mutationStatus = $mut->status;
             break;
@@ -485,7 +485,7 @@ class Reports extends MY_Controller
       $pic = $this->site->getUserByID($mut->created_by);
       $biller = $this->site->getBillerByID($mut->biller_id);
 
-      $sheet->setCellValue('A' . $r, $mut->date);
+      $sheet->setCellValue('A' . $r, $mut->created_at);
       $sheet->setCellValue('B' . $r, $mut->reference);
       $sheet->setCellValue('C' . $r, $mut->from_bank_name);
       $sheet->setCellValue('D' . $r, $mut->to_bank_name);
@@ -610,7 +610,7 @@ class Reports extends MY_Controller
 
         if ($sale->status == 'preparing') {
           if ($payments) {
-            if (strtotime(date('Y-m-d H:i:s')) > strtotime('+24 hours', strtotime($payments[0]->date))) {
+            if (strtotime(date('Y-m-d H:i:s')) > strtotime('+24 hours', strtotime($payments[0]->created_at))) {
               $getStatus = 'over_get';
               $overGet++;
             }
@@ -620,7 +620,7 @@ class Reports extends MY_Controller
 
           if (!empty($saleJS->waiting_production_date)) {
             if ($payments) {
-              if (strtotime($saleJS->waiting_production_date) > strtotime('+24 hours', strtotime($payments[0]->date))) {
+              if (strtotime($saleJS->waiting_production_date) > strtotime('+24 hours', strtotime($payments[0]->created_at))) {
                 $getStatus = 'over_get';
                 $overGet++;
               }
@@ -652,9 +652,9 @@ class Reports extends MY_Controller
           }
         }
 
-        $sheet->setCellValue("A{$r2}", $sale->date);
+        $sheet->setCellValue("A{$r2}", $sale->created_at);
         $sheet->setCellValue("B{$r2}", $sale->reference);
-        $sheet->setCellValue("C{$r2}", ($payments ? $payments[0]->date : ''));
+        $sheet->setCellValue("C{$r2}", ($payments ? $payments[0]->created_at : ''));
         $sheet->setCellValue("D{$r2}", lang($sale->payment_status));
         $sheet->setCellValue("E{$r2}", $sale->paid);
         $sheet->setCellValue("F{$r2}", $sale->grand_total);
@@ -711,7 +711,7 @@ class Reports extends MY_Controller
 
         $payments = $this->site->getPayments(['sale_id' => $sale->id]);
 
-        $sheet->setCellValue("A{$r3}", $saleItem->date);
+        $sheet->setCellValue("A{$r3}", $saleItem->created_at);
         $sheet->setCellValue("B{$r3}", $sale->reference);
         $sheet->setCellValue("C{$r3}", $saleItem->product_code);
         $sheet->setCellValue("D{$r3}", $saleItem->product_name);
@@ -719,7 +719,7 @@ class Reports extends MY_Controller
         $sheet->setCellValue("F{$r3}", $saleItem->quantity);
         $sheet->setCellValue("G{$r3}", $saleItem->finished_qty);
         $sheet->setCellValue("H{$r3}", $saleItem->subtotal);
-        $sheet->setCellValue("I{$r3}", ($payments ? $payments[0]->date : ''));
+        $sheet->setCellValue("I{$r3}", ($payments ? $payments[0]->created_at : ''));
         $sheet->setCellValue("J{$r3}", ($saleItemJS->due_date ?? ''));
         $sheet->setCellValue("K{$r3}", ($saleItemJS->completed_at ?? $saleItemJS->updated_at ?? ''));
         $sheet->setCellValue("L{$r3}", $sale->customer);
@@ -745,12 +745,12 @@ class Reports extends MY_Controller
         if ($payments) {
           foreach ($payments as $payment) {
             if ($payment->method == 'Cash') {
-              $paymentDate = new DateTime($payment->date);
-              $saleDate = new DateTime($sale->date);
+              $paymentDate = new DateTime($payment->created_at);
+              $saleDate = new DateTime($sale->created_at);
 
               $hour = $saleDate->diff($paymentDate)->format('%r%h');
 
-              if ($hour > 3) $overPayment++; // Over 3 hours then POTONG GAJI MEENN !!!
+              if ($hour > 8) $overPayment++; // Over 3 hours then POTONG GAJI MEENN !!!
             }
           }
         }
@@ -852,7 +852,7 @@ class Reports extends MY_Controller
       $customerGroup = $this->site->getCustomerGroupByID($customer->customer_group_id);
       $pic = $this->site->getUserByID($sale->created_by);
 
-      $sheet->setCellValue("A{$r1}", $sale->date);
+      $sheet->setCellValue("A{$r1}", $sale->created_at);
       $sheet->setCellValue("B{$r1}", $sale->reference);
       $sheet->setCellValue("C{$r1}", $sale->customer);
       $sheet->setCellValue("D{$r1}", $customerGroup->name);
@@ -883,11 +883,11 @@ class Reports extends MY_Controller
       $sale = $this->site->getSaleByID($payment->sale_id);
 
       $isOverPayment = (
-        (strtotime('+3 hour', strtotime($sale->date)) < strtotime($payment->date)) &&
+        (strtotime('+3 hour', strtotime($sale->created_at)) < strtotime($payment->created_at)) &&
         ($payment->method == 'Cash')
       );
 
-      $sheet->setCellValue("A{$r2}", $payment->date);
+      $sheet->setCellValue("A{$r2}", $payment->created_at);
       $sheet->setCellValue("B{$r2}", $payment->reference);
       $sheet->setCellValue("C{$r2}", $bank->name);
       $sheet->setCellValue("D{$r2}", $payment->method);
@@ -1031,7 +1031,7 @@ class Reports extends MY_Controller
 
     if ($xls) { // EXPORT EXCEL
       $this->db
-        ->select("DATE_FORMAT(payments.date, '%Y-%m-%d %T') as date,
+        ->select("DATE_FORMAT(payments.created_at, '%Y-%m-%d %T') as created_at,
           payments.reference_date,
           payments.reference as payment_ref,
           payments.expense_id, payments.income_id, payments.mutation_id, payments.purchase_id,
@@ -1055,7 +1055,7 @@ class Reports extends MY_Controller
         ->join('users', 'users.id = payments.created_by', 'left')
         ->join('billers', 'billers.id = payments.biller_id', 'left')
         ->join('banks', 'banks.id = payments.bank_id', 'left')
-        ->order_by('payments.date desc');
+        ->order_by('payments.created_at desc');
 
       if ($users) {
         $this->db->group_start();
@@ -1088,7 +1088,7 @@ class Reports extends MY_Controller
         $this->db->like('payments.reference', $payment_ref, 'both');
       }
       if ($startDate) {
-        $this->db->where("payments.date BETWEEN '{$startDate} 00:00:00' AND '{$endDate} 23:59:59'");
+        $this->db->where("payments.created_at BETWEEN '{$startDate} 00:00:00' AND '{$endDate} 23:59:59'");
       }
       if ($startRefDate) {
         $this->db->where("payments.reference_date BETWEEN '{$startRefDate} 00:00:00' AND '{$endRefDate} 23:59:59'");
@@ -1152,7 +1152,7 @@ class Reports extends MY_Controller
             $paymentReceiver = '';
           }
 
-          $excel->setCellValue('A' . $row, date('Y-m-d H:i:s', strtotime($payment->date)));
+          $excel->setCellValue('A' . $row, date('Y-m-d H:i:s', strtotime($payment->created_at)));
           $excel->setCellValue('B' . $row, date('Y-m-d H:i:s', strtotime($payment->reference_date)));
           $excel->setCellValue('C' . $row, $payment->payment_ref);
           $excel->setCellValue('D' . $row, $paymentCategory);
@@ -1169,15 +1169,8 @@ class Reports extends MY_Controller
           $excel->setCellValue('O' . $row, $sentAmount);
           $excel->setCellValue('P' . $row, $payment->type);
 
-          $receivedTotal += ($payment->type == 'received' ? $payment->amount : 0);
-          $sentTotal     += ($payment->type == 'sent'     ? $payment->amount : 0);
           $row++;
         }
-
-        $excel->setCellValue('N' . $row, $receivedTotal);
-        $excel->setCellValue('O' . $row, $sentTotal);
-        $excel->setCellValue('N' . ($row + 1), 'Grand Total');
-        $excel->setCellValue('O' . ($row + 1), $receivedTotal - $sentTotal);
 
         $excel->setColumnAutoWidth('A');
         $excel->setColumnAutoWidth('B');
@@ -1205,7 +1198,7 @@ class Reports extends MY_Controller
     // Datatables.
     $this->load->library('datatables');
     $this->datatables
-      ->select("payments.date as date,
+      ->select("payments.created_at as created_at,
         payments.reference_date,
         payments.reference as payment_ref,
         users.username as pic_id,
@@ -1260,7 +1253,7 @@ class Reports extends MY_Controller
       $this->datatables->like('payments.reference', $payment_ref, 'both');
     }
     if ($startDate) {
-      $this->datatables->where("payments.date BETWEEN '{$startDate} 00:00:00' AND '{$endDate} 23:59:59'");
+      $this->datatables->where("payments.created_at BETWEEN '{$startDate} 00:00:00' AND '{$endDate} 23:59:59'");
     }
     if ($startRefDate) {
       $this->datatables->where("payments.reference_date BETWEEN '{$startRefDate} 00:00:00' AND '{$endRefDate} 23:59:59'");
@@ -2154,12 +2147,12 @@ class Reports extends MY_Controller
     if (!$xls) { // WEB
       /* QUERIES */
       if ($group_by == 'biller') {
-        $query = "'-' as date, '-' as reference, '-' as pic_id, '-' as pic_name, billers.name as biller_name,
+        $query = "'-' as created_at, '-' as reference, '-' as pic_id, '-' as pic_name, billers.name as biller_name,
           '-' as customer_name, '-' as product_code, '-' as product_name, '-' as category_code,
           SUM(sales.total_items) as total_items,";
       }
       if ($group_by == 'customer') {
-        $query = "sales.date as date, sales.reference as reference,
+        $query = "sales.created_at as created_at, sales.reference as reference,
           users.username as pic_id,
           users.fullname as pic_name,
           billers.name as biller_name,
@@ -2168,7 +2161,7 @@ class Reports extends MY_Controller
           SUM(sales.total_items) as total_items,";
       }
       if ($group_by == 'pic') {
-        $query = "'-' as date, '-' as reference,
+        $query = "'-' as created_at, '-' as reference,
           users.username as pic_id,
           users.fullname as pic_name,
           billers.name as biller_name, '-' as customer_name,
@@ -2176,21 +2169,21 @@ class Reports extends MY_Controller
           SUM(sales.total_items) as total_items,";
       }
       if ($group_by == 'product') {
-        $query = "'-' as date, '-' as reference, '-' as pic_id, '-' as pic_name, '-' as biller_name,
+        $query = "'-' as created_at, '-' as reference, '-' as pic_id, '-' as pic_name, '-' as biller_name,
           '-' as customer_name,
           products.code as product_code, products.name as product_name,
           categories.code as category_code,
           SUM(sales.total_items) as total_items,";
       }
       if ($group_by == 'category') {
-        $query = "'-' as date, '-' as reference, '-' as pic_id, '-' as pic_name, '-' as biller_name,
+        $query = "'-' as created_at, '-' as reference, '-' as pic_id, '-' as pic_name, '-' as biller_name,
           '-' as customer_name,
           products.code as product_code, products.name as product_name,
           categories.code as category_code,
           SUM(sales.total_items) as total_items,";
       }
       if ($group_by == 'sale') { // Default
-        $query = "sales.date as date, sales.reference as reference,
+        $query = "sales.created_at as created_at, sales.reference as reference,
           users.username as pic_id,
           users.fullname as pic_name,
           billers.name as biller_name,
@@ -2310,7 +2303,7 @@ class Reports extends MY_Controller
         $this->datatables->like('sales.reference', $reference, 'both');
       }
       if ($start_date) {
-        $this->datatables->where('sales.date BETWEEN "' . $start_date . '" and "' . $end_date . '"');
+        $this->datatables->where('sales.created_at BETWEEN "' . $start_date . '" and "' . $end_date . '"');
       }
       $this->datatables->where("sales.status NOT LIKE 'need_payment'"); // need_payment = not debt.
       $this->datatables->where("sales.status NOT LIKE 'draft'"); // No draft.
@@ -2320,13 +2313,13 @@ class Reports extends MY_Controller
     } else if ($xls) { // Export Excel.
       /* QUERIES */
       if ($group_by == 'biller') {
-        $query = "'-' as date, '-' as reference, '-' as pic_id, '-' as pic_name, billers.name as biller_name,
+        $query = "'-' as created_at, '-' as reference, '-' as pic_id, '-' as pic_name, billers.name as biller_name,
           '-' as customer_name, '-' as customer_phone,
           '-' as product_code, '-' as product_name, '-' as category_code,
           SUM(sales.total_items) as total_items,";
       }
       if ($group_by == 'customer') {
-        $query = "sales.date as date, sales.reference as reference,
+        $query = "sales.created_at as created_at, sales.reference as reference,
           users.username as pic_id,
           users.fullname as pic_name,
           billers.name as biller_name,
@@ -2336,7 +2329,7 @@ class Reports extends MY_Controller
           SUM(sales.total_items) as total_items,";
       }
       if ($group_by == 'pic') {
-        $query = "'-' as date, '-' as reference,
+        $query = "'-' as created_at, '-' as reference,
           users.username as pic_id,
           users.fullname as pic_name,
           billers.name as biller_name, '-' as customer_name, '-' as customer_phone,
@@ -2344,21 +2337,21 @@ class Reports extends MY_Controller
           SUM(sales.total_items) as total_items,";
       }
       if ($group_by == 'product') {
-        $query = "'-' as date, '-' as reference, '-' as pic_id, '-' as pic_name, '-' as biller_name,
+        $query = "'-' as created_at, '-' as reference, '-' as pic_id, '-' as pic_name, '-' as biller_name,
           '-' as customer_name, '-' as customer_phone,
           products.code as product_code, products.name as product_name,
           categories.code as category_code,
           SUM(sales.total_items) as total_items,";
       }
       if ($group_by == 'category') {
-        $query = "'-' as date, '-' as reference, '-' pic_id, '-' as pic_name, '-' as biller_name,
+        $query = "'-' as created_at, '-' as reference, '-' pic_id, '-' as pic_name, '-' as biller_name,
           '-' as customer_name, '-' as customer_phone,
           products.code as product_code, products.name as product_name,
           categories.code as category_code,
           SUM(sales.total_items) as total_items,";
       }
       if ($group_by == 'sale') { // Default
-        $query = "sales.date as date, sales.reference as reference,
+        $query = "sales.created_at as created_at, sales.reference as reference,
           users.username as pic_id,
           users.fullname as pic_name,
           billers.name as biller_name,
@@ -2391,7 +2384,7 @@ class Reports extends MY_Controller
         $query .= "'-' AS operator_name, '-' AS completed_date, '-' AS status,";
       } else {
         $query .= "operator.fullname AS operator_name,
-          sale_item.json_data->>'$.updated_at' AS completed_date,
+          sale_item.json_data->>'$.completed_at' AS completed_date,
           sales.status AS status,";
       }
 
@@ -2476,7 +2469,7 @@ class Reports extends MY_Controller
         $this->db->like('sales.reference', $reference, 'both');
       }
       if ($start_date) {
-        $this->db->where('sales.date BETWEEN "' . $start_date . '" and "' . $end_date . '"');
+        $this->db->where('sales.created_at BETWEEN "' . $start_date . '" and "' . $end_date . '"');
       }
       $this->db->where("sales.status NOT LIKE 'need_payment'"); // status == need_payment == not debt.
       $this->db->where("sales.status NOT LIKE 'draft'"); // No draft.
@@ -2522,7 +2515,7 @@ class Reports extends MY_Controller
         $balance = 0;
 
         foreach ($data as $data_row) {
-          $excel->SetCellValue('A' . $row, $this->sma->hrld($data_row->date));
+          $excel->SetCellValue('A' . $row, $data_row->created_at);
           $excel->SetCellValue('B' . $row, $data_row->reference);
           $excel->SetCellValue('C' . $row, $data_row->pic_id);
           $excel->SetCellValue('D' . $row, $data_row->pic_name);

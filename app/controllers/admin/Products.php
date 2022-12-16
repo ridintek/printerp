@@ -26,7 +26,6 @@ class Products extends MY_Controller
     $this->allowed_file_size   = '1024';
     $this->popup_attributes    = ['width' => '900', 'height' => '600', 'window_name' => 'sma_popup', 'menubar' => 'yes', 'scrollbars' => 'yes', 'status' => 'no', 'resizable' => 'yes', 'screenx' => '0', 'screeny' => '0'];
 
-    $this->rdlog->setFileName('products');
     $this->so_mode = 'edit'; // edit, confirm
   }
 
@@ -1286,10 +1285,10 @@ class Products extends MY_Controller
         <i class="fad fa-fw fa-edit"></i> ' . lang('edit_product') . '</a>
       </li>';
 
-    if ($this->isAdmin || getPermission('products-history')) {
+    // if ($this->isAdmin || getPermission('products-history')) {
       // History Product
       $action .= "<li>{$history_link}</li>";
-    }
+    // }
 
     $action .= '<li class="divider"></li>';
     // Delete Product
@@ -1741,8 +1740,6 @@ class Products extends MY_Controller
    */
   public function import_csv_raw() // PASSED.
   {
-    $this->rdlog->info(['msg' => 'BEGIN import_csv_raw()', 'time' => microtime(TRUE)]);
-
     ini_set('max_execution_time', 0);
     $this->load->helper('security');
     $this->form_validation->set_rules('userfile', lang('upload_file'), 'xss_clean');
@@ -1792,7 +1789,6 @@ class Products extends MY_Controller
         ];
 
         if ($header_id[0] != 'RXMT') {
-          $this->rdlog->error(['msg' => 'import_csv_raw(): File format is invalid ', 'time' => microtime(TRUE)]);
           $this->session->set_flashdata('error', 'File format is invalid.');
           admin_redirect('products/import#raw_material');
         }
@@ -1906,7 +1902,6 @@ class Products extends MY_Controller
                 $item['product_id'] = $product->id; // Required by update.
 
                 if ($this->site->updateProducts([$item])) {
-                  $this->rdlog->info(['msg' => "import_csv_raw(): Product updated {$item['code']}", 'time' => microtime(TRUE)]);
                   $updated++;
                 }
               }
@@ -1914,7 +1909,6 @@ class Products extends MY_Controller
               $item = false;
             }
           } else {
-            $this->rdlog->error(['msg' => "import_csv_raw(): No category code {$item['category_code']}", 'time' => microtime(TRUE)]);
             $this->session->set_flashdata('error', lang('check_category_code') . ' (' . $item['category_code'] . '). ' . lang('category_code_x_exist') . ' ' . lang('line_no') . ' ' . ($line + 1));
             admin_redirect('products/import#raw_material');
           }
@@ -1930,7 +1924,6 @@ class Products extends MY_Controller
 
     if ($this->form_validation->run() && !empty($items)) {
       if ($this->site->addProducts($items)) { // csv_raw
-        $this->rdlog->info(['msg' => "END import_csv_raw(): Added", 'time' => microtime(TRUE)]);
         $updated = $updated ? '<p>' . sprintf(lang('products_updated'), $updated) . '</p>' : '';
         $this->session->set_flashdata('message', sprintf(lang('products_added'), count($items)) . $updated);
         admin_redirect('products');
@@ -1938,7 +1931,6 @@ class Products extends MY_Controller
     } else {
       if (isset($items) && empty($items)) {
         if ($updated) {
-          $this->rdlog->info(['msg' => "END import_csv_raw(): Updated", 'time' => microtime(TRUE)]);
           $this->session->set_flashdata('message', sprintf(lang('products_updated'), $updated));
           admin_redirect('products');
         } else {
@@ -3243,12 +3235,12 @@ class Products extends MY_Controller
     // Sync products warehouses.
     // $this->site->syncProductQty($product_id);
     if ($warehouseId = XSession::has('warehouse_id')) {
-      Product::syncOld($product->id, $warehouseId);
+      Product::sync($product->id, $warehouseId);
     } else {
       $warehouses = Warehouse::get(['active' => 1]);
 
       foreach ($warehouses as $warehouse) {
-        Product::syncOld($product->id, $warehouse->id);
+        Product::sync($product->id, $warehouse->id);
       }
     }
 
@@ -4289,7 +4281,7 @@ class Products extends MY_Controller
           // Sync item stock before sent to browser.
           foreach ($items as $item) {
             // $this->site->syncProductQty($item->id, $warehouse->id);
-            Product::syncOld($item->id, $warehouse->id);
+            Product::sync($item->id, $warehouse->id);
           }
 
           // Get items with updated stock.

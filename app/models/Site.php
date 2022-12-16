@@ -6,7 +6,6 @@ class Site extends MY_Model
   public function __construct()
   {
     parent::__construct();
-    $this->rdlog->setFileName('site');
   }
 
   /**
@@ -1007,10 +1006,6 @@ class Site extends MY_Model
     $date = filterDateTime($data['date'] ?? $this->serverDateTime);
     $reference = $this->getReference('sale');
 
-    logDebug('[BEGIN ADD SALE]');
-    logDebug('Reference: ' . $reference);
-    logDebug('Date: ' . $date);
-
     for ($a = 0; $a < count($items); $a++) {
       $price    = filterDecimal($items[$a]['price']);
       $quantity = filterQuantity($items[$a]['quantity']);
@@ -1076,8 +1071,6 @@ class Site extends MY_Model
     $sale_id = $this->db->insert_id();
     $this->db->trans_complete();
 
-    logDebug('[END ADD SALE]');
-
     if ($this->db->trans_status()) {
       $sale = $this->getSaleByID($sale_id);
 
@@ -1108,8 +1101,6 @@ class Site extends MY_Model
     $isSpecialCustomer = isSpecialCustomer($sale->customer_id);
 
     if ($sale) {
-      logDebug('[addSaleItems BEGIN]');
-
       foreach ($items as $item) {
         $product      = $this->getProductByID($item['product_id']);
         $productJS    = getJSON($product->json_data);
@@ -1153,9 +1144,6 @@ class Site extends MY_Model
             'completed_at' => (filterDateTime($item_completed_at) ?? '')
           ])
         ];
-
-        logDebug('# ITEMS:');
-        logDebug($sale_items_data);
 
         $this->db->trans_start();
         $this->db->insert('sale_items', $sale_items_data);
@@ -1242,7 +1230,6 @@ class Site extends MY_Model
         }
       }
 
-      logDebug('[addSaleItems END]');
       return TRUE;
     }
     return FALSE;
@@ -1356,37 +1343,31 @@ class Site extends MY_Model
 
       $warehouse = $this->getWarehouseByID($salesTB[0]->to_warehouse_id);
       if (!$warehouse) {
-        // $this->rdlog->error('Destination warehouse is not found.');
         return FALSE;
       }
 
       $billerIn = $this->getBillerByName($warehouse->name);
       if (!$billerIn) {
-        // $this->rdlog->error('Destination biller is not found.');
         return FALSE;
       }
 
       $billerOut = $this->getBillerByID($salesTB[0]->from_biller_id);
       if (!$billerOut) {
-        // $this->rdlog->error('Source biller is not found.');
         return FALSE;
       }
 
       $banksIn  = $this->getBanks(['biller_id' => $billerIn->id, 'number' => '465461984']);
       if (!$banksIn) {
-        // $this->rdlog->error('Destination bank is not found.');
         return FALSE;
       }
 
       $banksOut = $this->getBanks(['biller_id' => $billerOut->id, 'number' => '465461984']);
       if (!$banksOut) {
-        // $this->rdlog->error('Source bank is not found.');
         return FALSE;
       }
 
       $sysUser = $this->getUserByUsername('system');
       if (!$sysUser) {
-        // $this->rdlog->error('System user is not found.');
         return FALSE;
       }
 
@@ -1537,9 +1518,9 @@ class Site extends MY_Model
           if ($data['category'] == 'consumable') { // Consumable = Disposal.
             if ($category->code == 'AST' || $category->code == 'EQUIP') {
               $this->updateProducts([[
-                'product_id' => $product->id,
-                'disposal_date' => $data['date'],
-                'disposal_price' => $item['price']
+                'product_id'      => $product->id,
+                'disposal_date'   => $data['created_at'],
+                'disposal_price'  => $item['price']
               ]]);
             }
           } else if ($data['category'] == 'sparepart') { // Maintenance for machine.
@@ -1560,8 +1541,7 @@ class Site extends MY_Model
             }
           }
 
-          $this->addStockQuantity([
-            'date'            => $data['date'],
+          Stock::add([
             'internal_use_id' => $insertId,
             'product_id'      => $item['product_id'],
             'price'           => $item['price'],
@@ -1572,6 +1552,7 @@ class Site extends MY_Model
             'machine_id'      => $item['machine_id'],
             'unique_code'     => generateInternalUseUniqueCode($data['category']),
             'ucr'             => ($item['ucr'] ?? NULL),
+            'created_at'      => $data['created_at'],
             'created_by'      => $data['created_by']
           ]);
         }
@@ -2124,16 +2105,7 @@ class Site extends MY_Model
       return NULL;
     }
 
-    if (!empty($data['send_date'])) {
-      if (date('Y-m-d H:i:s', strtotime($data['send_date'])) == '0000-00-00 00:00:00') {
-        // $this->rdlog->error("addWAJob: send_date: {$data['send_date']}");
-      } else {
-        // $this->rdlog->info("addWAJob: send_date: {$data['send_date']}");
-      }
-    } else {
-      $data['send_date'] = date('Y-m-d H:i:s');
-    }
-
+    $data['send_date'] = date('Y-m-d H:i:s');
     $data['status'] = 'pending'; // Default as pending.
 
     $data = setCreatedBy($data);
@@ -2251,7 +2223,7 @@ class Site extends MY_Model
       $saleItemData = [];
       $saleItemJS   = getJSON($saleItem->json_data);
       $status       = ($saleItemJS ? $saleItemJS->status : 'waiting_production'); // Default status.
-      $date         = ($data['date'] ?? date('Y-m-d H:i:s')); // Current complete date.
+      $date         = ($data['date'] ?? $data['created_at'] ?? date('Y-m-d H:i:s')); // Current complete date.
 
       if (empty($data['quantity'])) sendJSON(['error' => 1, 'msg' => 'Cannot complete zero (0) quantity.']);
 
@@ -2263,8 +2235,7 @@ class Site extends MY_Model
       $saleItemData['operator_id']  = $op->id; // Change PIC who completed it.
 
       if (empty($saleItemJS->due_date)) { // Check if sale item has due date. If empty then restricted.
-        log_message('error', "Item {$saleItem->product_code} doesn't have due date.");
-        // die("Item {$saleItem->product_code} tidak memiliki due date");
+        setLastError("Item {$saleItem->product_code} doesn't have due date.");
       }
 
       if (($completedQty + $saleItem->finished_qty) < $saleItem->quantity) { // If completed partial.
@@ -2272,7 +2243,7 @@ class Site extends MY_Model
       } else if (($completedQty + $saleItem->finished_qty) == $saleItem->quantity) { // If fully completed.
         $status = 'completed';
       } else {
-        log_message('error', "<b>completeSaleItem()</b>: Something wrong! Maybe you complete more quantity than requested. " .
+        setLastError("<b>completeSaleItem()</b>: Something wrong! Maybe you complete more quantity than requested. " .
           "Completed: {$completedQty}, Finished: {$saleItem->finished_qty}, Quantity: {$saleItem->quantity}");
       }
 
@@ -7613,8 +7584,6 @@ class Site extends MY_Model
       $saleData = [];
 
       if (!$saleJS) {
-        $this->rdlog->error("Invalid sales->json_data in sale id {$sale->id}, {$sale->reference}");
-        $this->rdlog->error($saleJS);
         continue;
       }
 
@@ -7626,8 +7595,6 @@ class Site extends MY_Model
       $saleItems         = $this->getSaleItemsBySaleID($sale->id);
 
       if (empty($saleItems)) {
-        // die("Sale items empty. Please check '{$sale->reference}'");
-        $this->rdlog->error("Sale items empty. Sale id {$sale->id}, {$sale->reference}");
         continue;
       }
 
@@ -7765,7 +7732,6 @@ class Site extends MY_Model
       // If any change of sale status or payment status for W2P sale then dispatch W2P sale info.
       if (isset($saleJS->source) && $saleJS->source == 'W2P') {
         if ($sale->status != $saleStatus || $sale->payment_status != $paymentStatus) {
-          // $this->rdlog->info("Dispatching sale {$sale->reference} to Web2Print by syncSales.");
           dispatchW2PSale($sale->id);
         }
       }
@@ -8510,7 +8476,6 @@ class Site extends MY_Model
         if (!empty($product['purchase_unit']))      $product_data['purchase_unit']      = $product['purchase_unit'];
 
         if (empty($product['product_id'])) {
-          logDebug('[updateProducts]: product_id is not set.');
           return FALSE;
         }
 
@@ -9795,12 +9760,6 @@ class Site extends MY_Model
                 }
 
                 $sale = $this->getSaleByID($pv->sale_id);
-                $saleJS = getJSON($sale->json_data);
-
-                // if ($saleJS->source == 'W2P') { // Web2Print Only.
-                //   $this->rdlog->info("Dispatching sale {$sale->reference} to Web2Print by validatePaymentValidation.");
-                //   dispatchW2PSale($sale->id);
-                // }
 
                 $validatedCount++;
               }

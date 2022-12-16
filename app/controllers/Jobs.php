@@ -9,7 +9,6 @@ class Jobs extends MY_Controller
   public function __construct()
   {
     parent::__construct();
-    $this->rdlog->setFileName('jobs');
   }
 
   /**
@@ -19,7 +18,6 @@ class Jobs extends MY_Controller
   {
     if (!is_cli()) die('This program must be run under command line.');
 
-    $this->rdlog->info('Jobs started.');
     echo "Jobs started.\r\n";
 
     if ($job = $this->site->getJob(['status' => 'pending'])) {
@@ -28,7 +26,6 @@ class Jobs extends MY_Controller
         die;
       }
 
-      $this->rdlog->info("Jobs process $job->request");
       echo "Jobs process $job->request\r\n";
       $this->site->updateJob($job->id, ['status' => 'processing']);
       exec('php ' . FCPATH . "index.php {$job->request}", $res);
@@ -37,7 +34,6 @@ class Jobs extends MY_Controller
       echo "No jobs.\r\n";
     }
 
-    $this->rdlog->info('Jobs finished.');
     echo "Jobs finished.\r\n";
   }
 

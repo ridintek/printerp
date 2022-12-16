@@ -142,8 +142,10 @@ class Authentication
       'counter' => 0, 'token' => NULL, 'queue_category_id' => 0, 'remember_code' => ''
     ]);
 
-    set_cookie(['name' => 'identity', 'value' => '', 'expire' => 0]);
-    set_cookie(['name' => 'remember_code', 'value' => '', 'expire' => 0]);
+    set_cookie(['name' => 'identity', 'value' => '', 'expire' => 1]);
+    set_cookie(['name' => 'remember_code', 'value' => '', 'expire' => 1]);
+    set_cookie(['name' => 'sess', 'value' => '', 'expire' => 1]);
+    set_cookie(['name' => 'erp_token_cookie', 'value' => '', 'expire' => 1]);
 
     XSession::destroy();
   }

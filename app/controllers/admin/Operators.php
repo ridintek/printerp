@@ -2,7 +2,8 @@
 
 class Operators extends MY_Controller
 {
-  public function __construct () {
+  public function __construct()
+  {
     parent::__construct();
 
     if (!$this->loggedIn) {
@@ -14,14 +15,16 @@ class Operators extends MY_Controller
     $this->load->library('form_validation');
   }
 
-  public function index () {
+  public function index()
+  {
     admin_redirect('operators/orders');
   }
 
-  public function email_sale_status ($id, $item_status) {
+  public function email_sale_status($id, $item_status)
+  {
     $sale = $this->site->getSaleByID($id);
     $customer = $this->site->getCustomerByID($sale->customer_id);
-    if ( ! $customer->email) {
+    if (!$customer->email) {
       return FALSE;
     }
     $data_mail = [
@@ -105,14 +108,16 @@ class Operators extends MY_Controller
     sendJSON(['error' => 1, 'msg' => 'Pilih dahulu sebelum di Finish.']);
   }
 
-  public function getItemsStatus () {
+  public function getItemsStatus()
+  {
     $this->sma->checkPermissions('orders', NULL, 'operators', TRUE);
     $this->form_validation->set_rules('product_ids', 'Product IDs', 'required');
 
     $product_ids = json_decode(getPOST('product_ids'), TRUE); // as array
 
-    if ($this->form_validation->run() && ! empty($product_ids)) {
-      $data_items = []; $ostatus = NULL;
+    if ($this->form_validation->run() && !empty($product_ids)) {
+      $data_items = [];
+      $ostatus = NULL;
       foreach ($product_ids as $product_id) {
         $item = $this->site->getSaleItemByID($product_id);
         if ($item) {
@@ -138,7 +143,8 @@ class Operators extends MY_Controller
     }
   }
 
-  public function getOrderedItems () { // Get ordered items based on Sale Items.
+  public function getOrderedItems()
+  { // Get ordered items based on Sale Items.
     $warehouses = [];
 
     $this->sma->checkPermissions('orders', null, 'operators');
@@ -156,7 +162,7 @@ class Operators extends MY_Controller
     $this->load->library('datatables');
 
     $this->datatables
-    ->select(
+      ->select(
         "sale_items.id as id,
         sales.date as date,
         JSON_UNQUOTE(JSON_EXTRACT(sale_items.json_data, '$.due_date')) AS due_date,
@@ -184,22 +190,23 @@ class Operators extends MY_Controller
         ) as customer,
         sale_items.product_code as product_code,
         sale_items.product_name as product_name,
-        JSON_UNQUOTE(JSON_EXTRACT(sale_items.json_data, '$.status')) as item_status")
+        JSON_UNQUOTE(JSON_EXTRACT(sale_items.json_data, '$.status')) as item_status"
+      )
       ->from('sale_items')
       ->join('sales', 'sale_items.sale_id = sales.id', 'left')
       ->join('customers', 'customers.id = sales.customer_id', 'left')
       ->join('warehouses', 'warehouses.id = sales.warehouse_id', 'left')
       ->join('users', 'users.id = JSON_UNQUOTE(JSON_EXTRACT(sale_items.json_data, "$.operator_id"))', 'left');
 
-      $this->datatables
-        ->where("JSON_UNQUOTE(JSON_EXTRACT(sale_items.json_data, \"$.status\")) IN ('waiting_production', 'completed', 'completed_partial', 'finished')");
-      // DO NOT USE BELOW. DECREASING PERFORMANCE. USE ABOVE INSTEAD.
-      // $this->datatables
-      //   ->group_start()
-      //     ->like("JSON_UNQUOTE(JSON_EXTRACT(sale_items.json_data, \"$.status\"))", 'waiting_production', 'none')
-      //     ->or_like("JSON_UNQUOTE(JSON_EXTRACT(sale_items.json_data, \"$.status\"))", 'completed', 'none')
-      //     ->or_like("JSON_UNQUOTE(JSON_EXTRACT(sale_items.json_data, \"$.status\"))", 'completed_partial', 'none')
-      //   ->group_end();
+    $this->datatables
+      ->where("JSON_UNQUOTE(JSON_EXTRACT(sale_items.json_data, \"$.status\")) IN ('waiting_production', 'completed', 'completed_partial', 'finished')");
+    // DO NOT USE BELOW. DECREASING PERFORMANCE. USE ABOVE INSTEAD.
+    // $this->datatables
+    //   ->group_start()
+    //     ->like("JSON_UNQUOTE(JSON_EXTRACT(sale_items.json_data, \"$.status\"))", 'waiting_production', 'none')
+    //     ->or_like("JSON_UNQUOTE(JSON_EXTRACT(sale_items.json_data, \"$.status\"))", 'completed', 'none')
+    //     ->or_like("JSON_UNQUOTE(JSON_EXTRACT(sale_items.json_data, \"$.status\"))", 'completed_partial', 'none')
+    //   ->group_end();
 
     if ($warehouse_id) {
       $this->datatables->where('sales.warehouse_id', $warehouse_id);
@@ -241,9 +248,8 @@ class Operators extends MY_Controller
     echo $this->datatables->generate();
   }
 
-  public function completeSaleItems () { // Complete sale items.
-    $data = [];
-
+  public function completeSaleItems()
+  { // Complete sale items.
     if ($this->requestMethod == 'POST') {
       $items      = json_decode(getPOST('items'));
       $created_by = getPOST('created_by');
@@ -271,7 +277,7 @@ class Operators extends MY_Controller
       $hMutex = mutexCreate('Operators_completeSaleItems', TRUE); // Create mutex.
 
       foreach ($items as $item) {
-        $saleItem = $this->site->getSaleItemByID($item->id);
+        $saleItem = SaleItem::getRow(['id' => $item->id]);
         $saleItemJS = getJSON($saleItem->json_data);
 
         if ($_pg && $isCompleteOverTime) {
@@ -279,11 +285,12 @@ class Operators extends MY_Controller
           $date = date('Y-m-d H:i:s', strtotime("-{$minutes} minute", strtotime($saleItemJS->due_date)));
         }
 
+        $data = [];
         $data['created_by'] = $created_by;
-        $data['date'] = ($this->isAdmin || ($_pg && $isCompleteOverTime) ? $date : date('Y-m-d H:i:s'));
-        $data['quantity'] = $item->quantity;
+        $data['created_at'] = ($this->isAdmin || ($_pg && $isCompleteOverTime) ? $date : date('Y-m-d H:i:s'));
+        $data['quantity']   = $item->quantity;
 
-        if (!$this->site->completeSaleItem($item->id, $data)) {
+        if (!SaleItem::complete((int)$item->id, $data)) {
           $errorCount++;
           $responseMsg .= "<span class=\"text-danger bold\">Failed</span> to complete item '{$saleItem->product_code}'.<br>";
         } else {
@@ -305,7 +312,8 @@ class Operators extends MY_Controller
     }
   }
 
-  public function orders ($mode = NULL, $warehouse_id = NULL) {
+  public function orders($mode = NULL, $warehouse_id = NULL)
+  {
     $this->sma->checkPermissions('orders', null, 'operators');
 
     $this->data['reference'] = getGET('reference');

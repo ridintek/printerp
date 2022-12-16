@@ -9,7 +9,6 @@ class Cekmutasi extends MY_Model {
 
     // Ganti API Key sesuai akun mutasibank.
     $this->api_keys = $this->getApiKeys();
-    $this->rdlog->setFileName('cekmutasi');
   }
 
   public function getApiKeys () {
@@ -39,11 +38,8 @@ class Cekmutasi extends MY_Model {
         }
       }
 
-      $this->rdlog->info($cm_response);
-
       if ($validated) {
         if ($valid = $this->site->validatePaymentValidation($cm_response)) {
-          $this->rdlog->info(sprintf('VALIDATED %dx', $valid));
           return TRUE;
         }
       }

@@ -9,12 +9,58 @@ class Debug extends MY_Controller
   public function __construct()
   {
     parent::__construct();
-    $this->rdlog->setFileName('debug');
   }
 
   public function index()
   {
     echo "Index";
+  }
+
+  public function complete_sale()
+  {
+    $r = SaleItem::complete(32361, ['quantity' => 1]);
+
+    var_dump($r);
+  }
+
+  public function log()
+  {
+    dbglog('debug', 'WHAT IS YOU?');
+    dbglog('error', 'WHAT IS YOU?');
+    dbglog('success', 'WHAT IS YOU?');
+    dbglog('info', 'WHAT IS YOU?');
+  }
+
+  public function null_safe()
+  {
+    $obj = new stdClass;
+    $obj->message = NULL;
+
+    echo $obj?->message?->text . '<br>';
+  }
+
+  public function fix_complete_20221214()
+  {
+    $sales = DB::table('sales')->whereIn('status', ['completed', 'completed_partial'])->get();
+
+    $success = 0;
+    foreach ($sales as $sale) {
+      $saleItems = SaleItem::get(['sale_id' => $sale->id]);
+
+      foreach ($saleItems as $saleItem) {
+        $saleItemJS = getJSON($saleItem->json_data);
+        $stock = Stock::getRow(['saleitem_id' => $saleItem->id]);
+        if ($sale->id == 18600) {
+          // dbgprint($stock);die;
+        }
+        if (!$stock && ($saleItemJS->status == 'completed' || $saleItemJS->status == 'completed_partial')) {
+          $this->site->completeSaleItem($saleItem->id, ['quantity' => $saleItem->finished_qty, 'created_by' => $saleItemJS->operator_id]);
+          $success++;
+        }
+      }
+    }
+
+    dbgprint("Success: {$success}");
   }
 
   public function fix_sales_20221212()
@@ -744,7 +790,6 @@ class Debug extends MY_Controller
     if ($stocks) {
       foreach ($stocks as $stock) {
         if ($stock->product_type == 'service' && $stock->status == 'sent') {
-          logDebug("Updated id {$stock->id}");
           $this->site->updateStockQuantity(['id' => $stock->id], ['status' => 'received']);
         }
       }
@@ -782,7 +827,7 @@ class Debug extends MY_Controller
           //   if ($saleItemJS->status != 'completed' && $saleItemJS->status != 'delivered') continue;
 
           //   if ($this->site->deleteSaleItems(['id' => $saleItem->id])) {
-          //     logDebug("Success delete sale item {$saleItem->id} for sale id {$saleItem->sale_id}");
+          //     dbglog("Success delete sale item {$saleItem->id} for sale id {$saleItem->sale_id}");
           //   }
           // }
         } else {
@@ -803,7 +848,6 @@ class Debug extends MY_Controller
         if ($sale->payment_status != 'due_partial') continue;
         // if (($sale->grand_total / 2) != $sale->paid && ($sale->grand_total / 2) != $sale->balance) continue;
 
-        logDebug("Begin Processing: {$sale->reference}");
         $saleItems = $this->site->getSaleItems(['sale_id' => $sale->id]);
 
         if ($saleItems) {
@@ -816,12 +860,10 @@ class Debug extends MY_Controller
             if ($saleItemJS->status != 'completed' && $saleItemJS->status != 'delivered') continue;
 
             if ($this->site->deleteSaleItems(['id' => $saleItem->id])) {
-              logDebug("Success delete sale item {$saleItem->id} for sale id {$saleItem->sale_id}");
+              // dbglog("Success delete sale item {$saleItem->id} for sale id {$saleItem->sale_id}");
             }
           }
         }
-
-        logDebug("End Processing: {$sale->reference}");
       }
       echo ("Process finished.");
     }
@@ -837,7 +879,6 @@ class Debug extends MY_Controller
 
     if ($sales) {
       foreach ($sales as $sale) {
-        logDebug("Begin Processing: {$sale->reference}");
         $saleItems = $this->site->getSaleItems(['sale_id' => $sale->id]);
         $saleItemsData = [];
 
@@ -867,15 +908,10 @@ class Debug extends MY_Controller
           }
 
           if ($saleItemsData) {
-            logDebug("Sale Items Data:");
-            logDebug($saleItemsData);
             $this->site->updateSaleItems($sale->id, $saleItemsData);
-            // addSaleDueDate($sale->id);
-            logDebug("Sale Items updated.");
           }
         }
 
-        logDebug("End Processing: {$sale->reference}");
       }
       echo ("Process finished.");
     }
@@ -1439,8 +1475,6 @@ class Debug extends MY_Controller
   {
     if ($this->requestMethod == 'POST') {
       $data = file_get_contents('php://input');
-
-      $this->rdlog->info($data);
 
       sendJSON(['success' => 1, 'message' => 'Success']);
     }

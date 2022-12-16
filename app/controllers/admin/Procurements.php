@@ -724,10 +724,10 @@ class Procurements extends MY_Controller
         if ($row->active != 1) continue; // No inactive item.
 
         // Sync product quantity.
-        Product::syncOld($row->id, $warehouseIdFrom);
+        Product::sync($row->id, $warehouseIdFrom);
 
         if ($warehouseIdFrom != $warehouseIdTo) {
-          Product::syncOld($row->id, $warehouseIdTo);
+          Product::sync($row->id, $warehouseIdTo);
         }
 
         $hash = generateUUID();
@@ -2612,6 +2612,7 @@ class Procurements extends MY_Controller
    */
   public function transfers()
   {
+    die('obsolete');
     $params = func_get_args();
     $method = __FUNCTION__ . '_' . (empty($params) || $params[0] == 'warehouse' ? 'index' : $params[0]);
 
@@ -3181,6 +3182,7 @@ class Procurements extends MY_Controller
 
   private function transfers_getTransfers()
   { // transfers
+    die('obsolete');
     $reference      = getGET('reference');
     $warehouse_from = getGET('warehouse_from');
     $warehouse_to   = getGET('warehouse_to');
@@ -3395,6 +3397,7 @@ class Procurements extends MY_Controller
 
   private function transfers_plan()
   {
+    die('obsolete');
     $bc = [
       ['link' => base_url(), 'page' => lang('home')],
       ['link' => '#', 'page' => 'Procurements'],

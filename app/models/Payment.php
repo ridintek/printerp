@@ -151,6 +151,14 @@ class Payment
       $qb->where("created_at <= '{$clause['end_date']} 23:59:59'");
       unset($clause['end_date']);
     }
+    if (!empty($clause['has'])) {
+      $qb->db->where("{$clause['has']} IS NOT NULL");
+      unset($clause['has']);
+    }
+    if (!empty($clause['method'])) {
+      $qb->db->like('method', $clause['method'], 'none');
+      unset($clause['method']);
+    }
     if (!empty($clause['order'])) {
       $qb->orderBy($clause['order'][0], $clause['order'][1]);
       unset($clause['order']);

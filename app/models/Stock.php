@@ -5,77 +5,84 @@ declare(strict_types=1);
 class Stock
 {
   /**
-   * Add new stocks.
-   * 
-   * @param array $data [
-   * *(adjustment_id, internal_use_id, pm_id, purchase_id, sale_id, transfer_id, saleitem_id),
-   * *product_id, *warehouse_id, price, *quantity[+/-], adjustment_qty, purchased_qty,
-   *  machine_id, spec, created_at, created_by ]
-   * 
-   * **Data.Quantity**. If minus, status = *sent*, else if plus status = *received*.
+   * Add new stock.
+   * UCR = Unique Code Replacement.
+   * @param array $data [ *(adjustment_id|internal_use_id|pm_id|purchase_id|sale_id|transfer_id),
+   *  saleitem_id, *product_id, *warehouse_id, *quantity, *status(received|sent), cost, price,
+   *  adjustment_qty, purchased_qty, spec, machine_id, ucr, unique_code, json_data ]
    */
   public static function add(array $data)
   {
-    if (!empty($data['product_id'])) {
-      $product = Product::getRow(['id' => $data['product_id']]);
-      $data = setCreatedBy($data);
+    $data = setCreatedBy($data);
 
-      if ($product) {
-        $data['product_code'] = $product->code;
-        $data['product_name'] = $product->name;
-        $data['product_type'] = $product->type;
-
-        $data['cost']   = ($data['cost'] ?? $product->cost);
-        $data['price']  = ($data['price'] ?? $product->price);
-
-        $category = Category::getRow(['id' => $product->category_id]);
-
-        if ($category) {
-          $data['category_id']    =  $category->id;
-          $data['category_code']  =  $category->code;
-          $data['category_name']  =  $category->name;
-        } else {
-          setLastError("Category id {$product->category_id} is not found.");
-          return FALSE;
-        }
-
-        $unit = Unit::getRow(['id' => $product->unit]);
-
-        if ($unit) { // optional
-          $data['unit_id']    = $unit->id;
-          $data['unit_code']  = $unit->code;
-          $data['unit_name']  = $unit->name;
-        }
-
-        $warehouse = Warehouse::getRow(['id' => $data['warehouse_id']]);
-
-        if ($warehouse) {
-          $data['warehouse_id']   = $warehouse->id;
-          $data['warehouse_code'] = $warehouse->code;
-          $data['warehouse_name'] = $warehouse->name;
-        } else {
-          setLastError("Warehouse id {$data['warehouse_id']} is not found.");
-          return FALSE;
-        }
-      } else {
-        setLastError("Product id {$data['product_id']} is not found.");
-        return FALSE;
-      }
+    if (empty($data['quantity'])) {
+      setLastError("Stock:add(): Quantity is empty.");
+      return FALSE;
     }
 
-    if (!empty($data['quantity'])) {
-      $qty = filterDecimal($data['quantity']);
-
-      // For status only.
-      if ($qty > 0) $data['status'] = 'received';
-      if ($qty < 0) {
-        $data['quantity'] = $data['quantity'] * -1; // Back to plus. Sementara.
-        $data['status'] = 'sent';
-      }
+    if (empty($data['status'])) {
+      setLastError("Stock::add(): Status is empty.");
+      return FALSE;
     }
+
+    $product  = Product::getRow(['id' => $data['product_id']]);
+    if ($product) {
+      $data['product_code']   = $product->code;
+      $data['product_name']   = $product->name;
+      $data['product_type']   = $product->type;
+    } else {
+      setLastError("Stock::add(): Product '{$data['product_id']}' is not found.");
+      return FALSE;
+    }
+
+    // Not all use unit like service.
+    $unit = Unit::getRow(['id' => $product->unit]);
+    if ($unit) {
+      $data['unit_id']        = $unit->id;
+      $data['unit_code']      = $unit->code;
+      $data['unit_name']      = $unit->name;
+    }
+
+    $warehouse  = Warehouse::getRow(['id' => $data['warehouse_id']]);
+    if ($warehouse) {
+      $data['warehouse_code'] = $warehouse->code;
+      $data['warehouse_name'] = $warehouse->name;
+    } else {
+      setLastError("Stock::add(): Warehouse '{$data['warehouse_id']}' is not found.");
+      return FALSE;
+    }
+
+    if (isset($data['price'])) {
+      $data['subtotal'] = filterDecimal($data['price']) * filterDecimal($data['quantity']);
+    }
+
+    // Cost = Vendor price (Purchase). Price = Mark On Price (Transfer).
+    if (!isset($data['cost']))  $data['cost']   = $product->cost;
+    if (!isset($data['price'])) $data['price']  = $product->price;
 
     DB::table('stocks')->insert($data);
-    return DB::insertID();
+
+    if (DB::affectedRows()) {
+      $insertId = DB::insertID();
+
+      if ($data['status'] == 'received')
+        WarehouseProduct::increaseQuantity((int)$product->id, (int)$warehouse->id, (float)$data['quantity']);
+      if ($data['status'] == 'sent')
+        WarehouseProduct::decreaseQuantity((int)$product->id, (int)$warehouse->id, (float)$data['quantity']);
+
+      return $insertId;
+    }
+
+    return FALSE;
+  }
+
+  /**
+   * Decrease stock quantity.
+   */
+  public static function decrease(array $data)
+  {
+    $data['status'] = 'sent';
+    return self::add($data);
   }
 
   /**
@@ -130,14 +137,23 @@ class Stock
   }
 
   /**
-   * Get total quantity based by product and warehouse.
+   * Increase stock quantity.
+   */
+  public static function increase(array $data)
+  {
+    $data['status'] = 'received';
+    return self::add($data);
+  }
+
+  /**
+   * (NEW) Get total quantity based by product and warehouse.
    * 
    * @param int $productId Product ID.
    * @param int $warehouseId Warehouse ID.
    * @param array $opt [ start_date, end_date, order_by(column,ASC|DESC) ]
    * @return float Return total quantity.
    */
-  public static function totalQuantity(int $productId, int $warehouseId, $opt = [])
+  public static function totalQuantity_new(int $productId, int $warehouseId, $opt = [])
   {
     return (float)DB::table('stocks')->selectSum('quantity', 'total')
       ->getRow(['product_id' => $productId, 'warehouse_id' => $warehouseId])->total;
@@ -145,26 +161,31 @@ class Stock
 
   /**
    * (OLD) Get total quantity based by product and warehouse.
-   * 
    * @param int $productId Product ID.
    * @param int $warehouseId Warehouse ID.
    * @param array $opt [ start_date, end_date, order_by(column,ASC|DESC) ]
    * @return float Return total quantity.
    */
-  public static function totalQuantityOld(int $productId, int $warehouseId, $opt = [])
+  public static function totalQuantity(int $productId, int $warehouseId, $opt = [])
   {
     $result = DB::table('stocks')
       ->select('(COALESCE(stock_recv.total, 0) - COALESCE(stock_sent.total, 0)) AS total')
-      ->join("(
+      ->join(
+        "(
         SELECT product_id, SUM(quantity) total FROM stocks
         WHERE product_id = {$productId} AND warehouse_id = {$warehouseId}
         AND status LIKE 'received') stock_recv",
-        'stock_recv.product_id = stocks.product_id', 'left')
-      ->join("(
+        'stock_recv.product_id = stocks.product_id',
+        'left'
+      )
+      ->join(
+        "(
         SELECT product_id, SUM(quantity) total FROM stocks
         WHERE product_id = {$productId} AND warehouse_id = {$warehouseId}
         AND status LIKE 'sent') stock_sent",
-        'stock_sent.product_id = stocks.product_id', 'left')
+        'stock_sent.product_id = stocks.product_id',
+        'left'
+      )
       ->groupBy('stocks.product_id')
       ->getRow(['stocks.product_id' => $productId, 'stocks.warehouse_id' => $warehouseId]);
 

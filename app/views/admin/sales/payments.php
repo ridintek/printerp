@@ -42,8 +42,8 @@
                   <td><?= $this->sma->formatMoney($payment->amount); ?></td>
                   <td><?= lang(strtolower($payment->method)); ?></td>
                   <td>
-                    <?php if ($payment->attachment) { ?>
-                      <a href="<?= admin_url('gallery/view?name=' . $payment->attachment . '&path=sales_payments'); ?>" class="fas fa-paperclip" data-toggle="modal" data-target="#myModal2"></a>
+                    <?php if ($payment->attachment_id) { ?>
+                      <a href="<?= admin_url('gallery/attachment/' . $payment->attachment_id . '?modal=1'); ?>" class="fas fa-paperclip" data-toggle="modal" data-target="#myModal2"></a>
                     <?php } ?>
                   </td>
                   <td>

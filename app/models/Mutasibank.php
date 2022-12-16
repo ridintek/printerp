@@ -9,7 +9,6 @@ class Mutasibank extends MY_Model {
 
     // Ganti API Key sesuai akun mutasibank.
     $this->api_keys = $this->getApiKeys();
-    $this->rdlog->setFileName('mutasibank');
   }
 
   public function getApiKeys () {
@@ -32,15 +31,15 @@ class Mutasibank extends MY_Model {
       //   }
       // }
 
-      $this->rdlog->info($mb_response);
+      dbglog('mutasibank', $mb_response);
 
       if ($validatedAPI) {
         if ($valid = $this->site->validatePaymentValidation($mb_response)) {
-          $this->rdlog->info(sprintf('VALIDATED %dx', $valid));
+          dbglog('mutasibank', sprintf('VALIDATED %dx', $valid));
           return TRUE;
         }
       } else {
-        $this->rdlog->warning("Invalid Api Key.");
+        dbglog('mutasibank', "Invalid Api Key.");
       }
     }
 

@@ -40,7 +40,7 @@ class CronModel
 
     foreach ($warehouses as $warehouse) {
       foreach ($products as $product) {
-        if (Product::syncOld((int)$product->id, (int)$warehouse->id)) $success++;
+        if (Product::sync((int)$product->id, (int)$warehouse->id)) $success++;
       }
     }
 

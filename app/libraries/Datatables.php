@@ -21,7 +21,6 @@ if (!defined('BASEPATH')) {
 class Datatables
 {
   private $add_columns = [];
-  private $rdlog;
 
   /**
    * Global container variables for chained argument results
@@ -51,9 +50,6 @@ class Datatables
   public function __construct()
   {
     $this->ci = &get_instance();
-    $this->rdlog = $this->ci->ridintek->logger();
-    $this->rdlog->setPath(APPPATH . 'logs');
-    $this->rdlog->setFileName('datatables');
   }
 
   /**
@@ -478,7 +474,7 @@ class Datatables
 
     $query = $this->ci->db->get($this->table);
     if (!$query) {
-      $this->rdlog->error(['method' => __METHOD__, 'message' => $this->ci->db->error()['message']]);
+      dbglog('datatables', ['method' => __METHOD__, 'message' => $this->ci->db->error()['message']]);
     }
     return $query;
   }
@@ -663,7 +659,7 @@ class Datatables
     $query = $this->ci->db->get($this->table, null, null, false);
 
     if (!$query) {
-      $this->rdlog->error(['method' => __METHOD__, 'message' => $this->ci->db->error()['message']]);
+      dbglog('datatables', ['method' => __METHOD__, 'message' => $this->ci->db->error()['message']]);
     }
     return $query ? $query->num_rows() : FALSE; // Patched
     //return $query->num_rows();
@@ -770,7 +766,7 @@ class Datatables
         }
       }
     } else {
-      $this->rdlog->error(['method' => __METHOD__, 'message' => $this->ci->db->error()['message']]);
+      dbglog('datatables', ['method' => __METHOD__, 'message' => $this->ci->db->error()['message']]);
     }
 
     $sColumns = array_diff($this->columns, $this->unset_columns);

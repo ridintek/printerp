@@ -2298,18 +2298,12 @@ class Sales extends MY_Controller
     $startDate = (!empty(getGET('start_date')) ? getGET('start_date') : date('Y-m-') . '01');
     $endDate   = (!empty(getGET('end_date')) ? getGET('end_date') : date('Y-m-d H:i:s'));
 
-    logDebug('[Sales::syncSales BEGIN]');
-
     if ($sale_id) {
       $sale = $this->site->getSaleByID($sale_id);
 
-      logDebug("Syncing {$sale->reference}");
       $hMutex = mutexCreate('syncSales', TRUE);
       $this->site->syncSales(['sale_id' => $sale->id]);
       mutexRelease($hMutex);
-
-      logDebug('[Sales::syncSales END]');
-
       sendJSON(['error' => 0, 'msg' => 'Sync sale success.']);
     } else {
       $sales = $this->site->getSales(['start_date' => $startDate, 'end_date' => $endDate]);
@@ -2317,13 +2311,10 @@ class Sales extends MY_Controller
       $hMutex = mutexCreate('syncSales', TRUE);
 
       foreach ($sales as $sale) {
-        logDebug("Syncing {$sale->reference}");
         $this->site->syncSales(['sale_id' => $sale->id]);
       }
 
       mutexRelease($hMutex);
-
-      logDebug('[Sales::syncSales END]');
 
       sendJSON(['error' => 0, 'msg' => 'Sync sales success.']);
     }

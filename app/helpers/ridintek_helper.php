@@ -47,9 +47,6 @@ function addSaleDueDate($sale_id)
   }
 
   if ($sale) {
-    logDebug('[addSaleDueDate]');
-    logDebug("SALE: {$sale->reference}");
-
     $dates = [];
     $saleItems = $ci->site->getSaleItems(['sale_id' => $sale->id]);
 
@@ -61,7 +58,6 @@ function addSaleDueDate($sale_id)
         $productJS     = json_decode($product->json_data);
 
         if ($productJS) {
-          logDebug('ProductJS exists.');
           $min_prod_time = (!empty($productJS->min_prod_time) ? $productJS->min_prod_time : 32);
           $prod_time_qty = (!empty($productJS->prod_time_qty) ? $productJS->prod_time_qty : 1);
           $prod_time_qty = (is_numeric($prod_time_qty) ? $prod_time_qty : 1); // non-numeric problem. So we patch it.
@@ -69,24 +65,15 @@ function addSaleDueDate($sale_id)
           // Make sure no decimal point on 'minute' using round() otherwise will return '1970-01-01 07:00:00'.
           $minute        = roundDecimal($time_qty < $min_prod_time ? $min_prod_time : $time_qty) * 60;
           $dueDateItem   = date('Y-m-d H:i:s', strtotime("+{$minute} minutes", strtotime($paymentDate)));
-        } else {
-          logDebug('ProductJS does not exist. Use default due date.');
         }
 
-        logDebug("Due Date: {$dueDateItem}");
-
         $dueDate = getWorkingDateTime($dueDateItem);
-
-        logDebug("Set SaleItem [{$saleItem->product_code}], Due Date: {$dueDate}");
 
         $ci->site->updateSaleItem($saleItem->id, ['due_date' => $dueDate]);
         $dates[] = $dueDateItem;
       }
 
       $estCompleteDate = getWorkingDateTime(getLongestDateTime($dates));
-
-      logDebug("Est Complete Date: {$estCompleteDate}");
-      logDebug('[/addSaleDueDate]');
 
       if ($dates && $ci->site->updateSale($sale->id, ['est_complete_date' => $estCompleteDate])) {
         return TRUE;
@@ -244,6 +231,18 @@ function checkPermission($perms)
 function currentUrl()
 {
   return current_url();
+}
+
+function dbgprint($data)
+{
+  $args = func_get_args();
+
+  foreach ($args as $arg) {
+    $str = print_r($arg, TRUE);
+    echo ('<pre>');
+    echo ($str);
+    echo ('</pre>');
+  }
 }
 
 function dd($data)
@@ -1629,9 +1628,7 @@ function getProductAvgCost($product_id, $period = [])
   }
 
   if ($subTotal && $totalQty) {
-    logDebug('subTotal:', $subTotal, 'totalQty:', $totalQty);
     $avgCost = round($subTotal / $totalQty); // Must execute this.
-    logDebug('avgCost', $avgCost);
   } else { // Not recommended.
     $product = $ci->site->getProductByID($product_id);
 
@@ -1964,7 +1961,7 @@ function getWarehouseStockValue(int $warehouseId, array $opt = [])
   $warehouse    = Warehouse::getRow(['id' => $warehouseId]);
 
   if (!$warehouse) {
-    log_message('error', "getWarehouseStockValue(): Cannot find warehouse [id:{$warehouseId}]");
+    setLastError("getWarehouseStockValue(): Cannot find warehouse [id:{$warehouseId}]");
     return NULL;
   }
 
@@ -2371,21 +2368,20 @@ function isWeb2Print($sale_id)
 
 /**
  * Debug logging
+ * @param string $type debug, error, info, ...
+ * @param mixed $msg Message to log.
  */
-function logDebug()
+function dbglog($type , $msg = '')
 {
-  $filename = APPPATH . 'logs/dbg-' . date('Y-m-d') . '.php';
-  $hFile = fopen($filename, 'a'); // Appending and write
-  $args = func_get_args();
-
-  $data = date('Y-m-d H:i:s') . " [ DEBUG ]:";
-
-  foreach ($args as $arg) {
-    $str = print_r($arg, TRUE);
-    fwrite($hFile, $data . $str . "\r\n");
-  }
-
-  fclose($hFile);
+  $filename = FCPATH . 'logs/log-' . date('Y-m-d') . ".log";
+  $hFile  = fopen($filename, 'a'); // Appending and write
+  if (!$hFile) return FALSE;
+  $dt     = date('Y-m-d H:i:s');
+  $tx     = print_r($msg, TRUE);
+  $ty     = strtoupper($type);
+  $data   = "{$dt} [{$ty}]: {$tx}\r\n";
+  fwrite($hFile, $data);
+  return fclose($hFile);
 }
 
 function loginPage()
@@ -2861,20 +2857,6 @@ if (!function_exists('rd_error')) {
     $ex = new \Exception($reason);
     rd_debug('error', $ex->getMessage(), $ex->getTrace());
     return $return;
-  }
-}
-
-if (!function_exists('dbgprint')) {
-  function dbgprint($data)
-  {
-    $args = func_get_args();
-
-    foreach ($args as $arg) {
-      $str = print_r($arg, TRUE);
-      echo ('<pre>');
-      echo ($str);
-      echo ('</pre>');
-    }
   }
 }
 
