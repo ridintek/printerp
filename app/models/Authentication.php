@@ -15,6 +15,11 @@ class Authentication
     return $salt . substr(sha1($salt . $password), 0, -self::$saltSize);
   }
 
+  public static function isLoggedIn()
+  {
+    return XSession::has('user_id');
+  }
+
   private static function isPassphraseMatch(string $id, string $pass)
   {
     if (empty($id) || empty($pass)) {
