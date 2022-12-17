@@ -242,12 +242,12 @@ class Auth extends MY_Controller
     }
     $this->data['title'] = lang('edit_user');
 
-    if (!$this->loggedIn || (!$this->Admin && !$this->Owner) && $id != XSession::get('user_id')) {
+    if (!$this->loggedIn || (!$this->isAdmin) && $id != XSession::get('user_id')) {
       $this->session->set_flashdata('warning', lang('access_denied'));
       redirect($_SERVER['HTTP_REFERER']);
     }
 
-    $user = $this->ion_auth->user($id)->row();
+    $user = User::getRow(['id' => $id]);
 
     if ($user->username != getPOST('username')) {
       $this->form_validation->set_rules('username', lang('username'), 'trim|is_unique[users.username]');
@@ -622,7 +622,7 @@ class Auth extends MY_Controller
 
   public function profile($id = null)
   {
-    if (!$this->ion_auth->logged_in() || (!$this->Owner && !$this->Admin) && $id != XSession::get('user_id')) {
+    if (!Authentication::isLoggedIn() || (!$this->isAdmin) && $id != XSession::get('user_id')) {
       $this->session->set_flashdata('warning', lang('access_denied'));
       redirect($_SERVER['HTTP_REFERER'] ?? 'admin');
     }
