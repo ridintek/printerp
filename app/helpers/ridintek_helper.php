@@ -2381,6 +2381,7 @@ function dbglog($type , $msg = '')
   $ty     = strtoupper($type);
   $data   = "{$dt} [{$ty}]: {$tx}\r\n";
   fwrite($hFile, $data);
+  setLastError($data);
   return fclose($hFile);
 }
 
