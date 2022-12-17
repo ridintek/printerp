@@ -1854,6 +1854,145 @@ class Reports extends MY_Controller
   {
   }
 
+  public function getSupportPerformance()
+  {
+    $startDate = getGET('start_date') ?? date('Y-m-') . '01';
+    // $endDate    = getGET('end_date') ?? date('Y-m-d');
+
+    $pg = 10000;
+    $users  = User::get(['active' => 1, 'group_id' => Group::getRow(['name' => 'support'])->id]);
+
+    $sheet = $this->ridintek->spreadsheet();
+    $sheet->loadFile(FCPATH . 'files/templates/SupportPerformance_Report.xlsx');
+
+    $assets = DB::table('products')
+      ->select("products.id AS product_id, products.code AS product_code, products.name AS product_name,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.sn')) AS sn,
+        categories.name AS category_name,
+        subcategories.name AS subcategory_name,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.assigned_at')) AS assigned_at,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.priority')) AS priority,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.order_date')) AS order_date,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.order_price')) AS order_price,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_qty')) AS maintenance_qty,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_cost')) AS maintenance_cost,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.disposal_date')) AS disposal_date,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.disposal_price')) AS disposal_price,
+        products.active AS active,
+        products.warehouses AS warehouses,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.condition')) AS last_condition,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.note')) AS note,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.pic_note')) AS pic_note,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.updated_at')) AS last_update,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.purchased_at')) AS purchased_at,
+        pic.fullname AS pic_name,,
+        creator.fullname AS creator_name")
+      ->join('categories', 'categories.id = products.category_id', 'left')
+      ->join('categories AS subcategories', 'subcategories.id = products.subcategory_id', 'left')
+      ->join('users AS creator', "creator.id = JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.updated_by'))", 'left')
+      ->join('users AS pic', "pic.id = JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.pic_id'))", 'left')
+      ->groupStart()
+      ->like('categories.code', 'AST', 'none')
+      ->orLike('categories.code', 'EQUIP', 'none')
+      ->groupEnd()->get();
+
+    $sheet->getSheetByName('Sheet1');
+    $sheet->setTitle('Summary Report');
+    $sheet->setCellValue('A1', date('F Y', strtotime($startDate)));
+
+    $r = 4;
+
+    foreach ($users as $user) {
+      $overTime = 0;
+
+      foreach ($assets as $asset) {
+        if (strcasecmp($user->fullname, $asset->pic_name) != 0) continue;
+
+        if (empty($asset->assigned_at)) {
+          dbglog('report', "Reports::getSupportPerformance(): Machine {$asset->product_code} doesn't have assigned date.");
+          continue;
+        }
+
+        if (!empty($asset->pic_note)) {
+          continue; // Good no PG boss!
+        }
+
+        // I think you got fucked here!
+        if (getDaysInPeriod($asset->assigned_at, date('Y-m-d H:i:s')) > 2) $overTime++;
+      }
+
+      $sheet->setCellValue('A' . $r, $user->fullname);
+      $sheet->setCellValue('C' . $r, $overTime);
+      $sheet->setCellValue('D' . $r, "=IF(C{$r}>0,C{$r}*-{$pg},(\$C\$1*{$pg})/(LEFT(\$B\$2,SEARCH(\":\",\$B\$2)-1)))");
+
+      $r++;
+    }
+
+    $r = 2;
+
+    $sheet->getSheetByName('Sheet2');
+    $sheet->setTitle('Machine Report');
+
+    foreach ($assets as $asset) {
+      $reportBegin = '';
+      $reportEnd = date('Y-m-d H:i:s');
+
+      if (!empty($asset->assigned_at)) { // If TS assigned, use assigned at as begin report date.
+        $reportBegin = $asset->assigned_at;
+      }
+
+      $duration = ($reportBegin && $reportEnd ? getDaysInPeriod($reportBegin, $reportEnd) : '-');
+      // if ($duration < 0) $duration = -1;
+
+      $sheet->setCellValue('A' . $r, $r - 1);
+      $sheet->setCellValue('B' . $r, $asset->product_code);
+      $sheet->setCellValue('C' . $r, $asset->product_name);
+      $sheet->setCellValue('D' . $r, $asset->sn);
+      $sheet->setCellValue('E' . $r, $asset->category_name);
+      $sheet->setCellValue('F' . $r, $asset->subcategory_name);
+      $sheet->setCellValue('G' . $r, $asset->priority);
+      $sheet->setCellValue('H' . $r, $asset->order_date);
+      $sheet->setCellValue('I' . $r, $asset->order_price);
+      $sheet->setCellValue('J' . $r, $asset->disposal_date);
+      $sheet->setCellValue('K' . $r, $asset->disposal_price);
+      $sheet->setCellValue('L' . $r, ($asset->active ? 'Active' : 'Inactive'));
+      $sheet->setCellValue('M' . $r, $asset->warehouses);
+      $sheet->setCellValue('N' . $r, $asset->maintenance_qty);
+      $sheet->setCellValue('O' . $r, $asset->maintenance_cost);
+      $sheet->setCellValue('P' . $r, lang($asset->last_condition));
+      $sheet->setCellValue('Q' . $r, $asset->creator_name);
+      $sheet->setCellValue('R' . $r, html2Note($asset->note));
+      $sheet->setCellValue('S' . $r, $asset->last_update);
+      $sheet->setCellValue('T' . $r, $asset->assigned_at);
+      $sheet->setCellValue('U' . $r, $asset->pic_name);
+      $sheet->setCellValue('V' . $r, html2Note($asset->pic_note ?? ''));
+      $sheet->setCellValue('W' . $r, $duration); // Duration in days
+
+      $colorStatus = NULL;
+
+      switch ($asset->last_condition) {
+        case 'good':
+          $colorStatus = '00FF00';
+          break;
+        case 'off':
+          $colorStatus = 'FF0000';
+          break;
+        case 'trouble':
+          $colorStatus = 'FF8000';
+      }
+
+      if ($colorStatus) {
+        $sheet->setFillColor('P' . $r, $colorStatus);
+      }
+
+      $r++;
+    }
+
+    $name = XSession::get('fullname');
+
+    $sheet->export('PrintERP-SupportPerformance-' . date('Ymd_His') . "-({$name})");
+  }
+
   public function getUsabilityReport()
   {
     $startDate  = getGET('start_date') ?? date('Y-m-') . '01';
@@ -2832,37 +2971,36 @@ class Reports extends MY_Controller
       }
     }
 
-    $this->db
+    $assets = DB::table('products')
       ->select("products.id AS product_id, products.code AS product_code, products.name AS product_name,
-          JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.sn')) AS sn,
-          categories.name AS category_name,
-          subcategories.name AS subcategory_name,
-          JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.assigned_at')) AS assigned_at,
-          JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.priority')) AS priority,
-          JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.order_date')) AS order_date,
-          JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.order_price')) AS order_price,
-          JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_qty')) AS maintenance_qty,
-          JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_cost')) AS maintenance_cost,
-          JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.disposal_date')) AS disposal_date,
-          JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.disposal_price')) AS disposal_price,
-          products.active AS active,
-          products.warehouses AS warehouses,
-          JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.condition')) AS last_condition,
-          JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.note')) AS note,
-          JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.pic_note')) AS pic_note,
-          JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.updated_at')) AS last_update,
-          JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.purchased_at')) AS purchased_at,
-          pic.fullname AS pic_name,,
-          creator.fullname AS creator_name")
-      ->from('products')
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.sn')) AS sn,
+        categories.name AS category_name,
+        subcategories.name AS subcategory_name,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.assigned_at')) AS assigned_at,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.priority')) AS priority,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.order_date')) AS order_date,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.order_price')) AS order_price,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_qty')) AS maintenance_qty,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_cost')) AS maintenance_cost,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.disposal_date')) AS disposal_date,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.disposal_price')) AS disposal_price,
+        products.active AS active,
+        products.warehouses AS warehouses,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.condition')) AS last_condition,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.note')) AS note,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.pic_note')) AS pic_note,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.updated_at')) AS last_update,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.purchased_at')) AS purchased_at,
+        pic.fullname AS pic_name,,
+        creator.fullname AS creator_name")
       ->join('categories', 'categories.id = products.category_id', 'left')
       ->join('categories AS subcategories', 'subcategories.id = products.subcategory_id', 'left')
       ->join('users AS creator', "creator.id = JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.updated_by'))", 'left')
       ->join('users AS pic', "pic.id = JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.pic_id'))", 'left')
-      ->group_start()
+      ->groupStart()
       ->like('categories.code', 'AST', 'none')
-      ->or_like('categories.code', 'EQUIP', 'none')
-      ->group_end();
+      ->orLike('categories.code', 'EQUIP', 'none')
+      ->groupEnd()->get();
 
     if ($whNames) {
       $this->db->group_start();
@@ -2870,16 +3008,6 @@ class Reports extends MY_Controller
         $this->db->or_like('products.warehouses', $name, 'none');
       }
       $this->db->group_end();
-    }
-
-    $q = $this->db->get();
-
-    // print_r($q->result()); die;
-
-    if ($q) {
-      $rows = $q->result();
-    } else {
-      die($this->db->error()['message']);
     }
 
     // Summary Report (TAKETOOLONGTIME)
@@ -2900,10 +3028,6 @@ class Reports extends MY_Controller
 
     $r = 4;
     $lastDate = intval(date('j', strtotime($endDate)));
-
-    goto skip_0;
-
-    skip_0:
 
     foreach ($warehouses as $wh) {
       if ($wh->active == 0) continue;
@@ -2933,11 +3057,11 @@ class Reports extends MY_Controller
           'warehouse_id' => $wh->id, 'start_date' => $startDate, 'end_date' => $endDate
         ]);
 
-        foreach ($rows as $row) { // Filter items first.
-          if ($row->active != 1) continue;
-          if ($row->warehouses != $wh->name) continue;
+        foreach ($assets as $asset) { // Filter items first.
+          if ($asset->active != 1) continue;
+          if ($asset->warehouses != $wh->name) continue;
 
-          $items[] = $row;
+          $items[] = $asset;
         }
 
         $checkCount = 0;
@@ -2978,56 +3102,86 @@ class Reports extends MY_Controller
       $r++;
     }
 
-    goto skip_1;
-    skip_1:
+    // Support Performance
+    $sheet->getSheetByName('Sheet2');
+    $sheet->setTitle('Support Performance');
+
+    $sheet->setCellValue('A1', date('F Y', strtotime($startDate)));
+
+    $users  = User::get(['active' => 1, 'group_id' => Group::getRow(['name' => 'support'])->id]);
+
+    $r = 4;
+
+    foreach ($users as $user) {
+      $overTime = 0;
+
+      foreach ($assets as $asset) {
+        if (strcasecmp($user->fullname, $asset->pic_name) != 0) continue;
+
+        if (empty($asset->assigned_at)) {
+          dbglog('report', "Reports::getSupportPerformance(): Machine {$asset->product_code} doesn't have assigned date.");
+          continue;
+        }
+
+        if (!empty($asset->pic_note)) {
+          continue; // Good no PG boss!
+        }
+
+        // I think you got fucked here!
+        if (getDaysInPeriod($asset->assigned_at, date('Y-m-d H:i:s')) > 2) $overTime++;
+      }
+
+      $sheet->setCellValue('A' . $r, $user->fullname);
+      $sheet->setCellValue('C' . $r, $overTime);
+      $sheet->setCellValue('D' . $r, "=IF(C{$r}>0,C{$r}*-{$pg},(\$C\$1*{$pg})/(LEFT(\$B\$2,SEARCH(\":\",\$B\$2)-1)))");
+
+      $r++;
+    }
 
     // Machine Report (PASSED)
-
-    $sheet->getSheetByName('Sheet2');
+    $sheet->getSheetByName('Sheet3');
     $sheet->setTitle('Machine Report');
 
     $r = 2;
 
-    foreach ($rows as $row) {
-      // if ($row->product_code != 'PCA2') continue; // TEMP
-
+    foreach ($assets as $asset) {
       $reportBegin = '';
       $reportEnd = date('Y-m-d H:i:s');
 
-      if (!empty($row->assigned_at)) { // If TS assigned, use assigned at as begin report date.
-        $reportBegin = $row->assigned_at;
+      if (!empty($asset->assigned_at)) { // If TS assigned, use assigned at as begin report date.
+        $reportBegin = $asset->assigned_at;
       }
 
       $duration = ($reportBegin && $reportEnd ? getDaysInPeriod($reportBegin, $reportEnd) : '-');
       // if ($duration < 0) $duration = -1;
 
       $sheet->setCellValue('A' . $r, $r - 1);
-      $sheet->setCellValue('B' . $r, $row->product_code);
-      $sheet->setCellValue('C' . $r, $row->product_name);
-      $sheet->setCellValue('D' . $r, $row->sn);
-      $sheet->setCellValue('E' . $r, $row->category_name);
-      $sheet->setCellValue('F' . $r, $row->subcategory_name);
-      $sheet->setCellValue('G' . $r, $row->priority);
-      $sheet->setCellValue('H' . $r, $row->order_date);
-      $sheet->setCellValue('I' . $r, $row->order_price);
-      $sheet->setCellValue('J' . $r, $row->disposal_date);
-      $sheet->setCellValue('K' . $r, $row->disposal_price);
-      $sheet->setCellValue('L' . $r, ($row->active ? 'Active' : 'Inactive'));
-      $sheet->setCellValue('M' . $r, $row->warehouses);
-      $sheet->setCellValue('N' . $r, $row->maintenance_qty);
-      $sheet->setCellValue('O' . $r, $row->maintenance_cost);
-      $sheet->setCellValue('P' . $r, lang($row->last_condition));
-      $sheet->setCellValue('Q' . $r, $row->creator_name);
-      $sheet->setCellValue('R' . $r, html2Note($row->note));
-      $sheet->setCellValue('S' . $r, $row->last_update);
-      $sheet->setCellValue('T' . $r, $row->assigned_at);
-      $sheet->setCellValue('U' . $r, $row->pic_name);
-      $sheet->setCellValue('V' . $r, html2Note($row->pic_note ?? ''));
+      $sheet->setCellValue('B' . $r, $asset->product_code);
+      $sheet->setCellValue('C' . $r, $asset->product_name);
+      $sheet->setCellValue('D' . $r, $asset->sn);
+      $sheet->setCellValue('E' . $r, $asset->category_name);
+      $sheet->setCellValue('F' . $r, $asset->subcategory_name);
+      $sheet->setCellValue('G' . $r, $asset->priority);
+      $sheet->setCellValue('H' . $r, $asset->order_date);
+      $sheet->setCellValue('I' . $r, $asset->order_price);
+      $sheet->setCellValue('J' . $r, $asset->disposal_date);
+      $sheet->setCellValue('K' . $r, $asset->disposal_price);
+      $sheet->setCellValue('L' . $r, ($asset->active ? 'Active' : 'Inactive'));
+      $sheet->setCellValue('M' . $r, $asset->warehouses);
+      $sheet->setCellValue('N' . $r, $asset->maintenance_qty);
+      $sheet->setCellValue('O' . $r, $asset->maintenance_cost);
+      $sheet->setCellValue('P' . $r, lang($asset->last_condition));
+      $sheet->setCellValue('Q' . $r, $asset->creator_name);
+      $sheet->setCellValue('R' . $r, html2Note($asset->note));
+      $sheet->setCellValue('S' . $r, $asset->last_update);
+      $sheet->setCellValue('T' . $r, $asset->assigned_at);
+      $sheet->setCellValue('U' . $r, $asset->pic_name);
+      $sheet->setCellValue('V' . $r, html2Note($asset->pic_note ?? ''));
       $sheet->setCellValue('W' . $r, $duration); // Duration in days
 
       $colorStatus = NULL;
 
-      switch ($row->last_condition) {
+      switch ($asset->last_condition) {
         case 'good':
           $colorStatus = '00FF00';
           break;
@@ -3069,39 +3223,35 @@ class Reports extends MY_Controller
     // $sheet->setColumnAutoWidth('V');
     $sheet->setColumnAutoWidth('W');
 
-    skip_2:
     // Maintenance Logs (PASSED)
+    $mtLogs = $this->site->getMaintenanceLogs(['start_date' => $startDate, 'end_date' => $endDate]);
 
-    $rows = $this->site->getMaintenanceLogs(['start_date' => $startDate, 'end_date' => $endDate]);
-
-    $sheet->getSheetByName('Sheet3');
+    $sheet->getSheetByName('Sheet4');
     $sheet->setTitle('Maintenance Logs');
 
     $r = 2;
 
-    foreach ($rows as $row) {
-      if (!$row->assigned_by) $row->assigned_by = 0;
-      if (!$row->pic_id) $row->pic_id = 0;
+    foreach ($mtLogs as $mtLog) {
+      if (!$mtLog->assigned_by) $mtLog->assigned_by = 0;
+      if (!$mtLog->pic_id) $mtLog->pic_id = 0;
 
-      $assigner = $this->site->getUserByID($row->assigned_by);
-      $pic = $this->site->getUserByID($row->pic_id);
-      $loc = $this->site->getWarehouseByID($row->warehouse_id);
-      $item = $this->site->getProductByID($row->product_id);
+      $assigner = $this->site->getUserByID($mtLog->assigned_by);
+      $pic = $this->site->getUserByID($mtLog->pic_id);
+      $loc = $this->site->getWarehouseByID($mtLog->warehouse_id);
+      $item = $this->site->getProductByID($mtLog->product_id);
 
       $sheet->setCellValue('A' . $r, $item->code);
       $sheet->setCellValue('B' . $r, $item->name);
-      $sheet->setCellValue('C' . $r, $row->assigned_at);
+      $sheet->setCellValue('C' . $r, $mtLog->assigned_at);
       $sheet->setCellValue('D' . $r, ($assigner ? $assigner->fullname : ''));
-      $sheet->setCellValue('E' . $r, $row->fixed_at);
+      $sheet->setCellValue('E' . $r, $mtLog->fixed_at);
       $sheet->setCellValue('F' . $r, ($pic ? $pic->fullname : ''));
       $sheet->setCellValue('G' . $r, $loc->name);
-      $sheet->setCellValue('H' . $r, htmlRemove($row->note));
-      $sheet->setCellValue('I' . $r, htmlRemove($row->pic_note));
+      $sheet->setCellValue('H' . $r, htmlRemove($mtLog->note));
+      $sheet->setCellValue('I' . $r, htmlRemove($mtLog->pic_note));
 
       $r++;
     }
-
-    skip_3:
 
     $sheet->getSheet(0);
     $sheet->setCellValue('A1', date('F Y', strtotime($startDate)));
