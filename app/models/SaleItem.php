@@ -48,7 +48,7 @@ class SaleItem
       } else if (($completedQty + $saleItem->finished_qty) == $saleItem->quantity) { // If fully completed.
         $status = 'completed';
       } else {
-        setLastError("<b>completeSaleItem()</b>: Something wrong! Maybe you complete more quantity than requested. " .
+        setLastError("SaleItem::complete(): Something wrong! Maybe you complete more quantity than requested. " .
           "Completed: {$completedQty}, Finished: {$saleItem->finished_qty}, Quantity: {$saleItem->quantity}");
         return FALSE;
       }
@@ -153,7 +153,7 @@ class SaleItem
           addEvent("Completed Sale [{$sale->id}: {$sale->reference}]; {$saleItem->product_code}: {$completedQty}");
         } else if ($saleItem->product_type == 'standard') { // SALEITEM. Decrement. FFC280, POCT15
           if ($saleItem->product_code == 'KLIKPOD') {
-            setLastError("CRITICAL: KLIKPOD KNOWN AS STANDARD TYPE MUST NOT BE DECREASED!", 'critical');
+            dbglog('error', 'CRITICAL: KLIKPOD KNOWN AS STANDARD TYPE MUST NOT BE DECREASED!');
             return FALSE;
           }
 
