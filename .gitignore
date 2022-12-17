@@ -137,6 +137,7 @@ composer.phar
 files/*
 !files/templates
 git.txt
+logs/*.log
 progress.md
 sess/*
 webinfo.php

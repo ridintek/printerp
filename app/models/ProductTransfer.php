@@ -199,8 +199,8 @@ class ProductTransfer
         Stock::delete(['transfer_id' => $pt->id]);
 
         foreach ($ptitems as $ptitem) {
-          Product::syncOld((int)$ptitem->product_id, (int)$pt->warehouse_id_from);
-          Product::syncOld((int)$ptitem->product_id, (int)$pt->warehouse_id_to);
+          Product::sync((int)$ptitem->product_id, (int)$pt->warehouse_id_from);
+          Product::sync((int)$ptitem->product_id, (int)$pt->warehouse_id_to);
         }
 
         Attachment::delete(['id' => $pt->attachment_id]);
@@ -362,25 +362,25 @@ class ProductTransfer
 
             if (ProductTransferItem::add($item)) {
               if ($item['status'] == 'sent') {
-                Stock::add([
+                Stock::decrease([
                   'transfer_id'  => $ptId,
                   'product_id'   => $item['product_id'],
-                  'quantity'     => (floatval($item['quantity']) * -1),
+                  'quantity'     => $item['quantity'],
                   'warehouse_id' => $pt->warehouse_id_from,
                   'created_at'   => $pt->created_at
                 ]);
               }
 
               if ($item['status'] == 'received' || $item['status'] == 'received_partial') {
-                Stock::add([
+                Stock::decrease([
                   'transfer_id'  => $ptId,
                   'product_id'   => $item['product_id'],
-                  'quantity'     => (floatval($item['quantity']) * -1),
+                  'quantity'     => $item['quantity'],
                   'warehouse_id' => $pt->warehouse_id_from,
                   'created_at'   => $pt->created_at
                 ]);
 
-                Stock::add([
+                Stock::increase([
                   'transfer_id'  => $ptId,
                   'product_id'   => $item['product_id'],
                   'quantity'     => $item['quantity'],
@@ -390,8 +390,8 @@ class ProductTransfer
               }
             }
 
-            Product::syncOld((int)$product->id, (int)$pt->warehouse_id_from);
-            Product::syncOld((int)$product->id, (int)$pt->warehouse_id_to);
+            Product::sync((int)$product->id, (int)$pt->warehouse_id_from);
+            Product::sync((int)$product->id, (int)$pt->warehouse_id_to);
           }
         }
 

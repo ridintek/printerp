@@ -56,17 +56,6 @@ class Product
     );
   }
 
-  public static function syncOld(int $productId, int $warehouseId)
-  {
-    $whp = WarehouseProduct::getRow(['product_id' => $productId, 'warehouse_id' => $warehouseId]);
-
-    if (!$whp) return FALSE;
-
-    return WarehouseProduct::update((int)$whp->id,
-      ['quantity' => Stock::totalQuantityOld($productId, $warehouseId)]
-    );
-  }
-
   /**
    * Update products.
    * @param int $id products ID.

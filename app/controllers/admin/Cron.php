@@ -7,8 +7,6 @@ class Cron extends MY_Controller
   public function __construct()
   {
     parent::__construct();
-
-    $this->rdlog->setFileName('cron');
   }
 
   public function index()
@@ -29,8 +27,6 @@ class Cron extends MY_Controller
   {
     $type = strtoupper($mode);
 
-    $this->rdlog->info("[CRONJOB {$type}]");
-
     if ($mode == 'daily') {
       CronModel::runDaily();
     } else if ($mode == 'monthly') {
@@ -38,8 +34,6 @@ class Cron extends MY_Controller
     } else if ($mode == 'test') {
       echo "Cronjob Test\r\n";
     }
-
-    $this->rdlog->info("[/CRONJOB {$type}]");
   }
 
   public function run_1()

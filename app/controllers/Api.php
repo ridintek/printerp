@@ -17,8 +17,6 @@ class Api extends MY_Controller
     $this->load->model('mutasibank');
 
     $this->requestMethod = $_SERVER['REQUEST_METHOD'];
-
-    $this->rdlog->setFileName('api');
   }
 
   protected function authKey()
@@ -33,6 +31,18 @@ class Api extends MY_Controller
     }
 
     sendJSON(['error' => 1, 'msg' => 'Invalid Api Key']);
+  }
+
+  public function clear_cookies_v1()
+  {
+    Authentication::logout();
+
+    set_cookie(['name' => 'identity', 'value' => '', 'expire' => 1]);
+    set_cookie(['name' => 'remember_code', 'value' => '', 'expire' => 1]);
+    set_cookie(['name' => 'sess', 'value' => '', 'expire' => 1]);
+    set_cookie(['name' => 'erp_token_cookie', 'value' => '', 'expire' => 1]);
+
+    $this->response(200, ['message' => 'Cookies have been cleared.']);
   }
 
   private function http_get($url, $header = [])
@@ -418,8 +428,6 @@ class Api extends MY_Controller
       ]
     ];
 
-    $this->rdlog->info($data);
-
     $validationOptions = [
       'manual' => TRUE, /* Optional, but required for manual validation. */
       'sale_id' => $sale->id
@@ -573,7 +581,8 @@ class Api extends MY_Controller
   {
     if ($this->requestMethod == 'POST') {
       $saleItems = json_decode(file_get_contents('php://input'));
-      $success = 0; $failed = 0;
+      $success = 0;
+      $failed = 0;
 
       if (!$saleItems || !is_array($saleItems)) sendJSON(['error' => 1, 'msg' => 'Invalid JSON format.']);
 
@@ -666,21 +675,21 @@ class Api extends MY_Controller
 
   private function sales_delete()
   {
-      $inv   = getPOST('invoice');
-      $phone = getPOST('phone');
-      $sale = $this->site->getSaleByReference($inv);
+    $inv   = getPOST('invoice');
+    $phone = getPOST('phone');
+    $sale = $this->site->getSaleByReference($inv);
 
-      if ($sale && $phone) {
-        $customer = $this->site->getCustomerByPhone($phone);
+    if ($sale && $phone) {
+      $customer = $this->site->getCustomerByPhone($phone);
 
-        if ($sale->customer_id != $customer->id) sendJSON(['error' => 1, 'msg' => 'Data is not match.']);
+      if ($sale->customer_id != $customer->id) sendJSON(['error' => 1, 'msg' => 'Data is not match.']);
 
-        if ($this->site->deleteSale($sale->id)) {
-          sendJSON(['error' => 0, 'msg' => "Sale {$inv} has been deleted successfully."]);
-        }
-        sendJSON(['error' => 1, 'msg' => "Failed to delete sale {$inv}."]);
+      if ($this->site->deleteSale($sale->id)) {
+        sendJSON(['error' => 0, 'msg' => "Sale {$inv} has been deleted successfully."]);
       }
-      sendJSON(['error' => 1, 'msg' => 'Sale not found.']);
+      sendJSON(['error' => 1, 'msg' => "Failed to delete sale {$inv}."]);
+    }
+    sendJSON(['error' => 1, 'msg' => 'Sale not found.']);
   }
 
   private function sales_edit()
@@ -910,8 +919,6 @@ class Api extends MY_Controller
 
       $body = file_get_contents('php://input');
       $api  = json_decode($body);
-
-      $this->rdlog->info($body);
 
       if (!$api) sendJSON(['error' => 1, 'message' => 'Request is invalid.']);
 
@@ -1186,7 +1193,6 @@ class Api extends MY_Controller
 
       sendJSON(['error' => 1, 'msg' => 'Users are not available.']);
     } else if ($this->requestMethod == 'POST') {
-
     }
   }
 

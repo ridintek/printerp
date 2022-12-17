@@ -133,12 +133,12 @@ class Customers extends MY_Controller
         $date = date('Y-m-d H:i:s');
       }
       $data = [
-        'date'       => $date,
-        'amount'     => getPOST('amount'),
-        'paid_by'    => getPOST('paid_by'),
-        'note'       => getPOST('note'),
+        'date'        => $date,
+        'amount'      => getPOST('amount'),
+        'paid_by'     => getPOST('paid_by'),
+        'note'        => getPOST('note'),
         'customer_id' => $customer->id,
-        'created_by' => XSession::get('user_id'),
+        'created_by'  => XSession::get('user_id'),
       ];
 
       $cdata = [
@@ -179,13 +179,13 @@ class Customers extends MY_Controller
       $email                   = strtolower(getPOST('email'));
       $password                = getPOST('password');
       $additional_data         = [
-        'first_name' => getPOST('first_name'),
-        'last_name'  => getPOST('last_name'),
-        'phone'      => getPOST('phone'),
-        'gender'     => getPOST('gender'),
+        'first_name'  => getPOST('first_name'),
+        'last_name'   => getPOST('last_name'),
+        'phone'       => getPOST('phone'),
+        'gender'      => getPOST('gender'),
         'customer_id' => $customer->id,
-        'company'    => $customer->company,
-        'group_id'   => 3,
+        'company'     => $customer->company,
+        'group_id'    => 3,
       ];
       $this->load->library('ion_auth');
     } elseif (getPOST('add_user')) {

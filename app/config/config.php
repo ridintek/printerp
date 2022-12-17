@@ -362,7 +362,7 @@ $config['encryption_key'] = 'xiIMNzeaLrmgG8ybtDU9OP3JZHX1F5fKdhRc6';
 |
 */
 $config['sess_driver']             = 'files';
-$config['sess_cookie_name']        = 'sess_';
+$config['sess_cookie_name']        = 'sess';
 $config['sess_expiration']         = 7200;
 $config['sess_save_path']          = FCPATH . 'sess/';
 $config['sess_match_ip']           = false;
@@ -384,11 +384,11 @@ $config['sess_regenerate_destroy'] = false;
 |       'cookie_httponly') will also affect sessions.
 |
 */
-$config['cookie_prefix']   = 'idp_';
+$config['cookie_prefix']   = 'erp_';
 $config['cookie_domain']   = '';
 $config['cookie_path']     = '/';
 $config['cookie_secure']   = false;
-$config['cookie_httponly'] = false;
+$config['cookie_httponly'] = true;
 
 /*
 |--------------------------------------------------------------------------

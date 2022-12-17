@@ -6,12 +6,19 @@ class WarehouseProduct
 {
   /**
    * Add new warehouses_products.
-   * @param array $data [ name, code ]
+   * @param array $data [ *product_id, *product_code, *warehouse_id, *quantity, rack, safety_stock,
+   * user_id, so_cycle ]
    */
   public static function add(array $data)
   {
     DB::table('warehouses_products')->insert($data);
     return DB::insertID();
+  }
+
+  public static function decreaseQuantity(int $productId, int $warehouseId, float $quantity)
+  {
+    $whp = self::getRow(['product_id' => $productId, 'warehouse_id' => $warehouseId]);
+    self::update((int)$whp->id, ['quantity' => $whp->quantity - $quantity]);
   }
 
   /**
@@ -45,10 +52,17 @@ class WarehouseProduct
     return NULL;
   }
 
+  public static function increaseQuantity(int $productId, int $warehouseId, float $quantity)
+  {
+    $whp = self::getRow(['product_id' => $productId, 'warehouse_id' => $warehouseId]);
+    self::update((int)$whp->id, ['quantity' => $whp->quantity + $quantity]);
+  }
+
   /**
    * Update warehouses_products.
    * @param int $id warehouses_products ID.
-   * @param array $data [ name, code ]
+   * @param array $data [ product_id, product_code, warehouse_id, quantity, rack, safety_stock,
+   * user_id, so_cycle ]
    */
   public static function update(int $id, array $data)
   {

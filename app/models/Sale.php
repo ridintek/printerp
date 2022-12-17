@@ -129,6 +129,8 @@ class Sale
         ]);
       }
 
+      OrderRef::updateReference('sale');
+
       if ($isSpecialCustomer) addSaleDueDate($sale->id);
 
       addEvent("Created Sale [{$sale->id}: {$sale->reference}]");
@@ -292,7 +294,7 @@ class Sale
           $sales[] = $sale;
         }
       } else {
-        log_message('error', "Models\Sale::sync() Unknown data type '" . gettype($clause['sale_id']) . "'");
+        setLastError("Sale::sync() Unknown data type '" . gettype($clause['sale_id']) . "'");
         return FALSE;
       }
     } else { // Default if sale_id is NULL.
@@ -300,13 +302,13 @@ class Sale
     }
 
     if (empty($sales)) {
-      log_message('error', 'Models\Sale::sync() Why sales is empty?');
+      setLastError('Sale::sync() Why sales is empty?');
       return FALSE;
     }
 
     foreach ($sales as $sale) {
       if (empty($sale->json_data)) {
-        log_message('error', "Models\Sale::sync() Sale ID {$sale->id} has invalid json_data");
+        setLastError("Models\Sale::sync() Sale ID {$sale->id} has invalid json_data");
         continue;
       }
 
@@ -314,7 +316,7 @@ class Sale
       $saleData = [];
 
       if (!$saleJS) {
-        log_message('error', "Models\Sale::sync() Invalid sales->json_data in sale id {$sale->id}, {$sale->reference}");
+        setLastError("Sale::sync() Invalid sales->json_data in sale id {$sale->id}, {$sale->reference}");
         log_message('error', $sale->json_data);
         continue;
       }
@@ -327,7 +329,7 @@ class Sale
       $saleItems         = SaleItem::get(['sale_id' => $sale->id]);
 
       if (empty($saleItems)) {
-        log_message('error', "Models\Sale::sync() Sale items empty. Sale id {$sale->id}, {$sale->reference}");
+        setLastError("Sale::sync() Sale items empty. Sale id {$sale->id}, {$sale->reference}");
         continue;
       }
 
@@ -340,7 +342,6 @@ class Sale
       $saleStatus     = $sale->status;
 
       foreach ($saleItems as $saleItem) {
-        $saleItemData = [];
         $saleItemJS = getJSON($saleItem->json_data);
         $saleItemStatus = $saleItemJS->status;
         $totalSaleItems++;
@@ -370,9 +371,9 @@ class Sale
           $saleItemStatus = 'need_payment';
         }
 
-        $saleItemData['status'] = $saleItemStatus;
+        $saleItemJS->status = $saleItemStatus;
 
-        SaleItem::update((int)$saleItem->id, $saleItemData);
+        SaleItem::update((int)$saleItem->id, ['json_data' => json_encode($saleItemJS)]);
       }
 
       $grandTotal = round($grandTotal - $sale->discount);
@@ -440,7 +441,6 @@ class Sale
       if ($paymentValidation) { // If any transfer.
         $isPVPending  = ($paymentValidation->status == 'pending'  ? TRUE : FALSE);
         $isPVExpired  = ($paymentValidation->status == 'expired'  ? TRUE : FALSE);
-        // $isPVVerified = ($paymentValidation->status == 'verified' ? TRUE : FALSE);
 
         if ($isPaid) {
           $paymentStatus = 'paid';
@@ -465,7 +465,6 @@ class Sale
       // If any change of sale status or payment status for W2P sale then dispatch W2P sale info.
       if (isset($saleJS->source) && $saleJS->source == 'W2P') {
         if ($sale->status != $saleStatus || $sale->payment_status != $paymentStatus) {
-          // $this->rdlog->info("Dispatching sale {$sale->reference} to Web2Print by syncSales.");
           dispatchW2PSale($sale->id);
         }
       }

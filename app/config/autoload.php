@@ -140,19 +140,10 @@ $autoload['model'] = [
   'app', 'site', 'Adjustment', 'Attachment', 'Authentication', 'Bank', 'BankMutation', 'Biller',
   'Category', 'ComboItem', 'CronModel', 'Customer',
   'DB', 'Expense',
-  'GoogleReview', 'Group', 'InternalUse', 'MaintenanceLog',
+  'GoogleReview', 'Group', 'Income', 'InternalUse', 'MaintenanceLog',
   'OrderRef',
-  'Payment', 'PaymentValidation', 'Product', 'ProductPrice', 'ProductReview', 'ProductTransfer',
-  'ProductTransferItem',
-  'Qms_model', 'Sale', 'SaleItem', 'Setting', 'Stock', 'Supplier', 'Transfer', 'Unit', 'User',
+  'Payment', 'PaymentValidation', 'Product', 'ProductPrice', 'ProductReview',
+  'ProductTransfer', 'ProductTransferItem',
+  'Qms_model', 'Sale', 'SaleItem', 'Setting', 'Stock', 'Supplier', 'Unit', 'User',
   'Warehouse', 'WarehouseProduct'
 ];
-
-// NEXT..
-/**
- * $autoload['model'] = [
-*  'app', 'site', 'Adjustment', 'Attachment', 'Bank', 'Biller', 'Category', 'DB', 'Expense',
-*  'OrderRef', 'Payment', 'Product', 'ProductTransfer', 'Qms_model', 'Sale', 'SaleItem', 'Stock',
-*  'Transfer', 'Unit', 'Warehouse', 'WarehouseProduct'
-*];
- */

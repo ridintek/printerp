@@ -2,10 +2,10 @@
 <div class="modal-dialog">
   <div class="modal-content">
     <div class="modal-header">
-      <h4 class="modal-title" id="myModalLabel"><?php echo lang('deactivate'); ?></h4>
       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-        <span aria-hidden="true">&times;</span>
+        <i class="fad fa-times"></i>
       </button>
+      <h4 class="modal-title" id="myModalLabel"><?php echo lang('deactivate'); ?></h4>
     </div>
     <?php $attrib = ['data-toggle' => 'validator', 'role' => 'form'];
     echo admin_form_open('auth/deactivate/' . $user->id, $attrib); ?>
