@@ -4851,6 +4851,24 @@ class Products extends MY_Controller
     $this->datatable->generate();
   }
 
+  protected function transfer_getTransferPlan()
+  {
+    $today = getDayName(date('w') + 1); // Get today name. Ex. senin, selasa, ...
+
+    $this->load->library('datatable');
+    $this->datatable
+      ->select("warehouses.id AS id, warehouses.code AS warehouse_code,
+        warehouses.name AS warehouse_name,
+          JSON_UNQUOTE(JSON_EXTRACT(json_data, '$.visit_days')) AS visit_days,
+          JSON_UNQUOTE(JSON_EXTRACT(json_data, '$.visit_weeks')) AS visit_weeks,
+        warehouses.id AS warehouses_id") // FALSE required for disable escaping column.
+      ->from('warehouses')
+      ->where('active', 1)
+      ->like("LOWER(JSON_UNQUOTE(JSON_EXTRACT(json_data, '$.visit_days')))", $today, 'both');
+
+    echo $this->datatable->generate();
+  }
+
   protected function transfer_payments($ptId = NULL)
   {
     ProductTransfer::syncPayment($ptId);
