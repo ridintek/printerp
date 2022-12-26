@@ -91,16 +91,14 @@
         return nRow;
       },
       "aoColumns": [{"bSortable": false, "mRender": checkbox},
-        null, null, {"bSortable": false, "mRender": price_input},
-        <?php
-        if ($price_ranges) { // Create column property.
+        null, null, {"bSortable": false, "mRender": price_input}
+        <?php if ($price_ranges) : // Create column property.
           $x = 2;
           foreach ($price_ranges as $price_range) {
             echo("{\"bSortable\": false, \"mRender\": price_input{$x}},");
             $x++;
           }
-        }
-        ?>
+        endif;?>,
         {"bSortable": false}]
     }).fnSetFilteringDelay();
 

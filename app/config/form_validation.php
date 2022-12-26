@@ -25,11 +25,6 @@ $config = array(
             'rules' => 'required|alpha_dash'
         ),
         array(
-            'field' => 'email',
-            'label' => lang('email'),
-            'rules' => 'required|valid_email'
-        ),
-        array(
             'field' => 'company',
             'label' => lang('company'),
             'rules' => 'required'
@@ -60,11 +55,6 @@ $config = array(
             'field' => 'username',
             'label' => lang('username'),
             'rules' => 'required|alpha_dash'
-        ),
-        array(
-            'field' => 'email',
-            'label' => lang('email'),
-            'rules' => 'required|valid_email'
         ),
         array(
             'field' => 'company',

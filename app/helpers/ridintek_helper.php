@@ -304,7 +304,7 @@ function dispatchW2PSale($saleId = NULL)
         }
 
         $response['data']['pic'] = [
-          'name' => $pic->first_name . ' ' . $pic->last_name
+          'name' => $pic->fullname
         ];
 
         $warehouse = $ci->site->getWarehousebyID($sale->warehouse_id);
@@ -332,7 +332,7 @@ function dispatchW2PSale($saleId = NULL)
         foreach ($sale_items as $sale_item) {
           $saleItemJS   = json_decode($sale_item->json_data);
           $operator     = $ci->site->getUserByID($saleItemJS->operator_id ?? NULL);
-          $operatorName = ($operator ? $operator->first_name . ' ' . $operator->last_name : '');
+          $operatorName = ($operator ? $operator->fullname : '');
 
           $response['data']['sale_items'][] = [
             'product_code' => $sale_item->product_code,
@@ -2312,7 +2312,7 @@ function isSpecialCustomer($customerId)
   $custGroup = $ci->site->getCustomerGroupByCustomerID($customerId);
 
   if ($custGroup) {
-    return (strtolower($custGroup->name) == 'privilege' || strtolower($custGroup->name) == 'top' ? TRUE : FALSE);
+    return (strcasecmp($custGroup->name, 'privilege') === 0 || strcasecmp($custGroup->name, 'top') === 0 ? TRUE : FALSE);
   }
   return FALSE;
 }

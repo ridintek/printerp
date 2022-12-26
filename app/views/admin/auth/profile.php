@@ -10,9 +10,7 @@
             '<img alt="" src="' . base_url() . 'assets/images/' . $user->gender . '.png" class="avatar">';
           ?>
         </div>
-        <h4><?= lang('login_email'); ?></h4>
-
-        <p><i class="fad fa-envelope"></i> <?= $user->email; ?></p>
+        <h4><?= $user->fullname ?></h4>
       </div>
     </div>
   </div>
@@ -92,11 +90,6 @@
                         <div class="form-group">
                           <?php echo lang('username', 'username'); ?>
                           <input type="text" name="username" class="form-control" id="username" value="<?= $user->username ?>" autocomplete="off" required="required" />
-                        </div>
-                        <div class="form-group">
-                          <?php echo lang('email', 'email'); ?>
-
-                          <input type="email" name="email" class="form-control" id="email" value="<?= $user->email ?>" required="required" />
                         </div>
                         <?php if ($Owner || $Admin) { ?>
                           <div class="row">
@@ -211,7 +204,8 @@
                                           if (
                                             $biller->name == 'Advertising' ||
                                             $biller->name == 'Baltis Inn' ||
-                                            $biller->name == 'Lucretia Enterprise') continue;
+                                            $biller->name == 'Lucretia Enterprise'
+                                          ) continue;
 
                                           $bls[$biller->id] = $biller->name;
                                         }

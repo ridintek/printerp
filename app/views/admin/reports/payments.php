@@ -311,7 +311,7 @@ if ($endRefDate = getGET('end_ref_date')) {
                 $users = $this->site->getAllUsers();
 
                 foreach ($users as $user) {
-                  $us[$user->id] = $user->first_name . ' ' . $user->last_name;
+                  $us[$user->id] = $user->fullname;
                 }
 
                 echo form_multiselect('user[]', '', $gusers, 'class="select2" id="user" data-placeholder="Select User" style="width:100%;"');

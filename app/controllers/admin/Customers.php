@@ -880,13 +880,13 @@ class Customers extends MY_Controller
   public function suggestions($term = null, $limit = null, $a = null)
   {
     if (getGET('term')) {
-      $term = getGET('term', true);
+      $term = getGET('term');
     }
     if (getGET('id')) {
       $term = [];
-      $term['id'] = getGET('id', true);
+      $term['id'] = getGET('id');
     }
-    $limit  = getGET('limit', true);
+    $limit  = getGET('limit');
     $result = $this->site->getCustomerSuggestions($term, $limit);
     if ($a) {
       sendJSON($result);

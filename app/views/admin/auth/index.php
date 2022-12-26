@@ -17,7 +17,7 @@
       "aoColumns": [{
         "bSortable": false,
         "mRender": checkbox
-      }, null, null, null, null, null, null, null, null, {"mRender": user_status}, {"bSortable": false}]
+      }, null, null, null, null, null, null, null, {"mRender": user_status}, {"bSortable": false}]
     });
 
     $('#dtfilter').datatableFilter();
@@ -79,7 +79,6 @@
               <th class="col-xs-2"><?php echo lang('biller'); ?></th>
               <th class="col-xs-2"><?php echo lang('warehouse'); ?></th>
               <th class="col-xs-2"><?php echo lang('phone'); ?></th>
-              <th class="col-xs-2"><?php echo lang('email_address'); ?></th>
               <th class="col-xs-2"><?php echo lang('company'); ?></th>
               <th class="col-xs-1"><?php echo lang('group'); ?></th>
               <th style="width:100px;"><?php echo lang('status'); ?></th>
@@ -88,7 +87,7 @@
             </thead>
             <tbody>
             <tr>
-              <td colspan="12" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
+              <td colspan="10" class="dataTables_empty"><?= lang('loading_data_from_server') ?></td>
             </tr>
             </tbody>
             <tfoot class="dtFilter">
@@ -96,7 +95,6 @@
               <th style="min-width:30px; width: 30px; text-align: center;">
                 <input class="checkbox checkft" type="checkbox" name="check"/>
               </th>
-              <th></th>
               <th></th>
               <th></th>
               <th></th>

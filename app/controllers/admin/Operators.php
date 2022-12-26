@@ -264,11 +264,11 @@ class Operators extends MY_Controller
       if ($saleItem = $this->site->getSaleItemByID($items[0]->id)) {
         if ($sale = $this->site->getSaleByID($saleItem->sale_id)) {
           $saleJS = getJSON($sale->json_data);
-          $saleItemJS = getJSON($sale->json_data);
+          $saleItemJS = getJSON($saleItem->json_data);
           if (isset($saleJS->approved) && $saleJS->approved == 0) {
             sendJSON(['error' => 1, 'msg' => "Nota <b>{$sale->reference}</b> belum di approved."]);
           }
-          if (strtotime($this->serverDateTime) > strtotime($saleItemJS->est_complete_date)) {
+          if (strtotime($this->serverDateTime) > strtotime($saleItemJS->due_date)) {
             $isCompleteOverTime = TRUE;
           }
         }

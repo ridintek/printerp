@@ -73,7 +73,7 @@ $(document).ready(function (e) {
       },
       method: 'GET',
       success: function (data) {
-        if (data.results) {
+        if (data.results.length) {
           $customer.append(new Option(data.results[0].text, slcustomer, true, true)).trigger('change');
         }
       },

@@ -23,6 +23,13 @@ class Debug extends MY_Controller
     var_dump($r);
   }
 
+  public function customer()
+  {
+    $cust = $this->site->getCustomerSuggestions('08231166');
+
+    print_r($cust);
+  }
+
   public function log()
   {
     dbglog('debug', 'WHAT IS YOU?');
@@ -953,7 +960,7 @@ class Debug extends MY_Controller
   {
     $this->load->library('datatable');
 
-    $this->datatable->select("warehouses.id AS id, code, name, CONCAT(first_name, ' ', last_name) AS user_name")
+    $this->datatable->select("warehouses.id AS id, code, name, users.fullname AS user_name")
       ->from('warehouses')
       ->join('users', 'users.warehouse_id = warehouses.id')
       ->where("code LIKE 'FAT'");
@@ -994,7 +1001,7 @@ class Debug extends MY_Controller
 
   public function new_datatables()
   {
-    $this->db->select("warehouses.id AS id, code, name, CONCAT(first_name, ' ', last_name) AS user_name")
+    $this->db->select("warehouses.id AS id, code, name, users.fullname AS user_name")
       ->from('warehouses')
       ->join('users', 'users.warehouse_id = warehouses.id')
       ->where("code LIKE 'FAT'");

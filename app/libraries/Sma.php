@@ -334,7 +334,7 @@ class Sma
     $id || $id = XSession::get('user_id');
     $group     = $this->site->getUserGroup($id);
 
-    if ($group && $group->name === $check_group) {
+    if ($group && strcasecmp($group->name, $check_group) == 0) {
       return true;
     }
     return false;

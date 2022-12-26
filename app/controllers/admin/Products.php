@@ -4733,8 +4733,8 @@ class Products extends MY_Controller
       ->select("product_transfer.id AS id, product_transfer.id AS pid, reference, attachment_id,
         items, whfrom.name AS wh_name_from, whto.name AS wh_name_to,
         product_transfer.status AS status, product_transfer.payment_status AS payment_status,
-        product_transfer.grand_total, product_transfer.paid, note,
-        created_at, creator.fullname AS creator_name")
+        product_transfer.grand_total, product_transfer.paid, product_transfer.note,
+        product_transfer.created_at, creator.fullname AS creator_name")
       ->from('product_transfer')
       ->join('warehouses whfrom', 'whfrom.id = product_transfer.warehouse_id_from', 'left')
       ->join('warehouses whto', 'whto.id = product_transfer.warehouse_id_to', 'left')

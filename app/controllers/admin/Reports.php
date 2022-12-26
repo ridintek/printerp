@@ -693,9 +693,7 @@ class Reports extends MY_Controller
 
         if (!empty($saleItemJS->due_date)) {
           if (isCompleted($saleItemJS->status)) {
-            $completedDate = ($saleItemJS->completed_at ?? $saleItemJS->updated_at);
-
-            if (strtotime($completedDate) > strtotime($saleItemJS->due_date)) {
+            if (strtotime($saleItemJS->completed_at) > strtotime($saleItemJS->due_date)) {
               $overProduction = TRUE;
               $overComplete++;
             }

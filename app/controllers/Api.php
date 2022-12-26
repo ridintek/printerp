@@ -247,8 +247,6 @@ class Api extends MY_Controller
       $email   = getPOST('email');
 
       $customer_data = [
-        'group_id' => 3,
-        'group_name' => 'customer',
         'customer_group_id' => 1,
         'customer_group_name' => 'Reguler',
         'name' => $name,

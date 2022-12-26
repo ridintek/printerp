@@ -4234,29 +4234,30 @@ class Site extends MY_Model
   public function getCustomersByPhone($phone)
   {
     $phone = preg_replace('/[^0-9]/', '', $phone); // Trim any whitespace and except digit.
-    $this->db->like('phone', $phone, 'both');
-    $this->db->limit(20);
-    $q = $this->db->get('customers');
-    if ($q->num_rows() > 0) {
-      return $q->result();
-    }
-    return [];
+
+    return DB::table('customers')->where('phone', $phone, 'both')->limit(20)->get();
   }
 
   public function getCustomerSuggestions($term, $limit = 10)
   {
     if (empty($term)) return [];
-    $this->db->select("id, (CASE WHEN company = '' THEN name ELSE CONCAT(company, ' (', name, ')') END) as text, (CASE WHEN company = '-' THEN name ELSE CONCAT(company, ' (', name, ')') END) as value, phone");
+
+    $db = DB::table('customers')->select(
+      "id,
+      (CASE WHEN company = '' THEN name ELSE CONCAT(company, ' (', name, ')') END) as text,
+      (CASE WHEN company = '-' THEN name ELSE CONCAT(company, ' (', name, ')') END) as value,
+      phone"
+    );
+
     if (isset($term['id'])) {
-      $this->db->where('id', $term['id']);
+      $db->where('id', $term['id']);
     } else {
-      $this->db->where(" (id LIKE '%" . $term . "%' OR name LIKE '%" . $term . "%' OR company LIKE '%" . $term . "%' OR email LIKE '%" . $term . "%' OR phone LIKE '%" . $term . "%') ");
+      $db->like('name', $term, 'both')
+        ->orLike('company', $term, 'both')
+        ->orLike('phone', $term, 'both');
     }
-    $q = $this->db->get_where('customers', ['group_name' => 'customer'], $limit);
-    if ($q->num_rows() > 0) {
-      return $q->result();
-    }
-    return [];
+
+    return $db->limit($limit)->get();
   }
 
   public function getCustomerUsers($customer_id)
@@ -9628,6 +9629,7 @@ class Site extends MY_Model
     if ($this->db->affected_rows()) {
       return TRUE;
     }
+    setLastError($this->db->error()['message']);
     return FALSE;
   }
 

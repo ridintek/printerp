@@ -132,13 +132,11 @@ class Auth extends MY_Controller
 
     $this->data['title'] = 'Create User';
     $this->form_validation->set_rules('username', lang('username'), 'trim|is_unique[users.username]');
-    $this->form_validation->set_rules('email', lang('email'), 'trim|is_unique[users.email]');
     $this->form_validation->set_rules('status', lang('status'), 'trim|required');
     $this->form_validation->set_rules('group', lang('group'), 'trim|required');
 
     if ($this->form_validation->run() == true) {
       $username = strtolower(getPOST('username'));
-      $email    = strtolower(getPOST('email'));
       $password = getPOST('password');
       $notify   = getPOST('notify');
 
@@ -156,7 +154,7 @@ class Auth extends MY_Controller
       ];
       $active = getPOST('status');
     }
-    if ($this->form_validation->run() == true && $this->ion_auth->register($username, $password, $email, $additional_data, $active, $notify)) {
+    if ($this->form_validation->run() == true && $this->ion_auth->register($username, $password, $additional_data, $active, $notify)) {
       $this->session->set_flashdata('message', $this->ion_auth->messages());
       admin_redirect('auth/users');
     } else {
@@ -252,9 +250,6 @@ class Auth extends MY_Controller
     if ($user->username != getPOST('username')) {
       $this->form_validation->set_rules('username', lang('username'), 'trim|is_unique[users.username]');
     }
-    if ($user->email != getPOST('email')) {
-      $this->form_validation->set_rules('email', lang('email'), 'trim|is_unique[users.email]');
-    }
 
     if ($this->form_validation->run() === true) {
       $userJS = getJSON($user->json_data);
@@ -266,7 +261,6 @@ class Auth extends MY_Controller
           $data = [
             'fullname'   => getPOST('fullname'),
             'company'    => getPOST('company'),
-            'email'      => getPOST('email'),
             'phone'      => getPOST('phone'),
             'gender'     => getPOST('gender'),
             'json_data'  => json_encode($userJS)
@@ -290,7 +284,6 @@ class Auth extends MY_Controller
             'fullname'       => getPOST('fullname'),
             'company'        => getPOST('company'),
             'username'       => getPOST('username'),
-            'email'          => getPOST('email'),
             'phone'          => getPOST('phone'),
             'gender'         => getPOST('gender'),
             'active'         => getPOST('status'),
@@ -389,7 +382,7 @@ class Auth extends MY_Controller
     $this->load->library('datatables');
     $this->datatables
       ->select('users.id as id, username, users.fullname, billers.name as biller_name,
-        warehouses.name as warehouse_name, users.phone as phone, users.email as email,
+        warehouses.name as warehouse_name, users.phone as phone,
         users.company as company, groups.name, users.active')
       ->from('users')
       ->join('groups', 'groups.id = users.group_id', 'left')
@@ -450,7 +443,7 @@ class Auth extends MY_Controller
         $updated = 0;
         $items   = [];
         $keys    = [
-          'no', 'use', 'username', 'password', 'email', 'fullname', 'company', 'phone',
+          'no', 'use', 'username', 'password', 'fullname', 'company', 'phone',
           'gender', 'group', 'warehouse', 'biller', 'view_right', 'edit_right', 'active', 'note'
         ];
         if ($header_id[0] != 'USRACN') {
@@ -469,7 +462,6 @@ class Auth extends MY_Controller
           $user = [
             'username' => strtolower(rd_trim($csv['username'])),
             'password' => rd_trim($csv['password']),
-            'email'    => strtolower(rd_trim($csv['email'])),
             'active'   => rd_trim($csv['active']),
             'notify'   => 0, // Send an email to user. Disabled.
             'data'     => [
@@ -702,7 +694,6 @@ class Auth extends MY_Controller
 
     $this->form_validation->set_message('is_unique', lang('account_exists'));
     $this->form_validation->set_rules('fullname', lang('fullname'), 'required');
-    $this->form_validation->set_rules('email', lang('email_address'), 'required|valid_email|is_unique[users.email]');
     $this->form_validation->set_rules('usernam', lang('usernam'), 'required|is_unique[users.username]');
     $this->form_validation->set_rules('password', lang('password'), 'required|min_length[8]|max_length[25]|matches[password_confirm]');
     $this->form_validation->set_rules('password_confirm', lang('confirm_password'), 'required');
@@ -712,7 +703,6 @@ class Auth extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $username = strtolower(getPOST('username'));
-      $email    = strtolower(getPOST('email'));
       $password = getPOST('password');
 
       $additional_data = [
@@ -721,7 +711,7 @@ class Auth extends MY_Controller
         'phone'    => getPOST('phone'),
       ];
     }
-    if ($this->form_validation->run() == true && $this->ion_auth->register($username, $password, $email, $additional_data)) {
+    if ($this->form_validation->run() == true && $this->ion_auth->register($username, $password, $additional_data)) {
       $this->session->set_flashdata('message', $this->ion_auth->messages());
       admin_redirect('login');
     } else {
@@ -751,23 +741,6 @@ class Auth extends MY_Controller
         'type'                       => 'text',
         'class'                      => 'form-control',
         'placeholder'                => lang('type_captcha'),
-      ];
-
-      $this->data['last_name'] = [
-        'name'     => 'last_name',
-        'id'       => 'last_name',
-        'type'     => 'text',
-        'required' => 'required',
-        'class'    => 'form-control',
-        'value'    => $this->form_validation->set_value('last_name'),
-      ];
-      $this->data['email'] = [
-        'name'     => 'email',
-        'id'       => 'email',
-        'type'     => 'text',
-        'required' => 'required',
-        'class'    => 'form-control',
-        'value'    => $this->form_validation->set_value('email'),
       ];
       $this->data['company'] = [
         'name'     => 'company',
@@ -885,7 +858,7 @@ class Auth extends MY_Controller
           show_error(lang('error_csrf'));
         } else {
           // finally change the password
-          $identity = $user->email;
+          // $identity = $user->email;
 
           $change = $this->ion_auth->reset_password($identity, getPOST('new'));
 

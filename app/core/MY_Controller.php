@@ -1,7 +1,7 @@
 <?php
 
 defined('BASEPATH') or exit('No direct script access allowed');
-
+// #[AllowDynamicProperties]
 class MY_Controller extends CI_Controller
 {
   /**
@@ -110,14 +110,14 @@ class MY_Controller extends CI_Controller
 
       $this->default_currency         = $this->site->getCurrencyByCode($this->Settings->default_currency);
       $this->data['default_currency'] = $this->default_currency;
-      $this->Owner                    = ($group->name == 'owner' ? TRUE : NULL);
+      $this->Owner                    = (strcasecmp($group->name, 'owner') === 0 ? TRUE : NULL);
       $this->data['Owner']            = $this->Owner;
+      $this->Admin                    = (strcasecmp($group->name, 'admin') === 0 ? TRUE : NULL);
+      $this->data['Admin']            = $this->Admin;
       $this->Customer                 = $this->sma->in_group('customer') ? TRUE : NULL;
       $this->data['Customer']         = $this->Customer;
       $this->Supplier                 = $this->sma->in_group('supplier') ? TRUE : NULL;
       $this->data['Supplier']         = $this->Supplier;
-      $this->Admin                    = ($group->name == 'admin' ? TRUE : NULL);
-      $this->data['Admin']            = $this->Admin;
 
       $this->isAdmin = ($this->Owner || $this->Admin ? TRUE : FALSE);
       $this->data['isAdmin'] = $this->isAdmin;
