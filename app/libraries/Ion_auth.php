@@ -132,7 +132,7 @@ class Ion_auth
                 $parse_data = [
                     'client_name' => $profile->first_name . ' ' . $profile->last_name,
                     'email'       => $profile->email,
-                    'password'    => $password,
+                    'password'    => $new_password,
                     'site_link'   => base_url(),
                     'site_name'   => $this->Settings->site_name,
                     'logo'        => '<img src="' . base_url() . 'assets/uploads/logos/' . $this->Settings->logo . '" alt="' . $this->Settings->site_name . '"/>',
@@ -238,14 +238,14 @@ class Ion_auth
         return true;
     }
 
-    public function register($username, $password, $email, $additional_data = [], $active = false, $notify = false)
+    public function register($username, $password, $additional_data = [], $active = false, $notify = false)
     { //need to test email activation
         $this->auth_model->trigger_events('pre_account_creation');
 
         $email_activation = $this->config->item('email_activation', 'ion_auth');
 
         if (!$email_activation || $active == '1') {
-            $id = $this->auth_model->register($username, $password, $email, $additional_data, $active);
+            $id = $this->auth_model->register($username, $password, $additional_data, $active);
             if ($id !== false) {
                 if ($notify) {
                     $this->load->library('parser');
@@ -253,7 +253,6 @@ class Ion_auth
                         'client_name' => $additional_data['first_name'] . ' ' . $additional_data['last_name'],
                         'site_link'   => site_url(),
                         'site_name'   => $this->Settings->site_name,
-                        'email'       => $email,
                         'password'    => $password,
                         'logo'        => '<img src="' . base_url() . 'assets/uploads/logos/' . $this->Settings->logo . '" alt="' . $this->Settings->site_name . '"/>',
                     ];
@@ -262,7 +261,7 @@ class Ion_auth
                     $message = $this->parser->parse_string($msg, $parse_data);
                     $subject = $this->lang->line('new_user_created') . ' - ' . $this->Settings->site_name;
                     try {
-                        $this->sma->send_email($email, $subject, $message);
+                        // $this->sma->send_email($email, $subject, $message);
                     } catch (Exception $e) {
                         $this->set_error($e->getMessage());
                     }
@@ -277,7 +276,7 @@ class Ion_auth
                 return false;
             }
         } else {
-            $id = $this->auth_model->register($username, $password, $email, $additional_data, $active);
+            $id = $this->auth_model->register($username, $password, $additional_data, $active);
 
             if (!$id) {
                 $this->set_error('account_creation_unsuccessful');
@@ -299,7 +298,6 @@ class Ion_auth
             $data = [
                 'identity'   => $user->{$identity},
                 'id'         => $user->id,
-                'email'      => $email,
                 'activation' => $activation_code,
             ];
             if (!$this->config->item('use_ci_email', 'ion_auth')) {
@@ -312,7 +310,6 @@ class Ion_auth
                     'user_name'       => $additional_data['first_name'] . ' ' . $additional_data['last_name'],
                     'site_link'       => site_url(),
                     'site_name'       => $this->Settings->site_name,
-                    'email'           => $email,
                     'activation_link' => anchor('activate/' . $data['id'] . '/' . $data['activation'], lang('email_activate_link')),
                     'logo'            => '<img src="' . base_url() . 'assets/uploads/logos/' . $this->Settings->logo . '" alt="' . $this->Settings->site_name . '"/>',
                 ];
@@ -322,11 +319,11 @@ class Ion_auth
                 $subject = $this->lang->line('email_activation_subject') . ' - ' . $this->Settings->site_name;
 
                 try {
-                    if ($this->sma->send_email($email, $subject, $message)) {
-                        $this->auth_model->trigger_events(['post_account_creation', 'post_account_creation_successful', 'activation_email_successful']);
-                        $this->set_message('activation_email_successful');
-                        return $id;
-                    }
+                    // if ($this->sma->send_email($email, $subject, $message)) {
+                    //     $this->auth_model->trigger_events(['post_account_creation', 'post_account_creation_successful', 'activation_email_successful']);
+                    //     $this->set_message('activation_email_successful');
+                    //     return $id;
+                    // }
                 } catch (Exception $e) {
                     $this->set_error($e->getMessage());
                     return false;

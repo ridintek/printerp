@@ -26,7 +26,7 @@ class Authentication
       return FALSE;
     }
 
-    $user = DB::table('users')->select('password, salt')
+    $user = DB::table('users')->select('password')
       ->where('id', $id)->getRow();
 
     if (!$user) return FALSE;
@@ -35,6 +35,8 @@ class Authentication
     $hashed = $salt . substr(sha1($salt . $pass), 0, -self::$saltSize);
 
     if ($hashed == $user->password) { // Using this method.
+      return TRUE;
+    } else if (password_verify($pass, $user->password)) { // New password algorithm.
       return TRUE;
     }
 
@@ -57,11 +59,8 @@ class Authentication
     $sessionData = [
       'fullname'          => $user->fullname,
       'username'          => $user->username,
-      'email'             => $user->email,
       'phone'             => $user->phone,
       'user_id'           => (int)$user->id, //everyone likes to overwrite id so we'll use user_id
-      'old_last_login'    => $user->last_login,
-      'last_ip'           => $user->last_ip_address,
       'avatar'            => $user->avatar,
       'gender'            => $user->gender,
       'group_id'          => (int)$group->id,
@@ -76,7 +75,6 @@ class Authentication
       'show_cost'         => $user->show_cost,
       'show_price'        => $user->show_price,
       'counter'           => 0,
-      'login_time'        => date('Y-m-d H:i:s'),
       'token'             => NULL,
       'queue_category_id' => 0
     ];
@@ -120,7 +118,6 @@ class Authentication
     $user = DB::table('users')->select('*')
       ->where('username', $identity)
       ->orWhere('phone', $identity)
-      ->orWhere('email', $identity)
       ->getRow();
 
     if (DB::affectedRows()) {

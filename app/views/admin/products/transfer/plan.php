@@ -52,7 +52,7 @@ if ($filter = getGET('f')) {
           <?= csrf_token(); ?>: '<?= csrf_hash(); ?>'
         },
         method: 'POST',
-        url: site.base_url + 'procurements/transfers/getTransfersPlan?<?= $q; ?>'
+        url: site.base_url + 'products/transfer/getTransferPlan?<?= $q; ?>'
       },
       columnDefs: [{
         targets: 0,

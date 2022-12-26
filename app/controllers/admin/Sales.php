@@ -276,10 +276,10 @@ class Sales extends MY_Controller
 
         $saleData['attachment_id'] = $uploader->storeRandom();
       } else if (!getPermission('sales-no_attachment')) {
-        if ($customerGroup->name == 'TOP') { // Prevent CS create sale without attachment for Customer TOP.
+        if (strcasecmp($customerGroup->name, 'TOP') == 0) { // Prevent CS create sale without attachment for Customer TOP.
           $this->session->set_flashdata('error', lang('top_no_attachment'));
           redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
-        } else if (XSession::get('group_name') == 'tl' && $saleOptions !== 'noattachment') {
+        } else if (strcasecmp(XSession::get('group_name'), 'TL') == 0 && $saleOptions !== 'noattachment') {
           // If TL add sale not from counter. must include attachment.
           $this->session->set_flashdata('error', lang('attachment_required'));
           redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
@@ -1686,7 +1686,7 @@ class Sales extends MY_Controller
             $user = $this->site->getUserByID($saleItemJS->operator_id ?? NULL);
             $op_username = ($user ? $user->username : '');
             $op_name     = ($user ? $user->fullname : '');
-            $isOperator  = ($user && $user->group_name == 'operator' ? TRUE : FALSE);
+            $isOperator  = ($user && strcasecmp($user->group_name, 'OPERATOR') == 0 ? TRUE : FALSE);
 
             $excel->setCellValue('A' . $b, $item->id);
             $excel->setCellValue('B' . $b, $sale->reference);

@@ -4733,8 +4733,8 @@ class Products extends MY_Controller
       ->select("product_transfer.id AS id, product_transfer.id AS pid, reference, attachment_id,
         items, whfrom.name AS wh_name_from, whto.name AS wh_name_to,
         product_transfer.status AS status, product_transfer.payment_status AS payment_status,
-        product_transfer.grand_total, product_transfer.paid, note,
-        created_at, creator.fullname AS creator_name")
+        product_transfer.grand_total, product_transfer.paid, product_transfer.note,
+        product_transfer.created_at, creator.fullname AS creator_name")
       ->from('product_transfer')
       ->join('warehouses whfrom', 'whfrom.id = product_transfer.warehouse_id_from', 'left')
       ->join('warehouses whto', 'whto.id = product_transfer.warehouse_id_to', 'left')
@@ -4849,6 +4849,24 @@ class Products extends MY_Controller
     }
 
     $this->datatable->generate();
+  }
+
+  protected function transfer_getTransferPlan()
+  {
+    $today = getDayName(date('w') + 1); // Get today name. Ex. senin, selasa, ...
+
+    $this->load->library('datatable');
+    $this->datatable
+      ->select("warehouses.id AS id, warehouses.code AS warehouse_code,
+        warehouses.name AS warehouse_name,
+          JSON_UNQUOTE(JSON_EXTRACT(json_data, '$.visit_days')) AS visit_days,
+          JSON_UNQUOTE(JSON_EXTRACT(json_data, '$.visit_weeks')) AS visit_weeks,
+        warehouses.id AS warehouses_id") // FALSE required for disable escaping column.
+      ->from('warehouses')
+      ->where('active', 1)
+      ->like("LOWER(JSON_UNQUOTE(JSON_EXTRACT(json_data, '$.visit_days')))", $today, 'both');
+
+    echo $this->datatable->generate();
   }
 
   protected function transfer_payments($ptId = NULL)

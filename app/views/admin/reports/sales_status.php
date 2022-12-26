@@ -50,21 +50,33 @@ if ($end_date) {
 ?>
 
 <script>
-  $(document).ready(function () {
+  $(document).ready(function() {
     oTable = $('#SlRData').dataTable({
-      "aaSorting": [[0, "desc"]],
-      "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
+      "aaSorting": [
+        [0, "desc"]
+      ],
+      "aLengthMenu": [
+        [10, 25, 50, 100, -1],
+        [10, 25, 50, 100, "<?= lang('all') ?>"]
+      ],
       "iDisplayLength": <?= $Settings->rows_per_page ?>,
-      'bProcessing': true, 'bServerSide': true,
+      'bProcessing': true,
+      'bServerSide': true,
       'sAjaxSource': '<?= admin_url('reports/getSalesStatus/?v=1' . $q) ?>',
-      'fnServerData': function (sSource, aoData, fnCallback) {
+      'fnServerData': function(sSource, aoData, fnCallback) {
         aoData.push({
           "name": "<?= $this->security->get_csrf_token_name() ?>",
           "value": "<?= $this->security->get_csrf_hash() ?>"
         });
-        $.ajax({'dataType': 'json', 'type': 'POST', 'url': sSource, 'data': aoData, 'success': fnCallback});
+        $.ajax({
+          'dataType': 'json',
+          'type': 'POST',
+          'url': sSource,
+          'data': aoData,
+          'success': fnCallback
+        });
       },
-      'fnRowCallback': function (nRow, aData, iDisplayIndex) {
+      'fnRowCallback': function(nRow, aData, iDisplayIndex) {
         nRow.id = aData[16];
         nRow.className = (aData[10] > 0) ? "invoice_link2" : "invoice_link2 danger";
         <?php if ($group_by) {
@@ -77,21 +89,41 @@ if ($end_date) {
             'sale'     => 1
           ]; ?>
           <?php if ($group_by == 'product') { ?>
-          nRow.children[<?= $group_index[$group_by] - 1; ?>].style.backgroundColor = '#c0ffc0';
+            nRow.children[<?= $group_index[$group_by] - 1; ?>].style.backgroundColor = '#c0ffc0';
           <?php } ?>
           nRow.children[<?= $group_index[$group_by]; ?>].style.backgroundColor = '#c0ffc0';
         <?php } ?>
         return nRow;
       },
-      "aoColumns": [{"mRender": fld}, null, {"mRender": upperCase}, null, null, null, null, null, null,
-      {"mRender": formatQuantityRight}, {"mRender": currencyFormat},
-      {"mRender": currencyFormat}, {"mRender": currencyFormat}, null, {"mRender": row_status},
-      {"mRender": payment_status}],
-      "fnFooterCallback": function (nRow, aaData, iStart, iEnd, aiDisplay) {
-        var gtotal = 0, paid = 0, balance = 0;
+      "aoColumns": [{
+          "mRender": fld
+        }, null, {
+          "mRender": upperCase
+        }, null, null, null, null, null, null,
+        {
+          "mRender": formatQuantityRight
+        }, {
+          "mRender": currencyFormat
+        },
+        {
+          "mRender": currencyFormat
+        }, {
+          "mRender": currencyFormat
+        },
+        null, {
+          "mRender": row_status
+        },
+        {
+          "mRender": payment_status
+        }
+      ],
+      "fnFooterCallback": function(nRow, aaData, iStart, iEnd, aiDisplay) {
+        var gtotal = 0,
+          paid = 0,
+          balance = 0;
         for (var i = 0; i < aaData.length; i++) {
-          gtotal  += parseFloat(aaData[aiDisplay[i]][10]);
-          paid    += parseFloat(aaData[aiDisplay[i]][11]);
+          gtotal += parseFloat(aaData[aiDisplay[i]][10]);
+          paid += parseFloat(aaData[aiDisplay[i]][11]);
           balance += parseFloat(aaData[aiDisplay[i]][12]);
         }
         var nCells = nRow.getElementsByTagName('th');
@@ -117,50 +149,58 @@ if ($end_date) {
   });
 </script>
 <script type="text/javascript">
-  $(document).ready(function () {
+  $(document).ready(function() {
     <?php if (getPOST('customer')) {
-  ?>
-    $('#customer').val(<?= getPOST('customer') ?>).select2({
-      minimumInputLength: 1,
-      data: [],
-      initSelection: function (element, callback) {
-        $.ajax({
-          type: "get", async: false,
-          url: site.base_url + "customers/suggestions/" + $(element).val(),
-          dataType: "json",
-          success: function (data) {
-            callback(data.results[0]);
-          }
-        });
-      },
-      ajax: {
-        url: site.base_url + "customers/suggestions",
-        dataType: 'json',
-        delay: 1000,
-        data: function (term, page) {
-          return {
-            term: term,
-            limit: 10
-          };
+    ?>
+      $('#customer').val(<?= getPOST('customer') ?>).select2({
+        minimumInputLength: 1,
+        data: [],
+        initSelection: function(element, callback) {
+          $.ajax({
+            type: "get",
+            async: false,
+            url: site.base_url + "customers/suggestions/" + $(element).val(),
+            dataType: "json",
+            success: function(data) {
+              callback(data.results[0]);
+            }
+          });
         },
-        results: function (data, page) {
-          if (data.results != null) {
-            return {results: data.results};
-          } else {
-            return {results: [{id: '', text: 'No Match Found'}]};
+        ajax: {
+          url: site.base_url + "customers/suggestions",
+          dataType: 'json',
+          delay: 1000,
+          data: function(term, page) {
+            return {
+              term: term,
+              limit: 10
+            };
+          },
+          results: function(data, page) {
+            if (data.results != null) {
+              return {
+                results: data.results
+              };
+            } else {
+              return {
+                results: [{
+                  id: '',
+                  text: 'No Match Found'
+                }]
+              };
+            }
           }
         }
-      }
-    });
+      });
 
-    $('#customer').val(<?= getPOST('customer') ?>);
+      $('#customer').val(<?= getPOST('customer') ?>);
     <?php
-} ?>
-    $('.toggle_down').click(function () {
+    } ?>
+    $('.toggle_down').click(function() {
       $("#form").slideDown();
       return false;
     });
-    $('.toggle_up').click(function () {
+    $('.toggle_up').click(function() {
       $("#form").slideUp();
       return false;
     });
@@ -171,12 +211,12 @@ if ($end_date) {
 <div class="box">
   <div class="box-header">
     <h2 class="blue"><i class="fa fa-fw fa-chart-line"></i><?= lang('sales_status'); ?>
-    <?php if ($group_by) { ?>
-      <?= lang('group_by') . ' (' . lang($group_by) . ') '; ?>
-    <?php } ?>
-    <?php if ($start_date) { ?>
-      <?= lang('from') . ' ' . $start_date . ' to ' . $end_date; ?>
-    <?php } ?>
+      <?php if ($group_by) { ?>
+        <?= lang('group_by') . ' (' . lang($group_by) . ') '; ?>
+      <?php } ?>
+      <?php if ($start_date) { ?>
+        <?= lang('from') . ' ' . $start_date . ' to ' . $end_date; ?>
+      <?php } ?>
     </h2>
 
     <div class="box-icon">
@@ -202,14 +242,14 @@ if ($end_date) {
               <div class="form-group">
                 <?= lang('group_by', 'group_by'); ?>
                 <?php
-                  $gb = [
-                    'biller'    => 'Biller',
-                    'customer'  => 'Customer',
-                    'pic'       => 'PIC',
-                    'product'   => 'Product',
-                    'category'  => 'Product Category',
-                    'sale'      => 'Sale'
-                  ];
+                $gb = [
+                  'biller'    => 'Biller',
+                  'customer'  => 'Customer',
+                  'pic'       => 'PIC',
+                  'product'   => 'Product',
+                  'category'  => 'Product Category',
+                  'sale'      => 'Sale'
+                ];
                 ?>
                 <?= form_dropdown('group_by', $gb, ($_POST['group_by'] ?? 'sale'), 'class="select2" style="width:100%;"'); ?>
               </div>
@@ -218,7 +258,7 @@ if ($end_date) {
               <div class="form-group">
                 <?= lang('product', 'suggest_product'); ?>
                 <?php echo form_input('sproduct', (isset($_POST['sproduct']) ? $_POST['sproduct'] : ''), 'class="form-control" id="suggest_product"'); ?>
-                <input type="hidden" name="product" value="<?= isset($_POST['product']) ? $_POST['product'] : '' ?>" id="report_product_id"/>
+                <input type="hidden" name="product" value="<?= isset($_POST['product']) ? $_POST['product'] : '' ?>" id="report_product_id" />
               </div>
             </div>
             <div class="col-sm-4">
@@ -247,7 +287,7 @@ if ($end_date) {
                 <?php
                 $users = $this->site->getUsers();
                 foreach ($users as $user) {
-                  $us[$user->id] = $user->first_name . ' ' . $user->last_name;
+                  $us[$user->id] = $user->fullname;
                 }
                 echo form_multiselect('users[]', $us, (isset($_POST['users']) ? $_POST['users'] : ''), 'class="select2" id="users" placeholder="Select Created By" style="width:100%;"');
                 ?>
@@ -365,10 +405,10 @@ if ($end_date) {
   </div>
 </div>
 <script type="text/javascript">
-  $(document).ready(function () {
-    $('#xls').click(function (event) {
+  $(document).ready(function() {
+    $('#xls').click(function(event) {
       event.preventDefault();
-      window.location.href = "<?=admin_url('reports/getSalesStatus/xls/?v=1' . $q)?>";
+      window.location.href = "<?= admin_url('reports/getSalesStatus/xls/?v=1' . $q) ?>";
       return false;
     });
   });

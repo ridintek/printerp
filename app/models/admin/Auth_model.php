@@ -748,12 +748,11 @@ class Auth_model extends MY_Model
 
     $identity = $this->db->escape_str($identity);
 
-    $query = $this->db->select('username, email, phone, id, password,
+    $query = $this->db->select('username, phone, id, password,
       active, last_login, last_ip_address, avatar, counter, fullname, first_name, last_name, gender,
       group_id, warehouse_id, biller_id, view_right, edit_right, allow_discount, show_cost, show_price')
       ->where('username', $identity)
       ->or_where('phone', $identity)
-      ->or_where('email', $identity)
       ->limit(1)
       ->get('users');
 
@@ -794,7 +793,7 @@ class Auth_model extends MY_Model
     }
 
     //get the user
-    $query = $this->db->select($this->identity_column . ', id, username, email, phone, last_login,
+    $query = $this->db->select($this->identity_column . ', id, username, phone, last_login,
       last_ip_address, fullname, first_name, last_name, avatar, counter, gender, group_id, warehouse_id,
       biller_id, view_right, allow_discount, edit_right, show_cost, show_price')
       ->where($this->identity_column, get_cookie('identity'))
@@ -876,16 +875,13 @@ class Auth_model extends MY_Model
     return $this;
   }
 
-  public function register($username, $password, $email, $additional_data = [], $active = false)
+  public function register($username, $password, $additional_data = [], $active = false)
   {
     $this->trigger_events('pre_register');
 
     $manual_activation = $this->config->item('manual_activation', 'ion_auth');
 
-    if ($this->identity_column == 'email' && $this->email_check($email)) {
-      $this->set_error('account_creation_duplicate_email');
-      return false;
-    } elseif ($this->identity_column == 'username' && $this->username_check($username)) {
+    if ($this->identity_column == 'username' && $this->username_check($username)) {
       $this->set_error('account_creation_duplicate_username');
       return false;
     }
@@ -909,10 +905,6 @@ class Auth_model extends MY_Model
     $data = [
       'username'   => $username,
       'password'   => $password,
-      'email'      => $email,
-      'ip_address' => $ip_address,
-      'created_on' => time(),
-      'last_login' => time(),
       'active'     => ($active ? 1 : ($manual_activation === false ? 1 : 0)),
     ];
 
@@ -1171,7 +1163,6 @@ class Auth_model extends MY_Model
       'first_name'     => $user->first_name,
       'last_name'      => $user->last_name,
       'username'       => $user->username,
-      'email'          => $user->email,
       'phone'          => $user->phone,
       'user_id'        => $user->id, //everyone likes to overwrite id so we'll use user_id
       'old_last_login' => $user->last_login,

@@ -26,7 +26,7 @@
 
                   $selected = (XSession::get('user_id') == $user->id ? ' selected' : '');
                   ?>
-                  <option value="<?= $user->id ?>" <?= $selected ?>><?= $user->first_name . ' ' . $user->last_name ?></option>
+                  <option value="<?= $user->id ?>" <?= $selected ?>><?= $user->fullname ?></option>
                 <?php endforeach; ?>
               </select>
             </div>

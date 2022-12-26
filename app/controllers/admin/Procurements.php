@@ -2612,7 +2612,7 @@ class Procurements extends MY_Controller
    */
   public function transfers()
   {
-    die('obsolete');
+    // die('obsolete'); // Still use 2022-12-19 09:30:55
     $params = func_get_args();
     $method = __FUNCTION__ . '_' . (empty($params) || $params[0] == 'warehouse' ? 'index' : $params[0]);
 

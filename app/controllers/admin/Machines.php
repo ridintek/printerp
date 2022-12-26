@@ -173,7 +173,7 @@ class Machines extends MY_Controller
         $this->response(200, ['message' => 'Jadwal berhasil diubah.']);
       }
 
-      $this->response(400, ['message' => getLastError()]);
+      $this->response(400, ['message' => 'Gagal diubah. Kemungkinan tidak ada perubahan.']);
     }
 
     $this->load->view($this->theme . 'machines/maintenance/edit', $this->data);

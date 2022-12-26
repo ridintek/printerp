@@ -711,16 +711,16 @@
                               </a>
                             </li>
                           <?php endif; ?>
-                          <li id="products_stock_opname_add">
-                            <a class="submenu" href="<?= admin_url('products/stock_opname/add'); ?>">
-                              <i class="fad fa-plus-circle" style="color: #80FF80"></i>
-                              <span class="text"> <?= lang('add_stock_opname'); ?></span>
-                            </a>
-                          </li>
                           <li id="products_stock_opname">
                             <a class="submenu" href="<?= admin_url('products/stock_opname'); ?>">
                               <i class="fad fa-list-ol" style="color: #4040FF"></i>
                               <span class="text"> <?= lang('stock_opname_list'); ?></span>
+                            </a>
+                          </li>
+                          <li id="products_stock_opname_add">
+                            <a class="submenu" href="<?= admin_url('products/stock_opname/add'); ?>">
+                              <i class="fad fa-plus-circle" style="color: #80FF80"></i>
+                              <span class="text"> <?= lang('add_stock_opname'); ?></span>
                             </a>
                           </li>
                         </ul>
