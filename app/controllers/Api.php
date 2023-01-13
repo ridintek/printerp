@@ -469,11 +469,12 @@ class Api extends MY_Controller
       if ($pvId = PaymentValidation::add($pv_data)) {
         $paymentValidation = PaymentValidation::getRow(['id' => $pvId]);
 
-        $this->response(201, ['message' => 'Payment validation created successfully.',
+        $this->response(201, [
+          'message' => 'Payment validation created successfully.',
           'data' => $paymentValidation
         ]);
       }
-      
+
       $this->response(400, ['message' => 'Cannot create payment validation.']);
     } else if ($this->requestMethod == 'GET') {
       $id = getGET('id');
@@ -682,9 +683,13 @@ class Api extends MY_Controller
     if ($sale && $phone) {
       $customer = $this->site->getCustomerByPhone($phone);
 
-      if ($sale->customer_id != $customer->id) sendJSON(['error' => 1, 'msg' => 'Data is not match.']);
+      if ($sale->customer_id != $customer->id)
+        sendJSON(['error' => 1, 'msg' => 'Data is not match. Delete cancelled.']);
 
-      if ($this->site->deleteSale($sale->id)) {
+      if (Sale::delete(['id' => $sale->id])) {
+        PaymentValidation::delete(['sale_id' => $sale->id]);
+        Payment::delete(['sale_id' => $sale->id]);
+        Stock::delete(['sale_id' => $sale->id]);
         sendJSON(['error' => 0, 'msg' => "Sale {$inv} has been deleted successfully."]);
       }
       sendJSON(['error' => 1, 'msg' => "Failed to delete sale {$inv}."]);

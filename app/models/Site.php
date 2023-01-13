@@ -2354,7 +2354,7 @@ class Site extends MY_Model
             'sale_id'      => $sale->id,
             'saleitem_id'  => $saleItem->id,
             'product_id'   => $saleItem->product_id,
-            'price'        => $saleItem->unit_price,
+            'price'        => $saleItem->price,
             'quantity'     => $completedQty,
             'warehouse_id' => $sale->warehouse_id,
             'created_by'   => $op->id
@@ -2371,7 +2371,7 @@ class Site extends MY_Model
             'sale_id'      => $sale->id,
             'saleitem_id'  => $saleItem->id,
             'product_id'   => $saleItem->product_id,
-            'price'        => $saleItem->unit_price,
+            'price'        => $saleItem->price,
             'quantity'     => $completedQty,
             'warehouse_id' => $sale->warehouse_id,
             'created_by'   => $op->id
