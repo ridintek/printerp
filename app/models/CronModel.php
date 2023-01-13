@@ -104,13 +104,13 @@ class CronModel
   public function run_weekly()
   {
     // default: 90 days ago
-    if ($sales = $this->site->deleteOldNeedPaymentSales()) {
-      foreach ($sales as $sale) {
-        log_message('info', 
-          sprintf("Old Need Payment Sale [id:%s, date:%s] has been deleted.", $sale->reference, $sale->date)
-        );
-      }
-    }
+    // if ($sales = $this->site->deleteOldNeedPaymentSales()) {
+    //   foreach ($sales as $sale) {
+    //     log_message('info', 
+    //       sprintf("Old Need Payment Sale [id:%s, date:%s] has been deleted.", $sale->reference, $sale->date)
+    //     );
+    //   }
+    // }
 
     return TRUE;
   }
@@ -168,7 +168,7 @@ class CronModel
         if ($domain != 'tecdiary.com') {
           $this->load->library('parser');
           $parse_data = [
-            'name'      => $owner->first_name . ' ' . $owner->last_name,
+            'name'      => $owner->fullname,
             'email'     => $owner->email,
             'msg'       => $msg_with_yesterday_report,
             'site_link' => base_url(),

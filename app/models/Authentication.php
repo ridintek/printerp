@@ -56,6 +56,10 @@ class Authentication
     $biller = Biller::getRow(['id' => $user->biller_id]);
     $group = Group::getRow(['id' => $user->group_id]);
 
+    if (!$group) {
+      $group = Group::getRow(['name' => $user->groups]);
+    }
+
     $sessionData = [
       'fullname'          => $user->fullname,
       'username'          => $user->username,

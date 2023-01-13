@@ -78,13 +78,13 @@
         <div class="col-xs-5 pull-right">
           <div class="well well-sm">
             <p>
-              <?= lang('created_by'); ?>: <?= $created_by->first_name . ' ' . $created_by->last_name; ?> <br>
+              <?= lang('created_by'); ?>: <?= $created_by->fullname; ?> <br>
               <?= lang('date'); ?>: <?= $this->sma->hrld($inv->date); ?>
             </p>
             <?php if ($inv->updated_by) {
             ?>
             <p>
-              <?= lang('updated_by'); ?>: <?= $updated_by->first_name . ' ' . $updated_by->last_name; ?><br>
+              <?= lang('updated_by'); ?>: <?= $updated_by->fullname; ?><br>
               <?= lang('update_at'); ?>: <?= $this->sma->hrld($inv->updated_at); ?>
             </p>
             <?php

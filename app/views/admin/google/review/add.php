@@ -14,7 +14,7 @@
               <?php $users = $this->site->getUsers(); ?>
               <?php foreach ($users as $user) :
                 if (!$isAdmin) {
-                  if ($user->id != XSession::get('user_id')) continue;
+                  if ($user->id != $this->session->userdata('user_id')) continue;
                 }
               ?>
                 <option value="<?= $user->id ?>"><?= $user->fullname ?></option>
@@ -39,8 +39,8 @@
                 $selected = '';
 
                 if (!$isAdmin) {
-                  if (XSession::get('biller_id')) {
-                    if ($biller->id != XSession::get('biller_id')) continue;
+                  if ($this->session->userdata('biller_id')) {
+                    if ($biller->id != $this->session->userdata('biller_id')) continue;
                   }
                 }
               ?>
@@ -57,7 +57,7 @@
               <?php $users = $this->site->getUsers(); ?>
               <?php foreach ($users as $user) :
                 if (!$isAdmin) {
-                  if ($user->id != XSession::get('user_id')) continue;
+                  if ($user->id != $this->session->userdata('user_id')) continue;
                 }
               ?>
                 <option value="<?= $user->id ?>"><?= $user->fullname ?></option>

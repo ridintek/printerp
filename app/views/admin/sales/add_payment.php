@@ -25,11 +25,11 @@
                 $usr[$user->id] = $user->fullname;
               }
               ?>
-              <?= form_dropdown('created_by', $usr, XSession::get('user_id'), 'class="select2" id="ap_created_by" style="width:100%;"'); ?>
+              <?= form_dropdown('created_by', $usr, $this->session->userdata('user_id'), 'class="select2" id="ap_created_by" style="width:100%;"'); ?>
             </div>
           </div>
         <?php } else { ?>
-          <input id="ap_created_by" type="hidden" name="created_by" value="<?= XSession::get('user_id'); ?>">
+          <input id="ap_created_by" type="hidden" name="created_by" value="<?= $this->session->userdata('user_id'); ?>">
         <?php } ?>
         <div class="col-sm-6">
           <div class="well well-sm">

@@ -215,7 +215,7 @@ class Site extends MY_Model
             'description'   => $data['note']
           ];
 
-          if ($this->addPaymentValidation($pv_data)) { // Add Payment Validation.
+          if (PaymentValidation::add($pv_data)) { // Add Payment Validation.
             DB::table('bank_mutations')->update(['status' => 'waiting_transfer'], ['id' => $insertID]);
           }
         } else {
@@ -318,6 +318,18 @@ class Site extends MY_Model
   public function addExpense($data = [])
   {
     $data['reference'] = $this->getReference('expense');
+
+    if (isset($data['bank_id'])) {
+      $bank = Bank::getRow(['id' => $data['bank_id']]);
+
+      $data['bank'] = $bank->code;
+    }
+
+    if (isset($data['biller_id'])) {
+      $biller = Biller::getRow(['id' => $data['biller_id']]);
+
+      $data['biller'] = $biller->code;
+    }
 
     DB::table('expenses')->insert($data);
 
@@ -1036,11 +1048,12 @@ class Site extends MY_Model
       'date'            => $date,
       'reference'       => $reference,
       'customer_id'     => $customer->id,
-      'customer'        => $customer->name,
+      'customer_name'   => $customer->name,
+      'customer'        => $customer->phone,
       'biller_id'       => $biller->id,
-      'biller'          => $biller->name,
+      'biller'          => $biller->code,
       'warehouse_id'    => $warehouse->id,
-      'warehouse'       => $warehouse->name,
+      'warehouse'       => $warehouse->code,
       'no_po'           => ($data['no_po'] ?? NULL),
       'note'            => ($data['note'] ?? NULL),
       'discount'        => filterDecimal($data['discount'] ?? 0),
@@ -1055,8 +1068,16 @@ class Site extends MY_Model
       'total_items'     => $total_items,
       'paid'            => filterDecimal($data['paid'] ?? 0),
       'attachment_id'   => ($data['attachment_id'] ?? NULL),
+      'attachment'      => ($data['attachment'] ?? NULL),
       'payment_method'  => ($data['payment_method'] ?? NULL),
       'use_tb'          => $use_tb,
+      'json'            => json_encode([
+        'approved'          => ($data['approved'] ?? 0),
+        'cashier_by'        => ($data['cashier_by'] ?? ''),
+        'source'            => ($data['source'] ?? ''),
+        'est_complete_date' => ($data['est_complete_date'] ?? ''),
+        'payment_due_date'  => ($data['payment_due_date'] ?? getWorkingDateTime(date('Y-m-d H:i:s', strtotime('+1 days'))))
+      ]),
       'json_data'       => json_encode([
         'approved'          => ($data['approved'] ?? 0),
         'cashier_by'        => ($data['cashier_by'] ?? ''),
@@ -1122,6 +1143,7 @@ class Site extends MY_Model
 
         $sale_items_data = [
           'date'         => ($item['date'] ?? $sale->date),
+          'sale'         => $sale->reference,
           'sale_id'      => $sale->id,
           'product_id'   => $product->id,
           'product_code' => $product->code,
@@ -1130,8 +1152,19 @@ class Site extends MY_Model
           'price'        => $price,
           'quantity'     => filterQuantity($total_qty), // Total Quantity.
           'finished_qty' => filterQuantity($finished_qty),
-          'warehouse_id' => $item['warehouse_id'],
+          // 'warehouse_id' => $item['warehouse_id'],
           'subtotal'     => round($price * $total_qty),
+          'json'    => json_encode([ // filterQuantity() is the MOST IMPORTANT THING !!!
+            'w'            => filterQuantity($item_w),
+            'l'            => filterQuantity($item_l),
+            'area'         => filterQuantity($item_area),
+            'sqty'         => filterQuantity($qty), // Quantity unit.
+            'spec'         => $item_spec,
+            'status'       => $item_status,
+            'operator_id'  => $item_operator,
+            'due_date'     => (filterDateTime($item_due_date) ?? ''),
+            'completed_at' => (filterDateTime($item_completed_at) ?? '')
+          ]),
           'json_data'    => json_encode([ // filterQuantity() is the MOST IMPORTANT THING !!!
             'w'            => filterQuantity($item_w),
             'l'            => filterQuantity($item_l),
@@ -2276,7 +2309,7 @@ class Site extends MY_Model
                   'sale_id'      => $sale->id,
                   'saleitem_id'  => $saleItem->id,
                   'product_id'   => $comboItem->product_id,
-                  'price'        => $saleItem->unit_price,
+                  'price'        => $saleItem->price,
                   'quantity'     => $finalCompletedQty,
                   'warehouse_id' => $sale->warehouse_id, // Must sale->warehouse_id, NOT saleItem->warehouse_id
                   'created_by'   => $op->id
@@ -2297,9 +2330,9 @@ class Site extends MY_Model
                   'sale_id'      => $sale->id,
                   'saleitem_id'  => $saleItem->id,
                   'product_id'   => $comboItem->product_id,
-                  'price'        => $saleItem->unit_price,
+                  'price'        => $saleItem->price,
                   'quantity'     => $finalCompletedQty,
-                  'warehouse_id' => $saleItem->warehouse_id,
+                  'warehouse_id' => $sale->warehouse_id,
                   'created_by'   => $op->id
                 ]);
 
@@ -2323,7 +2356,7 @@ class Site extends MY_Model
             'product_id'   => $saleItem->product_id,
             'price'        => $saleItem->unit_price,
             'quantity'     => $completedQty,
-            'warehouse_id' => $saleItem->warehouse_id,
+            'warehouse_id' => $sale->warehouse_id,
             'created_by'   => $op->id
           ]);
 
@@ -2340,7 +2373,7 @@ class Site extends MY_Model
             'product_id'   => $saleItem->product_id,
             'price'        => $saleItem->unit_price,
             'quantity'     => $completedQty,
-            'warehouse_id' => $saleItem->warehouse_id,
+            'warehouse_id' => $sale->warehouse_id,
             'created_by'   => $op->id
           ]);
 
@@ -2872,39 +2905,40 @@ class Site extends MY_Model
   }
 
   /**
+   * DANGER !!!
    * Delete old need payment sales. Default 90 days ago. (3 months)
    *
    * @param int $daysAgo Days ago to delete sales.
    */
-  public function deleteOldNeedPaymentSales($daysAgo = 90)
-  {
-    $sales = [];
+  // public function deleteOldNeedPaymentSales($daysAgo = 90)
+  // {
+  //   $sales = [];
 
-    $date = date('Y-m-d', strtotime("-{$daysAgo} days"));
+  //   $date = date('Y-m-d', strtotime("-{$daysAgo} days"));
 
-    $this->db
-      ->like('status', 'need_payment', 'none')
-      ->where("date <= '{$date} 00:00:00'");
+  //   $this->db
+  //     ->like('status', 'need_payment', 'none')
+  //     ->where("date <= '{$date} 00:00:00'");
 
-    $q = $this->db->get('sales');
+  //   $q = $this->db->get('sales');
 
-    if ($q->num_rows() > 0) {
-      foreach ($q->result() as $row) {
-        $sales[] = (object)[
-          'id' => $row->id,
-          'reference' => $row->reference
-        ];
-      }
-    }
+  //   if ($q->num_rows() > 0) {
+  //     foreach ($q->result() as $row) {
+  //       $sales[] = (object)[
+  //         'id' => $row->id,
+  //         'reference' => $row->reference
+  //       ];
+  //     }
+  //   }
 
-    if ($sales) {
-      foreach ($sales as $sale) {
-        $this->deleteSale($sale->id);
-      }
-    }
+  //   if ($sales) {
+  //     foreach ($sales as $sale) {
+  //       $this->deleteSale($sale->id);
+  //     }
+  //   }
 
-    return $sales;
-  }
+  //   return $sales;
+  // }
 
   /**
    * THE ONLY FUNCTION TO DELETE PAYMENT. ALIAS OF deletePaymentByID.
@@ -4254,10 +4288,11 @@ class Site extends MY_Model
     } else {
       $db->like('name', $term, 'both')
         ->orLike('company', $term, 'both')
-        ->orLike('phone', $term, 'both');
+        ->orLike('phone', $term, 'none')
+        ->limit($limit);
     }
 
-    return $db->limit($limit)->get();
+    return $db->get();
   }
 
   public function getCustomerUsers($customer_id)
@@ -8153,6 +8188,18 @@ class Site extends MY_Model
     if (!empty($data)) {
       $oldExpense = $this->getExpenseByID($expense_id);
 
+      if (isset($data['bank_id'])) {
+        $bank = Bank::getRow(['id' => $data['bank_id']]);
+  
+        $data['bank'] = $bank->code;
+      }
+
+      if (isset($data['biller_id'])) {
+        $biller = Biller::getRow(['id' => $data['biller_id']]);
+  
+        $data['biller'] = $biller->code;
+      }
+
       $this->db->trans_start();
       $this->db->update('expenses', $data, ['id' => $expense_id]);
       $this->db->trans_complete();
@@ -8775,19 +8822,19 @@ class Site extends MY_Model
         if (!empty($data['customer_id'])) {
           $customer = $this->getCustomerByID($data['customer_id']);
           $sale_data['customer_id'] = $customer->id;
-          $sale_data['customer']    = $customer->name;
+          $sale_data['customer']    = $customer->phone;
         }
 
         if (!empty($data['biller_id'])) {
           $biller = $this->getBillerByID($data['biller_id']);
           $sale_data['biller_id'] = $biller->id;
-          $sale_data['biller']    = $biller->name;
+          $sale_data['biller']    = $biller->code;
         }
 
         if (!empty($data['warehouse_id'])) {
           $warehouse = $this->getWarehouseByID($data['warehouse_id']);
           $sale_data['warehouse_id'] = $warehouse->id;
-          $sale_data['warehouse']    = $warehouse->name;
+          $sale_data['warehouse']    = $warehouse->code;
         }
 
         // Sale JSON
@@ -8800,6 +8847,7 @@ class Site extends MY_Model
         if (!empty($data['payment_due_date']))        $saleJS->payment_due_date        = $data['payment_due_date'];
         if (!empty($data['waiting_production_date'])) $saleJS->waiting_production_date = $data['waiting_production_date'];
 
+        $sale_data['json']      = json_encode($saleJS);
         $sale_data['json_data'] = json_encode($saleJS);
 
         $this->db->trans_start();
@@ -8872,7 +8920,13 @@ class Site extends MY_Model
     }
 
     if (!empty($data['date']))       $saleItemData['date']    = $data['date'];
-    if (!empty($data['sale_id']))    $saleItemData['sale_id'] = $data['sale_id'];
+    if (!empty($data['sale_id'])) {
+      $sale = Sale::getRow(['id' => $data['sale_id']]);
+
+      $saleItemData['sale_id'] = $sale->id;
+      $saleItemData['sale'] = $sale->reference;
+    }
+
     if (!empty($data['product_id'])) {
       $product = $this->getProductByID($data['product_id']);
 
@@ -8886,13 +8940,13 @@ class Site extends MY_Model
     if (isset($data['price']))        $saleItemData['price']        = $data['price'];
     if (isset($data['quantity']))     $saleItemData['quantity']     = $data['quantity'];
     if (isset($data['finished_qty'])) $saleItemData['finished_qty'] = $data['finished_qty'];
-    if (!empty($data['warehouse_id'])) {
-      $warehouse = $this->getWarehouseByID($data['warehouse_id']);
+    // if (!empty($data['warehouse_id'])) {
+    //   $warehouse = $this->getWarehouseByID($data['warehouse_id']);
 
-      if ($warehouse) {
-        $saleItemData['warehouse_id'] = $warehouse->id;
-      }
-    }
+    //   if ($warehouse) {
+    //     $saleItemData['warehouse_id'] = $warehouse->id;
+    //   }
+    // }
     if (isset($data['price']) || isset($data['quantity'])) {
       $price    = ($data['price']    ?? $saleItem->price);
       $quantity = ($data['quantity'] ?? $saleItem->quantity);
@@ -8917,7 +8971,8 @@ class Site extends MY_Model
       if (isset($data['status']))       $jsonData->status       = $data['status'];
       if (isset($data['width']))        $jsonData->w            = $data['width'];
 
-      $saleItemData['json_data'] = json_encode($jsonData); // Required.
+      $saleItemData['json_data']  = json_encode($jsonData); // Required.
+      $saleItemData['json']       = json_encode($jsonData); // Required.
     }
 
     $this->db->trans_start();
@@ -9629,7 +9684,6 @@ class Site extends MY_Model
     if ($this->db->affected_rows()) {
       return TRUE;
     }
-    setLastError($this->db->error()['message']);
     return FALSE;
   }
 

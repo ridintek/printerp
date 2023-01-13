@@ -585,6 +585,8 @@ class Reports extends MY_Controller
 
       $warehouse = $this->site->getWarehouseByID($user->warehouse_id ?? $this->Settings->default_warehouse);
 
+      if (!$warehouse) continue;
+
       if ($warehouse->code == 'ADV') continue; // Ignore Advertising.
       if ($warehouse->code == 'BAL') continue; // Ignore Baltis Inn.
       if ($warehouse->code == 'LUC') continue; // Ignore Lucretai.
@@ -610,7 +612,7 @@ class Reports extends MY_Controller
 
         if ($sale->status == 'preparing') {
           if ($payments) {
-            if (strtotime(date('Y-m-d H:i:s')) > strtotime('+24 hours', strtotime($payments[0]->created_at))) {
+            if (strtotime(date('Y-m-d H:i:s')) > strtotime('+14 days', strtotime($payments[0]->created_at))) {
               $getStatus = 'over_get';
               $overGet++;
             }
@@ -620,7 +622,7 @@ class Reports extends MY_Controller
 
           if (!empty($saleJS->waiting_production_date)) {
             if ($payments) {
-              if (strtotime($saleJS->waiting_production_date) > strtotime('+24 hours', strtotime($payments[0]->created_at))) {
+              if (strtotime($saleJS->waiting_production_date) > strtotime('+14 days', strtotime($payments[0]->created_at))) {
                 $getStatus = 'over_get';
                 $overGet++;
               }
@@ -1424,6 +1426,9 @@ class Reports extends MY_Controller
         $clausesBegin .= " AND warehouse_id = {$warehouseId}";
       }
       $clauses .= " AND warehouse_id = {$warehouseId}";
+    } else { // Except Lucretia
+      $clausesBegin .= " AND warehouse_code <> 'LUC'";
+      $clauses .= " AND warehouse_code <> 'LUC'";
     }
 
     if ($categoryId) {
@@ -1522,44 +1527,44 @@ class Reports extends MY_Controller
    */
   public function getInventoryBalanceReport()
   {
-    $this->sma->checkUserPermissions('reports-inventory_balance', 0, ['datatables' => TRUE]);
-
-    $begin_clauses = '';
+    $clausesBegin = '';
     $clauses = '';
-    $category_id  = getGET('category');
-    $item_name    = getGET('item_name');
-    $start_date   = getGET('start_date');
-    $end_date     = getGET('end_date');
-    $warehouse_id = getGET('warehouse');
+    $categoryId  = getGET('category');
+    $itemName    = getGET('item_name');
+    $startDate   = getGET('start_date');
+    $endDate     = getGET('end_date');
+    $warehouseId = getGET('warehouse');
     $xls          = getGET('xls');
 
     $lucretaiMode = FALSE;
-    $warehouse = $this->site->getWarehouseByID($warehouse_id);
+    $warehouse = $this->site->getWarehouseByID($warehouseId);
 
     if ($warehouse && $warehouse->code == 'LUC') {
       $lucretaiMode = TRUE;
     }
 
-    if ($start_date) {
-      $end_date = ($end_date ?? date('Y-m-d'));
-      $start_date = $start_date . ' 00:00:00';
-      $end_date   = $end_date . ' 23:59:59';
+    if ($startDate) {
+      $endDate = ($endDate ?? date('Y-m-d'));
 
-      $begin_clauses .= "AND date < '{$start_date}'";
-      $clauses .= "AND date BETWEEN '{$start_date}' AND '{$end_date}'";
+      $clausesBegin .= "AND date < '{$startDate} 00:00:00'";
+      $clauses .= "AND date BETWEEN '{$startDate} 00:00:00' AND '{$endDate} 23:59:59'";
+    }
+
+    if ($warehouseId) { // Lucretia or selected warehouse
+      if ($startDate) {
+        $clausesBegin .= " AND warehouse_id = {$warehouseId}";
+      }
+      $clauses .= " AND warehouse_id = {$warehouseId}";
     } else {
-      $current_date = date('Y-m-d') . ' 00:00:00';
-      $begin_clauses .= "AND date < '{$current_date}'";
+      if ($startDate) {
+        $clausesBegin .= " AND warehouse_code <> 'LUC'";
+      }
+      $clauses .= " AND warehouse_code <> 'LUC'";
     }
 
-    if ($warehouse_id) { // Lucretia or selected warehouse
-      $begin_clauses .= " AND warehouse_id = {$warehouse_id}";
-      $clauses .= " AND warehouse_id = {$warehouse_id}";
-    }
-
-    if ($category_id) {
-      $begin_clauses .= " AND category_id = {$category_id}";
-      $clauses .= " AND category_id = {$category_id}";
+    if ($categoryId) {
+      $clausesBegin .= " AND category_id = {$categoryId}";
+      $clauses .= " AND category_id = {$categoryId}";
     }
 
     if (!$xls) { // DATATABLES
@@ -1570,7 +1575,7 @@ class Reports extends MY_Controller
         units.code AS product_unit,";
 
       //* QUERY BEGINNING
-      if ($start_date) {
+      if ($startDate) {
         $query .= "(COALESCE(stock_begin_recv.total, 0) - COALESCE(stock_begin_sent.total, 0)) AS beginning,";
       } else {
         $query .= "'0' AS beginning,";
@@ -1583,7 +1588,7 @@ class Reports extends MY_Controller
       $query .= "COALESCE(stock_sent.total, 0) AS decrease,";
 
       //* QUERY BALANCE
-      if ($start_date) {
+      if ($startDate) {
         $query .= "(COALESCE(stock_begin_recv.total, 0) - COALESCE(stock_begin_sent.total, 0) + COALESCE(stock_recv.total, 0) - COALESCE(stock_sent.total, 0)) AS balance,";
       } else {
         $query .= "(COALESCE(stock_recv.total, 0) - COALESCE(stock_sent.total, 0)) AS balance,";
@@ -1600,7 +1605,7 @@ class Reports extends MY_Controller
       //* QUERY STOCK VALUE
       $cost = ($lucretaiMode ? 'products.cost' : 'products.markon_price');
 
-      if ($start_date) {
+      if ($startDate) {
         $query .= "{$cost} * (COALESCE(stock_begin_recv.total, 0) - COALESCE(stock_begin_sent.total, 0) + COALESCE(stock_recv.total, 0) - COALESCE(stock_sent.total, 0)) AS stock_value";
       } else {
         $query .= "{$cost} * (COALESCE(stock_recv.total, 0) - COALESCE(stock_sent.total, 0)) AS stock_value";
@@ -1611,10 +1616,10 @@ class Reports extends MY_Controller
       $this->datatables->select($query)->from('products');
 
       // JOIN BEGINNING
-      if ($start_date) {
+      if ($startDate) {
         $this->datatables
-          ->join("(SELECT product_id, SUM(quantity) AS total FROM stocks WHERE status LIKE 'received' {$begin_clauses} GROUP BY product_id) stock_begin_recv", 'stock_begin_recv.product_id = products.id', 'left')
-          ->join("(SELECT product_id, SUM(quantity) AS total FROM stocks WHERE status LIKE 'sent' {$begin_clauses} GROUP BY product_id) stock_begin_sent", 'stock_begin_sent.product_id = products.id', 'left');
+          ->join("(SELECT product_id, SUM(quantity) AS total FROM stocks WHERE status LIKE 'received' {$clausesBegin} GROUP BY product_id) stock_begin_recv", 'stock_begin_recv.product_id = products.id', 'left')
+          ->join("(SELECT product_id, SUM(quantity) AS total FROM stocks WHERE status LIKE 'sent' {$clausesBegin} GROUP BY product_id) stock_begin_sent", 'stock_begin_sent.product_id = products.id', 'left');
       }
 
       // JOIN INCREASE OR BALANCE
@@ -1629,16 +1634,16 @@ class Reports extends MY_Controller
       $this->datatables
         ->join('units', 'units.id=products.unit', 'left');
 
-      if ($item_name) {
+      if ($itemName) {
         $this->datatables
           ->group_start()
-          ->like("products.code", $item_name, 'both')
-          ->or_like("products.name", $item_name, 'both')
+          ->like("products.code", $itemName, 'both')
+          ->or_like("products.name", $itemName, 'both')
           ->group_end();
       }
 
-      if ($category_id) {
-        $this->datatables->where("products.category_id", $category_id);
+      if ($categoryId) {
+        $this->datatables->where("products.category_id", $categoryId);
       }
 
       $this->datatables
@@ -1655,7 +1660,7 @@ class Reports extends MY_Controller
         categories.name AS category_name, products.type AS product_type, products.iuse_type AS iuse_type,";
 
       //* QUERY BEGINNING
-      if ($start_date) {
+      if ($startDate) {
         $query .= "(COALESCE(stock_begin_recv.total, 0) - COALESCE(stock_begin_sent.total, 0)) AS beginning,";
       } else {
         $query .= "'0' AS beginning,";
@@ -1668,7 +1673,7 @@ class Reports extends MY_Controller
       $query .= "COALESCE(stock_sent.total, 0) AS decrease,";
 
       //* QUERY BALANCE
-      if ($start_date) {
+      if ($startDate) {
         $query .= "(COALESCE(stock_begin_recv.total, 0) - COALESCE(stock_begin_sent.total, 0) + COALESCE(stock_recv.total, 0) - COALESCE(stock_sent.total, 0)) AS balance,";
       } else {
         $query .= "(COALESCE(stock_recv.total, 0) - COALESCE(stock_sent.total, 0)) AS balance,";
@@ -1685,7 +1690,7 @@ class Reports extends MY_Controller
       //* QUERY STOCK VALUE
       $cost = ($lucretaiMode ? 'products.cost' : 'products.markon_price');
 
-      if ($start_date) {
+      if ($startDate) {
         $query .= "{$cost} * (COALESCE(stock_begin_recv.total, 0) - COALESCE(stock_begin_sent.total, 0) + COALESCE(stock_recv.total, 0) - COALESCE(stock_sent.total, 0)) AS stock_value";
       } else {
         $query .= "{$cost} * (COALESCE(stock_recv.total, 0) - COALESCE(stock_sent.total, 0)) AS stock_value";
@@ -1696,10 +1701,10 @@ class Reports extends MY_Controller
       $this->db->select($query)->from('products');
 
       // JOIN BEGINNING
-      if ($start_date) {
+      if ($startDate) {
         $this->db
-          ->join("(SELECT product_id, SUM(quantity) AS total FROM stocks WHERE status LIKE 'received' {$begin_clauses} GROUP BY product_id) stock_begin_recv", 'stock_begin_recv.product_id = products.id', 'left')
-          ->join("(SELECT product_id, SUM(quantity) AS total FROM stocks WHERE status LIKE 'sent' {$begin_clauses} GROUP BY product_id) stock_begin_sent", 'stock_begin_sent.product_id = products.id', 'left');
+          ->join("(SELECT product_id, SUM(quantity) AS total FROM stocks WHERE status LIKE 'received' {$clausesBegin} GROUP BY product_id) stock_begin_recv", 'stock_begin_recv.product_id = products.id', 'left')
+          ->join("(SELECT product_id, SUM(quantity) AS total FROM stocks WHERE status LIKE 'sent' {$clausesBegin} GROUP BY product_id) stock_begin_sent", 'stock_begin_sent.product_id = products.id', 'left');
       }
 
       // JOIN INCREASE OR BALANCE
@@ -1718,16 +1723,16 @@ class Reports extends MY_Controller
       $this->db
         ->join('categories', 'categories.id = products.category_id', 'left');
 
-      if ($item_name) {
+      if ($itemName) {
         $this->db
           ->group_start()
-          ->like('products.code', $item_name, 'both')
-          ->or_like('products.name', $item_name, 'both')
+          ->like('products.code', $itemName, 'both')
+          ->or_like('products.name', $itemName, 'both')
           ->group_end();
       }
 
-      if ($category_id) {
-        $this->db->where('products.category_id', $category_id);
+      if ($categoryId) {
+        $this->db->where('products.category_id', $categoryId);
       }
 
       $this->db
@@ -1750,7 +1755,7 @@ class Reports extends MY_Controller
         $excel->setCellValue('H1', 'Increase');
         $excel->setCellValue('I1', 'Decrease');
         $excel->setCellValue('J1', 'Balance');
-        $excel->setCellValue('K1', 'Average Cost');
+        $excel->setCellValue('K1', 'Purchase Cost');
         $excel->setCellValue('L1', 'Stock Value');
 
         $row = 2;
@@ -1783,7 +1788,8 @@ class Reports extends MY_Controller
       $products = $this->site->getProducts(['type' => 'standard']); // Standard only.
 
       foreach ($warehouses as $warehouse) {
-        if ($warehouse->code == 'ADV') continue;
+        if ($warehouse->code == 'ADV')  continue;
+        if ($warehouse->active != 1)    continue;
 
         $totalCost = 0;
 
@@ -1826,7 +1832,7 @@ class Reports extends MY_Controller
         $excel->setTitle('Warehouse Summary Details');
 
         $excel->setCellValue('A1', 'Warehouses');
-        $excel->setCellValue('B1', 'Total Amount');
+        $excel->setCellValue('B1', 'Total Cost');
         $excel->setBold('A1:B1');
 
         $row = 2;

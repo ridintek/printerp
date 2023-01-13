@@ -10,6 +10,10 @@ class User
    */
   public static function add(array $data)
   {
+    if (isset($data['password'])) {
+      $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+    }
+
     DB::table('users')->insert($data);
     return DB::insertID();
   }
@@ -52,6 +56,10 @@ class User
    */
   public static function update(int $id, array $data)
   {
+    if (isset($data['password'])) {
+      $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+    }
+
     DB::table('users')->update($data, ['id' => $id]);
     return DB::affectedRows();
   }

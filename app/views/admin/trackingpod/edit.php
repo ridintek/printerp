@@ -15,7 +15,7 @@
               <?php foreach ($users as $user) :
                 $selected = ($track->created_by == $user->id ? ' selected' : '');
               ?>
-                <option value="<?= $user->id ?>" <?= $selected ?>><?= $user->first_name . ' ' . $user->last_name ?></option>
+                <option value="<?= $user->id ?>" <?= $selected ?>><?= $user->fullname ?></option>
               <?php endforeach; ?>
             </select>
           </div>

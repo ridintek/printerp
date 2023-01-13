@@ -86,16 +86,16 @@
               <?php
                 if ($row->adjustment_id != NULL) {
                   $user = $this->site->getUserByID($row->created_by);
-                  $created_by = ($user ? $user->first_name . ' ' . $user->last_name : '');
+                  $created_by = ($user ? $user->fullname : '');
                 } else if ($row->purchase_id != NULL) {
                   $user = $this->site->getUserByID($row->created_by);
-                  $created_by = ($user ? $user->first_name . ' ' . $user->last_name : '');
+                  $created_by = ($user ? $user->fullname : '');
                 } else if ($row->sale_id != NULL) {
                   $user = $this->site->getUserByID($row->created_by);
-                  $created_by = ($user ? $user->first_name . ' ' . $user->last_name : '');
+                  $created_by = ($user ? $user->fullname : '');
                 } else if ($row->transfer_id != NULL) {
                   $user = $this->site->getUserByID($row->created_by);
-                  $created_by = ($user ? $user->first_name . ' ' . $user->last_name : '');
+                  $created_by = ($user ? $user->fullname : '');
                 }
               ?>
             <td><?= $created_by; ?></td>

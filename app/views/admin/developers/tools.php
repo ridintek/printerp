@@ -54,8 +54,9 @@
                       <div class="form-group deviceid" style="display:none">
                         <label for="server">Device ID</label>
                         <select class="select2-tags" id="deviceid" name="deviceid" style="width:100%">
-                          <option value="1342">1342 (085712413114)</option>
-                          <option value="1343">1343 (089660044234)</option>
+                          <option value="f34af955cc4daf71795012e58231b069">Whacenter 085712413114</option>
+                          <option value="931ee27761187dc51a65326a8751c40a">Whacenter 085877992444</option>
+                          <option value="d32d795fdb1f3bdaac800f865416b24f">Whacenter 089660044234</option>
                         </select>
                       </div>
                     </div>

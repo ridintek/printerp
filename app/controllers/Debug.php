@@ -16,6 +16,42 @@ class Debug extends MY_Controller
     echo "Index";
   }
 
+  public function sendpayload()
+  {
+    /**
+     * Forward to IDP Studio for Topup Validation.
+     */
+    $curl = curl_init();
+    curl_setopt_array($curl, [
+      CURLOPT_URL => 'https://studio.indoprinting.co.id/account/request/deposit',
+      CURLOPT_RETURNTRANSFER => TRUE,
+      CURLOPT_CUSTOMREQUEST => 'POST',
+      CURLOPT_POSTFIELDS => '
+      {
+        "api_key": "NHlUZE9oc2w5dTEzemNNbElZNmJ0dlpaMzd4bFdCc0JXZmhaZGlxMjBMcEVSVUN4WU1vMnlMUjczTlZy61ad7a3fab24d",
+        "account_id": 1737,
+        "module": "bca",
+        "account_name": "ANITA RATNASARI R ST",
+        "account_number": "8030200234",
+        "balance": 12720562,
+        "data_mutasi": [{
+          "transaction_date": "2021-11-13 17:10:00",
+          "description": "TRSF E-BANKING CR05/06 95031 RIYAN WIDIYANTO TEST",
+          "type": "CR",
+          "amount": 0,
+          "balance": 0
+        }]
+      }
+      ',
+      CURLOPT_HTTPHEADER => [
+        'Content-Type: application/json'
+      ]
+    ]);
+    $r = curl_exec($curl);
+    var_dump($r);
+    echo '<br>' . $r;
+  }
+
   public function complete_sale()
   {
     $r = SaleItem::complete(32361, ['quantity' => 1]);
@@ -918,7 +954,6 @@ class Debug extends MY_Controller
             $this->site->updateSaleItems($sale->id, $saleItemsData);
           }
         }
-
       }
       echo ("Process finished.");
     }

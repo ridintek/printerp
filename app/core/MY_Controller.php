@@ -14,6 +14,26 @@ class MY_Controller extends CI_Controller
    */
   public $data;
 
+  /**
+   * @var bool
+   */
+  protected $isAJAX;
+
+  /**
+   * @var bool
+   */
+  protected $isLocal;
+
+  /**
+   * @var bool
+   */
+  protected $isDevServer;
+
+  /**
+   * @var string
+   */
+  protected $requestMethod;
+
   public function __construct()
   {
     parent::__construct();
@@ -107,6 +127,14 @@ class MY_Controller extends CI_Controller
 
     if ($this->loggedIn) {
       $group = Group::getRow(['id' => XSession::get('group_id')]);
+
+      if (!$group) {
+        $group = Group::getRow(['name' => XSession::get('group_name')]);
+      }
+
+      if (!$group) {
+        die('Session is logged in, but Group is not found.');
+      }
 
       $this->default_currency         = $this->site->getCurrencyByCode($this->Settings->default_currency);
       $this->data['default_currency'] = $this->default_currency;

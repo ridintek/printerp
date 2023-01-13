@@ -197,7 +197,7 @@ if ($warehouse_id) $q .= '&warehouse=' . $warehouse_id;
     <div class="row">
       <div class="col-lg-12">
 
-        <p class="introtext"><strong><?= lang('warehouse'); ?></strong>: <?= ($warehouse_id ? $warehouse->name : 'All Warehouses'); ?></p>
+        <p class="introtext"><strong><?= lang('warehouse'); ?></strong>: <?= ($warehouse_id ? $warehouse->name : 'All Warehouses (Except Lucretia)'); ?></p>
 
         <div id="form_filter" class="closed well well-sm">
           <div class="row">

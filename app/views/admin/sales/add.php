@@ -222,7 +222,7 @@
               <?php echo form_input('no_po', (isset($_POST['no_po']) ? $_POST['no_po'] : ''), 'class="form-control input-tip" id="no_po" title="Purchase Order Number (Optional)"'); ?>
             </div>
           </div>
-          <?php if ($Owner || $Admin || ! XSession::get('biller_id')) { ?>
+          <?php if ($Owner || $Admin || ! $this->session->userdata('biller_id')) { ?>
           <div class="col-md-4">
             <div class="form-group">
               <?= lang('biller', 'slbiller'); ?>
@@ -235,11 +235,11 @@
                   $bl[$biller->id] = $biller->name;
                 }
               }
-              echo form_dropdown('biller', $bl, (XSession::get('biller_id') ?? $Settings->default_biller), 'id="slbiller" data-placeholder="' . lang('select') . ' ' . lang('biller') . '" required="required" class="select2" style="width:100%;"'); ?>
+              echo form_dropdown('biller', $bl, ($this->session->userdata('biller_id') ?? $Settings->default_biller), 'id="slbiller" data-placeholder="' . lang('select') . ' ' . lang('biller') . '" required="required" class="select2" style="width:100%;"'); ?>
             </div>
           </div>
           <?php } else { ?>
-          <input type="hidden" id="slbiller" name="biller" value="<?= XSession::get('biller_id'); ?>">
+          <input type="hidden" id="slbiller" name="biller" value="<?= $this->session->userdata('biller_id'); ?>">
           <?php } ?>
         </div><!-- /.row -->
         <div class="row">
@@ -259,12 +259,12 @@
                   $blr[$user->id] = $user->biller_id;
                 }
               }
-              echo form_dropdown('created_by', $usr, XSession::get('user_id'), 'id="slpic" data-placeholder="' . lang('select') . ' ' . lang('pic_name') . '" required="required" class="select2" style="width:100%;"'); ?>
+              echo form_dropdown('created_by', $usr, $this->session->userdata('user_id'), 'id="slpic" data-placeholder="' . lang('select') . ' ' . lang('pic_name') . '" required="required" class="select2" style="width:100%;"'); ?>
             </div>
           </div>
           <?php } else {
-                  $blr[XSession::get('user_id')] = XSession::get('biller_id'); ?>
-          <input type="hidden" id="slpic" name="created_by" value="<?= XSession::get('user_id'); ?>">
+                  $blr[$this->session->userdata('user_id')] = $this->session->userdata('biller_id'); ?>
+          <input type="hidden" id="slpic" name="created_by" value="<?= $this->session->userdata('user_id'); ?>">
           <?php } ?>
           <div class="col-md-4">
             <div class="form-group">
@@ -272,7 +272,7 @@
               <?php
               $userData = [];
 
-              if ($billerId = XSession::get('biller_id')) {
+              if ($billerId = $this->session->userdata('biller_id')) {
                 $userData['biller_id'] = $billerId;
               }
 
@@ -285,7 +285,7 @@
                   $usr[$user->id] = $user->fullname;
                 }
               }
-              echo form_dropdown('cashier_by', $usr, XSession::get('user_id'), 'id="cashier" data-placeholder="Select Cashier" required="required" class="select2" style="width:100%;"'); ?>
+              echo form_dropdown('cashier_by', $usr, $this->session->userdata('user_id'), 'id="cashier" data-placeholder="Select Cashier" required="required" class="select2" style="width:100%;"'); ?>
             </div>
           </div>
           <div class="col-md-4">
@@ -349,7 +349,7 @@
                         $wh[$warehouse->id] = $warehouse->name;
                       }
                     }
-                    echo form_dropdown('warehouse', $wh, XSession::get('warehouse_id'), 'id="slwarehouse" class="select2" data-placeholder="' . lang('select') . ' ' . lang('warehouse') . '" required="required" style="width:100%;" '); ?>
+                    echo form_dropdown('warehouse', $wh, $this->session->userdata('warehouse_id'), 'id="slwarehouse" class="select2" data-placeholder="' . lang('select') . ' ' . lang('warehouse') . '" required="required" style="width:100%;" '); ?>
                   </div>
                 </div>
               </div>
@@ -438,6 +438,18 @@
                 <?php } else {
                       echo form_hidden('payment_status', 'pending');
                     } ?>
+                <!-- <div class="col-sm-4">
+                  <div class="form-group">
+                    <label for="production_pic">Production PIC</label>
+                    <?= form_dropdown('production_pic', '', '', 'class="user select2" data-placeholder="Select Production PIC" style="width:100%;"'); ?>
+                  </div>
+                </div>
+                <div class="col-sm-4">
+                  <div class="form-group">
+                    <?= lang('production_due_date', 'production_due_date'); ?>
+                    <input type="text" class="form-control datetime" name="production_due_date" id="production_due_date">
+                  </div>
+                </div> -->
                 <div class="clearfix"></div>
               </div>
             </div>
@@ -518,7 +530,7 @@
             <label for="pprice" class="col-sm-4 control-label"><?= lang('unit_price') ?></label>
 
             <div class="col-sm-8">
-              <?php $biller = $this->site->getBillerByID(XSession::get('biller_id')); ?>
+              <?php $biller = $this->site->getBillerByID($this->session->userdata('biller_id')); ?>
               <input type="text" class="form-control" id="pprice" <?= ($Owner || $Admin || getPermission('sales-edit_price')) ? '' : 'readonly'; ?>>
             </div>
           </div>
@@ -614,7 +626,7 @@
 <script type="text/javascript">
   $(document).ready(function () {
     let billers = JSON.parse('<?= json_encode($blr); ?>');
-    var warehouse_id = <?= (XSession::get('warehouse_id') ?? $Settings->default_warehouse); ?>;
+    var warehouse_id = <?= ($this->session->userdata('warehouse_id') ?? $Settings->default_warehouse); ?>;
 
     $('#approved').change(function(e) {
       if (e.target.checked) {

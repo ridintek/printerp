@@ -175,7 +175,7 @@ if ($end_date) {
     }
 
     <?php
-    if (XSession::get('remove_slls')) { ?>
+    if ($this->session->userdata('remove_slls')) { ?>
       if (localStorage.getItem('slitems')) {
         localStorage.removeItem('slitems');
       }

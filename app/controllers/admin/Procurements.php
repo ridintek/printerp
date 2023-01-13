@@ -296,11 +296,11 @@ class Procurements extends MY_Controller
       $i = isset($_POST['product_id']) ? count($_POST['product_id']) : 0;
 
       for ($r = 0; $r < $i; $r++) {
-        $itemCode      = getPOST('product_code')[$r];
+        $itemCode       = getPOST('product_code')[$r];
         $item_machine   = getPOST('machines')[$r];
         $item_price     = getPOST('price')[$r];
         $item_quantity  = getPOST('quantity')[$r];
-        $itemSpec      = getPOST('spec')[$r];
+        $itemSpec       = getPOST('spec')[$r];
         $itemUCR        = getPOST('ucr')[$r];
         $itemUniqueCode = getPOST('unique_code')[$r];
 

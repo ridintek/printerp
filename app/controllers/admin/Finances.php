@@ -869,7 +869,7 @@ class Finances extends MY_Controller
           admin_redirect('finances/expenses');
         }
 
-        $data['attachment_id'] = $uploader->storeRandom();
+        $data['attachment'] = $uploader->storeRandom();
       }
     } elseif (getPOST('add_expense')) {
       $this->session->set_flashdata('error', validation_errors());
@@ -1043,18 +1043,15 @@ class Finances extends MY_Controller
           expense_categories.name as category, expenses.amount, expenses.note,
           banks.name as bank_name, users.fullname as created_by,
           expenses.status, expenses.payment_date, expenses.payment_status,
-          suppliers.company as supplier_name, 
-          (CASE
-            WHEN expenses.attachment_id IS NOT NULL THEN expenses.attachment_id
-            WHEN expenses.attachment IS NOT NULL THEN expenses.attachment
-            ELSE ''
-          END) AS attachment")
+          suppliers.company as supplier_name, expenses.attachment")
         ->from('expenses')
         ->join('banks', 'banks.id=expenses.bank_id', 'left')
         ->join('expense_categories', 'expense_categories.id=expenses.category_id', 'left')
         ->join('suppliers', 'suppliers.id=expenses.supplier_id', 'left')
         ->join('users', 'users.id=expenses.created_by', 'left')
         ->group_by('expenses.id');
+
+      // $this->datatables->generate(['returnCompiled' => 1]);
 
       if ($reference) {
         $this->datatables->like('expenses.reference', $reference, 'both');
@@ -1937,11 +1934,13 @@ class Finances extends MY_Controller
     $this->form_validation->set_rules('amount', lang('amount'), 'required');
     if ($this->form_validation->run() == TRUE) {
       $date = date('Y-m-d H:i:s');
+      $expiredAt = date('Y-m-d H:i:s', strtotime('+1 day', strtotime($date)));
       $data = [
-        'date'         => $date,
-        'expired_date' => date('Y-m-d H:i:s', strtotime($date) + (60 * 60 * 24)), // 24 jam
-        'reference'    => (!empty(getPOST('reference')) ? getPOST('reference') : ''),
-        'amount'       => round(filterDecimal(getPOST('amount')))
+        'date'          => $date,
+        'expired_at'    => $expiredAt, // 24 jam
+        'expired_date'  => $expiredAt, // 24 jam
+        'reference'     => (!empty(getPOST('reference')) ? getPOST('reference') : ''),
+        'amount'        => round(filterDecimal(getPOST('amount')))
       ];
       if ($this->site->addPaymentValidation($data)) {
         $this->session->set_flashdata('message', lang('payment_validation_added'));
@@ -2266,14 +2265,12 @@ class Finances extends MY_Controller
 
   private function validations_manual($id = NULL)
   { // Manual Validation
-    $this->sma->checkPermissions('manual', TRUE, 'validations');
-
     if (!$id) {
       $this->session->set_flashdata('error', lang('no_payment_validation'));
       $this->sma->md();
     }
 
-    $paymentValidation = $this->site->getPaymentValidationByID($id);
+    $paymentValidation = PaymentValidation::getRow(['id' => $id]);
     $this->form_validation->set_rules('amount', lang('lang'), 'required');
 
     if (!$paymentValidation) {
@@ -2286,7 +2283,7 @@ class Finances extends MY_Controller
       $this->sma->md();
     }
 
-    if ($this->form_validation->run() == TRUE) {
+    if ($this->requestMethod == 'POST') {
       $validate_manual = (getPOST('manual_validation') ? TRUE : FALSE);
 
       if (!$validate_manual) {
@@ -2328,11 +2325,11 @@ class Finances extends MY_Controller
 
         $validationOptions['attachment_id'] = $uploader->storeRandom();
       } else {
-        XSession::set('error', 'Attachment dibutuhkan.');
-        admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
+        // XSession::set('error', 'Attachment dibutuhkan.');
+        // admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
       }
-
-      if ($this->site->validatePaymentValidation($data, $validationOptions)) { // Validate manually.
+      // dbgprint($data, $validationOptions); die;
+      if (PaymentValidation::validate($data, $validationOptions)) { // Validate manually.
         XSession::set('message', 'Pembayaran telah tervalidasi.');
         admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
       } else {
@@ -2373,8 +2370,11 @@ class Finances extends MY_Controller
       }
     }
 
+    $expiredAt = date('Y-m-d H:i:s', strtotime('+1 day'));
+
     PaymentValidation::update($pv->id, [
-      'expired_date'  => date('Y-m-d H:i:s', strtotime('+1 day')),
+      'expired_date'  => $expiredAt,
+      'expired_at'    => $expiredAt,
       'status'        => 'pending',
       'unique_code'   => $uniqueCode
     ]);

@@ -106,10 +106,10 @@
             } ?>
         </div>
         <div class="col-xs-4 pull-left">
-          <p><?= lang('created_by'); ?>: <?= $created_by->first_name . ' ' . $created_by->last_name; ?> </p>
+          <p><?= lang('created_by'); ?>: <?= $created_by->fullname; ?> </p>
           <?php
           if ($updated_by) {
-            echo '<p>' . lang('updated_by') . ': ' . $updated_by->first_name . ' ' . $updated_by->last_name . ' </p>';
+            echo '<p>' . lang('updated_by') . ': ' . $updated_by->fullname . ' </p>';
           } else {
             echo '<p>&nbsp;</p>';
           } ?>

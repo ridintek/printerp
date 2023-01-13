@@ -241,6 +241,8 @@ class Main extends MY_Controller // From MY_Shop_Controller
     }
     $user = $this->ion_auth->user()->row();
     if ($act == 'user') {
+      $this->form_validation->set_rules('first_name', lang('first_name'), 'required');
+      $this->form_validation->set_rules('last_name', lang('last_name'), 'required');
       $this->form_validation->set_rules('phone', lang('phone'), 'required');
       $this->form_validation->set_rules('email', lang('email'), 'required|valid_email');
       $this->form_validation->set_rules('company', lang('company'), 'trim');

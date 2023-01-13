@@ -276,10 +276,10 @@ class Sales extends MY_Controller
 
         $saleData['attachment_id'] = $uploader->storeRandom();
       } else if (!getPermission('sales-no_attachment')) {
-        if (strcasecmp($customerGroup->name, 'TOP') == 0) { // Prevent CS create sale without attachment for Customer TOP.
+        if ($customerGroup->name == 'TOP') { // Prevent CS create sale without attachment for Customer TOP.
           $this->session->set_flashdata('error', lang('top_no_attachment'));
           redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
-        } else if (strcasecmp(XSession::get('group_name'), 'TL') == 0 && $saleOptions !== 'noattachment') {
+        } else if (XSession::get('group_name') == 'tl' && $saleOptions !== 'noattachment') {
           // If TL add sale not from counter. must include attachment.
           $this->session->set_flashdata('error', lang('attachment_required'));
           redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
@@ -298,6 +298,7 @@ class Sales extends MY_Controller
             'date'         => $date,
             'sale_id'      => $sale_id,
             'expired_date' => $paymentDueDate,
+            'expired_at'   => $paymentDueDate,
             'reference'    => $sale->reference,
             'amount'       => $total,
             'created_by'   => $created_by
@@ -479,14 +480,15 @@ class Sales extends MY_Controller
         $expired_date = strtotime("+2 days", strtotime($date)); // Expired date always 2 days.
 
         $pvData = [
-          'date'         => $date,
-          'expired_date' => date('Y-m-d H:i:s', $expired_date),
-          'reference'    => $sale->reference,
-          'sale_id'      => $payment['sale_id'],
-          'amount'       => $payment['amount'],
-          'created_by'   => $payment['created_by'],
-          'biller_id'    => (isset($bank) ? $bank->biller_id : $sale->biller_id), // Do not change.
-          'unique_code'  => (!empty(getPOST('use_unique_code')) ? getPOST('unique_code') : NULL)
+          'date'          => $date,
+          'expired_date'  => date('Y-m-d H:i:s', $expired_date),
+          'expired_at'    => date('Y-m-d H:i:s', $expired_date),
+          'reference'     => $sale->reference,
+          'sale_id'       => $payment['sale_id'],
+          'amount'        => $payment['amount'],
+          'created_by'    => $payment['created_by'],
+          'biller_id'     => (isset($bank) ? $bank->biller_id : $sale->biller_id), // Do not change.
+          'unique_code'   => (!empty(getPOST('use_unique_code')) ? getPOST('unique_code') : NULL)
         ];
 
         if ($pvId = PaymentValidation::add($pvData)) {
@@ -520,7 +522,7 @@ class Sales extends MY_Controller
 
             if (!empty($payment['attachment_id'])) $vpvOpts['attachment_id'] = $payment['attachment_id'];
 
-            $ret = $this->site->validatePaymentValidation($vpvData, $vpvOpts);
+            $ret = PaymentValidation::validate($vpvData, $vpvOpts);
 
             if ($ret) {
               sendJSON(['error' => 0, 'msg' => 'Manual payment validation has been added successfully.']);
@@ -1122,16 +1124,17 @@ class Sales extends MY_Controller
         $expire_time = (60 * 60 * 24 * $customer->payment_term); // Expire time based on customer payment term in day. Default 1 day.
 
         $data = [
-          'date'         => $date,
-          'expired_date' => date('Y-m-d H:i:s', strtotime($date) + $expire_time), // 5 jam
-          'reference'    => $sale->reference,
-          'sale_id'      => $data_payment['sale_id'],
-          'amount'       => $data_payment['amount'],
-          'created_by'   => $created_by,
-          'warehouse_id' => $user->warehouse_id
+          'date'          => $date,
+          'expired_date'  => date('Y-m-d H:i:s', strtotime($date) + $expire_time), // 5 jam
+          'expired_at'    => date('Y-m-d H:i:s', strtotime($date) + $expire_time), // 5 jam
+          'reference'     => $sale->reference,
+          'sale_id'       => $data_payment['sale_id'],
+          'amount'        => $data_payment['amount'],
+          'created_by'    => $created_by,
+          'warehouse_id'  => $user->warehouse_id
         ];
 
-        if ($this->site->addPaymentValidation($data)) {
+        if (PaymentValidation::add($data)) {
           $this->site->updateSale($data['sale_id'], [
             'payment_status' => 'waiting_transfer'
           ]);
@@ -1686,7 +1689,7 @@ class Sales extends MY_Controller
             $user = $this->site->getUserByID($saleItemJS->operator_id ?? NULL);
             $op_username = ($user ? $user->username : '');
             $op_name     = ($user ? $user->fullname : '');
-            $isOperator  = ($user && strcasecmp($user->group_name, 'OPERATOR') == 0 ? TRUE : FALSE);
+            $isOperator  = ($user && $user->group_name == 'operator' ? TRUE : FALSE);
 
             $excel->setCellValue('A' . $b, $item->id);
             $excel->setCellValue('B' . $b, $sale->reference);
@@ -1786,7 +1789,7 @@ class Sales extends MY_Controller
           sales.date as date,
           sales.reference as reference,
           sales.biller as biller,
-          sales.customer as customer,
+          sales.customer_name as customer,
           sale_items.product_code as product_code,
           sale_items.product_name as product_name,
           sale_items.json_data as json_data,
@@ -1802,7 +1805,7 @@ class Sales extends MY_Controller
           sales.date as date,
           sales.reference as reference,
           sales.biller as biller,
-          sales.customer as customer,
+          sales.customer_name as customer,
           sale_items.product_code as product_code,
           sale_items.product_name as product_name,
           sale_items.json_data as json_data,
