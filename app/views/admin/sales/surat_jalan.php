@@ -112,7 +112,7 @@
             </thead>
             <tbody>
               <tr>
-                <td class="text-center"><?= $inv->created_by ? $created_by->first_name . ' ' . $created_by->last_name : $customer->name; ?></td>
+                <td class="text-center"><?= $inv->created_by ? $created_by->fullname : $customer->name; ?></td>
                 <td class="text-center"><?= $inv->no_po; ?></td>
                 <td class="text-center">
                   <?php

@@ -131,13 +131,13 @@
                       </tr>
                         <?php } ?>
                       <?php } else { ?>
-                        <?php if (XSession::get('show_cost') && $product->type == 'standard') { ?>
+                        <?php if ($this->session->userdata('show_cost') && $product->type == 'standard') { ?>
                       <tr>
                         <td><?= lang('cost'); ?></td>
                         <td><?= $this->sma->formatMoney($product->cost); ?></td>
                       </tr>
                         <?php } ?>
-                        <?php if (XSession::get('show_price') && $product->type == 'standard') { ?>
+                        <?php if ($this->session->userdata('show_price') && $product->type == 'standard') { ?>
                       <tr>
                         <td><?= lang('markon_price'); ?></td>
                         <td><?= $this->sma->formatMoney($product->markon_price); ?></td>
@@ -175,8 +175,8 @@
                           </thead>
                           <tbody>
                           <?php foreach ($warehouses as $warehouse) { ?>
-                            <?php if (XSession::get('warehouse_id')) { ?>
-                              <?php if (XSession::get('warehouse_id') != $warehouse->id) continue; ?>
+                            <?php if ($this->session->userdata('warehouse_id')) { ?>
+                              <?php if ($this->session->userdata('warehouse_id') != $warehouse->id) continue; ?>
                             <?php } ?>
                             <tr><td><?= $warehouse->name . ' (' . $warehouse->code . ')'; ?></td><td class="text-right"><strong><?= $this->sma->formatQuantity($warehouse->quantity, 2); ?></strong></td></tr>
                           <?php } ?>

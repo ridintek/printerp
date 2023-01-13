@@ -201,7 +201,7 @@ if (getPOST('to_date')) {
                 <label><?= lang('paid_by'); ?></label>
                 <?php
                 $banks = $this->finances_model->getAllBanks();
-                $biller = $this->site->getbillerByID(XSession::get('biller_id'));
+                $biller = $this->site->getbillerByID($this->session->userdata('biller_id'));
                 $bk = [];
                 $bk[''] = lang('select') . ' ' . lang('paid_by');
                 if ($banks) {

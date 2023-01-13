@@ -22,7 +22,7 @@ $warehouse = $this->site->getWarehouseByID($track->warehouse_id);
       <tbody>
         <tr>
           <td>PIC Name</td>
-          <td><?= $user->first_name . ' ' . $user->last_name ?></td>
+          <td><?= $user->fullname ?></td>
         </tr>
         <tr>
           <td>Warehouse</td>

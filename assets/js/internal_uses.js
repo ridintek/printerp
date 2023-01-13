@@ -57,8 +57,8 @@ $(document).ready(function () {
         if (localStorage.getItem('to_warehouse')) {
           localStorage.removeItem('to_warehouse');
         }
-        if (localStorage.getItem('tonote')) {
-          localStorage.removeItem('tonote');
+        if (localStorage.getItem('iunote')) {
+          localStorage.removeItem('iunote');
         }
         if (localStorage.getItem('from_warehouse')) {
           localStorage.removeItem('from_warehouse');
@@ -104,19 +104,20 @@ $(document).ready(function () {
     }
   }
 
-    //$(document).on('change', '#tonote', function (e) {
-  $('#tonote').redactor('destroy');
-  $('#tonote').redactor({
+    //$(document).on('change', '#iunote', function (e) {
+  $('#iunote').redactor('destroy');
+  $('#iunote').redactor({
     buttons: ['formatting', '|', 'alignleft', 'aligncenter', 'alignright', 'justify', '|', 'bold', 'italic', 'underline', '|', 'unorderedlist', 'orderedlist', '|', 'link', '|', 'html'],
     formattingTags: ['p', 'pre', 'h3', 'h4'],
     minHeight: 50,
     changeCallback: function (e) {
       var v = this.get();
-      localStorage.setItem('tonote', v);
+      localStorage.setItem('iunote', v);
     }
   });
-  if (tonote = localStorage.getItem('tonote')) {
-    $('#tonote').redactor('set', tonote);
+
+  if (iunote = localStorage.getItem('iunote')) {
+    // $('#iunote').redactor('set', iunote);
   }
 
   // prevent default action upon enter

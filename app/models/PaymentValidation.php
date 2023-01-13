@@ -15,7 +15,10 @@ class PaymentValidation
 
     if (empty($data['expired_date'])) {
       // Default expired: 2 days.
-      $date['expired_date'] = date('Y-m-d H:i:s', strtotime('+2 day', strtotime($data['date'])));
+      $data['expired_date'] = date('Y-m-d H:i:s', strtotime('+2 day', strtotime($data['date'])));
+      $data['expired_at'] = $data['expired_date'];
+    } else {
+      $data['expired_at'] = $data['expired_date'];
     }
 
     if (!empty($data['unique_code']) && is_numeric($data['unique_code'])) {
@@ -44,10 +47,23 @@ class PaymentValidation
       }
     }
 
-    $data['unique_code'] = $uniqueCode;
-    $data['status']      = 'pending';
+    if (isset($data['mutation_id'])) {
+      $mutation = BankMutation::getRow(['id' => $data['mutation_id']]);
+      $data['mutation'] = $mutation->reference;
+    }
 
-    $data['biller_id'] = ($data['biller_id'] ?? XSession::get('biller_id'));
+    if (isset($data['sale_id'])) {
+      $sale = Sale::getRow(['id' => $data['sale_id']]);
+      $data['sale'] = $sale->reference;
+    }
+
+    $data['unique_code']  = $uniqueCode;
+    $data['unique']       = $uniqueCode;
+    $data['status']       = 'pending';
+
+    $biller = Biller::getRow(['id' => ($data['biller_id'] ?? XSession::get('biller_id'))]);
+    $data['biller_id']  = $biller->id;
+    $data['biller']     = $biller->code;
 
     $data = setCreatedBy($data);
 
@@ -165,8 +181,10 @@ class PaymentValidation
     $mutation_id = ($options['mutation_id'] ?? NULL);
     $status = ($sale_id || $mutation_id ? ['expired', 'pending'] : 'pending');
     // $status = ($sale_id || $mutation_id ? ['pending'] : 'pending'); // New
-    $paymentValidation = self::get(['status' => $status]);
+    $paymentValidation = self::select('*')->whereIn('status', $status)->get();
     $validatedCount = 0;
+
+    $mutasibanks = DB::table('mutasibank')->get(['status' => 'pending']);
 
     if ($paymentValidation) {
       foreach ($paymentValidation as $pv) {
@@ -189,16 +207,36 @@ class PaymentValidation
               die('Bank not defined');
             }
 
+            foreach ($mutasibanks as $mb) {
+              $mbData = getJSON($mb->data);
+
+              foreach ($mbData->data_mutasi as $dmb) {
+                if ($dmb->amount == $dm->amount) {
+                  DB::table('mutasibank')->update([
+                    'status'    => 'validated',
+                    'validated' => intval($dm->validated) + 1
+                  ], ['id' => $mb->id]);
+                }
+              }
+            }
+
             $pvData = [
+              'bank'              => $bank->code,
               'bank_id'           => $bank->id,
+              'transaction_at'    => $dm->transaction_date,
               'transaction_date'  => $dm->transaction_date,
               'description'       => $dm->description,
+              'note'              => $dm->description,
               'status'            => 'verified'
             ];
 
             if (!empty($options['manual'])) {
               $pvData = setCreatedBy($pvData);
+              $pvData['verified_at'] = NULL; // Manual not verified automatically.
               $pvData['description'] = '(MANUAL) ' . $pvData['description'];
+              $pvData['note'] = $pvData['description'];
+            } else {
+              $pvData['verified_at'] = date('Y-m-d H:i:s');
             }
 
             if (self::update((int)$pv->id, $pvData)) {
@@ -219,7 +257,7 @@ class PaymentValidation
 
                 if (isset($options['attachment_id'])) $payment['attachment_id'] = $options['attachment_id'];
 
-                Sale::addPayment($payment); // Add real payment to sales. 2nd param must be TRUE if payment validation automated.
+                Sale::addPayment($payment); // Add real payment to sales.
                 $customer = Customer::getRow(['id' => $sale->customer_id]);
 
                 if ($customer && $amount_match) { // Restore unique code as deposit for customer if amount match.

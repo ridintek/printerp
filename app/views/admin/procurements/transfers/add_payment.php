@@ -24,12 +24,12 @@
             
             if ( ! empty($users)) {
               foreach ($users as $user) {
-                if ( ! $Admin && ! $Owner && XSession::get('user_id') != $user->id) continue; 
-                $usr[$user->id] = $user->first_name . ' ' . $user->last_name;
+                if ( ! $Admin && ! $Owner && $this->session->userdata('user_id') != $user->id) continue; 
+                $usr[$user->id] = $user->fullname;
               }
             }
 
-            echo form_dropdown('created_by', $usr, XSession::get('user_id'), 'id="created_by" class="select2" placeholder="Select Created By" required="required" style="width:100%"');
+            echo form_dropdown('created_by', $usr, $this->session->userdata('user_id'), 'id="created_by" class="select2" placeholder="Select Created By" required="required" style="width:100%"');
             ?>
           </div>
         </div>

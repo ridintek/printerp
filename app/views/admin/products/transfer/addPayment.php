@@ -105,7 +105,7 @@ $banksTo   = $this->site->getBanks(['biller_id' => $billerTo->id]);
       let payment_status = '<?= $pt->payment_status; ?>';
 
       $('#created_at').val('<?= dtJS($this->serverDateTime) ?>');
-      $('#created_by').val('<?= XSession::get('user_id') ?>').trigger('change');
+      $('#created_by').val('<?= $this->session->userdata('user_id') ?>').trigger('change');
       $('#amount').val(formatCurrency('<?= $pt->grand_total - $pt->paid ?>'));
 
       $('#add_payment').click(function(e) {

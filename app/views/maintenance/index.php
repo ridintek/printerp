@@ -7,7 +7,7 @@
 	$second = date('s', strtotime($end_date));;
 
 	if (now() >= strtotime("{$year}-{$month}-{$date} {$hour}:{$minute}:{$second}")) {
-		// redirect('/admin');
+		redirect('/admin');
 	}
 ?>
 <!DOCTYPE html>

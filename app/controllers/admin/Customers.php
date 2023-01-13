@@ -63,7 +63,7 @@ class Customers extends MY_Controller
       redirect($_SERVER['HTTP_REFERER'] ?? 'admin/customers');
     }
 
-    if ($this->form_validation->run() == true && $cid = $this->site->addCustomer($data)) {
+    if ($this->form_validation->run() == true && $cid = Customer::add($data)) {
       $this->session->set_flashdata('message', lang('customer_added'));
       $ref = isset($_SERVER['HTTP_REFERER']) ? explode('?', $_SERVER['HTTP_REFERER']) : null;
       admin_redirect($ref[0] . '?customer=' . $cid);
@@ -880,13 +880,13 @@ class Customers extends MY_Controller
   public function suggestions($term = null, $limit = null, $a = null)
   {
     if (getGET('term')) {
-      $term = getGET('term');
+      $term = getGET('term', true);
     }
     if (getGET('id')) {
       $term = [];
-      $term['id'] = getGET('id');
+      $term['id'] = getGET('id', true);
     }
-    $limit  = getGET('limit');
+    $limit  = getGET('limit', true);
     $result = $this->site->getCustomerSuggestions($term, $limit);
     if ($a) {
       sendJSON($result);

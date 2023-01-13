@@ -3586,7 +3586,7 @@ class Products extends MY_Controller
 
               if ($product->type == 'standard') {
                 $avgCost = getProductAvgCost($product->id);
-                $this->site->updateProducts([['product_id' => $product->id, 'avg_cost' => $avgCost]]);
+                Product::update((int)$product->id, ['avg_cost' => $avgCost]);
                 unset($avgCost);
               }
 
@@ -3604,13 +3604,13 @@ class Products extends MY_Controller
       } else if (!empty($_POST['val'])) { // If not empty val then val products synced.
         if (getPOST('form_action') == 'sync_quantity') { // Sync quantity.
           foreach ($_POST['val'] as $id) {
-            $product = $this->site->getProductByID($id);
+            $product = Product::getRow(['id' => $id]);
 
             if ($product->type == 'combo') continue; // Ignore combo product.
 
             if ($product->type == 'standard') {
               $avgCost = getProductAvgCost($product->id);
-              $this->site->updateProducts([['product_id' => $product->id, 'avg_cost' => $avgCost]]);
+              Product::update((int)$product->id, ['avg_cost' => $avgCost]);
               unset($avgCost);
             }
 
@@ -3626,9 +3626,9 @@ class Products extends MY_Controller
           $msg = '';
 
           foreach ($_POST['val'] as $id) {
-            $product = $this->site->getProductByID($id);
+            $product = Product::getRow(['id' => $id]);
 
-            if ($this->site->updateProducts([['product_id' => $product->id, 'active' => 1]])) {
+            if (Product::update((int)$product->id, ['active' => 1])) {
               $msg .= "Item '{$product->code}' has been activated.<br>";
             } else {
               $msg .= "<span class=\"text-danger bold\">Failed</span> to activate '{$product->code}'.";
@@ -3642,7 +3642,7 @@ class Products extends MY_Controller
           foreach ($_POST['val'] as $id) {
             $product = $this->site->getProductByID($id);
 
-            if ($this->site->updateProducts([['product_id' => $product->id, 'active' => 0]])) {
+            if (Product::update((int)$product->id, ['active' => 0])) {
               $msg .= "Item '{$product->code}' has been deactivated.<br>";
             } else {
               $msg .= "<span class=\"text-danger bold\">Failed</span> to deactivate '{$product->code}'.";
@@ -3653,7 +3653,7 @@ class Products extends MY_Controller
         } elseif (getPOST('form_action') == 'delete') {
           $this->sma->checkPermissions('delete');
           foreach ($_POST['val'] as $id) {
-            $this->site->deleteProduct($id);
+            Product::delete(['id' => $id]);
           }
           if ($this->input->is_ajax_request()) {
             sendJSON(['error' => 0, 'msg' => $this->lang->line('products_deleted')]);

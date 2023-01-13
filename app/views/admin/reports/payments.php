@@ -90,8 +90,8 @@ if ($endRefDate = getGET('end_ref_date')) {
       "fnFooterCallback": function(nRow, aaData, iStart, iEnd, aiDisplay) {
         var total = 0;
         for (var i = 0; i < aaData.length; i++) {
-          let amount = parseFloat(aaData[aiDisplay[i]][10]);
-          let type = aaData[aiDisplay[i]][11];
+          let amount = parseFloat(aaData[aiDisplay[i]][11]);
+          let type = aaData[aiDisplay[i]][12];
 
           if (type == 'sent') {
             total -= amount;
@@ -100,7 +100,7 @@ if ($endRefDate = getGET('end_ref_date')) {
           }
         }
         var nCells = nRow.getElementsByTagName('th');
-        nCells[10].innerHTML = currencyFormat(parseFloat(total));
+        nCells[11].innerHTML = currencyFormat(parseFloat(total));
       }
     });
 

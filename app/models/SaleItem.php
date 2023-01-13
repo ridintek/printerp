@@ -48,7 +48,7 @@ class SaleItem
       } else if (($completedQty + $saleItem->finished_qty) == $saleItem->quantity) { // If fully completed.
         $status = 'completed';
       } else {
-        setLastError("SaleItem::complete(): Something wrong! Maybe you complete more quantity than requested. " .
+        setLastError("<b>completeSaleItem()</b>: Something wrong! Maybe you complete more quantity than requested. " .
           "Completed: {$completedQty}, Finished: {$saleItem->finished_qty}, Quantity: {$saleItem->quantity}");
         return FALSE;
       }
@@ -68,6 +68,7 @@ class SaleItem
 
       $saleItemData = [
         'finished_qty'  => ($saleItem->finished_qty + $completedQty),
+        'json'          => json_encode($saleItemJS),
         'json_data'     => json_encode($saleItemJS)
       ];
 
@@ -121,7 +122,7 @@ class SaleItem
                   'product_id'    => $rawItem->id,
                   'price'         => $saleItem->price,
                   'quantity'      => $finalCompletedQty,
-                  'warehouse_id'  => $saleItem->warehouse_id,
+                  'warehouse_id'  => $sale->warehouse_id,
                   'created_at'    => $data['created_at'],
                   'created_by'    => $operator->id
                 ]);
@@ -145,7 +146,7 @@ class SaleItem
             'product_id'    => $saleItem->product_id,
             'price'         => $saleItem->price,
             'quantity'      => $completedQty,
-            'warehouse_id'  => $saleItem->warehouse_id,
+            'warehouse_id'  => $sale->warehouse_id,
             'created_at'    => $data['created_at'],
             'created_by'    => $operator->id
           ]);
@@ -153,7 +154,7 @@ class SaleItem
           addEvent("Completed Sale [{$sale->id}: {$sale->reference}]; {$saleItem->product_code}: {$completedQty}");
         } else if ($saleItem->product_type == 'standard') { // SALEITEM. Decrement. FFC280, POCT15
           if ($saleItem->product_code == 'KLIKPOD') {
-            dbglog('error', 'CRITICAL: KLIKPOD KNOWN AS STANDARD TYPE MUST NOT BE DECREASED!');
+            setLastError("CRITICAL: KLIKPOD KNOWN AS STANDARD TYPE MUST NOT BE DECREASED!", 'critical');
             return FALSE;
           }
 
@@ -163,7 +164,7 @@ class SaleItem
             'product_id'    => $saleItem->product_id,
             'price'         => $saleItem->price,
             'quantity'      => $completedQty,
-            'warehouse_id'  => $saleItem->warehouse_id,
+            'warehouse_id'  => $sale->warehouse_id,
             'created_at'    => $data['created_at'],
             'created_by'    => $operator->id
           ]);
@@ -186,6 +187,12 @@ class SaleItem
    */
   public static function delete(array $clause)
   {
+    $sales = self::get($clause);
+
+    foreach ($sales as $sale) {
+      addEvent("Deleted Sale [{$sale->id}: {$sale->reference}]", 'danger');
+    }
+
     DB::table('sale_items')->delete($clause);
     return DB::affectedRows();
   }

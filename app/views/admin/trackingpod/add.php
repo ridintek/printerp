@@ -14,10 +14,10 @@
               <?php $users = $this->site->getUsers(); ?>
               <?php foreach ($users as $user) :
                 if (!$isAdmin) {
-                  if ($user->id != XSession::get('user_id')) continue;
+                  if ($user->id != $this->session->userdata('user_id')) continue;
                 }
               ?>
-                <option value="<?= $user->id ?>"><?= $user->first_name . ' ' . $user->last_name ?></option>
+                <option value="<?= $user->id ?>"><?= $user->fullname ?></option>
               <?php endforeach; ?>
             </select>
           </div>
@@ -39,8 +39,8 @@
                 $selected = '';
 
                 if (!$isAdmin) {
-                  if (XSession::get('warehouse_id')) {
-                    if ($warehouse->id != XSession::get('warehouse_id')) continue;
+                  if ($this->session->userdata('warehouse_id')) {
+                    if ($warehouse->id != $this->session->userdata('warehouse_id')) continue;
                   }
                 } else {
                   if ($warehouse->code == 'LUC') $selected = ' selected';

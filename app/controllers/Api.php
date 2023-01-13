@@ -350,7 +350,7 @@ class Api extends MY_Controller
       die();
     }
 
-    $mb_response = json_decode(file_get_contents('php://input'));
+    $mb_response = getJSON(file_get_contents('php://input'));
 
     if (empty($mb_response)) {
       $this->redirect();
@@ -358,12 +358,10 @@ class Api extends MY_Controller
 
     header('Content-Type: text/html');
 
-    if ($this->mutasibank->validate($mb_response)) { // Segala pengecekan dan validasi data di sini.
-      http_response_code(200); // OK
-      echo ('VALIDATED');
+    if ($total = PaymentValidation::validate($mb_response)) { // Segala pengecekan dan validasi data di sini.
+      $this->response(200, ['message' => sprintf('Success validate %d payment validations.', $total)]);
     } else {
-      http_response_code(406); // Not Acceptable
-      echo ('NOT VALIDATED');
+      $this->response(404, ['message' => 'No validated payment validations']);
     }
   }
 
@@ -441,7 +439,7 @@ class Api extends MY_Controller
       $validationOptions['attachment_id'] = $uploader->storeRandom();
     }
 
-    if ($this->site->validatePaymentValidation($data, $validationOptions)) {
+    if (PaymentValidation::validate($data, $validationOptions)) {
       sendJSON(['error' => 0, 'msg' => 'Payment has been validated successfully.']);
     }
     sendJSON(['error' => 1, 'msg' => 'Failed to validate payment.']);
@@ -453,36 +451,40 @@ class Api extends MY_Controller
     if ($this->requestMethod == 'POST') {
       $amount = getPOST('amount');
 
-      if (empty($amount)) sendJSON(['error' => 1, 'msg' => 'Amount is not specified.']);
+      if (empty($amount)) $this->response(400, ['message' => 'Amount is not specified.']);
 
       $date = date('Y-m-d H:i:s');
-      $user   = $this->site->getUserByUsername('w2p');
-      $biller = $this->site->getBillerByName('online'); // Online.
+      $user   = User::getRow(['username' => 'SYSTEM']);
+      $biller = Biller::getRow(['code' => 'ONL']); // Online.
 
       $pv_data = [
         'created_at'    => date('Y-m-d H:i:s'),
         'expired_date'  => date('Y-m-d H:i:s', strtotime("+1 day", strtotime($date))),
-        'reference'     => 'W2P',
+        'reference'     => uuid(),
         'amount'        => $amount,
         'biller_id'     => $biller->id,
         'created_by'    => $user->id
       ];
 
-      if ($pv_id = $this->site->addPaymentValidation($pv_data)) {
-        $payment_validation = $this->site->getPaymentValidationByID($pv_id);
+      if ($pvId = PaymentValidation::add($pv_data)) {
+        $paymentValidation = PaymentValidation::getRow(['id' => $pvId]);
 
-        sendJSON(['error' => 0, 'payment_validation' => $payment_validation]);
+        $this->response(201, ['message' => 'Payment validation created successfully.',
+          'data' => $paymentValidation
+        ]);
       }
-      sendJSON(['error' => 1, 'msg' => 'Cannot create payment validation.']);
+      
+      $this->response(400, ['message' => 'Cannot create payment validation.']);
     } else if ($this->requestMethod == 'GET') {
       $id = getGET('id');
 
-      $payment_validation = $this->site->getPaymentValidationByID($id);
+      $paymentValidation = PaymentValidation::getRow(['id' => $id]);
 
-      if ($payment_validation) {
-        sendJSON(['error' => 0, 'payment_validation' => $payment_validation]);
+      if ($paymentValidation) {
+        $this->response(200, ['data' => $paymentValidation]);
       }
-      sendJSON(['error' => 1, 'msg' => 'No payment validation found.']);
+
+      $this->response(404, ['message' => 'Payment validation is not found.']);
     }
   }
 
@@ -633,7 +635,7 @@ class Api extends MY_Controller
         'biller_id'     => $sale->biller_id,
       ];
 
-      if ($this->site->addPaymentValidation($pv_data)) {
+      if (PaymentValidation::add($pv_data)) {
         $this->site->updateSale($sale->id, ['payment_status' => 'waiting_transfer']);
 
         sendJSON(['error' => 0, 'msg' => 'Payment Validation has been added.', 'data' => [
@@ -1033,7 +1035,7 @@ class Api extends MY_Controller
                 'created_by'    => $sale_data['created_by']
               ];
 
-              $this->site->addPaymentValidation($pv_data);
+              PaymentValidation::add($pv_data);
             }
 
             sendJSON([

@@ -42,7 +42,7 @@
             $creator = '';
 
             if ($user) {
-              $creator = $user->first_name . ' ' . $user->last_name;
+              $creator = $user->fullname;
             }
 
             echo("<tr>");

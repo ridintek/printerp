@@ -293,7 +293,7 @@ if (!function_exists('row_status')) {
                                     $operator = NULL;
                                   }
 
-                                  $operatorName = ($operator ? $operator->first_name . ' ' . $operator->last_name : '');
+                                  $operatorName = ($operator ? $operator->fullname : '');
 
                                   if (!in_array($operatorName, $operators)) {
                                     $operators[] = $operatorName;
@@ -321,7 +321,7 @@ if (!function_exists('row_status')) {
                                   <td><?= $biller->name ?></td>
                                   <td><?= $warehouse->name ?></td>
                                   <td><?= ($saleJS->est_complete_date ?? '') ?></td>
-                                  <td><?= $pic->first_name . ' ' . $pic->last_name; ?></td>
+                                  <td><?= $pic->fullname; ?></td>
                                   <td><?= '- ' . implode('<br>-', $operators) ?></td>
                                   <?= renderStatus($productionStatus) ?>
                                 </tr>

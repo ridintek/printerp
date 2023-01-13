@@ -697,6 +697,11 @@ function generateUniquePaymentCode()
   return mt_rand(1, 100);
 }
 
+function uuid()
+{
+  return generateUUID();
+}
+
 /**
  * Generate Universally Unique Identifier.
  * @return string
@@ -862,6 +867,7 @@ function getDailyPerformanceReport($opt)
   $beginDate    = new DateTime('2022-01-01 00:00:00'); // First data date of begin date.
   $startDate    = new DateTime($period->format('Y-m-d')); // First date of current period.
   $endDate      = new DateTime($period->format('Y-m-t')); // Date must be end of month. (28 to 31)
+  $activeDays   = intval($startDate->diff($currentDate)->format('%a'));
 
   $firstDate  = 1; // First date of month.
   $lastDate   = intval($endDate->format('j')); // Date only. COUNTABLE
@@ -877,7 +883,7 @@ function getDailyPerformanceReport($opt)
 
     $dailyData = [];
 
-    $billerJS = json_decode($biller->json_data);
+    $billerJS = getJSON($biller->json_data);
     $warehouse = Warehouse::getRow(['code' => $biller->code]);
 
     if ($biller->code == 'LUC') { // Lucretia method is different.
@@ -976,7 +982,7 @@ function getDailyPerformanceReport($opt)
       }
     }
 
-    $activeDays     = intval($startDate->diff($currentDate)->format('%d'));
+    // $activeDays     = intval($startDate->diff($currentDate)->format('%d'));
     $daysInMonth    = getDaysInMonth($startDate->format('Y'), $startDate->format('n'));
     $averageRevenue = ($revenue / $activeDays);
 
@@ -1129,20 +1135,15 @@ function getIncomeStatementReport($opt)
 
   // $internalUses = $ci->site->getStockInternalUses($opt);
   // Old Transfers.
-  $transfers    = $ci->site->getStockTransfers($opt);
+  // $transfers    = $ci->site->getStockTransfers($opt);
   unset($opt['from_warehouse_id']);
 
   // New Product Transfers.
   $opt['warehouse_id_from'] = $warehouse_ids;
-  // dbgprint($opt); die;
-  $newTransfers = ProductTransfer::get($opt);
 
-  // print_r($newTransfers); die;
+  $transfers = ProductTransfer::get($opt);
 
   unset($opt); // Filter options end here.
-
-  // New Product Transfer
-  $transfers = array_merge($transfers, $newTransfers);
 
   $capInvAmount = 0;
   $invCost = [
@@ -1268,10 +1269,18 @@ function getIncomeStatementReport($opt)
     // If no payment and customer reguler, skip it.
     // if ($sale->paid <= 0 && !isSpecialCustomer($sale->customer_id)) continue;
 
+    // #1 Revenue.
+    $revenue += $sale->grand_total;
+    $saleCount++;
+
     $saleItems = $ci->site->getSaleItems(['sale_id' => $sale->id]);
 
     if ($saleItems) {
       foreach ($saleItems as $saleItem) {
+        // Fix 2023-01-13 16:20:05
+        $saleItemJS = getJSON($saleItem->json_data);
+        if ($saleItemJS->status != 'completed' && $saleItemJS->status != 'delivered') continue;
+
         if ($saleItem->product_type == 'combo') {
           $comboItems = $ci->site->getComboItemsByProductID($saleItem->product_id);
 
@@ -1285,26 +1294,7 @@ function getIncomeStatementReport($opt)
         }
       }
     }
-
-    // #1 Revenue.
-    $revenue += $sale->grand_total;
-    $saleCount++;
   }
-
-  // RAW Materials (#2 Cost of Goods > Sold Items Cost.)
-  // $stocks = Stock::get([
-  //   'not_null' => 'sale_id',
-  //   'start_date' => $opt['start_date'],
-  //   'end_date' => $opt['end_date']
-  // ]);
-
-  // foreach ($stocks as $stock) {
-  //   $sale = Sale::getRow(['id' => $stock->sale_id]);
-
-  //   if (!empty($billerIds)) {
-  //     if (!array_search($sale->biller_id, $billerIds)) continue;
-  //   }
-  // }
 
   // STOCK OPNAMES
   foreach ($stockOpnames as $stockOpname) {
@@ -2312,7 +2302,7 @@ function isSpecialCustomer($customerId)
   $custGroup = $ci->site->getCustomerGroupByCustomerID($customerId);
 
   if ($custGroup) {
-    return (strcasecmp($custGroup->name, 'privilege') === 0 || strcasecmp($custGroup->name, 'top') === 0 ? TRUE : FALSE);
+    return (strtolower($custGroup->name) == 'privilege' || strtolower($custGroup->name) == 'top' ? TRUE : FALSE);
   }
   return FALSE;
 }
@@ -2371,7 +2361,7 @@ function isWeb2Print($sale_id)
  * @param string $type debug, error, info, ...
  * @param mixed $msg Message to log.
  */
-function dbglog($type , $msg = '')
+function dbglog($type, $msg = '')
 {
   $filename = FCPATH . 'logs/log-' . date('Y-m-d') . ".log";
   $hFile  = fopen($filename, 'a'); // Appending and write

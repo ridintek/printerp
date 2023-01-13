@@ -28,7 +28,7 @@
                       <?php foreach ($users as $user) :
                         $userGroup = $this->site->getUserGroup($user->id);
 
-                        if (strcasecmp($userGroup->name, 'SUPPORT') !== 0) continue;
+                        if (strcasecmp($userGroup->name, 'support') !== 0) continue;
                       ?>
                         <option value="<?= $user->id ?>" data-group="<?= $userGroup->name ?>"><?= $user->fullname ?></option>
                       <?php endforeach; ?>

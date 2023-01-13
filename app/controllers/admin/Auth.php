@@ -1,7 +1,5 @@
 <?php
 
-use App\Http\Middleware\Authenticate;
-
 defined('BASEPATH') or exit('No direct script access allowed');
 
 class Auth extends MY_Controller
@@ -96,10 +94,6 @@ class Auth extends MY_Controller
 
   public function change_password()
   {
-    if (!$this->ion_auth->logged_in()) {
-      admin_redirect('login');
-    }
-    $this->form_validation->set_rules('old_password', lang('old_password'), 'required');
     $this->form_validation->set_rules('new_password', lang('new_password'), 'required|min_length[8]|max_length[25]');
     $this->form_validation->set_rules('new_password_confirm', lang('confirm_password'), 'required|matches[new_password]');
 
@@ -109,15 +103,16 @@ class Auth extends MY_Controller
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('auth/profile/' . $user->id . '/#cpassword');
     } else {
-      $identity = XSession::get($this->config->item('identity', 'ion_auth'));
-
-      $change = $this->ion_auth->change_password($identity, getPOST('old_password'), getPOST('new_password'));
+      // $change = $this->ion_auth->change_password($identity, getPOST('old_password'), getPOST('new_password'));
+      $pass = password_hash(getPost('new_password_confirm'), PASSWORD_DEFAULT);
+      // die($pass);
+      $change = User::update((int)XSession::get('user_id'), ['password' => $pass]);
 
       if ($change) {
-        $this->session->set_flashdata('message', $this->ion_auth->messages());
+        $this->session->set_flashdata('message', 'Password success changed.');
         $this->logout();
       } else {
-        $this->session->set_flashdata('error', $this->ion_auth->errors());
+        $this->session->set_flashdata('error', 'Failed to set password.');
         admin_redirect('auth/profile/' . $user->id . '/#cpassword');
       }
     }
@@ -153,8 +148,23 @@ class Auth extends MY_Controller
         'allow_discount' => getPOST('allow_discount'),
       ];
       $active = getPOST('status');
+
+      $userData = [
+        'username'        => strtolower(getPOST('username')),
+        'password'        => getPOST('password'),
+        'fullname'        => getPOST('fullname'),
+        'company'         => getPOST('company'),
+        'phone'           => getPOST('phone'),
+        'gender'          => getPOST('gender'),
+        'group_id'        => getPOST('group') ? getPOST('group') : '3',
+        'biller_id'       => getPOST('biller'),
+        'warehouse_id'    => getPOST('warehouse'),
+        'view_right'      => getPOST('view_right'),
+        'edit_right'      => getPOST('edit_right'),
+        'allow_discount'  => getPOST('allow_discount'),
+      ]
     }
-    if ($this->form_validation->run() == true && $this->ion_auth->register($username, $password, $additional_data, $active, $notify)) {
+    if ($this->form_validation->run() == true && User::add($userData)) {
       $this->session->set_flashdata('message', $this->ion_auth->messages());
       admin_redirect('auth/users');
     } else {

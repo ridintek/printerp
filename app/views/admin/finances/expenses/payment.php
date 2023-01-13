@@ -31,11 +31,11 @@
             </tr>
             <tr>
               <td><?= lang('created_by'); ?></td>
-              <td><?= $user_create->first_name . ' ' . $user_create->last_name; ?></td>
+              <td><?= $user_create->fullname; ?></td>
             </tr>
             <tr>
               <td><?= lang('approved_by'); ?></td>
-              <td><?= ( ! empty($user_approve) ? $user_approve->first_name . ' ' . $user_approve->last_name : ''); ?></td>
+              <td><?= ( ! empty($user_approve) ? $user_approve->fullname : ''); ?></td>
             </tr>
             <tr>
               <td><?= lang('approval_status'); ?></td>

@@ -1124,9 +1124,6 @@
                         }
                       endforeach;
                       ?>
-                      <li class="right_log hidden-xs">
-                        <?= "<span class='hidden-sm'>" . lang('last_login_at') . ': ' . date($dateFormats['php_ldate'], XSession::get('old_last_login')) . '</span>'; ?>
-                      </li>
                     </ul>
                   </div>
                 </div>

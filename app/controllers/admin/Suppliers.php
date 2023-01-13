@@ -40,8 +40,6 @@ class Suppliers extends MY_Controller
       $data = [
         'name'              => getPOST('name'),
         'email'             => getPOST('email'),
-        'group_id'          => '4',
-        'group_name'        => 'supplier',
         'company'           => getPOST('company'),
         'address'           => getPOST('address'),
         'city'              => getPOST('city'),
@@ -49,6 +47,16 @@ class Suppliers extends MY_Controller
         'country'           => getPOST('country'),
         'phone'             => preg_replace('/[^0-9]/', '', getPOST('phone')),
         'payment_term'      => getPOST('payment_term'),
+        'json'              => json_encode([
+          'acc_holder'     => getPOST('acc_holder'),
+          'acc_no'         => preg_replace('/[^0-9]/', '', getPOST('acc_no')),
+          'acc_name'       => getPOST('acc_name'),
+          'acc_bic'        => getPOST('acc_bic'),
+          'cycle_purchase' => getPOST('cycle_purchase'),
+          'delivery_time'  => getPOST('delivery_time'),
+          'visit_days'     => getPOST('visit_days'),
+          'visit_weeks'    => getPOST('visit_weeks'),
+        ]),
         'json_data'         => json_encode([
           'acc_holder'     => getPOST('acc_holder'),
           'acc_no'         => preg_replace('/[^0-9]/', '', getPOST('acc_no')),
@@ -100,8 +108,7 @@ class Suppliers extends MY_Controller
         'phone'      => preg_replace('/[^0-9]/', '', getPOST('phone')),
         'gender'     => getPOST('gender'),
         'supplier_id' => $supplier->id,
-        'company'    => $supplier->company,
-        'group_id'   => 3,
+        'company'    => $supplier->company
       ];
       $this->load->library('ion_auth');
     } elseif (getPOST('add_user')) {
@@ -159,8 +166,6 @@ class Suppliers extends MY_Controller
       $data = [
         'name'              => getPOST('name'),
         'email'             => getPOST('email'),
-        'group_id'          => '4',
-        'group_name'        => 'supplier',
         'company'           => getPOST('company'),
         'address'           => getPOST('address'),
         'city'              => getPOST('city'),
@@ -168,6 +173,16 @@ class Suppliers extends MY_Controller
         'country'           => getPOST('country'),
         'phone'             => preg_replace('/[^0-9]/', '', getPOST('phone')),
         'payment_term'      => getPOST('payment_term'),
+        'json'              => json_encode([
+          'acc_holder'     => getPOST('acc_holder'),
+          'acc_no'         => preg_replace('/[^0-9]/', '', getPOST('acc_no')),
+          'acc_name'       => getPOST('acc_name'),
+          'acc_bic'        => getPOST('acc_bic'),
+          'cycle_purchase' => getPOST('cycle_purchase'),
+          'delivery_time'  => getPOST('delivery_time'),
+          'visit_days'     => getPOST('visit_days'),
+          'visit_weeks'    => getPOST('visit_weeks'),
+        ]),
         'json_data'         => json_encode([
           'acc_holder'     => getPOST('acc_holder'),
           'acc_no'         => preg_replace('/[^0-9]/', '', getPOST('acc_no')),
@@ -205,9 +220,9 @@ class Suppliers extends MY_Controller
       }
       redirect($_SERVER['HTTP_REFERER']);
     } else {
-      $this->data['supplier'] = $supplier;
-      $this->data['json_data'] = json_decode($supplier->json_data);
-      $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+      $this->data['supplier']   = $supplier;
+      $this->data['json_data']  = json_decode($supplier->json_data);
+      $this->data['error']      = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
       $this->load->view($this->theme . 'suppliers/edit', $this->data);
     }
   }
@@ -227,7 +242,6 @@ class Suppliers extends MY_Controller
     $this->datatables
       ->select('id, company, name, email, phone, city, country')
       ->from('suppliers')
-      ->where('group_name', 'supplier')
       ->add_column('Actions', "<div class=\"text-center\"><a class=\"tip\" title='" . $this->lang->line('list_products') . "' href='" . admin_url('products?supplier=$1') . "'><i class=\"fad fa-list\"></i></a> <a class=\"tip\" title='" . $this->lang->line('list_users') . "' href='" . admin_url('suppliers/users/$1') . "' data-toggle='modal' data-target='#myModal'><i class=\"fad fa-users\"></i></a> <a class=\"tip\" title='" . $this->lang->line('add_user') . "' href='" . admin_url('suppliers/add_user/$1') . "' data-toggle='modal' data-target='#myModal'><i class=\"fad fa-plus-circle\"></i></a> <a class=\"tip\" title='" . $this->lang->line('edit_supplier') . "' href='" . admin_url('suppliers/edit/$1') . "' data-toggle='modal' data-target='#myModal'><i class=\"fad fa-edit\"></i></a> <a href='#' class='tip po' title='<b>" . $this->lang->line('delete_supplier') . "</b>' data-content=\"<p>" . lang('r_u_sure') . "</p><a class='btn btn-danger po-delete' href='" . admin_url('suppliers/delete/$1') . "'>" . lang('i_m_sure') . "</a> <button class='btn po-close'>" . lang('no') . "</button>\"  rel='popover'><i class=\"fad fa-trash\"></i></a></div>", 'id');
     //->unset_column('id');
     echo $this->datatables->generate();
@@ -287,16 +301,16 @@ class Suppliers extends MY_Controller
         foreach ($csvs as $csv) {
           if ($csv['use'] != 1) continue;
           $supplier = [
-            'company'      => rd_trim($csv['company_name']),
-            'name'         => rd_trim($csv['supplier_name']),
-            'phone'        => rd_trim($csv['phone']),
-            'email'        => rd_trim($csv['email']),
-            'address'      => rd_trim($csv['address']),
-            'city'         => rd_trim($csv['city']),
-            'postal_code'  => rd_trim($csv['postal_code']),
-            'country'      => rd_trim($csv['country']),
-            'payment_term' => filterDecimal($csv['payment_term']),
-            'json_data'    => json_encode([
+            'company'       => rd_trim($csv['company_name']),
+            'name'          => rd_trim($csv['supplier_name']),
+            'phone'         => rd_trim($csv['phone']),
+            'email'         => rd_trim($csv['email']),
+            'address'       => rd_trim($csv['address']),
+            'city'          => rd_trim($csv['city']),
+            'postal_code'   => rd_trim($csv['postal_code']),
+            'country'       => rd_trim($csv['country']),
+            'payment_term'  => filterDecimal($csv['payment_term']),
+            'json'          => json_encode([
               'acc_holder'     => rd_trim($csv['acc_holder']),
               'acc_no'         => rd_trim($csv['acc_no']),
               'acc_name'       => rd_trim($csv['acc_name']),
@@ -306,8 +320,16 @@ class Suppliers extends MY_Controller
               'visit_days'     => rd_trim($csv['visit_days']),
               'visit_weeks'    => rd_trim($csv['visit_weeks']),
             ]),
-            'group_id'    => 4,
-            'group_name'  => 'supplier'
+            'json_data'     => json_encode([
+              'acc_holder'     => rd_trim($csv['acc_holder']),
+              'acc_no'         => rd_trim($csv['acc_no']),
+              'acc_name'       => rd_trim($csv['acc_name']),
+              'acc_bic'        => rd_trim($csv['acc_bic']),
+              'cycle_purchase' => rd_trim($csv['cycle_purchase']),
+              'delivery_time'  => rd_trim($csv['delivery_time']),
+              'visit_days'     => rd_trim($csv['visit_days']),
+              'visit_weeks'    => rd_trim($csv['visit_weeks']),
+            ])
           ];
 
           if (empty($supplier['company']) || empty($supplier['name']) || empty($supplier['phone'])) {
@@ -316,10 +338,10 @@ class Suppliers extends MY_Controller
             admin_redirect('suppliers');
           } else {
             if ($supplier_details = $this->site->getSupplierByCompanyName($supplier['company'])) {
-              if ($supplier_details->group_id == 4) {
-                $this->site->updateSupplier($supplier_details->id, $supplier);
-                $updated .= '<p>' . lang('supplier_updated') . ' (' . $supplier['company'] . ')</p>';
-              }
+              // if ($supplier_details->group_id == 4) {
+              //   $this->site->updateSupplier($supplier_details->id, $supplier);
+              //   $updated .= '<p>' . lang('supplier_updated') . ' (' . $supplier['company'] . ')</p>';
+              // }
             } else {
               $data[] = $supplier;
             }

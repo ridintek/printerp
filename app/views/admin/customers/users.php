@@ -28,9 +28,9 @@
   foreach ($users as $user) {
     echo '<tr>' .
                 //'<td class="text-center">'.$user->id.'</td>'.
-                '<td>' . $user->first_name . '</td>' .
-                '<td>' . $user->last_name . '</td>' .
-                '<td>' . $user->email . '</td>' .
+                '<td>' . $user->id . '</td>' .
+                '<td>' . $user->id . '</td>' .
+                '<td>' . $user->id . '</td>' .
                 '<td class="text-center">' . ($user->active ? '<a href="' . admin_url() . 'auth/deactivate/' . $user->id . '" data-toggle="modal" data-target="#myModal2" class="tip"><span class="label label-success"><i class="fad fa-check"></i> ' . lang('active') . '</span></a>' : '<a href="' . admin_url() . 'auth/activate/' . $user->id . '"><span class="label label-danger"><i class="fad fa-times"></i> ' . lang('inactive') . '</span></a>') . '</td>' .
                 '<td class="text-center"><a href="' . admin_url('auth/profile/' . $user->id) . '" class="tip" title="' . lang('edit_profile') . '"><i class="fad fa-edit"></i></a> <a href="#" class="tip po" title="' . $this->lang->line('delete_user') . '" data-content="<p>' . lang('r_u_sure') . '</p><a class=\'btn btn-danger\' href=\'' . admin_url('auth/delete/' . $user->id) . '\'>' . lang('i_m_sure') . '</a> <button class=\'btn po-close\'>' . lang('no') . '</button>"  rel="popover"><i class="fad fa-trash"></i></a></td>' .
                 '</tr>';

@@ -6,7 +6,7 @@ class Attachment
 {
   /**
    * Add new attachment.
-   * @param array $data [ *filename, *mime, *data, *size, created_at, created_by ]
+   * @param array $data [ *filename, *hashname, *mime, *data, *size, created_at, created_by ]
    */
   public static function add(array $data)
   {
@@ -18,7 +18,7 @@ class Attachment
 
   /**
    * Delete attachment.
-   * @param array $clause [ id, filename, mime, created_by, updated_by ]
+   * @param array $clause [ id, filename, *hashname, mime, created_by, updated_by ]
    */
   public static function delete(array $clause)
   {
@@ -28,7 +28,7 @@ class Attachment
 
   /**
    * Get attachments collection.
-   * @param array $clause [ id, filename, mime, created_by, updated_by ]
+   * @param array $clause [ id, filename, *hashname, mime, created_by, updated_by ]
    */
   public static function get($clause = [])
   {
@@ -37,7 +37,7 @@ class Attachment
 
   /**
    * Get attachment row.
-   * @param array $clause [ id, filename, mime, created_by, updated_by ]
+   * @param array $clause [ id, filename, *hashname, mime, created_by, updated_by ]
    */
   public static function getRow($clause = [])
   {
@@ -49,12 +49,10 @@ class Attachment
 
   /**
    * Update attachment.
-   * @param array $clause [ id, filename, mime, created_by, updated_by ]
+   * @param array $clause [ id, filename, *hashname, mime, created_by, updated_by ]
    */
   public static function update(int $id, array $data)
   {
-    $db = get_instance()->db;
-    $db->update('attachment', $data, ['id' => $id]);
     DB::table('attachment')->update($data, ['id' => $id]);
     return DB::affectedRows();
   }

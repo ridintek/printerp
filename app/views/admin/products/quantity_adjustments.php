@@ -45,7 +45,7 @@
       localStorage.removeItem('remove_qals');
     }
 
-    <?php if (XSession::get('remove_qals')) {
+    <?php if ($this->session->userdata('remove_qals')) {
   ?>
       if (localStorage.getItem('qaitems')) {
         localStorage.removeItem('qaitems');

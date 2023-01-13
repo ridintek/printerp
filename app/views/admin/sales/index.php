@@ -132,7 +132,7 @@ if ($group_by = getGET('group_by')) {
       localStorage.removeItem('edit_mode');
     }
 
-    <?php if (XSession::get('remove_slls')) { ?>
+    <?php if ($this->session->userdata('remove_slls')) { ?>
     localStorage.setItem('remove_slls', 1);
     <?php   $this->sma->unset_data('remove_slls'); ?>
     <?php } ?>
@@ -647,7 +647,7 @@ if ($group_by = getGET('group_by')) {
   });
 
   function reloadContextMenu() {
-    let privilege = '<?= $Owner ?? $Admin ?? XSession::get('group_id'); ?>';
+    let privilege = '<?= $Owner ?? $Admin ?? $this->session->userdata('group_id'); ?>';
     let contextMenuOpt = {
       selector: '.invoice_link',
       callback: function(key, opt) {

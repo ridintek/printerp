@@ -17,7 +17,7 @@
                   if ($user->id != $pt->created_by) continue;
                 }
               ?>
-                <option value="<?= $user->id ?>"><?= $user->first_name . ' ' . $user->last_name ?></option>
+                <option value="<?= $user->id ?>"><?= $user->fullname ?></option>
               <?php endforeach; ?>
             </select>
           </div>
@@ -39,7 +39,7 @@
                 $selected = '';
 
                 if (!$isAdmin) {
-                  if (XSession::get('warehouse_id') || $mode == 'status') {
+                  if ($this->session->userdata('warehouse_id') || $mode == 'status') {
                     if ($warehouse->id != $pt->warehouse_id_from) continue;
                   }
                 }
@@ -58,7 +58,7 @@
                 $selected = '';
 
                 if (!$isAdmin) {
-                  if (XSession::get('warehouse_id') || $mode == 'status') {
+                  if ($this->session->userdata('warehouse_id') || $mode == 'status') {
                     if ($warehouse->id != $pt->warehouse_id_to) continue;
                   }
                 }

@@ -23,7 +23,7 @@
           ?>
             <div class="row">
               <div class="col-sm-3">Created by</div>
-              <div class="col-sm-8">: <?= $creator->first_name . ' ' . $creator->last_name; ?></div>
+              <div class="col-sm-8">: <?= $creator->fullname; ?></div>
             </div>
             <div class="row">
               <div class="col-sm-3">Created at</div>
@@ -35,7 +35,7 @@
           ?>
             <div class="row">
               <div class="col-sm-3">Updated by</div>
-              <div class="col-sm-8">: <?= $updater->first_name . ' ' . $updater->last_name; ?></div>
+              <div class="col-sm-8">: <?= $updater->fullname; ?></div>
             </div>
             <div class="row">
               <div class="col-sm-3">Updated at</div>
@@ -157,7 +157,7 @@
         $creator = $this->site->getUserByID($opname->created_by);
         ?>
         <p><?= lang('created_by'); ?>:</p>
-        <p><?= $creator->first_name . ' ' . $creator->last_name; ?></p>
+        <p><?= $creator->fullname; ?></p>
         <p>&nbsp;</p>
         <hr>
         <p><?= lang('stamp_sign'); ?></p>
@@ -167,7 +167,7 @@
         $updater = $this->site->getUserByID($opname->updated_by);
         ?>
         <p><?= lang('updated_by'); ?>: </p>
-        <p><?= (isset($updater) ? $updater->first_name . ' ' . $updater->last_name : ''); ?></p>
+        <p><?= (isset($updater) ? $updater->fullname : ''); ?></p>
         <p>&nbsp;</p>
         <hr>
         <p><?= lang('stamp_sign'); ?></p>

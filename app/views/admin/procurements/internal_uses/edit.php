@@ -358,8 +358,8 @@
           </div>
           <div class="col-md-12">
             <div class="from-group">
-              <?= lang('note', 'tonote'); ?>
-              <?php echo form_textarea('note', '', 'id="tonote" class="form-control" style="margin-top: 10px; height: 100px;"'); ?>
+              <?= lang('note', 'iunote'); ?>
+              <?php echo form_textarea('note', htmlDecode($iuse->note), 'id="iunote" class="form-control" style="margin-top: 10px; height: 100px;"'); ?>
             </div>
           </div>
           <div class="col-md-12">

@@ -255,7 +255,7 @@
             <tbody>
               <tr>
                 <td><?= lang('created_by'); ?></td>
-                <td>: <?= $created_by->first_name . ' ' . $created_by->last_name; ?></td>
+                <td>: <?= $created_by->fullnam; ?></td>
               </tr>
               <tr>
                 <td><?= lang('date'); ?></td>
@@ -264,7 +264,7 @@
               <?php if ($inv->updated_by) { ?>
               <tr>
                 <td><?= lang('created_by'); ?></td>
-                <td>: <?= $created_by->first_name . ' ' . $created_by->last_name; ?></td>
+                <td>: <?= $created_by->fullname ?></td>
               </tr>
               <tr>
                 <td><?= lang('update_at'); ?></td>

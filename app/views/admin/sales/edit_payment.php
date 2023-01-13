@@ -22,7 +22,7 @@
             <?php
               $users = $this->site->getUsers();
               foreach ($users as $user) {
-                $usr[$user->id] = $user->first_name . ' ' . $user->last_name;
+                $usr[$user->id] = $user->fullname;
               }
             ?>
             <?= form_dropdown('created_by', $usr, $payment->created_by, 'class="select2" id="ep_created_by" style="width:100%;"'); ?>
