@@ -356,8 +356,6 @@ class Api extends MY_Controller
       $this->redirect();
     }
 
-    header('Content-Type: text/html');
-
     if ($total = PaymentValidation::validate($mb_response)) { // Segala pengecekan dan validasi data di sini.
       $this->response(200, ['message' => sprintf('Success validate %d payment validations.', $total)]);
     } else {

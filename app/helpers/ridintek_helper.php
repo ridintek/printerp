@@ -876,7 +876,7 @@ function getDailyPerformanceReport($opt)
   foreach ($billers as $biller) {
     if ($biller->active != 1) continue;
     // Hide FUCKED IDS
-    if ($biller->code == 'BALINN') continue;
+    // if ($biller->code == 'BALINN') continue;
     if ($biller->code == 'IDSUNG') continue;
     if ($biller->code == 'IDSLOS') continue;
     if ($biller->code == 'BALINT') continue;
@@ -931,11 +931,17 @@ function getDailyPerformanceReport($opt)
         ];
       }
     } else { // All warehouses except Lucretia.
-      $revenue = round(DB::table('sales')
+      $sale = DB::table('sales')
         ->selectSum('grand_total', 'total')
         ->where('biller_id', $biller->id)
-        ->where("date BETWEEN '{$startDate->format('Y-m-d')} 00:00:00' AND '{$endDate->format('Y-m-d')} 23:59:59'")
-        ->getRow()->total ?? 0);
+        ->where("date BETWEEN '{$startDate->format('Y-m-d')} 00:00:00' AND '{$endDate->format('Y-m-d')} 23:59:59'");
+
+      // I/O MANIP: Tanggal lebih dari 2023-01-01 00:00:00, maka jangan include sale.status = need_payment.
+      if (strtotime($startDate->format('Y-m-d')) >= strtotime('2023-01-01 00:00:00') || strtotime($endDate->format('Y-m-d')) >= strtotime('2023-01-01 00:00:00')) {
+        $sale->notLike('status', 'need_payment', 'none');
+      }
+
+      $revenue = round($sale->getRow()->total ?? 0);
 
       for ($a = $firstDate; $a <= $lastDate; $a++) {
         $dt = prependZero($a);
@@ -1143,6 +1149,9 @@ function getIncomeStatementReport($opt)
 
   $transfers = ProductTransfer::get($opt);
 
+  $startDate  = ($opt['start_date'] ?? date('Y-m-') . '01');
+  $endDate    = ($opt['end_date'] ?? date('Y-m-d'));
+
   unset($opt); // Filter options end here.
 
   $capInvAmount = 0;
@@ -1266,6 +1275,11 @@ function getIncomeStatementReport($opt)
 
   // SALES
   foreach ($sales as $sale) {
+    // I/O MANIP: Tanggal lebih dari 2023-01-01 00:00:00, maka jangan include sale.status = need_payment.
+    if (strtotime($startDate) >= strtotime('2023-01-01 00:00:00') || strtotime($endDate) >= strtotime('2023-01-01 00:00:00')) {
+      if (strcasecmp($sale->status, 'need_payment') === 0) continue;
+    }
+
     // If no payment and customer reguler, skip it.
     // if ($sale->paid <= 0 && !isSpecialCustomer($sale->customer_id)) continue;
 

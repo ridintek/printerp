@@ -663,7 +663,7 @@ class Reports extends MY_Controller
         $sheet->setCellValue("G{$r2}", ($saleJS->est_complete_date ?? ''));
         $sheet->setCellValue("H{$r2}", ($saleJS->source ?? ''));
         $sheet->setCellValue("I{$r2}", ($sale->use_tb ? $sale->warehouse : ''));
-        $sheet->setCellValue("J{$r2}", $sale->customer);
+        $sheet->setCellValue("J{$r2}", $sale->customer_name);
         $sheet->setCellValue("K{$r2}", $custGroup->name);
         $sheet->setCellValue("L{$r2}", lang($sale->status));
         $sheet->setCellValue("M{$r2}", ($saleJS->waiting_production_date ?? ''));
@@ -722,7 +722,7 @@ class Reports extends MY_Controller
         $sheet->setCellValue("I{$r3}", ($payments ? $payments[0]->created_at : ''));
         $sheet->setCellValue("J{$r3}", ($saleItemJS->due_date ?? ''));
         $sheet->setCellValue("K{$r3}", ($saleItemJS->completed_at ?? $saleItemJS->updated_at ?? ''));
-        $sheet->setCellValue("L{$r3}", $sale->customer);
+        $sheet->setCellValue("L{$r3}", $sale->customer_name);
         $sheet->setCellValue("M{$r3}", lang($saleItemJS->status));
         $sheet->setCellValue("N{$r3}", ($overProduction ? lang('over_due') : ''));
         $sheet->setCellValue("O{$r3}", $sale->warehouse);
@@ -854,7 +854,7 @@ class Reports extends MY_Controller
 
       $sheet->setCellValue("A{$r1}", $sale->created_at);
       $sheet->setCellValue("B{$r1}", $sale->reference);
-      $sheet->setCellValue("C{$r1}", $sale->customer);
+      $sheet->setCellValue("C{$r1}", $sale->customer_name);
       $sheet->setCellValue("D{$r1}", $customerGroup->name);
       $sheet->setCellValue("E{$r1}", $sale->biller);
       $sheet->setCellValue("F{$r1}", $sale->warehouse);
@@ -998,6 +998,16 @@ class Reports extends MY_Controller
 
         $r1++;
       }
+
+      $last = $r1 - 1;
+
+      $excel->setCellValue('A'. $r1, 'GRAND TOTAL');
+      $excel->setCellValue('B'. $r1, "=SUM(B3:B{$last})");
+      $excel->setCellValue('C'. $r1, "=SUM(C3:C{$last})");
+      $excel->setCellValue('D'. $r1, "=SUM(D3:D{$last})");
+      $excel->setCellValue('E'. $r1, "=SUM(E3:E{$last})");
+
+      $excel->setBold('A' . $r1);
 
       $name = XSession::get('fullname');
 
@@ -2446,10 +2456,14 @@ class Reports extends MY_Controller
         $this->datatables->like('sales.reference', $reference, 'both');
       }
       if ($start_date) {
-        $this->datatables->where('sales.created_at BETWEEN "' . $start_date . '" and "' . $end_date . '"');
+        $this->datatables->where('sales.date BETWEEN "' . $start_date . '" and "' . $end_date . '"');
       }
-      $this->datatables->where("sales.status NOT LIKE 'need_payment'"); // need_payment = not debt.
-      $this->datatables->where("sales.status NOT LIKE 'draft'"); // No draft.
+
+      // I/O MANIP: Tanggal lebih dari 2023-01-01 00:00:00, maka jangan include sale.status = need_payment.
+      if (strtotime($start_date) >= strtotime('2023-01-01 00:00:00') || strtotime($end_date) >= strtotime('2023-01-01 00:00:00')) {
+        $this->datatables->where("sales.status NOT LIKE 'need_payment'"); // need_payment = not debt.
+      }
+      // $this->datatables->where("sales.status NOT LIKE 'draft'"); // No draft.
 
       // GENERATE VIEW
       echo $this->datatables->generate();
@@ -2612,10 +2626,14 @@ class Reports extends MY_Controller
         $this->db->like('sales.reference', $reference, 'both');
       }
       if ($start_date) {
-        $this->db->where('sales.created_at BETWEEN "' . $start_date . '" and "' . $end_date . '"');
+        $this->db->where('sales.date BETWEEN "' . $start_date . '" and "' . $end_date . '"');
       }
-      $this->db->where("sales.status NOT LIKE 'need_payment'"); // status == need_payment == not debt.
-      $this->db->where("sales.status NOT LIKE 'draft'"); // No draft.
+
+      // I/O MANIP: Tanggal lebih dari 2023-01-01 00:00:00, maka jangan include sale.status = need_payment.
+      if (strtotime($start_date) >= strtotime('2023-01-01 00:00:00') || strtotime($end_date) >= strtotime('2023-01-01 00:00:00')) {
+        $this->db->where("sales.status NOT LIKE 'need_payment'"); // need_payment = not debt.
+      }
+      // $this->db->where("sales.status NOT LIKE 'draft'"); // No draft.
 
       $q = $this->db->get();
 

@@ -34,6 +34,29 @@ class MY_Controller extends CI_Controller
    */
   protected $requestMethod;
 
+  public $Owner;
+  public $Admin;
+  public $Customer;
+  public $Supplier;
+  public $Settings;
+  public $SettingsJSON;
+  public $microtime;
+  public $res_hash;
+  public $errorMsg;
+  public $site;
+  public $serverDateTime;
+  public $serverDateTimeInput;
+  public $theme;
+  public $loggedIn;
+  public $default_currency;
+  public $sma;
+  public $isAdmin;
+  public $GP;
+  public $schedules;
+  public $input;
+  public $config;
+  public $lang;
+
   public function __construct()
   {
     parent::__construct();
@@ -150,19 +173,19 @@ class MY_Controller extends CI_Controller
       $this->isAdmin = ($this->Owner || $this->Admin ? TRUE : FALSE);
       $this->data['isAdmin'] = $this->isAdmin;
 
-      $this->maintenance = FALSE; // Change this for maintenance mode.
-      $this->maintenance_by_time = FALSE; // Do not change this! Default: FALSE
+      // $this->maintenance = FALSE; // Change this for maintenance mode.
+      // $this->maintenance_by_time = FALSE; // Do not change this! Default: FALSE
 
-      $this->maintenance_start_date = '2022-10-06 11:00:00';
-      $this->maintenance_end_date   = '2022-10-06 23:00:00';
+      // $this->maintenance_start_date = '2022-10-06 11:00:00';
+      // $this->maintenance_end_date   = '2022-10-06 23:00:00';
 
-      if (now() >= strtotime($this->maintenance_start_date) && now() < strtotime($this->maintenance_end_date)) {
-        $this->maintenance_by_time = TRUE;
-      }
+      // if (now() >= strtotime($this->maintenance_start_date) && now() < strtotime($this->maintenance_end_date)) {
+      //   $this->maintenance_by_time = TRUE;
+      // }
 
-      if (($this->maintenance || $this->maintenance_by_time) && !$this->Owner && $this->uri->segment(1) !== 'maintenance') {
-        redirect('/maintenance');
-      }
+      // if (($this->maintenance || $this->maintenance_by_time) && !$this->Owner && $this->uri->segment(1) !== 'maintenance') {
+      //   redirect('/maintenance');
+      // }
 
       if ($sd = $this->site->getDateFormat($this->Settings->dateformat)) { // Always use this.
         $dateFormats = [

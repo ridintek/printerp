@@ -936,6 +936,7 @@ class Sales extends MY_Controller
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
       $sale = $this->site->getSaleByID($id);
+      $customer = Customer::getRow(['id' => $sale->customer_id]);
 
       $this->data['inv'] = $sale;
       $this->data['saleJS'] = json_decode($sale->json_data);
@@ -956,11 +957,10 @@ class Sales extends MY_Controller
           $rand = mt_rand(10000, 99999);
 
           // $row = $this->site->getProductByID($item->product_id);
-          $row = $this->site->getWarehouseProduct($item->product_id, $item->warehouse_id);
+          $row = $this->site->getWarehouseProduct($item->product_id, $sale->warehouse_id);
 
           // Get Product Group Prices
-          $warehouse = $this->site->getWarehouseById($item->warehouse_id);
-          $pr_group_price = $this->site->getProductGroupPrice($item->product_id, $warehouse->price_group_id);
+          $pr_group_price = $this->site->getProductGroupPrice($item->product_id, $customer->price_group_id);
 
           if (!$row) {
             $row = new stdClass();
@@ -1027,7 +1027,7 @@ class Sales extends MY_Controller
 
           $combo_items = false;
           if ($row->type == 'combo') {
-            $combo_items = $this->site->getProductComboItems($row->id, $item->warehouse_id);
+            $combo_items = $this->site->getProductComboItems($row->id, $sale->warehouse_id);
             foreach ($combo_items as $combo_item) {
               $combo_item->quantity = $combo_item->qty * $item->quantity;
             }
@@ -1686,10 +1686,10 @@ class Sales extends MY_Controller
             $timeleft = ($dueDate ? $xDate->diff($dueDate)->format('%r%H:%I:%S') : '');
             $overdue  = ($dueDate && $xDate->diff($dueDate)->format('%r') == '-' ? 'OVER DUE' : '');
 
-            $user = $this->site->getUserByID($saleItemJS->operator_id ?? NULL);
+            $user = User::getRow(['id' => $saleItemJS->operator_id]);
             $op_username = ($user ? $user->username : '');
             $op_name     = ($user ? $user->fullname : '');
-            $isOperator  = ($user && $user->group_name == 'operator' ? TRUE : FALSE);
+            $isOperator  = ($user && strcasecmp($user->groups, 'OPERATOR') === 0 ? TRUE : FALSE);
 
             $excel->setCellValue('A' . $b, $item->id);
             $excel->setCellValue('B' . $b, $sale->reference);
@@ -2092,6 +2092,10 @@ class Sales extends MY_Controller
   public function revertSaleStatus()
   {
     $sale_id = getPOST('sale');
+
+    if (!$this->Owner) {
+      sendJSON(['error' => 1, 'msg' => 'ANDA TIDAK PUNYA IZIN.']);
+    }
 
     if ($sale_id) {
       $sale = $this->site->getSaleByID($sale_id);

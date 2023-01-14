@@ -179,8 +179,12 @@ class PaymentValidation
     self::sync(); // Change pending payment to expired if any.
     $sale_id     = ($options['sale_id'] ?? NULL);
     $mutation_id = ($options['mutation_id'] ?? NULL);
-    $status = ($sale_id || $mutation_id ? ['expired', 'pending'] : 'pending');
-    // $status = ($sale_id || $mutation_id ? ['pending'] : 'pending'); // New
+
+    if (!empty($options['manual'])) {
+      $status = ($sale_id || $mutation_id ? ['expired', 'pending'] : 'pending');
+    } else {
+      $status = ($sale_id || $mutation_id ? ['pending'] : 'pending'); // New
+    }
     $paymentValidation = self::select('*')->whereIn('status', $status)->get();
     $validatedCount = 0;
 
@@ -204,7 +208,8 @@ class PaymentValidation
             $bank = Bank::getRow(['number' => $accountNo, 'biller_id' => $pv->biller_id]);
 
             if (!$bank) {
-              die('Bank not defined');
+              echo ("Bank {$accountNo}, biller id {$pv->biller_id} is not defined");
+              die;
             }
 
             foreach ($mutasibanks as $mb) {
@@ -276,7 +281,7 @@ class PaymentValidation
                   'reference_date'  => $mutation->date,
                   'mutation_id'     => $mutation->id,
                   'bank_id'         => $mutation->from_bank_id,
-                  'method'          => $mutation->paid_by,
+                  'method'          => 'Transfer',
                   'amount'          => $mutation->amount + $pv->unique_code,
                   'created_by'      => $mutation->created_by,
                   'type'            => 'sent',
@@ -291,7 +296,7 @@ class PaymentValidation
                     'date'        => $mutation->date,
                     'mutation_id' => $mutation->id,
                     'bank_id'     => $mutation->to_bank_id,
-                    'method'      => $mutation->paid_by,
+                    'method'      => 'Transfer',
                     'amount'      => $mutation->amount + $pv->unique_code,
                     'created_by'  => $mutation->created_by,
                     'type'        => 'received',
