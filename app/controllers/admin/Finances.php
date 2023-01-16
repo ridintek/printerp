@@ -1536,17 +1536,20 @@ class Finances extends MY_Controller
     if ($this->form_validation->run()) {
       $date = getPOST('date');
       $data = [
-        'date'           => $date,
-        'from_bank_id'   => getPOST('from_bank_id'),
-        'from_bank_name' => $this->site->getBankById(getPOST('from_bank_id'))->name,
-        'to_bank_id'     => getPOST('to_bank_id'),
-        'to_bank_name'   => $this->site->getBankById(getPOST('to_bank_id'))->name,
-        'note'           => getPOST('note'),
-        'amount'         => round(filterDecimal(getPOST('amount'))),
-        'created_by'     => XSession::get('user_id'),
-        'paid_by'        => getPOST('paid_by'),
-        'biller_id'      => getPOST('biller'),
-        'status'         => 'paid'
+        'date'            => $date,
+        'bankfrom'        => $this->site->getBankById(getPOST('from_bank_id'))->code,
+        'bankto'          => $this->site->getBankById(getPOST('to_bank_id'))->code,
+        'from_bank_id'    => getPOST('from_bank_id'),
+        'from_bank_name'  => $this->site->getBankById(getPOST('from_bank_id'))->name,
+        'to_bank_id'      => getPOST('to_bank_id'),
+        'to_bank_name'    => $this->site->getBankById(getPOST('to_bank_id'))->name,
+        'note'            => getPOST('note'),
+        'amount'          => round(filterDecimal(getPOST('amount'))),
+        'created_by'      => XSession::get('user_id'),
+        'paid_by'         => getPOST('paid_by'),
+        'biller'          => Biller::getRow(['id' => getPOST('biller')])->code,
+        'biller_id'       => getPOST('biller'),
+        'status'          => 'paid'
       ];
 
       $skip_payment_validation = (getPOST('skip_pv') ? TRUE : FALSE);
@@ -1572,7 +1575,7 @@ class Finances extends MY_Controller
         $data['attachment_id'] = $uploader->storeRandom();
       }
 
-      if ($this->site->addBankMutation($data, $usePaymentValidation)) {
+      if (BankMutation::add($data)) {
         $this->session->set_flashdata('message', lang('bank_mutation_added'));
         admin_redirect('finances/mutations');
       } else {

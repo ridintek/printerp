@@ -10,8 +10,33 @@ class BankMutation
    */
   public static function add(array $data)
   {
+    if (empty($data['date'])) $data['date'] = date('Y-m-d H:i:s');
+    $data['reference'] = OrderRef::getReference('mutation');
+
     DB::table('bank_mutations')->insert($data);
-    return DB::insertID();
+
+    if (DB::affectedRows()) {
+      $insertID = DB::insertID();
+
+      OrderRef::updateReference('mutation');
+
+      $pv_data = [
+        'date'          => $data['date'],
+        'expired_date'  => date('Y-m-d H:i:s', strtotime('+1 day', strtotime($data['date']))), // 24 jam
+        'reference'     => $data['reference'],
+        'mutation_id'   => $insertID,
+        'amount'        => $data['amount'],
+        'description'   => $data['note']
+      ];
+
+      if (PaymentValidation::add($pv_data)) { // Add Payment Validation.
+        DB::table('bank_mutations')->update(['status' => 'waiting_transfer'], ['id' => $insertID]);
+      }
+
+      return TRUE;
+    }
+
+    return FALSE;
   }
 
   /**
