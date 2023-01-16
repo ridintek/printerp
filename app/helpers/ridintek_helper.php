@@ -1280,30 +1280,28 @@ function getIncomeStatementReport($opt)
       if (strcasecmp($sale->status, 'need_payment') === 0) continue;
     }
 
-    // If no payment and customer reguler, skip it.
-    // if ($sale->paid <= 0 && !isSpecialCustomer($sale->customer_id)) continue;
-
     // #1 Revenue.
     $revenue += $sale->grand_total;
     $saleCount++;
 
-    $saleItems = $ci->site->getSaleItems(['sale_id' => $sale->id]);
+    $saleItems = SaleItem::get(['sale_id' => $sale->id]);
 
     if ($saleItems) {
       foreach ($saleItems as $saleItem) {
         // Fix 2023-01-13 16:20:05
         $saleItemJS = getJSON($saleItem->json_data);
-        if ($saleItemJS->status != 'completed' && $saleItemJS->status != 'delivered') continue;
+        if ($saleItemJS->status != 'completed_partial' && $saleItemJS->status != 'completed' && $saleItemJS->status != 'delivered') continue;
 
         if ($saleItem->product_type == 'combo') {
-          $comboItems = $ci->site->getComboItemsByProductID($saleItem->product_id);
+          // Selling item to raw materials;
+          $comboItems = ComboItem::get(['product_id' => $saleItem->product_id]);
 
           foreach ($comboItems as $comboItem) {
-            $item = $ci->site->getProductByCode($comboItem->item_code);
+            // Raw material.
+            $item = Product::getRow(['code' => $comboItem->item_code]);
 
             // #2 Cost of Goods > Sold Items Cost.
-            $soldItemCost += round($item->markon_price * ($comboItem->quantity * $saleItem->quantity)); // Old
-            // $soldItemCost += round($item->markon_price * $saleItem->quantity); // New (FAIL)
+            $soldItemCost += round($item->markon_price * ($comboItem->quantity * $saleItem->finished_qty));
           }
         }
       }
