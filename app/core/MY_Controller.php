@@ -218,14 +218,6 @@ class MY_Controller extends CI_Controller
         } else {
           die('NO PERMISSIONS');
         }
-
-        $login_time = XSession::get('login_time');
-
-        if (strtotime($login_time) < strtotime(date('Y-m-d ') . '09:00:00')) { // Shift Pagi
-
-        } else if (strtotime($login_time) < strtotime(date('Y-m-d ') . '15:00:00')) { // Shift Siang
-
-        }
       } else { // Admin or Owner.
         $this->data['GP'] = NULL;
       }

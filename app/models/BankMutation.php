@@ -8,7 +8,7 @@ class BankMutation
    * Add new BankMutation.
    * @param array $data [ name, code ]
    */
-  public static function add(array $data)
+  public static function add(array $data, bool $useValidation = TRUE)
   {
     if (empty($data['date'])) $data['date'] = date('Y-m-d H:i:s');
     $data['reference'] = OrderRef::getReference('mutation');
@@ -20,17 +20,45 @@ class BankMutation
 
       OrderRef::updateReference('mutation');
 
-      $pv_data = [
-        'date'          => $data['date'],
-        'expired_date'  => date('Y-m-d H:i:s', strtotime('+1 day', strtotime($data['date']))), // 24 jam
-        'reference'     => $data['reference'],
-        'mutation_id'   => $insertID,
-        'amount'        => $data['amount'],
-        'description'   => $data['note']
-      ];
+      if ($useValidation) {
+        $pv_data = [
+          'date'          => $data['date'],
+          'expired_date'  => date('Y-m-d H:i:s', strtotime('+1 day', strtotime($data['date']))), // 24 jam
+          'reference'     => $data['reference'],
+          'mutation_id'   => $insertID,
+          'amount'        => $data['amount'],
+          'description'   => $data['note']
+        ];
 
-      if (PaymentValidation::add($pv_data)) { // Add Payment Validation.
-        DB::table('bank_mutations')->update(['status' => 'waiting_transfer'], ['id' => $insertID]);
+        if (PaymentValidation::add($pv_data)) { // Add Payment Validation.
+          DB::table('bank_mutations')->update(['status' => 'waiting_transfer'], ['id' => $insertID]);
+        }
+      } else {
+        $paymentSent = [
+          'date'         => $data['date'],
+          'mutation_id'  => $insertID,
+          'bank_id'      => $data['from_bank_id'],
+          'method'       => 'Transfer',
+          'amount'       => $data['amount'],
+          'created_by'   => $data['created_by'],
+          'type'         => 'sent',
+          'note'         => $data['note']
+        ];
+
+        Payment::add($paymentSent);
+        // Payment Received by To Bank ID
+        $paymentRecv = [
+          'date'         => $data['date'],
+          'mutation_id'  => $insertID,
+          'bank_id'      => $data['to_bank_id'],
+          'method'       => 'Transfer',
+          'amount'       => $data['amount'],
+          'created_by'   => $data['created_by'],
+          'type'         => 'received',
+          'note'         => $data['note']
+        ];
+
+        Payment::add($paymentRecv);
       }
 
       return TRUE;

@@ -1001,11 +1001,11 @@ class Reports extends MY_Controller
 
       $last = $r1 - 1;
 
-      $excel->setCellValue('A'. $r1, 'GRAND TOTAL');
-      $excel->setCellValue('B'. $r1, "=SUM(B3:B{$last})");
-      $excel->setCellValue('C'. $r1, "=SUM(C3:C{$last})");
-      $excel->setCellValue('D'. $r1, "=SUM(D3:D{$last})");
-      $excel->setCellValue('E'. $r1, "=SUM(E3:E{$last})");
+      $excel->setCellValue('A' . $r1, 'GRAND TOTAL');
+      $excel->setCellValue('B' . $r1, "=SUM(B3:B{$last})");
+      $excel->setCellValue('C' . $r1, "=SUM(C3:C{$last})");
+      $excel->setCellValue('D' . $r1, "=SUM(D3:D{$last})");
+      $excel->setCellValue('E' . $r1, "=SUM(E3:E{$last})");
 
       $excel->setBold('A' . $r1);
 
@@ -1866,6 +1866,108 @@ class Reports extends MY_Controller
 
   public function getQMSReport()
   {
+  }
+
+  public function getSaleRawCost()
+  {
+    $startDate  = getGET('start_date') ?? date('Y-m-') . '01';
+    $endDate    = getGET('end_date') ?? date('Y-m-d');
+    $billers    = getGET('biller');
+
+    $q = DB::table('sales')->where("date BETWEEN '{$startDate} 00:00:00' AND '{$endDate} 23:59:59'");
+
+    if ($billers) {
+      $q->whereIn('biller_id', $billers);
+    }
+
+    $sales = $q->get();
+
+    $sheet = $this->ridintek->spreadsheet();
+    $sheet->setTitle('Sale Raw Cost');
+
+    $sheet->setCellValue('A1', 'Sale Reference');
+    $sheet->setCellValue('B1', 'Date');
+    $sheet->setCellValue('C1', 'Created At');
+    $sheet->setCellValue('D1', 'Biller');
+    $sheet->setCellValue('E1', 'Warehouse');
+    $sheet->setCellValue('F1', 'Customer');
+    $sheet->setCellValue('G1', 'Sale Status');
+    $sheet->setCellValue('H1', 'Payment Status');
+    $sheet->setCellValue('I1', 'Grand Total');
+    $sheet->setCellValue('J1', 'Paid');
+    $sheet->setCellValue('K1', 'Balance');
+    $sheet->setCellValue('L1', 'PIC');
+    $sheet->setCellValue('M1', 'Payment Method');
+    $sheet->setCellValue('N1', 'Sale Item Code');
+    $sheet->setCellValue('O1', 'Sale Item Name');
+    $sheet->setCellValue('P1', 'Sale Item Type');
+    $sheet->setCellValue('Q1', 'Sale Item Price');
+    $sheet->setCellValue('R1', 'Sale Item Qty');
+    $sheet->setCellValue('S1', 'Sale Item Finished Qty');
+    $sheet->setCellValue('T1', 'Sale Item Subtotal');
+    $sheet->setCellValue('U1', 'RAW Item Code');
+    $sheet->setCellValue('V1', 'RAW Item Name');
+    $sheet->setCellValue('W1', 'RAW Item Cost');
+    $sheet->setCellValue('X1', 'RAW Item Qty');
+    $sheet->setCellValue('Y1', 'RAW Item Cost');
+    $sheet->setCellValue('Z1', 'RAW Item Total Cost');
+
+    $r = 2;
+
+    foreach ($sales as $sale) {
+      $biller     = Biller::getRow(['id' => $sale->biller_id]);
+      $warehouse  = Warehouse::getRow(['id' => $sale->warehouse_id]);
+      $pic        = User::getRow(['id' => $sale->created_by]);
+
+      $sheet->setCellValue('A' . $r, $sale->reference);
+      $sheet->setCellValue('B' . $r, $sale->date);
+      $sheet->setCellValue('C' . $r, $sale->created_at);
+      $sheet->setCellValue('D' . $r, $biller->name);
+      $sheet->setCellValue('E' . $r, $warehouse->name);
+      $sheet->setCellValue('F' . $r, $sale->customer_name);
+      $sheet->setCellValue('G' . $r, lang($sale->status));
+      $sheet->setCellValue('H' . $r, lang($sale->payment_status));
+      $sheet->setCellValue('I' . $r, $sale->grand_total);
+      $sheet->setCellValue('J' . $r, $sale->paid);
+      $sheet->setCellValue('K' . $r, $sale->balance);
+      $sheet->setCellValue('L' . $r, $pic->fullname);
+      $sheet->setCellValue('M' . $r, $sale->payment_method);
+
+      $saleItems = SaleItem::get(['sale_id' => $sale->id]);
+
+      foreach ($saleItems as $saleItem) {
+        $sheet->setCellValue('N' . $r, $saleItem->product_code);
+        $sheet->setCellValue('O' . $r, $saleItem->product_name);
+        $sheet->setCellValue('P' . $r, lang($saleItem->product_type));
+        $sheet->setCellValue('Q' . $r, $saleItem->price);
+        $sheet->setCellValue('R' . $r, $saleItem->quantity);
+        $sheet->setCellValue('S' . $r, $saleItem->finished_qty);
+        $sheet->setCellValue('T' . $r, $saleItem->subtotal);
+
+        $comboItems = ComboItem::get(['product_id' => $saleItem->product_id]);
+
+        if ($comboItems) {
+          foreach ($comboItems as $comboItem) {
+            $item = Product::getRow(['code' => $comboItem->item_code]);
+
+            $sheet->setCellValue('U' . $r, $comboItem->item_code);
+            $sheet->setCellValue('V' . $r, $item->name);
+            $sheet->setCellValue('W' . $r, $item->markon_price);
+            $sheet->setCellValue('X' . $r, $comboItem->quantity);
+            $sheet->setCellValue('Y' . $r, $item->markon_price * $comboItem->quantity);
+            $sheet->setCellValue('Z' . $r, $saleItem->finished_qty * $item->markon_price * $comboItem->quantity);
+
+            $r++;
+          }
+        } else {
+          $r++;
+        }
+      }
+    }
+
+    $sheet->setBold('A1:Z1');
+
+    $sheet->export('PrintERP-SaleRAWCost-' . date('Ymd_His') . '-' . XSession::get('fullname'));
   }
 
   public function getSupportPerformance()
@@ -2791,6 +2893,10 @@ class Reports extends MY_Controller
 
     foreach ($stocks as $stock) {
       $sale = Sale::getRow(['id' => $stock->sale_id]);
+
+      if (!$sale) {
+        continue;
+      }
 
       if ($billerId) { // Biller filtered here.
         if ($sale->biller_id != $billerId) continue;

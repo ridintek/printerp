@@ -1552,7 +1552,7 @@ class Finances extends MY_Controller
         'status'          => 'paid'
       ];
 
-      $skip_payment_validation = (getPOST('skip_pv') ? TRUE : FALSE);
+      $skipPaymentValidation = (getPOST('skip_pv') ? TRUE : FALSE);
       // $bank_from_balance = $this->site->getBankBalanceByID($data['from_bank_id']);
       /*
       if ($bank_from_balance < $data['amount']) {
@@ -1560,9 +1560,8 @@ class Finances extends MY_Controller
         admin_redirect('finances/mutations');
       }*/
       // Payment validations in addBankMutation() since it must be created first before make payment validation.
-      if ($data['paid_by'] == 'Transfer' && !$skip_payment_validation) {
-        $usePaymentValidation = TRUE;
-      }
+
+      $useValidation = (!$skipPaymentValidation ? TRUE : FALSE);
 
       $uploader = new FileUpload();
 
@@ -1575,7 +1574,7 @@ class Finances extends MY_Controller
         $data['attachment_id'] = $uploader->storeRandom();
       }
 
-      if (BankMutation::add($data)) {
+      if (BankMutation::add($data, $useValidation)) {
         $this->session->set_flashdata('message', lang('bank_mutation_added'));
         admin_redirect('finances/mutations');
       } else {
