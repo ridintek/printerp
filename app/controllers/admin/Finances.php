@@ -944,9 +944,8 @@ class Finances extends MY_Controller
     sendJSON(['error' => 1, 'msg' => lang('expense_delete_fail')]);
   }
 
-  private function expenses_edit($expense_id)
+  private function expenses_edit($id)
   { // expenses
-    $id = $expense_id;
     $this->sma->checkPermissions('edit', TRUE, 'expenses');
 
     if (getGET('id')) {
@@ -956,13 +955,6 @@ class Finances extends MY_Controller
     $this->form_validation->set_rules('reference', lang('reference'), 'required');
     $this->form_validation->set_rules('new_amount', lang('new_amount'), 'required');
     $this->form_validation->set_rules('userfile', lang('attachment'), 'xss_clean');
-    $expense = $this->site->getExpenseById($id);
-    $bank = $this->site->getBankById($expense->bank_id);
-
-    /* if ($expense->payment_status == 'paid') {
-      $this->session->set_flashdata('error', lang('expense_paid'));
-      $this->sma->md();
-    } */
 
     if ($this->form_validation->run() == true) {
       $data = [
@@ -983,17 +975,18 @@ class Finances extends MY_Controller
           admin_redirect('finances/expenses');
         }
 
-        $data['attachment_id'] = $uploader->storeRandom();
+        $data['attachment'] = $uploader->storeRandom();
       }
-    } elseif (getPOST('edit_expense')) {
-      $this->session->set_flashdata('error', validation_errors());
-      admin_redirect('finances/expenses');
-    }
-    if ($this->form_validation->run() == true && $this->site->updateExpense($id, $data)) {
-      $this->session->set_flashdata('message', lang('expense_updated'));
-      admin_redirect('finances/expenses');
+
+      if (Expense::update((int)$id, $data)) {
+        XSession::set('message', 'Expense berhasil di update.');
+        admin_redirect('finances/expenses');
+      } else {
+        XSession::set('error', 'Gagal update expense.');
+        admin_redirect('finances/expenses');
+      }
     } else {
-      $this->data['error']      = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+      $this->data['error']      = (validation_errors() ? validation_errors() : XSession::get('error'));
       $this->data['expense']    = $this->site->getExpenseByID($id);
       $this->data['billers']    = $this->site->getAllBillers();
       $this->data['categories'] = $this->site->getExpenseCategories();
