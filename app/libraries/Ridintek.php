@@ -154,12 +154,17 @@ class FileUpload
    */
   public function store($filename = NULL)
   {
-    return Attachment::add([
-      'filename' => ($filename ?? $this->getName()),
-      'mime' => $this->getType(),
-      'data' => file_get_contents($this->getTempName()),
-      'size' => $this->getSize()
+    $insertId = Attachment::add([
+      'filename'  => ($filename ?? $this->getName()),
+      'hashname'  => uuid(),
+      'mime'      => $this->getType(),
+      'data'      => file_get_contents($this->getTempName()),
+      'size'      => $this->getSize()
     ]);
+
+    $attachment = Attachment::getRow(['id' => $insertId]);
+
+    return strval($attachment->hash);
   }
 
   /**

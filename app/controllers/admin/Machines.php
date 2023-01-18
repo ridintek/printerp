@@ -379,7 +379,7 @@ class Machines extends MY_Controller
           $this->response(400, ['message' => 'Ukuran attachment tidak boleh lebih dari 2MB.']);
         }
 
-        $reportData['attachment_id'] = $upload->storeRandom();
+        $reportData['attachment'] = $upload->storeRandom();
       }
 
       if ($this->site->addProductReport($reportData)) {
@@ -721,7 +721,7 @@ class Machines extends MY_Controller
 
         Attachment::delete(['id' => $report->attachment_id]);
 
-        $reportData['attachment_id'] = $upload->storeRandom();
+        $reportData['attachment'] = $upload->storeRandom();
       }
 
       if ($this->site->updateProductReport($reportId, $reportData)) {
@@ -854,7 +854,7 @@ class Machines extends MY_Controller
           $this->response(400, ['message' => 'Ukuran attachment tidak boleh lebih dari 2MB.']);
         }
 
-        $reviewData['attachment_id'] = $upload->storeRandom();
+        $reviewData['attachment'] = $upload->storeRandom();
       }
 
       if (ProductReview::add($reviewData)) {
@@ -923,7 +923,7 @@ class Machines extends MY_Controller
 
         Attachment::delete(['id' => $review->attachment_id]);
 
-        $reportData['attachment_id'] = $upload->storeRandom();
+        $reportData['attachment'] = $upload->storeRandom();
       }
 
       if (ProductReview::update($reviewId, $reviewData)) {

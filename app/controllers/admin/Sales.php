@@ -274,7 +274,7 @@ class Sales extends MY_Controller
           redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
         }
 
-        $saleData['attachment_id'] = $uploader->storeRandom();
+        $saleData['attachment'] = $uploader->storeRandom();
       } else if (!getPermission('sales-no_attachment')) {
         if ($customerGroup->name == 'TOP') { // Prevent CS create sale without attachment for Customer TOP.
           $this->session->set_flashdata('error', lang('top_no_attachment'));
@@ -472,7 +472,7 @@ class Sales extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $payment['attachment_id'] = $uploader->storeRandom();
+        $payment['attachment'] = $uploader->storeRandom();
       }
 
       if ($payment['method'] == 'Transfer') { // Transfer will be validated automatically.
@@ -910,7 +910,7 @@ class Sales extends MY_Controller
           redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
         }
 
-        $saleData['attachment_id'] = $uploader->storeRandom();
+        $saleData['attachment'] = $uploader->storeRandom();
       } else if (!$this->Owner && !$this->Admin) {
         // Prevent CS create sale without attachment for Customer TOP.
         if ($customer_group_name == 'top' && !$sale->attachment) {
@@ -1155,7 +1155,7 @@ class Sales extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $payment['attachment_id'] = $uploader->storeRandom();
+        $payment['attachment'] = $uploader->storeRandom();
       }
     } elseif (getPOST('edit_payment')) {
       sendJSON(['error' => 1, 'msg' => validation_errors()]);

@@ -1315,7 +1315,7 @@ class Finances extends MY_Controller
           admin_redirect('finances/incomes');
         }
 
-        $income_data['attachment_id'] = $uploader->storeRandom();
+        $income_data['attachment'] = $uploader->storeRandom();
       }
     } elseif (getPOST('add_income')) {
       $this->session->set_flashdata('error', validation_errors());
@@ -1383,7 +1383,7 @@ class Finances extends MY_Controller
           admin_redirect('finances/incomes');
         }
 
-        $income_data['attachment_id'] = $uploader->storeRandom();
+        $income_data['attachment'] = $uploader->storeRandom();
       }
     } elseif (getPOST('edit_income')) {
       $this->session->set_flashdata('error', validation_errors());
@@ -1564,7 +1564,7 @@ class Finances extends MY_Controller
           admin_redirect('finances/mutations');
         }
 
-        $data['attachment_id'] = $uploader->storeRandom();
+        $data['attachment'] = $uploader->storeRandom();
       }
 
       if (BankMutation::add($data, $useValidation)) {
@@ -1646,7 +1646,7 @@ class Finances extends MY_Controller
           admin_redirect('finances/mutations');
         }
 
-        $data['attachment_id'] = $uploader->storeRandom();
+        $data['attachment'] = $uploader->storeRandom();
       }
 
       $bank_from = $this->site->getBankByID($data['from_bank_id']);
@@ -2318,7 +2318,7 @@ class Finances extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
         }
 
-        $validationOptions['attachment_id'] = $uploader->storeRandom();
+        $validationOptions['attachment'] = $uploader->storeRandom();
       } else {
         // XSession::set('error', 'Attachment dibutuhkan.');
         // admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');

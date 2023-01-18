@@ -62,8 +62,8 @@ class Google extends MY_Controller
           $this->response(400, ['message' => "Ukuran Attachment tidak boleh lebih dari 2MB."]);
         }
 
-        if ($attachmentId = $uploader->storeRandom()) {
-          $reviewData['attachment_id'] = $attachmentId;
+        if ($hashname = $uploader->storeRandom()) {
+          $reviewData['attachment'] = $hashname;
         }
       }
 
@@ -147,7 +147,7 @@ class Google extends MY_Controller
         }
 
         if ($attachmentId = $uploader->storeRandom()) {
-          $reviewData['attachment_id'] = $attachmentId;
+          $reviewData['attachment'] = $attachmentId;
         }
       }
 
