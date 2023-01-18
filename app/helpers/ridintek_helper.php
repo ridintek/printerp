@@ -952,6 +952,7 @@ function getDailyPerformanceReport($opt)
         if (!$overTime) {
           $dailyRevenue = round(DB::table('sales')
             ->selectSum('grand_total', 'total')
+            ->notLike('status', 'need_payment')
             ->where('biller_id', $biller->id)
             ->where("date LIKE '{$ymPeriod}-{$dt}%'")
             ->getRow()->total ?? 0);
