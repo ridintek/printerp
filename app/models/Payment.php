@@ -20,16 +20,22 @@ class Payment
 
     if (isset($data['expense_id'])) {
       $inv = Expense::getRow(['id' => $data['expense_id']]);
+      $data['expense'] = $inv->reference;
     } else if (isset($data['income_id'])) {
       $inv = Income::getRow(['id' => $data['income_id']]);
+      $data['income'] = $inv->reference;
     } else if (isset($data['sale_id'])) {
       $inv = Sale::getRow(['id' => $data['sale_id']]);
+      $data['sale'] = $inv->reference;
     } else if (isset($data['purchase_id'])) {
       $inv = Purchase::getRow(['id' => $data['purchase_id']]);
+      $data['purchase'] = $inv->reference;
     } else if (isset($data['transfer_id'])) {
       $inv = ProductTransfer::getRow(['id' => $data['transfer_id']]);
+      $data['transfer'] = $inv->reference;
     } else if (isset($data['mutation_id'])) {
       $inv = BankMutation::getRow(['id' => $data['mutation_id']]);
+      $data['mutation'] = $inv->reference;
     }
 
     $bank = Bank::getRow(['id' => $data['bank_id']]);
@@ -46,6 +52,9 @@ class Payment
     $data['reference_date'] = ($data['reference_date'] ?? $inv->created_at);
     $data['reference']      = $inv->reference;
     $data['biller_id']      = $bank->biller_id;
+    $data['bank']   = $bank->code;
+    $data['biller'] = $bank->biller;
+
 
     DB::table('payments')->insert($data);
 
@@ -78,6 +87,7 @@ class Payment
    */
   public static function addOld($data)
   {
+    return FALSE;
     $data = setCreatedBy($data);
 
     if (isset($data['expense_id'])) {
@@ -94,7 +104,7 @@ class Payment
       $data['transfer_id'] = $data['pt_id'];
       unset($data['pt_id']);
     } else if (isset($data['transfer_id'])) {
-      $inv = Transfer::getRow(['id' => $data['transfer_id']]);
+      $inv = ProductTransfer::getRow(['id' => $data['transfer_id']]);
     } else if (isset($data['mutation_id'])) {
       $inv = BankMutation::getRow(['id' => $data['mutation_id']]);
     }
@@ -152,11 +162,11 @@ class Payment
       unset($clause['end_date']);
     }
     if (!empty($clause['has'])) {
-      $qb->db->where("{$clause['has']} IS NOT NULL");
+      $qb->where("{$clause['has']} IS NOT NULL");
       unset($clause['has']);
     }
     if (!empty($clause['method'])) {
-      $qb->db->like('method', $clause['method'], 'none');
+      $qb->like('method', $clause['method'], 'none');
       unset($clause['method']);
     }
     if (!empty($clause['order'])) {
