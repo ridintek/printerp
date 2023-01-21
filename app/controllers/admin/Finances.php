@@ -876,7 +876,7 @@ class Finances extends MY_Controller
       admin_redirect('finances/expenses');
     }
     if ($this->form_validation->run() == true) {
-      if ($this->site->addExpense($data)) {
+      if (Expense::add($data)) {
         $this->session->set_flashdata('message', lang('expense_added'));
       } else {
         $this->session->set_flashdata('error', lang('expense_add_failed'));
