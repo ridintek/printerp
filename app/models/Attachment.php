@@ -48,6 +48,16 @@ class Attachment
   }
 
   /**
+   * Select Attachment.
+   * @param string $columns Select columns.
+   * @param bool $escape Escape string (Default: TRUE).
+   */
+  public static function select(string $columns, $escape = TRUE)
+  {
+    return DB::table('attachment')->select($columns, $escape);
+  }
+
+  /**
    * Update attachment.
    * @param array $clause [ id, filename, *hashname, mime, created_by, updated_by ]
    */
