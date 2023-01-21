@@ -164,7 +164,7 @@ class FileUpload
 
     $attachment = Attachment::getRow(['id' => $insertId]);
 
-    return strval($attachment->hash);
+    return strval($attachment->hashname);
   }
 
   /**
