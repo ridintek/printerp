@@ -299,6 +299,21 @@ class DB
     return self::$classInstance;
   }
 
+  public static function transComplete()
+  {
+    return get_instance()->db->trans_complete();
+  }
+
+  public static function transStart()
+  {
+    return get_instance()->db->trans_start();
+  }
+
+  public static function transStatus()
+  {
+    return get_instance()->db->trans_status();
+  }
+
   public function update(array $data, array $where)
   {
     return self::$ciInstance->db->update(self::$tableName, $data, $where);
