@@ -53,12 +53,9 @@ class Db_model extends CI_Model
 
       if (!$debugMode) {
         $this->db
-        // ->select("SUM(grand_total) AS total, '0' AS total_paid, '0' AS total_balance")
         ->select("COALESCE(SUM(grand_total), 0) AS total, COALESCE(SUM(paid), 0) AS total_paid, COALESCE(SUM(balance), 0) AS total_balance")
         ->from('sales')
         ->where("date LIKE '{$dateMonth}%'");
-
-        // d($this->db->get_compiled_select()); die();
 
         $q = $this->db->get();
 
@@ -80,8 +77,6 @@ class Db_model extends CI_Model
         ];
       }
     }
-
-    // d($rows); die();
 
     return $rows;
   }
