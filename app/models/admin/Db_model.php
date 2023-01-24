@@ -57,6 +57,12 @@ class Db_model extends CI_Model
         ->from('sales')
         ->where("date LIKE '{$dateMonth}%'");
 
+        if (strtotime($dateMonth . '-01 23:59:59') >= strtotime('2023-01-01 00:00:00')) {
+          $this->db->not_like('status', 'need_payment', 'none');
+        }
+
+        // d($this->db->get_compiled_select()); die();
+
         $q = $this->db->get();
 
         if ($this->db->affected_rows()) {

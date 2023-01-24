@@ -952,6 +952,7 @@ function getDailyPerformanceReport($opt)
         if (!$overTime) {
           $dailyRevenue = round(DB::table('sales')
             ->selectSum('grand_total', 'total')
+            ->notLike('status', 'need_payment')
             ->where('biller_id', $biller->id)
             ->where("date LIKE '{$ymPeriod}-{$dt}%'")
             ->getRow()->total ?? 0);
@@ -1276,9 +1277,9 @@ function getIncomeStatementReport($opt)
   // SALES
   foreach ($sales as $sale) {
     // I/O MANIP: Tanggal lebih dari 2023-01-01 00:00:00, maka jangan include sale.status = need_payment.
-    // if (strtotime($startDate) >= strtotime('2023-01-01 00:00:00') || strtotime($endDate) >= strtotime('2023-01-01 00:00:00')) {
-    //   if (strcasecmp($sale->status, 'need_payment') === 0) continue;
-    // }
+    if (strtotime($startDate) >= strtotime('2023-01-01 00:00:00') || strtotime($endDate) >= strtotime('2023-01-01 00:00:00')) {
+      if (strcasecmp($sale->status, 'need_payment') === 0) continue;
+    }
 
     // #1 Revenue.
     $revenue += $sale->grand_total;

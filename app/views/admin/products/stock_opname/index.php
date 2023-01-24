@@ -89,7 +89,7 @@ if ($filter = getGET('f')) {
         {
           targets: 14,
           orderable: false,
-          render: attachmentStockOpname
+          render: attachment
         }
       ],
       footerCallback: function(row, data) {

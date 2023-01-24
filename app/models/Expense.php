@@ -12,6 +12,28 @@ class Expense
   {
     $data['reference'] = OrderRef::getReference('expense');
 
+    if (isset($data['bank_id'])) {
+      $bank = Bank::getRow(['id' => $data['bank_id']]);
+
+      $data['bank'] = $bank->code;
+    }
+
+    if (isset($data['biller_id'])) {
+      $biller = Biller::getRow(['id' => $data['biller_id']]);
+
+      $data['biller'] = $biller->code;
+    }
+
+    if (isset($data['category_id'])) {
+      $category = ExpenseCategory::getRow(['id' => $data['category_id']]);
+
+      $data['category'] = $category->code;
+    }
+
+    if (isset($data['supplier_id'])) {
+      $data['supplier'] = $data['supplier_id'];
+    }
+
     DB::table('expenses')->insert($data);
 
     if (DB::affectedRows()) {
@@ -97,7 +119,71 @@ class Expense
    */
   public static function update(int $id, array $data)
   {
+    $lastExpense = self::getRow(['id' => $id]);
+
+    if (isset($data['bank_id'])) {
+      $bank = Bank::getRow(['id' => $data['bank_id']]);
+
+      $data['bank'] = $bank->code;
+    }
+
+    if (isset($data['biller_id'])) {
+      $biller = Biller::getRow(['id' => $data['biller_id']]);
+
+      $data['biller'] = $biller->code;
+    }
+
+    if (isset($data['category_id'])) {
+      $category = ExpenseCategory::getRow(['id' => $data['category_id']]);
+
+      $data['category'] = $category->code;
+    }
+
+    if (isset($data['supplier_id'])) {
+      $data['supplier'] = $data['supplier_id'];
+    }
+
     DB::table('expenses')->update($data, ['id' => $id]);
-    return DB::affectedRows();
+
+    if (DB::affectedRows()) {
+      $expense = self::getRow(['id' => $id]);
+      $payments = Payment::get(['expense_id' => $id]);
+
+      if ($payments) { // Update payments too.
+        $paymentData = [
+          'amount'  => $expense->amount,
+          'bank_id' => $expense->bank_id,
+          'note'    => $expense->note
+        ];
+
+        foreach ($payments as $payment) {
+          Payment::update((int)$payment->id, $paymentData);
+        }
+      }
+
+      if (
+        $expense->status == 'approved' &&
+        $lastExpense->payment_status == 'pending' &&
+        $expense->payment_status == 'paid'
+      ) {
+        $bank = Bank::getRow(['id' => $expense->bank_id]);
+
+        Payment::add([
+          'expense_id' => $id,
+          'bank_id'    => $expense->bank_id,
+          'method'     => $bank->type,
+          'amount'     => $expense->amount,
+          'created_by' => $expense->created_by,
+          'type'       => 'sent',
+          'note'       => ($data['note'] ?? $expense->note)
+        ]);
+
+        DB::table('expenses')->update(['payment_date' => date('Y-m-d H:i:s')], ['id' => $id]);
+      }
+
+      return TRUE;
+    }
+
+    return FALSE;
   }
 }

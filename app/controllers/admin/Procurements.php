@@ -198,7 +198,7 @@ class Procurements extends MY_Controller
           XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
           admin_redirect('procurements/internal_uses/add');
         }
-        $internalUseData['attachment_id'] = $upload->storeRandom();
+        $internalUseData['attachment'] = $upload->storeRandom();
       } else if ($category == 'consumable') {
         $this->session->set_flashdata('error', 'Attachment maks. 2MB harus disertakan.');
         admin_redirect('procurements/internal_uses/add');
@@ -374,7 +374,7 @@ class Procurements extends MY_Controller
           admin_redirect('procurements/internal_uses/status/' . $iuse->id);
         }
 
-        $internalUseData['attachment_id'] = $upload->storeRandom();
+        $internalUseData['attachment'] = $upload->storeRandom();
       } else if ($status == 'installed' && empty($iuse->attachment_id)) {
         $this->session->set_flashdata('error', 'Attachment harus disertakan jika sudah selesai instalasi.');
         admin_redirect('procurements/internal_uses/status/' . $iuse->id);
@@ -889,7 +889,7 @@ class Procurements extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $purchaseData['attachment_id'] = $uploader->storeRandom();
+        $purchaseData['attachment'] = $uploader->storeRandom();
       }
 
       if ($this->site->addPurchase($purchaseData, $items)) {
@@ -1557,7 +1557,7 @@ class Procurements extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $payment['attachment_id'] = $uploader->storeRandom();
+        $payment['attachment'] = $uploader->storeRandom();
       }
     } elseif (getPOST('add_payment')) {
       $this->session->set_flashdata('error', validation_errors());
@@ -1777,7 +1777,7 @@ class Procurements extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $purchase_data['attachment_id'] = $uploader->storeRandom();
+        $purchase_data['attachment'] = $uploader->storeRandom();
       }
     }
 
@@ -1934,7 +1934,7 @@ class Procurements extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $data_payment['attachment_id'] = $uploader->storeRandom();
+        $data_payment['attachment'] = $uploader->storeRandom();
       }
     } elseif (getPOST('edit_payment')) {
       $this->session->set_flashdata('error', validation_errors());
@@ -2728,7 +2728,7 @@ class Procurements extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $transferData['attachment_id'] = $uploader->storeRandom();
+        $transferData['attachment'] = $uploader->storeRandom();
       }
     }
 
@@ -2816,7 +2816,7 @@ class Procurements extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $data['attachment_id'] = $uploader->storeRandom();
+        $data['attachment'] = $uploader->storeRandom();
       }
 
       $bank_from_balance = $this->site->getBankBalanceByID($data['from_bank_id']);
@@ -3005,7 +3005,7 @@ class Procurements extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $transferData['attachment_id'] = $uploader->storeRandom();
+        $transferData['attachment'] = $uploader->storeRandom();
       }
     }
 
@@ -3134,7 +3134,7 @@ class Procurements extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $data_payment['attachment_id'] = $uploader->storeRandom();
+        $data_payment['attachment'] = $uploader->storeRandom();
       }
     } elseif (getPOST('edit_payment')) {
       $this->session->set_flashdata('error', validation_errors());
@@ -3521,7 +3521,7 @@ class Procurements extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $transfer_data['attachment_id'] = $uploader->storeRandom();
+        $transfer_data['attachment'] = $uploader->storeRandom();
       }
     }
     if ($this->form_validation->run() == true) {

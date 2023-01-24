@@ -94,7 +94,7 @@ class Whatsapp extends MY_Controller
           sendJSON(['success' => 0, 'message' => 'Attachment tidak boleh lebih dari 2MB.']);
         }
 
-        $trackData['attachment_id'] = $uploader->storeRandom();
+        $trackData['attachment'] = $uploader->storeRandom();
       } else {
         sendJSON(['success' => 0, 'message' => 'Attachment berupa foto display mesin POD dibutuhkan.']);
       }
@@ -192,7 +192,7 @@ class Whatsapp extends MY_Controller
           sendJSON(['success' => 0, 'message' => 'Attachment tidak boleh lebih dari 2MB.']);
         }
 
-        $trackData['attachment_id'] = $uploader->storeRandom();
+        $trackData['attachment'] = $uploader->storeRandom();
       }
 
       if ($this->site->updateTrackingPOD($trackId, $trackData)) {

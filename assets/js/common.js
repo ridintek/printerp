@@ -365,14 +365,14 @@ function attachment(x) {
 
   if (x == null) return r;
 
-  if (x.length > 0 && isNumber(x)) {
+  if (x.length > 0 && (isNumber(x) || x.search('-'))) {
     r =
       `<div class="text-center">
         <a href="${site.base_url}gallery/attachment/${x}?modal=1" data-toggle="modal" data-modal-class="modal-lg" data-target="#myModal">
           <i class="fad fa-file-download"></i>
         </a>
       </div>`;
-  } else if (x != null && x.length > 10) {
+  } else if (x != null && x.length > 10 && x.search('.') > 0) {
     r =
       `<div class="text-center">
         <a href="${site.base_url}gallery/view?name=${x}" data-toggle="modal" data-modal-class="modal-lg" data-target="#myModal">

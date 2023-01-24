@@ -49,7 +49,7 @@ class Sale
     $balance = ($isSpecialCustomer ? $grandTotal : 0);
 
     // Determine use TB by biller and warehouse, if both different, then use tb (1).
-    $use_tb = isTBSale((int)$data['biller_id'], (int)$data['warehouse_id']);
+    $useTB = isTBSale((int)$data['biller_id'], (int)$data['warehouse_id']);
     // $use_tb = (strcasecmp($biller->name, $warehouse->name) === 0 ? 0 : 1);
 
     // Get payment term.
@@ -60,11 +60,11 @@ class Sale
       'date'            => $date,
       'reference'       => $reference,
       'customer_id'     => $customer->id,
-      'customer'        => $customer->name,
+      'customer'        => $customer->phone,
       'biller_id'       => $biller->id,
-      'biller'          => $biller->name,
+      'biller'          => $biller->code,
       'warehouse_id'    => $warehouse->id,
-      'warehouse'       => $warehouse->name,
+      'warehouse'       => $warehouse->code,
       'no_po'           => ($data['no_po'] ?? NULL),
       'note'            => ($data['note'] ?? NULL),
       'discount'        => filterDecimal($data['discount'] ?? 0),
@@ -79,8 +79,16 @@ class Sale
       'total_items'     => $total_items,
       'paid'            => filterDecimal($data['paid'] ?? 0),
       'attachment_id'   => ($data['attachment_id'] ?? NULL),
+      'attachment'      => ($data['attachment'] ?? NULL),
       'payment_method'  => ($data['payment_method'] ?? NULL),
-      'use_tb'          => $use_tb,
+      'use_tb'          => $useTB,
+      'json'            => json_encode([
+        'approved'          => ($data['approved'] ?? 0),
+        'cashier_by'        => ($data['cashier_by'] ?? ''),
+        'source'            => ($data['source'] ?? ''),
+        'est_complete_date' => ($data['est_complete_date'] ?? ''),
+        'payment_due_date'  => ($data['payment_due_date'] ?? getWorkingDateTime(date('Y-m-d H:i:s', strtotime('+1 days'))))
+      ]),
       'json_data'       => json_encode([
         'approved'          => ($data['approved'] ?? 0),
         'cashier_by'        => ($data['cashier_by'] ?? ''),
@@ -99,6 +107,8 @@ class Sale
       $sale = self::getRow(['id' => $insertId]);
 
       foreach ($items as $item) {
+        $product = Product::getRow(['id' => $item['product_id']]);
+
         if (!empty($item['width']) && !empty($item['length'])) {
           $area = filterDecimal($item['width']) * filterDecimal($item['length']);
           $quantity = ($area * filterDecimal($item['quantity']));
@@ -111,10 +121,23 @@ class Sale
 
         SaleItem::add([
           'sale_id'       => $insertId,
-          'product_id'    => $item['product_id'],
+          'product_id'    => $product->id,
+          'product_code'  => $product->id,
+          'product_name'  => $product->name,
           'price'         => $item['price'],
           'quantity'      => $quantity,
-          'warehouse_id'  => $data['warehouse_id'],
+          'subtotal'      => ($item['price'] * $quantity),
+          'json'          => json_encode([
+            'w'             => $item['width'],
+            'l'             => $item['length'],
+            'area'          => $area,
+            'sqty'          => $item['quantity'],
+            'spec'          => ($item['spec'] ?? ''),
+            'status'        => $data['status'],
+            'operator_id'   => ($item['operator_id'] ?? ''),
+            'due_date'      => ($item['due_date'] ?? ''),
+            'completed_at'  => ($item['completed_at'] ?? '')
+          ]),
           'json_data'     => json_encode([
             'w'             => $item['width'],
             'l'             => $item['length'],
@@ -297,6 +320,19 @@ class Sale
         setLastError("Sale::sync() Unknown data type '" . gettype($clause['sale_id']) . "'");
         return FALSE;
       }
+    } else if (!empty($clause['id'])) {
+      $saleType = gettype($clause['id']);
+
+      if ($saleType == 'array') {
+        $sales = $clause['id'];
+      } else if ($saleType == 'integer' || $saleType == 'string') {
+        if ($sale = Sale::getRow(['id' => $clause['id']])) {
+          $sales[] = $sale;
+        }
+      } else {
+        setLastError("Sale::sync() Unknown data type '" . gettype($clause['id']) . "'");
+        return FALSE;
+      }
     } else { // Default if sale_id is NULL.
       $sales = Sale::get();
     }
@@ -374,6 +410,10 @@ class Sale
         $saleItemJS->status = $saleItemStatus;
 
         SaleItem::update((int)$saleItem->id, ['json_data' => json_encode($saleItemJS)]);
+      }
+
+      if ($sale->discount > $grandTotal) {
+        $sale->discount = $grandTotal;
       }
 
       $grandTotal = round($grandTotal - $sale->discount);

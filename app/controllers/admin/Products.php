@@ -210,7 +210,7 @@ class Products extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER'] ?? '/');
         }
 
-        $adjustmentData['attachment_id'] = $uploader->storeRandom();
+        $adjustmentData['attachment'] = $uploader->storeRandom();
       }
     }
 
@@ -977,7 +977,7 @@ class Products extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $adjustment_data['attachment_id'] = $uploader->storeRandom();
+        $adjustment_data['attachment'] = $uploader->storeRandom();
       }
     }
 
@@ -3181,7 +3181,7 @@ class Products extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $ptData['attachment_id'] = $uploader->storeRandom();
+        $ptData['attachment'] = $uploader->storeRandom();
       }
 
       if (ProductTransfer::add($ptData, $items)) {
@@ -3323,7 +3323,7 @@ class Products extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $pmData['attachment_id'] = $uploader->storeRandom();
+        $pmData['attachment'] = $uploader->storeRandom();
       }
 
       if ($this->site->addProductMutation($pmData, $items)) {
@@ -3419,7 +3419,7 @@ class Products extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $pmData['attachment_id'] = $uploader->storeRandom();
+        $pmData['attachment'] = $uploader->storeRandom();
       }
 
       if ($this->site->updateProductMutation($pmId, $pmData, $items)) {
@@ -3892,7 +3892,7 @@ class Products extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $so_data['attachment_id'] = $uploader->storeRandom();
+        $so_data['attachment'] = $uploader->storeRandom();
       } else {
         $this->session->set_flashdata('error', 'Attachment harus dilampirkan.');
         admin_redirect('products/stock_opname/add');
@@ -4011,7 +4011,7 @@ class Products extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $so_data['attachment_id'] = $uploader->storeRandom();
+        $so_data['attachment'] = $uploader->storeRandom();
       } else if ($opname->status == 'checked' && $this->so_mode == 'confirm') { // If confirm checked, must include attachment.
         $this->session->set_flashdata('error', lang('attachment_required'));
         admin_redirect("products/stock_opname/{$this->so_mode}/{$opname_id}");
@@ -4502,7 +4502,7 @@ class Products extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $ptData['attachment_id'] = $uploader->storeRandom();
+        $ptData['attachment'] = $uploader->storeRandom();
       }
 
       if (ProductTransfer::add($ptData, $items)) {
@@ -4676,7 +4676,7 @@ class Products extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $ptData['attachment_id'] = $uploader->storeRandom();
+        $ptData['attachment'] = $uploader->storeRandom();
       }
 
       if (ProductTransfer::update($ptId, $ptData, $items)) {
