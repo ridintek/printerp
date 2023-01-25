@@ -84,8 +84,6 @@ class Db_model extends CI_Model
       }
     }
 
-    // d($rows); die();
-
     return $rows;
   }
 
