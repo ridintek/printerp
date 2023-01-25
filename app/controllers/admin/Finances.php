@@ -2320,8 +2320,8 @@ class Finances extends MY_Controller
 
         $validationOptions['attachment'] = $uploader->storeRandom();
       } else {
-        // XSession::set('error', 'Attachment dibutuhkan.');
-        // admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
+        XSession::set('error', 'Attachment dibutuhkan.');
+        admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
       }
       // dbgprint($data, $validationOptions); die;
       if (PaymentValidation::validate($data, $validationOptions)) { // Validate manually.

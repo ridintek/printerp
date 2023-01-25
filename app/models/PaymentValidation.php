@@ -260,7 +260,7 @@ class PaymentValidation
                   'type'            => 'received'
                 ];
 
-                if (isset($options['attachment_id'])) $payment['attachment_id'] = $options['attachment_id'];
+                if (isset($options['attachment'])) $payment['attachment'] = $options['attachment'];
 
                 Sale::addPayment($payment); // Add real payment to sales.
                 $customer = Customer::getRow(['id' => $sale->customer_id]);
@@ -288,7 +288,7 @@ class PaymentValidation
                   'note'            => $mutation->note
                 ];
 
-                if (isset($options['attachment_id'])) $payment_from['attachment_id'] = $options['attachment_id'];
+                if (isset($options['attachment'])) $payment_from['attachment'] = $options['attachment'];
 
                 if (Payment::add($payment_from)) {
                   $payment_to = [
@@ -303,7 +303,7 @@ class PaymentValidation
                     'note'        => $mutation->note
                   ];
 
-                  if (isset($options['attachment_id'])) $payment_to['attachment_id'] = $options['attachment_id'];
+                  if (isset($options['attachment'])) $payment_to['attachment'] = $options['attachment'];
 
                   if (Payment::add($payment_to)) {
                     BankMutation::update((int)$mutation->id, [
