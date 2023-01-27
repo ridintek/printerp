@@ -140,7 +140,7 @@ $autoload['model'] = [
   'app', 'site', 'Adjustment', 'Attachment', 'Authentication', 'Bank', 'BankMutation', 'Biller',
   'Category', 'ComboItem', 'CronModel', 'Customer',
   'DB', 'Expense', 'ExpenseCategory',
-  'GoogleReview', 'Group', 'Income', 'InternalUse', 'MaintenanceLog',
+  'GoogleReview', 'Group', 'Income', 'IncomeCategory', 'InternalUse', 'MaintenanceLog',
   'OrderRef',
   'Payment', 'PaymentValidation', 'Product', 'ProductPrice', 'ProductReview',
   'ProductTransfer', 'ProductTransferItem',

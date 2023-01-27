@@ -12,21 +12,23 @@ class Income
   {
     $data['reference'] = OrderRef::getReference('income');
 
+    $data = setCreatedBy($data);
+
     DB::table('incomes')->insert($data);
 
     if (DB::affectedRows()) {
       $incomeId = DB::insertID();
 
       $payment = [
-        'created_at' => $data['date'],
-        'income_id'  => $incomeId,
-        'reference'  => $data['reference'],
-        'bank_id'    => $data['bank_id'],
-        'method'     => 'Transfer', // Diganti jika ada opsi.
-        'amount'     => $data['amount'],
-        'created_by' => ($data['created_by'] ?? XSession::get('user_id')),
-        'type'       => 'received',
-        'note'       => $data['note']
+        'date'        => $data['date'],
+        'income_id'   => $incomeId,
+        'reference'   => $data['reference'],
+        'bank_id'     => $data['bank_id'],
+        'method'      => 'Transfer', // Diganti jika ada opsi.
+        'amount'      => $data['amount'],
+        'created_by'  => ($data['created_by'] ?? XSession::get('user_id')),
+        'type'        => 'received',
+        'note'        => $data['note']
       ];
 
       if (Payment::add($payment)) {

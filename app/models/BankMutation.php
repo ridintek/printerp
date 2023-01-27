@@ -105,6 +105,34 @@ class BankMutation
    */
   public static function update(int $id, array $data)
   {
+    $payments = Payment::get(['mutation_id' => $id]);
+
+    foreach ($payments as $payment) {
+      $paymentData = [];
+
+      if (isset($data['amount']))     $paymentData['amount']      = $data['amount'];
+      if (isset($data['attachment'])) $paymentData['attachment']  = $data['attachment'];
+      if (isset($data['date']))       $paymentData['date']        = $data['date'];
+      if (isset($data['created_by'])) $paymentData['created_by']  = $data['created_by'];
+      if (isset($data['updated_by'])) $paymentData['updated_by']  = $data['updated_by'];
+
+      if (isset($data['from_bank_id']) && $payment->type == 'sent') {
+        $bank = Bank::getRow(['id' => $data['from_bank_id']]);
+
+        $paymentData['bank_id']   = $bank->id;
+        $paymentData['bank']  = $bank->code;
+      }
+
+      if (isset($data['to_bank_id']) && $payment->type == 'received') {
+        $bank = Bank::getRow(['id' => $data['to_bank_id']]);
+
+        $paymentData['bank_id'] = $bank->id;
+        $paymentData['bank']  = $bank->code;
+      }
+
+      Payment::update((int)$payment->id, []);
+    }
+
     DB::table('bank_mutations')->update($data, ['id' => $id]);
     return DB::affectedRows();
   }

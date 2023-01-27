@@ -7609,7 +7609,7 @@ class Site extends MY_Model
       $sales = $this->getSales();
     }
 
-    if (empty($sales)) die('Why sales is empty?');
+    if (empty($sales)) return FALSE;
 
     foreach ($sales as $sale) {
       if (empty($sale->json_data)) {

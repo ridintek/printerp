@@ -709,6 +709,11 @@ class Reports extends MY_Controller
 
         $sale = $this->site->getSaleByID($saleItem->sale_id);
 
+        if (!$sale) {
+          SaleItem::delete(['id' => $saleItem->id]);
+          continue;
+        }
+
         $payments = $this->site->getPayments(['sale_id' => $sale->id]);
 
         $sheet->setCellValue("A{$r3}", $saleItem->created_at);

@@ -593,8 +593,12 @@ class Sales extends MY_Controller
       }
     }
 
-    if ($this->site->deleteSale($id)) {
-      if ($this->input->is_ajax_request()) {
+    if (Sale::delete(['id' => $id])) {
+      PaymentValidation::delete(['sale_id' => $id]);
+      Payment::delete(['sale_id' => $id]);
+      Stock::delete(['sale_id' => $id]);
+
+      if (isAJAX()) {
         sendJSON(['success' => 1, 'message' => lang('sale_deleted')]);
       }
       $this->session->set_flashdata('message', lang('sale_deleted'));
@@ -2093,8 +2097,8 @@ class Sales extends MY_Controller
   {
     $sale_id = getPOST('sale');
 
-    if (!$this->Owner) {
-      sendJSON(['error' => 1, 'msg' => 'ANDA TIDAK PUNYA IZIN.']);
+    if (!$this->Owner && !$this->Admin) {
+      sendJSON(['error' => 1, 'msg' => 'You do not have permissions.']);
     }
 
     if ($sale_id) {

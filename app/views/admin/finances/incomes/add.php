@@ -13,7 +13,7 @@
       <div class="col-md-6">
         <div class="form-group">
           <?= lang('date', 'date'); ?>
-          <?= form_input('date', (isset($_POST['date']) ? $_POST['date'] : ''), 'class="form-control" id="date" required="required"'); ?>
+          <input class="form-control datetimenow" id="date" name="date" type="text" required="required" value="">
         </div>
       </div>
       <div class="col-md-6">
@@ -106,7 +106,7 @@
       <?php
       $bal = [];
       foreach ($banks as $bank) {
-        $bal[$bank->id] = $bank->balance;
+        $bal[$bank->id] = $bank->amount;
       }
       ?>
       let bal = JSON.parse('<?= json_encode($bal); ?>');

@@ -2201,6 +2201,20 @@ function htmlRemove($html)
 }
 
 /**
+ * Check if request is from AJAX.
+ */
+function isAJAX()
+{
+  foreach (getallheaders() as $name => $value) {
+    if (strcasecmp($name, 'X-Requested-With') === 0 && strcasecmp($value, 'XMLHttpRequest') === 0) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+/**
  * Test to see if a request was made from the command line.
  */
 function isCLI()
