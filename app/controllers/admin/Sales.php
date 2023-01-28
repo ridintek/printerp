@@ -51,6 +51,12 @@ class Sales extends MY_Controller
         foreach ($vals as $id) {
           $sale = Sale::getRow(['id' => $id]);
 
+          $firstMonthDate = strtotime(date('Y-m-') . '01 00:00:00');
+
+          if ($firstMonthDate > strtotime($sale->date)) {
+            sendJSON(['error' => 1, 'msg' => 'Invoice lama tidak bisa dihapus.']);
+          }
+
           if ($sale && !$this->Owner) {
             if (isCompleted($sale->status)) {
               $msg = "Invoice {$sale->reference} gagal dihapus karena sudah atau sedang diproduksi.";
@@ -580,6 +586,12 @@ class Sales extends MY_Controller
     }
 
     $sale = $this->site->getSaleByID($id);
+
+    $firstMonthDate = strtotime(date('Y-m-') . '01 00:00:00');
+
+    if ($firstMonthDate > strtotime($sale->date)) {
+      sendJSON(['error' => 1, 'msg' => 'Invoice lama tidak bisa dihapus.']);
+    }
 
     if ($sale && !$this->Owner) {
       if (isCompleted($sale->status)) {
@@ -2102,7 +2114,14 @@ class Sales extends MY_Controller
     }
 
     if ($sale_id) {
-      $sale = $this->site->getSaleByID($sale_id);
+      $sale = Sale::getRow(['id' => $sale_id]);
+
+      $firstMonthDate = strtotime(date('Y-m-') . '01 00:00:00');
+      $invDate = strtotime($sale->date);
+
+      if ($firstMonthDate > $invDate) {
+        sendJSON(['error' => 1, 'msg' => 'Invoice lama tidak bisa di revert.']);
+      }
 
       if ($this->Owner || $sale && ($sale->status == 'completed' ||
         $sale->status == 'delivered' ||

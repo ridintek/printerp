@@ -606,7 +606,7 @@ class Procurements extends MY_Controller
       to_warehouse.name AS warehouse_to_name,
       items, grand_total,
       internal_uses.counter AS counter_status, note,
-      internal_uses.status AS internal_status, attachment_id")
+      internal_uses.status AS internal_status, attachment")
       ->from('internal_uses');
 
     // JOIN TABLE

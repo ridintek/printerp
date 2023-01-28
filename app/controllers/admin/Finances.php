@@ -1442,9 +1442,10 @@ class Finances extends MY_Controller
         <li>' . $delete_link . '</li>
       </ul>
       </div></div>';
+
     $this->load->library('datatables');
     $this->datatables
-      ->select("incomes.id as id, incomes.date, incomes.reference, incomes.payment_reference,
+      ->select("incomes.id as id, incomes.date, incomes.reference,
         income_categories.name as category, incomes.amount, incomes.note,
         banks.name as bank_name,
         users.fullname as created_by, (
@@ -1459,6 +1460,7 @@ class Finances extends MY_Controller
       ->join('income_categories', 'income_categories.id=incomes.category_id', 'left')
       ->join('users', 'users.id=incomes.created_by', 'left')
       ->group_by('incomes.id');
+
     if ($reference) {
       $this->datatables->like('incomes.reference', $reference, 'both');
     }
@@ -1911,7 +1913,11 @@ class Finances extends MY_Controller
     $this->data['payments'] = [];
 
     if ($module == 'erp') {
-      $payments = $this->site->getPaymentsByBankAccountNumber($accNo);
+      $payments = DB::table('payments')
+        ->select('payments.*')
+        ->join('banks', 'banks.id = payments.bank_id', 'left')
+        ->where('banks.number', $accNo)
+        ->get();
 
       $this->data['payments'] = $payments;
     } else if ($module == 'mb') {
