@@ -51,12 +51,13 @@ class Site extends MY_Model
       }
 
       $adjustmentData = [
-        'date' => ($data['date'] ?? date('Y-m-d H:i:s')),
-        'reference' => $this->getReference('adjustment'),
-        'mode' => $data['mode'],
-        'note' => ($data['note'] ?? ''),
-        'warehouse_id' => $warehouse->id,
-        'created_by' => ($data['created_by'] ?? NULL)
+        'date'          => ($data['date'] ?? date('Y-m-d H:i:s')),
+        'reference'     => $this->getReference('adjustment'),
+        'mode'          => $data['mode'],
+        'note'          => ($data['note'] ?? ''),
+        'warehouse_id'  => $warehouse->id,
+        'warehouse'     => $warehouse->code,
+        'created_by'    => ($data['created_by'] ?? NULL)
       ];
 
       $adjustmentData = setCreatedBy($adjustmentData);
@@ -1496,6 +1497,8 @@ class Site extends MY_Model
       }
 
       foreach ($products as $product) {
+        $warehouse = Warehouse::getRow(['id' => $product['warehouse_id']]);
+
         $this->addStockQuantity([
           'date'           => $data['date'],
           'adjustment_id'  => $adjustment_id,
@@ -1504,6 +1507,7 @@ class Site extends MY_Model
           'adjustment_qty' => $product['adjustment_qty'],
           'status'         => $product['type'],
           'warehouse_id'   => $product['warehouse_id'],
+          'warehouse'      => $warehouse->code,
           'created_by'     => ($data['created_by'] ?? XSession::get('user_id'))
         ]);
       }
@@ -2042,7 +2046,7 @@ class Site extends MY_Model
 
     if ($this->db->affected_rows()) {
       if ($data['end_click'] != $data['erp_click']) { // Adjustment if end_click != erp_click.
-        // TEST WITHOUT QTY ADJUSTMENT.
+        // TEST WITHOUT QTY ADJUSTMENT. BETTER. DO NOT ADJUSTMENT AGAIN!
         // $adjustmentData = [
         //   'date'         => ($data['created_at'] ?? date('Y-m-d H:i:s')),
         //   'warehouse_id' => $data['warehouse_id'],
@@ -8190,13 +8194,13 @@ class Site extends MY_Model
 
       if (isset($data['bank_id'])) {
         $bank = Bank::getRow(['id' => $data['bank_id']]);
-  
+
         $data['bank'] = $bank->code;
       }
 
       if (isset($data['biller_id'])) {
         $biller = Biller::getRow(['id' => $data['biller_id']]);
-  
+
         $data['biller'] = $biller->code;
       }
 
@@ -9146,16 +9150,19 @@ class Site extends MY_Model
 
       // Update all new items.
       foreach ($products as $product) {
+        $warehouse = Warehouse::getRow(['id' => $product['warehouse_id']]);
+
         $this->addStockQuantity([ // Add if not present.
           'date' => $data['date'],
-          'adjustment_id'  => $adjustment_id,
-          'product_id'     => $product['product_id'],
-          'quantity'       => $product['quantity'],
-          'adjustment_qty' => $product['adjustment_qty'],
-          'status'         => $product['type'],
-          'warehouse_id'   => $product['warehouse_id'],
-          'created_by'     => ($data['created_by'] ?? $adjustment->created_by),
-          'updated_by'     => XSession::get('user_id')
+          'adjustment_id'   => $adjustment_id,
+          'product_id'      => $product['product_id'],
+          'quantity'        => $product['quantity'],
+          'adjustment_qty'  => $product['adjustment_qty'],
+          'status'          => $product['type'],
+          'warehouse_id'    => $product['warehouse_id'],
+          'warehouse'       => $warehouse->code,
+          'created_by'      => ($data['created_by'] ?? $adjustment->created_by),
+          'updated_by'      => XSession::get('user_id')
         ]);
       }
 
