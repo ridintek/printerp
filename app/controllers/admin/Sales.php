@@ -590,7 +590,7 @@ class Sales extends MY_Controller
     $firstMonthDate = strtotime(date('Y-m-') . '01 00:00:00');
 
     if ($firstMonthDate > strtotime($sale->date)) {
-      sendJSON(['error' => 1, 'msg' => 'Invoice lama tidak bisa dihapus.']);
+      sendJSON(['success' => 0, 'message' => 'Invoice lama tidak bisa dihapus.']);
     }
 
     if ($sale && !$this->Owner) {

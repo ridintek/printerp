@@ -86,11 +86,11 @@ class CronModel
       }
     }
 
-    if ($stats = $ci->site->clearEmptyPayments()) {
-      foreach ($stats as $stat) {
-        log_message('info', sprintf("Payment for [%s id:%d] has been deleted.", $stat['type'], $stat['id']));
-      }
-    }
+    // if ($stats = $ci->site->clearEmptyPayments()) {
+    //   foreach ($stats as $stat) {
+    //     log_message('info', sprintf("Payment for [%s id:%d] has been deleted.", $stat['type'], $stat['id']));
+    //   }
+    // }
 
     return TRUE;
   }

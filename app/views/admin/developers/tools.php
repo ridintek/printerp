@@ -26,6 +26,7 @@
   </div>
   <div class="box-content">
     <div class="row">
+      <!-- SEND WHATSAPP -->
       <div class="col-sm-4">
         <div class="panel panel-primary">
           <div class="panel-heading">Send Whatsapp</div>
@@ -86,6 +87,7 @@
           </div>
         </div>
       </div>
+      <!-- OCR SCANNER -->
       <div class="col-sm-4">
         <div class="panel panel-primary">
           <div class="panel-heading">OCR Scanner</div>
@@ -121,6 +123,42 @@
           </form>
         </div>
       </div>
+      <!-- FIND SALE -->
+      <div class="col-sm-4">
+        <div class="panel panel-primary">
+          <div class="panel-heading">Find Sales</div>
+          <div class="panel-body">
+            <form id="form_findsale">
+              <div class="col-sm-12">
+                <label for="attachment">Upload CSV</label>
+                <div class="row">
+                  <div class="col-sm-12 overflow-x">
+                    <div class="form-group">
+                      <input class="form-control file" accept=".csv" type="file" name="attachment" data-browse-label="Browse" data-show-upload="false" data-show-preview="false">
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-12">
+                    <div class="form-group">
+                      <div class="msg-editor" id="findsale_response"></div>
+                      <button class="btn btn-danger form-control" id="findsale_clear"><i class="fa fa-broom"></i> Clear</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-12">
+                    <div class="form-group">
+                      <button class="btn btn-primary form-control" id="findsale_find"><i class="fa fa-magnifying-glass"></i> Find</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+          </div>
+          <?= csrf_field() ?>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -131,11 +169,48 @@
       console.log('edit');
       $('[name="message"]').html(this.innerHTML);
     });
+
+    $('#findsale_find').click(function(e) {
+      e.preventDefault();
+      $('#findsale_find').prop('disabled', true);
+
+      let formData = new FormData(document.querySelector('#form_findsale'));
+
+      $.ajax({
+        contentType: false,
+        data: formData,
+        error: (xhr) => {
+          console.log(xhr);
+          if (xhr.responseJSON) {
+            toastr.error(xhr.responseJSON.message, 'Find Sales');
+          } else {
+            toastr.error(xhr.response, 'Find Sales');
+          }
+          $('#findsale_find').prop('disabled', false);
+        },
+        method: 'POST',
+        processData: false,
+        success: (data) => {
+          toastr.success(data.message, 'Find Sales');
+          $('#findsale_response').html(data.data);
+          $('#findsale_find').prop('disabled', false);
+        },
+        url: site.base_url + 'developers/findSales'
+      });
+    });
+
+    $('#findsale_clear').click(function(e) {
+      e.preventDefault();
+
+      $('#findsale_response').empty();
+    });
+
     $('#ocr_clear').click(function(e) {
       e.preventDefault();
 
       $('#ocr_response').empty();
     });
+
     $('#ocr_scan').click(function(e) {
       e.preventDefault();
       $('#ocr_scan').prop('disabled', true);
@@ -159,6 +234,7 @@
         url: site.base_url + 'developers/ocr'
       });
     });
+
     $('#send_wa').click(function(e) {
       e.preventDefault();
       $('#send_wa').prop('disabled', true);
@@ -181,6 +257,7 @@
         url: site.base_url + 'developers/sendWA'
       });
     });
+
     $('#server').change(function() {
       if (this.value == 'jobs') {
         $('.apikey').slideUp();
