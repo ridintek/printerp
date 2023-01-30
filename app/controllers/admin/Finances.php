@@ -1917,6 +1917,7 @@ class Finances extends MY_Controller
         ->select('payments.*')
         ->join('banks', 'banks.id = payments.bank_id', 'left')
         ->where('banks.number', $accNo)
+        ->orderBy('payments.date', 'asc') // oldest to newest
         ->get();
 
       $this->data['payments'] = $payments;
