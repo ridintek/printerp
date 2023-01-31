@@ -294,8 +294,8 @@ class Sales extends MY_Controller
     }
 
     if ($this->form_validation->run()) {
-      if ($sale_id = $this->site->addSale($saleData, $sale_items)) {
-        $sale = $this->site->getSaleByID($sale_id);
+      if ($sale_id = Sale::add($saleData, $sale_items)) {
+        $sale = Sale::getRow(['id' => $sale_id]);
 
         $paymentDueDate = date('Y-m-d H:i:s', strtotime('+1 days')); // 1 day expired.
 

@@ -77,7 +77,24 @@ class Income
    */
   public static function update(int $id, array $data)
   {
+    $payment = Payment::getRow(['income_id' => $id]);
+
     DB::table('incomes')->update($data, ['id' => $id]);
-    return DB::affectedRows();
+    
+    if (DB::affectedRows()) {
+      if ($payment) {
+        $paymentData = [];
+
+        if (isset($data['amount'])) {
+          $paymentData['amount'] = $data['amount'];
+        }
+
+        Payment::update((int)$payment->id, $paymentData);
+      }
+
+      return true;
+    }
+
+    return false;
   }
 }
