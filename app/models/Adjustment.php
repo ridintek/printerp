@@ -15,8 +15,11 @@ class Adjustment
 
     $data = setCreatedBy($data);
 
-    $product    = Product::getRow(['id' => $data['product_id']]);
     $warehouse  = Warehouse::getRow(['id' => $data['warehouse_id']]);
+
+    if ($warehouse) {
+      $data['warehouse'] = $warehouse->code;
+    }
 
     DB::startTransaction();
 
@@ -77,6 +80,14 @@ class Adjustment
    */
   public static function update(int $id, array $data)
   {
+    if (isset($data['warehouse_id'])) {
+      $warehouse  = Warehouse::getRow(['id' => $data['warehouse_id']]);
+
+      if ($warehouse) {
+        $data['warehouse'] = $warehouse->code;
+      }
+    }
+
     DB::table('adjustments')->update($data, ['id' => $id]);
     return DB::affectedRows();
   }

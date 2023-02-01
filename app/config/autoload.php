@@ -139,11 +139,12 @@ $autoload['language'] = array();
 $autoload['model'] = [
   'app', 'site', 'Adjustment', 'Attachment', 'Authentication', 'Bank', 'BankMutation', 'Biller',
   'Category', 'ComboItem', 'CronModel', 'Customer',
-  'DB', 'Expense',
-  'GoogleReview', 'Group', 'Income', 'InternalUse', 'MaintenanceLog',
+  'DB', 'Expense', 'ExpenseCategory',
+  'GoogleReview', 'Group', 'Income', 'IncomeCategory', 'InternalUse', 'MaintenanceLog',
   'OrderRef',
   'Payment', 'PaymentValidation', 'Product', 'ProductPrice', 'ProductReview',
   'ProductTransfer', 'ProductTransferItem',
   'Qms_model', 'Sale', 'SaleItem', 'Setting', 'Stock', 'Supplier', 'Unit', 'User',
+  'Voucher',
   'Warehouse', 'WarehouseProduct'
 ];

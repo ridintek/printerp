@@ -6,9 +6,6 @@
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
       <i class="fad fa-times"></i>
     </button>
-    <button type="button" id="export_history_xls" class="btn btn-xs btn-default no-print pull-right" style="margin-right:15px;">
-      <i class="fad fa-file-excel"></i> <?= lang('export_excel'); ?>
-    </button>
     <h4 class="modal-title" id="myModalLabel"><?= lang('payment_histories') . ": "; ?></h4>
   </div>
   <div class="modal-body">
@@ -90,21 +87,3 @@
     </div>
   </div>
 </div>
-<script>
-  $(document).ready(function() {
-    $('#export_history_xls').on('click', function() {
-      let q = '';
-      let product_id = <?= ($product_id ? $product_id : 'null'); ?>;
-      let start_date = <?= ($start_date ? "'" . $start_date . "'" : 'null'); ?>;
-      let end_date = <?= ($end_date ? "'" . $end_date . "'" : 'null'); ?>;
-      let warehouse_id = <?= ($warehouse_id ? $warehouse_id : 'null'); ?>;
-
-      if (product_id) q += '&product=' + product_id;
-      if (start_date) q += '&start_date=' + start_date;
-      if (end_date) q += '&end_date=' + end_date;
-      if (warehouse_id) q += '&warehouse=' + warehouse_id;
-
-      location.href = '<?= admin_url('products/history?xls=1'); ?>' + q;
-    });
-  });
-</script>

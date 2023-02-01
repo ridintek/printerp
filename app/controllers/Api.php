@@ -356,8 +356,6 @@ class Api extends MY_Controller
       $this->redirect();
     }
 
-    header('Content-Type: text/html');
-
     if ($total = PaymentValidation::validate($mb_response)) { // Segala pengecekan dan validasi data di sini.
       $this->response(200, ['message' => sprintf('Success validate %d payment validations.', $total)]);
     } else {
@@ -469,11 +467,12 @@ class Api extends MY_Controller
       if ($pvId = PaymentValidation::add($pv_data)) {
         $paymentValidation = PaymentValidation::getRow(['id' => $pvId]);
 
-        $this->response(201, ['message' => 'Payment validation created successfully.',
+        $this->response(201, [
+          'message' => 'Payment validation created successfully.',
           'data' => $paymentValidation
         ]);
       }
-      
+
       $this->response(400, ['message' => 'Cannot create payment validation.']);
     } else if ($this->requestMethod == 'GET') {
       $id = getGET('id');
@@ -682,9 +681,13 @@ class Api extends MY_Controller
     if ($sale && $phone) {
       $customer = $this->site->getCustomerByPhone($phone);
 
-      if ($sale->customer_id != $customer->id) sendJSON(['error' => 1, 'msg' => 'Data is not match.']);
+      if ($sale->customer_id != $customer->id)
+        sendJSON(['error' => 1, 'msg' => 'Data is not match. Delete cancelled.']);
 
-      if ($this->site->deleteSale($sale->id)) {
+      if (Sale::delete(['id' => $sale->id])) {
+        PaymentValidation::delete(['sale_id' => $sale->id]);
+        Payment::delete(['sale_id' => $sale->id]);
+        Stock::delete(['sale_id' => $sale->id]);
         sendJSON(['error' => 0, 'msg' => "Sale {$inv} has been deleted successfully."]);
       }
       sendJSON(['error' => 1, 'msg' => "Failed to delete sale {$inv}."]);
@@ -930,6 +933,7 @@ class Api extends MY_Controller
       $use_transfer = ($api->use_transfer ?? 0);
       $bl_code      = ($api->biller ?? 'ONL'); // Default ONL.
       $wh_code      = ($api->warehouse ?? 'DUR'); // Default DUR.
+      $voucherCode  = ($api->voucher ?? NULL); // Voucher code.
 
       if ($phone && $items) {
         $customer = $this->site->getCustomerByPhone($phone);
@@ -986,7 +990,7 @@ class Api extends MY_Controller
             'quantity' => $qty
           ]));
 
-          $sale_items[] = [
+          $saleItems[] = [
             'product_id'   => $product->id,
             'price'        => $price,
             'quantity'     => $item->quantity,
@@ -1005,7 +1009,7 @@ class Api extends MY_Controller
 
         $paymentDueDate = date('Y-m-d H:i:s', strtotime("+1 day")); // Create expired 1 day.
 
-        $sale_data = [
+        $saleData = [
           'date'             => date('Y-m-d H:i:s'),
           'customer_id'      => $customer->id,
           'biller_id'        => $biller->id,
@@ -1019,20 +1023,53 @@ class Api extends MY_Controller
           'source'           => 'W2P' // Signature if invoice created by Web2Print.
         ];
 
-        if ($sale_id = $this->site->addSale($sale_data, $sale_items)) {
-          $date = $sale_data['date'];
-          $sale = $this->site->getSaleByID($sale_id);
+        if ($saleId = Sale::add($saleData, $saleItems)) {
+          $date = $saleData['date'];
+          $sale = Sale::getRow(['id' => $saleId]);
 
           if ($sale) {
+            $notice = NULL;
+
+            if ($voucherCode) {
+              $voucher = Voucher::getRow(['code' => $voucherCode]);
+
+              if (!$voucher) {
+                $notice = 'Voucher is not found.';
+              }
+
+              if (strtotime($voucher->valid_from) > time()) {
+                $notice = 'Voucher is too early to be used.';
+              }
+
+              if (strtotime($voucher->valid_to) < time()) {
+                $notice = 'Voucher has been expired.';
+              }
+
+              if (intval($voucher->quota) == 0) {
+                $notice = 'Voucher quota has been exceeded';
+              }
+
+              if (!$notice) {
+                DB::transStart();
+
+                Sale::update((int)$sale->id, ['discount' => $voucher->amount]);
+                Sale::sync(['id' => $sale->id]);
+                Voucher::update((int)$voucher->id, ['quota' => $voucher->quota - 1]);
+
+                DB::transComplete();
+              }
+            }
+
             if ($use_transfer) { // If using bank transfer. Add new payment validation.
+              $newSale = Sale::getRow(['id' => $sale->id]);
               $pv_data = [
                 'created_at'    => $date,
                 'expired_date'  => $paymentDueDate,
                 'reference'     => $sale->reference,
                 'sale_id'       => $sale->id,
-                'amount'        => $total,
+                'amount'        => $newSale->grand_total, // New grand total.
                 'biller_id'     => $biller->id,
-                'created_by'    => $sale_data['created_by']
+                'created_by'    => $saleData['created_by']
               ];
 
               PaymentValidation::add($pv_data);
@@ -1041,6 +1078,7 @@ class Api extends MY_Controller
             sendJSON([
               'error'    => 0,
               'message'  => 'Sale has been added successfully.',
+              'notice'   => ($notice ?? ''),
               'sale'     => [
                 'reference' => $sale->reference,
               ],

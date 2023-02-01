@@ -116,8 +116,8 @@ class Trackingpod extends MY_Controller
           ]);
         }
 
-        if ($attachmentId = $uploader->storeRandom()) {
-          $trackData['attachment_id'] = $attachmentId;
+        if ($hashname = $uploader->storeRandom()) {
+          $trackData['attachment'] = $hashname;
         } else {
           sendJSON(['success' => 0, 'message' => 'Attachment gagal di upload.']);
         }
@@ -224,7 +224,7 @@ class Trackingpod extends MY_Controller
           sendJSON(['success' => 0, 'message' => 'Attachment tidak boleh lebih dari 2MB.']);
         }
 
-        $trackData['attachment_id'] = $uploader->storeRandom();
+        $trackData['attachment'] = $uploader->storeRandom();
       }
 
       if ($this->site->updateTrackingPOD($trackId, $trackData)) {

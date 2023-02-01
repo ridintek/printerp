@@ -145,6 +145,13 @@
             </div>
           </div>
         </div>
+        <div class="row">
+          <div class="col-sm-6">
+            <div class="form-group">
+              <a class="btn btn-primary btn-block" href="#" id="XlsSaleRawCost"><i class="fad fa-fw fa-file-excel"></i> Report Sale RAW Cost</a>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -274,8 +281,6 @@
       let endDate = $('#endDate').val();
       let billerId = $('#biller').val();
 
-      // console.log(billerId);
-
       if (startDate) {
         q += '&start_date=' + startDate;
       }
@@ -287,9 +292,6 @@
       if (billerId) {
         q += '&biller=' + billerId;
       }
-
-      // console.log(q);
-      // return false;
 
       location.href = site.base_url + 'reports/getSoldItems?' + q;
     });
@@ -308,6 +310,29 @@
       }
 
       location.href = site.base_url + 'reports/getUsabilityReport?' + q;
+    });
+
+    $('#XlsSaleRawCost').click(function() {
+      let q = '';
+      let startDate = $('#startDate').val();
+      let endDate = $('#endDate').val();
+      let billers = $('#biller').val();
+
+      if (startDate) {
+        q += '&start_date=' + startDate;
+      }
+
+      if (endDate) {
+        q += '&end_date=' + endDate;
+      }
+
+      if (billers) {
+        for (let biller of billers) {
+          q += '&biller[]=' + biller;
+        }
+      }
+
+      location.href = site.base_url + 'reports/getSaleRawCost?' + q;
     });
   });
 </script>

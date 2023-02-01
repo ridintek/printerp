@@ -876,7 +876,7 @@ function getDailyPerformanceReport($opt)
   foreach ($billers as $biller) {
     if ($biller->active != 1) continue;
     // Hide FUCKED IDS
-    if ($biller->code == 'BALINN') continue;
+    // if ($biller->code == 'BALINN') continue;
     if ($biller->code == 'IDSUNG') continue;
     if ($biller->code == 'IDSLOS') continue;
     if ($biller->code == 'BALINT') continue;
@@ -931,11 +931,17 @@ function getDailyPerformanceReport($opt)
         ];
       }
     } else { // All warehouses except Lucretia.
-      $revenue = round(DB::table('sales')
+      $sale = DB::table('sales')
         ->selectSum('grand_total', 'total')
         ->where('biller_id', $biller->id)
-        ->where("date BETWEEN '{$startDate->format('Y-m-d')} 00:00:00' AND '{$endDate->format('Y-m-d')} 23:59:59'")
-        ->getRow()->total ?? 0);
+        ->where("date BETWEEN '{$startDate->format('Y-m-d')} 00:00:00' AND '{$endDate->format('Y-m-d')} 23:59:59'");
+
+      // I/O MANIP: Tanggal lebih dari 2023-01-01 00:00:00, maka jangan include sale.status = need_payment.
+      if (strtotime($startDate->format('Y-m-d')) >= strtotime('2023-01-01 00:00:00') || strtotime($endDate->format('Y-m-d')) >= strtotime('2023-01-01 00:00:00')) {
+        $sale->notLike('status', 'need_payment', 'none');
+      }
+
+      $revenue = round($sale->getRow()->total ?? 0);
 
       for ($a = $firstDate; $a <= $lastDate; $a++) {
         $dt = prependZero($a);
@@ -946,6 +952,7 @@ function getDailyPerformanceReport($opt)
         if (!$overTime) {
           $dailyRevenue = round(DB::table('sales')
             ->selectSum('grand_total', 'total')
+            ->notLike('status', 'need_payment')
             ->where('biller_id', $biller->id)
             ->where("date LIKE '{$ymPeriod}-{$dt}%'")
             ->getRow()->total ?? 0);
@@ -1143,6 +1150,9 @@ function getIncomeStatementReport($opt)
 
   $transfers = ProductTransfer::get($opt);
 
+  $startDate  = ($opt['start_date'] ?? date('Y-m-') . '01');
+  $endDate    = ($opt['end_date'] ?? date('Y-m-d'));
+
   unset($opt); // Filter options end here.
 
   $capInvAmount = 0;
@@ -1266,30 +1276,29 @@ function getIncomeStatementReport($opt)
 
   // SALES
   foreach ($sales as $sale) {
-    // If no payment and customer reguler, skip it.
-    // if ($sale->paid <= 0 && !isSpecialCustomer($sale->customer_id)) continue;
+    // I/O MANIP: Tanggal lebih dari 2023-01-01 00:00:00, maka jangan include sale.status = need_payment.
+    if (strtotime($startDate) >= strtotime('2023-01-01 00:00:00') || strtotime($endDate) >= strtotime('2023-01-01 00:00:00')) {
+      if (strcasecmp($sale->status, 'need_payment') === 0) continue;
+    }
 
     // #1 Revenue.
     $revenue += $sale->grand_total;
     $saleCount++;
 
-    $saleItems = $ci->site->getSaleItems(['sale_id' => $sale->id]);
+    $saleItems = SaleItem::get(['sale_id' => $sale->id]);
 
     if ($saleItems) {
       foreach ($saleItems as $saleItem) {
-        // Fix 2023-01-13 16:20:05
-        $saleItemJS = getJSON($saleItem->json_data);
-        if ($saleItemJS->status != 'completed' && $saleItemJS->status != 'delivered') continue;
-
         if ($saleItem->product_type == 'combo') {
-          $comboItems = $ci->site->getComboItemsByProductID($saleItem->product_id);
+          // Selling item to raw materials;
+          $comboItems = ComboItem::get(['product_id' => $saleItem->product_id]);
 
           foreach ($comboItems as $comboItem) {
-            $item = $ci->site->getProductByCode($comboItem->item_code);
+            // Raw material.
+            $item = Product::getRow(['code' => $comboItem->item_code]);
 
             // #2 Cost of Goods > Sold Items Cost.
-            $soldItemCost += round($item->markon_price * ($comboItem->quantity * $saleItem->quantity)); // Old
-            // $soldItemCost += round($item->markon_price * $saleItem->quantity); // New (FAIL)
+            $soldItemCost += round($item->markon_price * $comboItem->quantity * $saleItem->finished_qty);
           }
         }
       }
@@ -1339,7 +1348,6 @@ function getIncomeStatementReport($opt)
     ['name' => 'Cost of Goods', 'amount' => $costOfGoodsAmount, 'data' => $costOfGoodsData],
     ['name' => 'Gross Profit', 'amount' => $grossProfit],
     ['name' => 'Other Income', 'amount' => $incomeAmount, 'data' => $incomeData],
-    // ['name' => 'Purchase', 'amount' => $purchaseAmount],
     ['name' => 'Operational Cost', 'amount' => $expenseAmount, 'data' => $expenseData],
     ['name' => 'Net Profit', 'amount' => $netProfit],
     ['name' => 'Investation Cost', 'amount' => $invCostAmount, 'data' => $invCostData],
@@ -2190,6 +2198,20 @@ function htmlRemove($html)
 {
   $decoded = html_entity_decode(trim($html), ENT_HTML5 | ENT_QUOTES | ENT_XHTML, 'UTF-8');
   return preg_replace('/\<(.*?)\>/', '', $decoded);
+}
+
+/**
+ * Check if request is from AJAX.
+ */
+function isAJAX()
+{
+  foreach (getallheaders() as $name => $value) {
+    if (strcasecmp($name, 'X-Requested-With') === 0 && strcasecmp($value, 'XMLHttpRequest') === 0) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
 }
 
 /**

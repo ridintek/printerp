@@ -12,9 +12,12 @@ class Gallery extends MY_Controller
   /**
    * New method to view attachment and download it.
    */
-  public function attachment($attachmentId = NULL)
+  public function attachment($id = NULL)
   {
-    $attachment = Attachment::getRow(['id' => $attachmentId]);
+    $attachment = Attachment::select('*')
+      ->where('id', $id)
+      ->orWhere('hashname', $id)
+      ->getRow();
 
     $modal = (getGET('modal') == 1 ? TRUE : FALSE);
 

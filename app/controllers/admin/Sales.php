@@ -51,6 +51,12 @@ class Sales extends MY_Controller
         foreach ($vals as $id) {
           $sale = Sale::getRow(['id' => $id]);
 
+          $firstMonthDate = strtotime(date('Y-m-') . '01 00:00:00');
+
+          if ($firstMonthDate > strtotime($sale->date)) {
+            sendJSON(['error' => 1, 'msg' => 'Invoice lama tidak bisa dihapus.']);
+          }
+
           if ($sale && !$this->Owner) {
             if (isCompleted($sale->status)) {
               $msg = "Invoice {$sale->reference} gagal dihapus karena sudah atau sedang diproduksi.";
@@ -274,7 +280,7 @@ class Sales extends MY_Controller
           redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
         }
 
-        $saleData['attachment_id'] = $uploader->storeRandom();
+        $saleData['attachment'] = $uploader->storeRandom();
       } else if (!getPermission('sales-no_attachment')) {
         if ($customerGroup->name == 'TOP') { // Prevent CS create sale without attachment for Customer TOP.
           $this->session->set_flashdata('error', lang('top_no_attachment'));
@@ -288,8 +294,8 @@ class Sales extends MY_Controller
     }
 
     if ($this->form_validation->run()) {
-      if ($sale_id = $this->site->addSale($saleData, $sale_items)) {
-        $sale = $this->site->getSaleByID($sale_id);
+      if ($sale_id = Sale::add($saleData, $sale_items)) {
+        $sale = Sale::getRow(['id' => $sale_id]);
 
         $paymentDueDate = date('Y-m-d H:i:s', strtotime('+1 days')); // 1 day expired.
 
@@ -472,7 +478,7 @@ class Sales extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $payment['attachment_id'] = $uploader->storeRandom();
+        $payment['attachment'] = $uploader->storeRandom();
       }
 
       if ($payment['method'] == 'Transfer') { // Transfer will be validated automatically.
@@ -581,6 +587,12 @@ class Sales extends MY_Controller
 
     $sale = $this->site->getSaleByID($id);
 
+    $firstMonthDate = strtotime(date('Y-m-') . '01 00:00:00');
+
+    if ($firstMonthDate > strtotime($sale->date)) {
+      sendJSON(['success' => 0, 'message' => 'Invoice lama tidak bisa dihapus.']);
+    }
+
     if ($sale && !$this->Owner) {
       if (isCompleted($sale->status)) {
         $msg = "Invoice {$sale->reference} gagal dihapus karena sudah atau sedang diproduksi.";
@@ -593,8 +605,12 @@ class Sales extends MY_Controller
       }
     }
 
-    if ($this->site->deleteSale($id)) {
-      if ($this->input->is_ajax_request()) {
+    if (Sale::delete(['id' => $id])) {
+      PaymentValidation::delete(['sale_id' => $id]);
+      Payment::delete(['sale_id' => $id]);
+      Stock::delete(['sale_id' => $id]);
+
+      if (isAJAX()) {
         sendJSON(['success' => 1, 'message' => lang('sale_deleted')]);
       }
       $this->session->set_flashdata('message', lang('sale_deleted'));
@@ -910,7 +926,7 @@ class Sales extends MY_Controller
           redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
         }
 
-        $saleData['attachment_id'] = $uploader->storeRandom();
+        $saleData['attachment'] = $uploader->storeRandom();
       } else if (!$this->Owner && !$this->Admin) {
         // Prevent CS create sale without attachment for Customer TOP.
         if ($customer_group_name == 'top' && !$sale->attachment) {
@@ -936,6 +952,7 @@ class Sales extends MY_Controller
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
       $sale = $this->site->getSaleByID($id);
+      $customer = Customer::getRow(['id' => $sale->customer_id]);
 
       $this->data['inv'] = $sale;
       $this->data['saleJS'] = json_decode($sale->json_data);
@@ -956,11 +973,10 @@ class Sales extends MY_Controller
           $rand = mt_rand(10000, 99999);
 
           // $row = $this->site->getProductByID($item->product_id);
-          $row = $this->site->getWarehouseProduct($item->product_id, $item->warehouse_id);
+          $row = $this->site->getWarehouseProduct($item->product_id, $sale->warehouse_id);
 
           // Get Product Group Prices
-          $warehouse = $this->site->getWarehouseById($item->warehouse_id);
-          $pr_group_price = $this->site->getProductGroupPrice($item->product_id, $warehouse->price_group_id);
+          $pr_group_price = $this->site->getProductGroupPrice($item->product_id, $customer->price_group_id);
 
           if (!$row) {
             $row = new stdClass();
@@ -1027,7 +1043,7 @@ class Sales extends MY_Controller
 
           $combo_items = false;
           if ($row->type == 'combo') {
-            $combo_items = $this->site->getProductComboItems($row->id, $item->warehouse_id);
+            $combo_items = $this->site->getProductComboItems($row->id, $sale->warehouse_id);
             foreach ($combo_items as $combo_item) {
               $combo_item->quantity = $combo_item->qty * $item->quantity;
             }
@@ -1155,7 +1171,7 @@ class Sales extends MY_Controller
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
-        $payment['attachment_id'] = $uploader->storeRandom();
+        $payment['attachment'] = $uploader->storeRandom();
       }
     } elseif (getPOST('edit_payment')) {
       sendJSON(['error' => 1, 'msg' => validation_errors()]);
@@ -1686,10 +1702,10 @@ class Sales extends MY_Controller
             $timeleft = ($dueDate ? $xDate->diff($dueDate)->format('%r%H:%I:%S') : '');
             $overdue  = ($dueDate && $xDate->diff($dueDate)->format('%r') == '-' ? 'OVER DUE' : '');
 
-            $user = $this->site->getUserByID($saleItemJS->operator_id ?? NULL);
+            $user = User::getRow(['id' => $saleItemJS->operator_id]);
             $op_username = ($user ? $user->username : '');
             $op_name     = ($user ? $user->fullname : '');
-            $isOperator  = ($user && $user->group_name == 'operator' ? TRUE : FALSE);
+            $isOperator  = ($user && strcasecmp($user->groups, 'OPERATOR') === 0 ? TRUE : FALSE);
 
             $excel->setCellValue('A' . $b, $item->id);
             $excel->setCellValue('B' . $b, $sale->reference);
@@ -2093,8 +2109,19 @@ class Sales extends MY_Controller
   {
     $sale_id = getPOST('sale');
 
+    if (!$this->Owner && !$this->Admin) {
+      sendJSON(['error' => 1, 'msg' => 'You do not have permissions.']);
+    }
+
     if ($sale_id) {
-      $sale = $this->site->getSaleByID($sale_id);
+      $sale = Sale::getRow(['id' => $sale_id]);
+
+      $firstMonthDate = strtotime(date('Y-m-') . '01 00:00:00');
+      $invDate = strtotime($sale->date);
+
+      if ($firstMonthDate > $invDate) {
+        sendJSON(['error' => 1, 'msg' => 'Invoice lama tidak bisa di revert.']);
+      }
 
       if ($this->Owner || $sale && ($sale->status == 'completed' ||
         $sale->status == 'delivered' ||

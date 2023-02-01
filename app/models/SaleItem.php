@@ -187,12 +187,6 @@ class SaleItem
    */
   public static function delete(array $clause)
   {
-    $sales = self::get($clause);
-
-    foreach ($sales as $sale) {
-      addEvent("Deleted Sale [{$sale->id}: {$sale->reference}]", 'danger');
-    }
-
     DB::table('sale_items')->delete($clause);
     return DB::affectedRows();
   }

@@ -53,10 +53,13 @@ class Db_model extends CI_Model
 
       if (!$debugMode) {
         $this->db
-        // ->select("SUM(grand_total) AS total, '0' AS total_paid, '0' AS total_balance")
         ->select("COALESCE(SUM(grand_total), 0) AS total, COALESCE(SUM(paid), 0) AS total_paid, COALESCE(SUM(balance), 0) AS total_balance")
         ->from('sales')
         ->where("date LIKE '{$dateMonth}%'");
+
+        if (strtotime($dateMonth . '-01 23:59:59') >= strtotime('2023-01-01 00:00:00')) {
+          $this->db->not_like('status', 'need_payment', 'none');
+        }
 
         // d($this->db->get_compiled_select()); die();
 
@@ -80,8 +83,6 @@ class Db_model extends CI_Model
         ];
       }
     }
-
-    // d($rows); die();
 
     return $rows;
   }

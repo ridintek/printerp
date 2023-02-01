@@ -8,7 +8,7 @@ class Developers extends MY_Controller
     parent::__construct();
 
     if (!$this->loggedIn) {
-      admin_redirect('login');
+      // admin_redirect('login');
     }
   }
 
@@ -32,11 +32,11 @@ class Developers extends MY_Controller
       $active       = getPOST('active');
       $expired_date = getPOST('expired_date');
 
-      if ( ! $name) {
+      if (!$name) {
         sendJSON(['error' => 1, 'msg' => 'Name must be specified.']);
       }
 
-      if ( ! $token) {
+      if (!$token) {
         sendJSON(['error' => 1, 'msg' => 'Invalid token. ' . $token]);
       }
 
@@ -46,7 +46,7 @@ class Developers extends MY_Controller
         'scopes'       => $scopes,
         'active'       => ($expired_date && strtotime($expired_date) > time() ? 1 : ($expired_date ? 0 : $active)),
         'created_date' => date('Y-m-d H:i:s'),
-        'expired_date'  => ( ! empty($expired_date) ? $expired_date : NULL)
+        'expired_date'  => (!empty($expired_date) ? $expired_date : NULL)
       ]]);
       sendJSON(['error' => 0, 'msg' => 'API Key has been added successfully.']);
     }
@@ -66,12 +66,11 @@ class Developers extends MY_Controller
 
   private function api_keys_edit()
   {
-
   }
 
   private function api_keys_generate()
   {
-    if ( ! $this->Owner) sendJSON(['error' => 1, 'msg' => lang('access_denied')]);
+    if (!$this->Owner) sendJSON(['error' => 1, 'msg' => lang('access_denied')]);
 
     $token = $this->site->generateApiKeys(64);
 
@@ -101,6 +100,98 @@ class Developers extends MY_Controller
       ->from('api_keys');
 
     echo $this->datatable->generate();
+  }
+
+  public function findSales()
+  {
+    $upload = new FileUpload();
+
+    $keys = [
+      'id', 'date', 'reference', 'username', 'fullname', 'biller', 'warehouse',
+      'price_group', 'customer_group', 'customer_name', 'status', 'grand_total', 'paid', 'balance',
+      'payment_status'
+    ];
+
+    if ($upload->has('attachment')) {
+      $file = fopen($upload->getTempName(), 'r');
+
+      if (!$file) {
+        $this->response(400, ['message' => 'Failed to open file.']);
+      }
+
+      $rows = [];
+
+      while ($row = fgetcsv($file, 5000, ',')) {
+        $rows[] = array_combine($keys, $row);
+      }
+
+      fclose($file);
+
+      array_shift($rows);
+
+      $msg = '<ol>';
+
+      foreach ($rows as $row) {
+        $sale = Sale::getRow(['id' => $row['id']]);
+
+        if ($sale) {
+          $user = User::getRow(['id' => $sale->updated_by]);
+
+          if (date('Y-m', strtotime($sale->date)) != '2022-12') {
+            $msg .= "
+              <li><b>Beda tanggal:</b>
+                <ul>
+                  <li><b>Reference: {$sale->reference}</b>
+                    <ul>
+                      <li>Date: {$sale->date}</li>
+                      <li>CSV Date: {$row['date']}</li>
+                      <li>Grand Total: {$sale->grand_total}</li>
+                      <li>Modified by: {$user->fullname}</li>
+                      <li>Modified at: {$sale->updated_at}</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>";
+          }
+
+          if (floatval($sale->grand_total) != floatval($row['grand_total'])) {
+            $msg .= "
+              <li><b>Beda Grand Total:</b>
+                <ul>
+                  <li><b>Reference: {$sale->reference}</b>
+                    <ul>
+                      <li>Date: {$sale->date}</li>
+                      <li>CSV Date: {$row['date']}</li>
+                      <li>Grand Total: {$sale->grand_total}</li>
+                      <li>CSV Grand Total: {$row['grand_total']}</li>
+                      <li>Modified by: {$user->fullname}</li>
+                      <li>Modified at: {$sale->updated_at}</li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>";
+          }
+        } else {
+          $msg .= "
+            <li><b>Terhapus:</b>
+              <ul>
+                <li><b>Reference: {$row['reference']}</b>
+                  <ul>
+                    <li>CSV Date: {$row['date']}</li>
+                    <li>CSV Grand Total: {$row['grand_total']}</li>
+                  </ul>
+                </li>
+              </ul>
+            </li>";
+        }
+      }
+
+      $msg .= '</ol>';
+
+      $this->response(200, ['data' => $msg]);
+    }
+
+    $this->response(400, ['message' => 'Failed']);
   }
 
   public function index()

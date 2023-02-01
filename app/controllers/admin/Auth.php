@@ -162,8 +162,9 @@ class Auth extends MY_Controller
         'view_right'      => getPOST('view_right'),
         'edit_right'      => getPOST('edit_right'),
         'allow_discount'  => getPOST('allow_discount'),
-      ]
+      ];
     }
+
     if ($this->form_validation->run() == true && User::add($userData)) {
       $this->session->set_flashdata('message', $this->ion_auth->messages());
       admin_redirect('auth/users');
