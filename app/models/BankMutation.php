@@ -8,7 +8,7 @@ class BankMutation
    * Add new BankMutation.
    * @param array $data [ name, code ]
    */
-  public static function add(array $data, bool $useValidation = TRUE)
+  public static function add(array $data, bool $useValidation = true)
   {
     if (empty($data['date'])) $data['date'] = date('Y-m-d H:i:s');
     $data['reference'] = OrderRef::getReference('mutation');
@@ -66,10 +66,10 @@ class BankMutation
         DB::table('bank_mutations')->update(['status' => 'paid'], ['id' => $insertID]);
       }
 
-      return TRUE;
+      return true;
     }
 
-    return FALSE;
+    return false;
   }
 
   /**

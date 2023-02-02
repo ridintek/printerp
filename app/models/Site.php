@@ -1501,6 +1501,7 @@ class Site extends MY_Model
 
         $this->addStockQuantity([
           'date'           => $data['date'],
+          'adjustment'     => $data['reference'],
           'adjustment_id'  => $adjustment_id,
           'product_id'     => $product['product_id'],
           'quantity'       => $product['quantity'],
@@ -1904,13 +1905,19 @@ class Site extends MY_Model
       $stock_data['created_at'] = $stock_data['date'];
       $stock_data['created_by'] = getUserCreator($data['created_by'] ?? NULL);
 
-      if (!empty($data['adjustment_id']))   $stock_data['adjustment_id']   = $data['adjustment_id'];
-      if (!empty($data['internal_use_id'])) $stock_data['internal_use_id'] = $data['internal_use_id'];
-      if (!empty($data['pm_id']))           $stock_data['pm_id']           = $data['pm_id'];
-      if (!empty($data['purchase_id']))     $stock_data['purchase_id']     = $data['purchase_id'];
-      if (!empty($data['sale_id']))         $stock_data['sale_id']         = $data['sale_id'];
-      if (!empty($data['transfer_id']))     $stock_data['transfer_id']     = $data['transfer_id'];
-      if (!empty($data['saleitem_id']))     $stock_data['saleitem_id']     = $data['saleitem_id'];
+      if (!empty($data['adjustment_id']))     $stock_data['adjustment_id']    = $data['adjustment_id'];
+      if (!empty($data['adjustment']))        $stock_data['adjustment']       = $data['adjustment'];
+      if (!empty($data['internal_use_id']))   $stock_data['internal_use_id']  = $data['internal_use_id'];
+      if (!empty($data['internal_use']))      $stock_data['internal_use']     = $data['internal_use'];
+      if (!empty($data['pm_id']))             $stock_data['pm_id']            = $data['pm_id'];
+      if (!empty($data['product_mutation']))  $stock_data['product_mutation'] = $data['product_mutation'];
+      if (!empty($data['product_purchase']))  $stock_data['product_purchase'] = $data['product_purchase'];
+      if (!empty($data['purchase_id']))       $stock_data['purchase_id']      = $data['purchase_id'];
+      if (!empty($data['sale']))              $stock_data['sale']             = $data['sale'];
+      if (!empty($data['sale_id']))           $stock_data['sale_id']          = $data['sale_id'];
+      if (!empty($data['product_transfer']))  $stock_data['product_transfer'] = $data['product_transfer'];
+      if (!empty($data['transfer_id']))       $stock_data['transfer_id']      = $data['transfer_id'];
+      if (!empty($data['saleitem_id']))       $stock_data['saleitem_id']      = $data['saleitem_id'];
 
       if (isset($data['cost']))           $stock_data['cost']           = $data['cost'];
       if (isset($data['price']))          $stock_data['price']          = $data['price'];
