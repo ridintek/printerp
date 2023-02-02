@@ -620,6 +620,8 @@ class Machines extends MY_Controller
           'order_by' => ['created_at', 'DESC']
         ]);
 
+        if (!$lastReport) continue;
+
         if ($lastReport->condition != 'good') {
           $problem = TRUE;
         }

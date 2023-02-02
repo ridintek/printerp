@@ -51,7 +51,8 @@ class Product
 
     if (!$whp) return FALSE;
 
-    return WarehouseProduct::update((int)$whp->id,
+    return WarehouseProduct::update(
+      (int)$whp->id,
       ['quantity' => Stock::totalQuantity($productId, $warehouseId)]
     );
   }

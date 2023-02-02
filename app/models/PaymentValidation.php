@@ -62,6 +62,12 @@ class PaymentValidation
     $data['status']       = 'pending';
 
     $biller = Biller::getRow(['id' => ($data['biller_id'] ?? XSession::get('biller_id'))]);
+
+    if (!$biller) {
+      setLastError('Biller is not found.');
+      return false;
+    }
+
     $data['biller_id']  = $biller->id;
     $data['biller']     = $biller->code;
 
@@ -219,7 +225,7 @@ class PaymentValidation
                 if ($dmb->amount == $dm->amount) {
                   DB::table('mutasibank')->update([
                     'status'    => 'validated',
-                    'validated' => intval($dm->validated) + 1
+                    'validated' => intval($mb->validated) + 1
                   ], ['id' => $mb->id]);
                 }
               }

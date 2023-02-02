@@ -120,10 +120,12 @@ class Sale
         }
 
         SaleItem::add([
+          'sale'          => $sale->reference,
           'sale_id'       => $insertId,
           'product_id'    => $product->id,
-          'product_code'  => $product->id,
+          'product_code'  => $product->code,
           'product_name'  => $product->name,
+          'product_type'  => $product->type,
           'price'         => $item['price'],
           'quantity'      => $quantity,
           'subtotal'      => ($item['price'] * $quantity),

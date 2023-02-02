@@ -1424,7 +1424,7 @@ class Products extends MY_Controller
     if ($warehouse_id) $clause['warehouse_id'] = $warehouse_id;
 
     $clause['order'] = [
-      'created_at', 'ASC'
+      'date', 'ASC'
     ];
 
     $rows = $this->site->getStocks($clause);

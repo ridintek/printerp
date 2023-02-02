@@ -38,9 +38,14 @@ class SaleItem
       // Get operator data.
       $operator = User::getRow(['id' => $data['created_by']]);
 
+      if (!$operator) {
+        setLastError('Operator is not found.');
+        return false;
+      }
+
       if (empty($saleItemJS->due_date)) { // Check if sale item has due date. If empty then restricted.
         setLastError("Item {$saleItem->product_code} doesn't have due date.");
-        return FALSE;
+        return false;
       }
 
       if (($completedQty + $saleItem->finished_qty) < $saleItem->quantity) { // If completed partial.
@@ -128,8 +133,14 @@ class SaleItem
                 ]);
 
                 addEvent("Completed Sale [{$sale->id}: {$sale->reference}]; {$saleItem->product_code}: {$finalCompletedQty}");
+              } else {
+                setLastError('Item type is not standard nor service');
+                return false;
               }
             }
+          } else {
+            setLastError('Combo items are not found.');
+            return false;
           }
         } else if ($saleItem->product_type == 'service') { // SALEITEM. Increment. JASA POTONG
           // Since no decimal point for KLIKPOD/KLIKPODBW, we must round it up without precision.
@@ -155,7 +166,7 @@ class SaleItem
         } else if ($saleItem->product_type == 'standard') { // SALEITEM. Decrement. FFC280, POCT15
           if ($saleItem->product_code == 'KLIKPOD') {
             setLastError("CRITICAL: KLIKPOD KNOWN AS STANDARD TYPE MUST NOT BE DECREASED!", 'critical');
-            return FALSE;
+            return false;
           }
 
           Stock::decrease([
@@ -170,15 +181,18 @@ class SaleItem
           ]);
 
           addEvent("Completed Sale [{$sale->id}: {$sale->reference}]; {$saleItem->product_code}: {$completedQty}");
+        } else {
+          setLastError('Sale item type is not standard nor service.');
+          return false;
         }
 
         // Sync sale after operator complete the item.
         Sale::sync(['sale_id' => $sale->id]);
 
-        return TRUE;
+        return true;
       }
     }
-    return FALSE;
+    return false;
   }
 
   /**
