@@ -62,6 +62,8 @@ class BankMutation
         ];
 
         Payment::add($paymentRecv);
+
+        DB::table('bank_mutations')->update(['status' => 'paid'], ['id' => $insertID]);
       }
 
       return TRUE;
