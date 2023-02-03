@@ -193,6 +193,7 @@ class Sale
       }
 
       if (!empty($data['attachment_id'])) $saleData['attachment_id'] = $data['attachment_id'];
+      if (!empty($data['attachment'])) $saleData['attachment'] = $data['attachment'];
 
       $saleJS = getJSON($sale->json_data);
 
@@ -541,6 +542,7 @@ class Sale
       if (isset($data['created_by']))     $saleData['created_by']      = $data['created_by'];
       if (isset($data['paid']))           $saleData['paid']            = $data['paid'];
       if (isset($data['attachment_id']))  $saleData['attachment_id']   = $data['attachment_id'];
+      if (isset($data['attachment']))     $saleData['attachment']      = $data['attachment'];
       if (isset($data['payment_method'])) $saleData['payment_method']  = $data['payment_method'];
 
       if (!empty($data['updated_by'])) $saleData['updated_by'] = $data['updated_by'];

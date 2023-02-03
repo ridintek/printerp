@@ -100,7 +100,7 @@ class Qms extends MY_Controller
   public function displayResponse($ticket_id = NULL)
   {
     if ($ticket_id) {
-      if ($this->Qms_model->updateQueueTicket($ticket_id, ['status' => 3])) {
+      if ($this->Qms_model->updateQueueTicket($ticket_id, ['status' => 3, 'status2' => $this->Qms_model->toStatus(3)])) {
         sendJSON(['error' => 0, 'msg' => 'Update success.']);
       } else {
         sendJSON(['error' => 1, 'msg' => 'Update failed.']);

@@ -497,11 +497,14 @@ class Sales extends MY_Controller
           'unique_code'   => (!empty(getPOST('use_unique_code')) ? getPOST('unique_code') : NULL)
         ];
 
+        if (isset($payment['attachment'])) $pvData['attachment'] = $payment['attachment'];
+
         if ($pvId = PaymentValidation::add($pvData)) {
           $pv = PaymentValidation::getRow(['id' => $pvId]);
 
           Sale::update((int)$pvData['sale_id'], [
-            'payment_status' => 'waiting_transfer'
+            'payment_status' => 'waiting_transfer',
+            'attachment'     => ($payment['attachment'] ?? NULL)
           ]);
 
           $hMutex = mutexCreate('syncSales', TRUE);
@@ -526,7 +529,8 @@ class Sales extends MY_Controller
               'manual'  => TRUE,
             ];
 
-            if (!empty($payment['attachment_id'])) $vpvOpts['attachment_id'] = $payment['attachment_id'];
+            if (!empty($payment['attachment_id']))  $vpvOpts['attachment_id'] = $payment['attachment_id'];
+            if (!empty($payment['attachment']))     $vpvOpts['attachment']    = $payment['attachment'];
 
             $ret = PaymentValidation::validate($vpvData, $vpvOpts);
 
@@ -1413,7 +1417,7 @@ class Sales extends MY_Controller
           ELSE customers.name
         END) AS customer_name,
         sales.status, sales.grand_total, sales.paid,
-        sales.balance AS balance, sales.payment_status, sales.attachment_id,
+        sales.balance AS balance, sales.payment_status, sales.attachment,
         pv.id as pv_id";
       } else
       if ($group_by == 'biller') {
@@ -2119,7 +2123,7 @@ class Sales extends MY_Controller
       $firstMonthDate = strtotime(date('Y-m-') . '01 00:00:00');
       $invDate = strtotime($sale->date);
 
-      if ($firstMonthDate > $invDate) {
+      if (!$this->Owner && $firstMonthDate > $invDate) {
         sendJSON(['error' => 1, 'msg' => 'Invoice lama tidak bisa di revert.']);
       }
 
