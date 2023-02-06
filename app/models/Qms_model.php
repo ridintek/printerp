@@ -71,17 +71,6 @@ class Qms_model extends CI_Model
     if (!$customer) {
       $phone = preg_replace('/[^0-9]/', '', $data['phone']); // Filter phone number.
 
-      // Begin Prevent Duplicate entries.
-      $lastTicket = $this->getTodayLastQueueTicket([
-        'queue_category_id' => $data['queue_category_id'],
-        'warehouse_id'      => $data['warehouse_id']
-      ]);
-
-      if ($lastTicket && $lastTicket->customer_id == $customer->id) {
-        return FALSE;
-      }
-      // End Prevent Duplicate entries.
-
       $customer_id = $this->site->addCustomer([
         'group_id' => 3,
         'group_name' => 'customer',
@@ -98,6 +87,17 @@ class Qms_model extends CI_Model
         return FALSE;
       }
     }
+
+    // Begin Prevent Duplicate entries.
+    $lastTicket = $this->getTodayLastQueueTicket([
+      'queue_category_id' => $data['queue_category_id'],
+      'warehouse_id'      => $data['warehouse_id']
+    ]);
+
+    if ($lastTicket && $lastTicket->customer_id == $customer->id) {
+      return FALSE;
+    }
+    // End Prevent Duplicate entries.
 
     // begin get estimated call date.
     $servingQueues = $this->getQueueTickets([

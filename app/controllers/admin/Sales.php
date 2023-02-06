@@ -1495,13 +1495,7 @@ class Sales extends MY_Controller
       }
 
       if (getGET('attachment') == 'yes') {
-        $this->datatables->where('payment_status !=', 'paid')->where('attachment !=', null);
-      }
-
-      if (!$this->Customer && !$this->Supplier && !$this->Owner && !$this->Admin && !XSession::get('view_right')) {
-        $this->datatables->where('created_by', XSession::get('user_id'));
-      } elseif ($this->Customer) {
-        $this->datatables->where('customer_id', XSession::get('user_id'));
+        $this->datatables->where('sales.payment_status !=', 'paid')->where('attachment !=', null);
       }
 
       if (!empty($group_by)) {
@@ -1601,13 +1595,13 @@ class Sales extends MY_Controller
       }
 
       if (getGET('attachment') == 'yes') {
-        $this->db->where('payment_status !=', 'paid')->where('attachment !=', null);
+        $this->db->where('sales.payment_status !=', 'paid')->where('attachment !=', null);
       }
 
       if (!$this->Customer && !$this->Supplier && !$this->Owner && !$this->Admin && !XSession::get('view_right')) {
-        $this->db->where('created_by', XSession::get('user_id'));
+        $this->db->where('sales.created_by', XSession::get('user_id'));
       } elseif ($this->Customer) {
-        $this->db->where('customer_id', XSession::get('user_id'));
+        $this->db->where('sales.customer_id', XSession::get('user_id'));
       }
 
       $this->db->order_by('sales.id', 'DESC');
