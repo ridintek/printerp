@@ -191,6 +191,7 @@ class PaymentValidation
     } else {
       $status = ($sale_id || $mutation_id ? ['pending'] : 'pending'); // New
     }
+
     $paymentValidation = self::select('*')->whereIn('status', $status)->get();
     $validatedCount = 0;
 

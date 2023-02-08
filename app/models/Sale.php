@@ -82,6 +82,7 @@ class Sale
       'attachment'      => ($data['attachment'] ?? NULL),
       'payment_method'  => ($data['payment_method'] ?? NULL),
       'use_tb'          => $useTB,
+      'active'          => 1,
       'json'            => json_encode([
         'approved'          => ($data['approved'] ?? 0),
         'cashier_by'        => ($data['cashier_by'] ?? ''),
@@ -526,24 +527,26 @@ class Sale
     $sale = self::getRow(['id' => $id]);
 
     if ($sale) {
-      if (!empty($data['date']))          $saleData['date']            = $data['date'];
-      if (isset($data['reference']))      $saleData['reference']       = $data['reference'];
-      if (isset($data['no_po']))          $saleData['no_po']           = $data['no_po'];
-      if (isset($data['note']))           $saleData['note']            = $data['note'];
-      if (isset($data['discount']))       $saleData['discount']        = $data['discount'];
-      if (isset($data['shipping']))       $saleData['shipping']        = $data['shipping'];
-      if (isset($data['total']))          $saleData['total']           = $data['total'];
-      if (isset($data['grand_total']))    $saleData['grand_total']     = $data['grand_total'];
-      if (isset($data['balance']))        $saleData['balance']         = $data['balance'];
-      if (isset($data['status']))         $saleData['status']          = $data['status'];
-      if (isset($data['payment_status'])) $saleData['payment_status']  = $data['payment_status'];
-      if (isset($data['due_date']))       $saleData['due_date']        = $data['due_date'];
+      if (!empty($data['date']))          $saleData['date']           = $data['date'];
+      if (isset($data['reference']))      $saleData['reference']      = $data['reference'];
+      if (isset($data['no_po']))          $saleData['no_po']          = $data['no_po'];
+      if (isset($data['note']))           $saleData['note']           = $data['note'];
+      if (isset($data['discount']))       $saleData['discount']       = $data['discount'];
+      if (isset($data['shipping']))       $saleData['shipping']       = $data['shipping'];
+      if (isset($data['total']))          $saleData['total']          = $data['total'];
+      if (isset($data['grand_total']))    $saleData['grand_total']    = $data['grand_total'];
+      if (isset($data['balance']))        $saleData['balance']        = $data['balance'];
+      if (isset($data['status']))         $saleData['status']         = $data['status'];
+      if (isset($data['payment_status'])) $saleData['payment_status'] = $data['payment_status'];
+      if (isset($data['due_date']))       $saleData['due_date']       = $data['due_date'];
 
-      if (isset($data['created_by']))     $saleData['created_by']      = $data['created_by'];
-      if (isset($data['paid']))           $saleData['paid']            = $data['paid'];
-      if (isset($data['attachment_id']))  $saleData['attachment_id']   = $data['attachment_id'];
-      if (isset($data['attachment']))     $saleData['attachment']      = $data['attachment'];
-      if (isset($data['payment_method'])) $saleData['payment_method']  = $data['payment_method'];
+      if (isset($data['created_by']))     $saleData['created_by']     = $data['created_by'];
+      if (isset($data['paid']))           $saleData['paid']           = $data['paid'];
+      if (isset($data['attachment_id']))  $saleData['attachment_id']  = $data['attachment_id'];
+      if (isset($data['attachment']))     $saleData['attachment']     = $data['attachment'];
+      if (isset($data['payment_method'])) $saleData['payment_method'] = $data['payment_method'];
+      if (isset($data['use_tb']))         $saleData['use_tb']         = $data['use_tb'];
+      if (isset($data['active']))         $saleData['active']         = $data['active'];
 
       if (!empty($data['updated_by'])) $saleData['updated_by'] = $data['updated_by'];
       if (!empty($data['updated_at'])) $saleData['updated_at'] = $data['updated_at'];

@@ -14,6 +14,10 @@ class Gallery extends MY_Controller
    */
   public function attachment($id = NULL)
   {
+    if (strpos($id, '.') !== false) {
+      return $this->view($id);
+    }
+
     $attachment = Attachment::select('*')
       ->where('id', $id)
       ->orWhere('hashname', $id)
@@ -94,9 +98,9 @@ class Gallery extends MY_Controller
     echo ('ok');
   }
 
-  public function view() // Called by Modal
+  public function view($name = null) // Called by Modal
   {
-    $name = getGET('name');
+    $name = $name ?? getGET('name');
 
     $filename = $this->getFile($name);
 

@@ -483,12 +483,12 @@ class Sales extends MY_Controller
 
       if ($payment['method'] == 'Transfer') { // Transfer will be validated automatically.
         if (empty($customer->payment_term)) $customer->payment_term = 1; // If empty customer payment term, set it to 1.
-        $expired_date = strtotime("+2 days", strtotime($date)); // Expired date always 2 days.
+        $expiredDate = strtotime("+2 days", strtotime($date)); // Expired date always 2 days.
 
         $pvData = [
           'date'          => $date,
-          'expired_date'  => date('Y-m-d H:i:s', $expired_date),
-          'expired_at'    => date('Y-m-d H:i:s', $expired_date),
+          'expired_date'  => date('Y-m-d H:i:s', $expiredDate),
+          'expired_at'    => date('Y-m-d H:i:s', $expiredDate),
           'reference'     => $sale->reference,
           'sale_id'       => $payment['sale_id'],
           'amount'        => $payment['amount'],
@@ -526,11 +526,11 @@ class Sales extends MY_Controller
 
             $vpvOpts = [
               'sale_id' => $sale_id,
-              'manual'  => TRUE,
+              'manual'  => TRUE
             ];
 
-            if (!empty($payment['attachment_id']))  $vpvOpts['attachment_id'] = $payment['attachment_id'];
-            if (!empty($payment['attachment']))     $vpvOpts['attachment']    = $payment['attachment'];
+            if (isset($payment['attachment_id']))  $vpvOpts['attachment_id'] = $payment['attachment_id'];
+            if (isset($payment['attachment']))     $vpvOpts['attachment']    = $payment['attachment'];
 
             $ret = PaymentValidation::validate($vpvData, $vpvOpts);
 

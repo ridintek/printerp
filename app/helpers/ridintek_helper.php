@@ -2682,7 +2682,7 @@ function sendWA($phone, $text, $opt = [])
  */
 function setCreatedBy($data)
 {
-  $data['created_at'] = ($data['date'] ?? $data['created_at'] ?? date('Y-m-d H:i:s'));
+  $data['created_at'] = ($data['created_at'] ?? date('Y-m-d H:i:s'));
   $system = User::getRow(['username' => 'system']);
 
   $data['created_by'] = ($data['created_by'] ?? XSession::get('user_id') ?? $system->id);
