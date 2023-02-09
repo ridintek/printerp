@@ -1202,10 +1202,15 @@ class Api extends MY_Controller
   private function users_v1()
   {
     if ($this->requestMethod == 'GET') {
-      $whCode = getGET('warehouse');
+      $id         = getGET('id');
+      $whCode     = getGET('warehouse');
       $groupName  = getGET('group');
 
       $clauses = [];
+
+      if ($id) {
+        $clauses['id'] = $id;
+      }
 
       if ($whCode) {
         $warehouse = $this->site->getWarehouseByCode($whCode);
