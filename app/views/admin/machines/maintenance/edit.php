@@ -17,7 +17,7 @@
               </tr>
             </thead>
             <tbody>
-              <?php $users = $this->site->getUsers(); $x = 1; ?>
+              <?php $users = User::get(['active' => 1]); $x = 1; ?>
               <?php foreach ($this->site->getSubCategories('AST') as $category) : ?>
                 <tr>
                   <input type="hidden" name="group[<?= $x ?>][category]" value="<?= $category->code ?>">
@@ -28,7 +28,7 @@
                       <?php foreach ($users as $user) :
                         $userGroup = $this->site->getUserGroup($user->id);
 
-                        if (strcasecmp($userGroup->name, 'support') !== 0) continue;
+                        if (strcasecmp($userGroup->name, 'SUPPORT') !== 0) continue;
                       ?>
                         <option value="<?= $user->id ?>" data-group="<?= $userGroup->name ?>"><?= $user->fullname ?></option>
                       <?php endforeach; ?>

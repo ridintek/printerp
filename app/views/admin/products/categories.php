@@ -2,7 +2,7 @@
 <script>
   $(document).ready(function () {
     oTable = $('#Table').dataTable({
-      "aaSorting": [[3, "asc"]],
+      "aaSorting": [[2, "asc"]],
       "aLengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "<?= lang('all') ?>"]],
       "iDisplayLength": <?= $Settings->rows_per_page ?>,
       'bProcessing': true, 'bServerSide': true,
