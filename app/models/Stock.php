@@ -17,23 +17,23 @@ class Stock
 
     if (empty($data['quantity'])) {
       setLastError("Stock:add(): Quantity is empty.");
-      return FALSE;
+      return false;
     }
 
     if (empty($data['status'])) {
       setLastError("Stock::add(): Status is empty.");
-      return FALSE;
+      return false;
     }
 
     $product  = Product::getRow(['id' => $data['product_id']]);
     if ($product) {
-      $data['product']      = $product->codde;
+      $data['product']      = $product->code;
       $data['product_code'] = $product->code;
       $data['product_name'] = $product->name;
       $data['product_type'] = $product->type;
     } else {
       setLastError("Stock::add(): Product '{$data['product_id']}' is not found.");
-      return FALSE;
+      return false;
     }
 
     $category = ProductCategory::getRow(['id' => $product->category_id]);
@@ -61,7 +61,7 @@ class Stock
       $data['warehouse_name'] = $warehouse->name;
     } else {
       setLastError("Stock::add(): Warehouse '{$data['warehouse_id']}' is not found.");
-      return FALSE;
+      return false;
     }
 
     if (isset($data['price'])) {
@@ -85,7 +85,7 @@ class Stock
       return $insertId;
     }
 
-    return FALSE;
+    return false;
   }
 
   /**
