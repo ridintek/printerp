@@ -16,6 +16,12 @@ class Debug extends MY_Controller
     echo "Index";
   }
 
+  public function writesheet()
+  {
+    $res = setGoogleSheet('1arv83XA2ySRAos6aFvhqLWIm804CjgUyChj7DsxaBj0_', 'B1414', [['CODE1', 'NAME1'], ['CODE2', 'NAME2']]);
+    echo $res;
+  }
+
   public function sendpayload()
   {
     /**
@@ -232,7 +238,7 @@ class Debug extends MY_Controller
 
   public function gsheet()
   {
-    $values = getGoogleSheet('1arv83XA2ySRAos6aFvhqLWIm804CjgUyChj7DsxaBj0', 'A3:C');
+    $values = getGoogleSheet('1arv83XA2ySRAos6aFvhqLWIm804CjgUyChj7DsxaBj0', 'B1');
 
     echo '<pre>';
     print_r($values);

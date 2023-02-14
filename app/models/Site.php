@@ -3622,8 +3622,7 @@ class Site extends MY_Model
         warehouses.id AS warehouse_id")
       ->join('categories', 'categories.id = products.subcategory_id', 'left')
       ->join('warehouses', 'warehouses.name LIKE products.warehouses', 'left')
-      ->like('categories.code', 'MACH', 'none')
-      ->or_like('categories.code', 'COMP', 'none')
+      ->where_in('categories.code', ['MACFIN', 'MACMER', 'MACOUTIN', 'MACPOD', 'COMP'])
       // ->where_in('categories.code', ['BUILD', 'COMP', 'ELC', 'MACH'])
       ->order_by('code', 'ASC');
 
@@ -4682,7 +4681,10 @@ class Site extends MY_Model
         JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_cost')) AS maintenance_cost")
       ->join('categories', 'categories.id = products.subcategory_id', 'left')
       ->join('warehouses', 'warehouses.name LIKE products.warehouses', 'left')
-      ->like('categories.code', 'MACH', 'none');
+      ->like('categories.code', 'MACFIN', 'none')
+      ->orLike('categories.code', 'MACMER', 'none')
+      ->orLike('categories.code', 'MACOUTIN', 'none')
+      ->orLike('categories.code', 'MACPOD', 'none');
 
     $this->db->where('products.id', $id);
 

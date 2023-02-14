@@ -350,10 +350,10 @@ class Api extends MY_Controller
       die();
     }
 
-    $mb_response = getJSON(file_get_contents('php://input'));
+    $mb_response = json_decode(file_get_contents('php://input'));
 
     if (empty($mb_response)) {
-      $this->redirect();
+      $this->response(400, ['message' => 'Data is empty.']);
     }
 
     if ($total = PaymentValidation::validate($mb_response)) { // Segala pengecekan dan validasi data di sini.

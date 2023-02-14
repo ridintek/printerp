@@ -142,7 +142,7 @@ $autoload['model'] = [
   'DB', 'Expense', 'ExpenseCategory',
   'GoogleReview', 'Group', 'Income', 'IncomeCategory', 'InternalUse', 'MaintenanceLog',
   'OrderRef',
-  'Payment', 'PaymentValidation', 'Product', 'ProductPrice', 'ProductReview',
+  'Payment', 'PaymentValidation', 'Product', 'ProductCategory', 'ProductPrice', 'ProductReview',
   'ProductTransfer', 'ProductTransferItem',
   'Qms_model', 'Sale', 'SaleItem', 'Setting', 'Stock', 'Supplier', 'Unit', 'User',
   'Voucher',

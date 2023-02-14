@@ -27,24 +27,36 @@ class Stock
 
     $product  = Product::getRow(['id' => $data['product_id']]);
     if ($product) {
-      $data['product_code']   = $product->code;
-      $data['product_name']   = $product->name;
-      $data['product_type']   = $product->type;
+      $data['product']      = $product->codde;
+      $data['product_code'] = $product->code;
+      $data['product_name'] = $product->name;
+      $data['product_type'] = $product->type;
     } else {
       setLastError("Stock::add(): Product '{$data['product_id']}' is not found.");
       return FALSE;
     }
 
+    $category = ProductCategory::getRow(['id' => $product->category_id]);
+
+    if ($category) {
+      $data['category']       = $category->code;
+      $data['category_id']    = $category->id;
+      $data['category_code']  = $category->code;
+      $data['category_name']  = $category->name;
+    }
+
     // Not all use unit like service.
     $unit = Unit::getRow(['id' => $product->unit]);
     if ($unit) {
-      $data['unit_id']        = $unit->id;
-      $data['unit_code']      = $unit->code;
-      $data['unit_name']      = $unit->name;
+      $data['unit']       = $unit->code;
+      $data['unit_id']    = $unit->id;
+      $data['unit_code']  = $unit->code;
+      $data['unit_name']  = $unit->name;
     }
 
     $warehouse  = Warehouse::getRow(['id' => $data['warehouse_id']]);
     if ($warehouse) {
+      $data['warehouse']      = $warehouse->code;
       $data['warehouse_code'] = $warehouse->code;
       $data['warehouse_name'] = $warehouse->name;
     } else {

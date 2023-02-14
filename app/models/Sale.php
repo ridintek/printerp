@@ -123,6 +123,7 @@ class Sale
         SaleItem::add([
           'sale'          => $sale->reference,
           'sale_id'       => $insertId,
+          'product'       => $product->code,
           'product_id'    => $product->id,
           'product_code'  => $product->code,
           'product_name'  => $product->name,
@@ -413,7 +414,10 @@ class Sale
 
         $saleItemJS->status = $saleItemStatus;
 
-        SaleItem::update((int)$saleItem->id, ['json_data' => json_encode($saleItemJS)]);
+        SaleItem::update((int)$saleItem->id, [
+          'json'      => json_encode($saleItemJS),
+          'json_data' => json_encode($saleItemJS)
+        ]);
       }
 
       if ($sale->discount > $grandTotal) {
@@ -579,6 +583,7 @@ class Sale
       if (!empty($data['payment_due_date']))        $saleJS->payment_due_date        = $data['payment_due_date'];
       if (!empty($data['waiting_production_date'])) $saleJS->waiting_production_date = $data['waiting_production_date'];
 
+      $saleData['json'] = json_encode($saleJS);
       $saleData['json_data'] = json_encode($saleJS);
 
       DB::table('sales')->update($saleData, ['id' => $id]);

@@ -2959,6 +2959,43 @@ function sendMail($data = [])
   }
 }
 
+/**
+ * Set googlesheet cell value.
+ * @param string $sheetId Google Sheet Id.
+ * @param string $ranges A1 Notation ranges. Ex. 'A1:B1'
+ * @param array $values Array of array values. Ex. [[ 'OK', 'SIR' ]]
+ * @param string $valueInputOption USER_ENTERED or RAW.
+ */
+function setGoogleSheet($sheetId, $ranges, $values, $valueInputOption = 'USER_ENTERED')
+{
+  // Service Account: 
+  $tokenFile = FCPATH . 'app/credentials/avian-computer-376003-3f343cd3901f.json';
+  $client = new Google\Client();
+
+  $client->setApplicationName('PrintERP');
+  $client->setAuthConfig($tokenFile);
+  $client->setAccessType('offline');
+  $client->setScopes([Google\Service\Sheets::SPREADSHEETS]);
+
+  $service = new Google\Service\Sheets($client);
+
+  try {
+    $body = new Google\Service\Sheets\ValueRange([
+      'values' => $values
+    ]);
+
+    $res = $service->spreadsheets_values->update($sheetId, $ranges, $body, [
+      'valueInputOption' => $valueInputOption
+    ]);
+
+    return $res->getUpdatedCells();
+  } catch (Google\Service\Exception $e) {
+    echo 'Message: ' . $e->getMessage();
+  }
+
+  return false;
+}
+
 if (!function_exists('unitToBaseQty')) {
   function unitToBaseQty($qty, $unit)
   {

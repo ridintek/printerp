@@ -410,7 +410,15 @@ class Sma
     if (!empty($banks)) {
       foreach ($banks as $bank) {
         if ($biller) {
-          if ($bank->biller_id != $biller->id || $bank->active == 0) continue;
+          if ($bank->active == 0) {
+            continue;
+          }
+
+          if ($bank->biller_id != $biller->id) {
+            if ($biller->code == 'ONL' && $bank->biller != 'DUR') {
+              continue;
+            }
+          }
         }
         if ($bank->type == 'Cash') {
           $opts .= "<option value=\"{$bank->id}\">{$bank->name}</option>";
