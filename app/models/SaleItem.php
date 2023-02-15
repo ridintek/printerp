@@ -43,10 +43,10 @@ class SaleItem
         return false;
       }
 
-      if (empty($saleItemJS->due_date)) { // Check if sale item has due date. If empty then restricted.
-        setLastError("Item {$saleItem->product_code} doesn't have due date.");
-        return false;
-      }
+      // if (empty($saleItemJS->due_date)) { // Check if sale item has due date. If empty then restricted.
+      //   setLastError("Item {$saleItem->product_code} doesn't have due date.");
+      //   return false;
+      // }
 
       if (($completedQty + $saleItem->finished_qty) < $saleItem->quantity) { // If completed partial.
         $status = 'completed_partial';

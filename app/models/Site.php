@@ -4674,26 +4674,38 @@ class Site extends MY_Model
 
   public function getMachineByID($id)
   {
-    $this->db
-      ->select("products.id AS id, products.code AS code, products.name AS name,
-        warehouses.id AS warehouse_id,
-        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_qty')) AS maintenance_qty,
-        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_cost')) AS maintenance_cost")
+    return DB::table('products')->select("products.id AS id, products.code AS code, products.name AS name,
+      warehouses.id AS warehouse_id,
+      JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_qty')) AS maintenance_qty,
+      JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_cost')) AS maintenance_cost")
       ->join('categories', 'categories.id = products.subcategory_id', 'left')
       ->join('warehouses', 'warehouses.name LIKE products.warehouses', 'left')
+      ->where('products.id', $id)
       ->like('categories.code', 'MACFIN', 'none')
       ->orLike('categories.code', 'MACMER', 'none')
       ->orLike('categories.code', 'MACOUTIN', 'none')
       ->orLike('categories.code', 'MACPOD', 'none');
 
-    $this->db->where('products.id', $id);
+    // $this->db
+    //   ->select("products.id AS id, products.code AS code, products.name AS name,
+    //     warehouses.id AS warehouse_id,
+    //     JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_qty')) AS maintenance_qty,
+    //     JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_cost')) AS maintenance_cost")
+    //   ->join('categories', 'categories.id = products.subcategory_id', 'left')
+    //   ->join('warehouses', 'warehouses.name LIKE products.warehouses', 'left')
+    //   ->like('categories.code', 'MACFIN', 'none')
+    //   ->or_like('categories.code', 'MACMER', 'none')
+    //   ->or_like('categories.code', 'MACOUTIN', 'none')
+    //   ->or_like('categories.code', 'MACPOD', 'none');
 
-    $q = $this->db->get('products');
+    // $this->db->where('products.id', $id);
 
-    if ($q->num_rows() > 0) {
-      return $q->row();
-    }
-    return NULL;
+    // $q = $this->db->get('products');
+
+    // if ($q->num_rows() > 0) {
+    //   return $q->row();
+    // }
+    // return NULL;
   }
 
   public function getMachineCategoryByCode($code)
