@@ -127,6 +127,7 @@ nb-configuration.xml
 
 # Custom PrintERP
 .well-known
+.user.ini
 app/config/database.php
 app/credentials/*
 app/logs/*
@@ -134,7 +135,7 @@ backup_db.sh
 backup_erp.sh
 bin/
 composer.phar
-files/*
+files/
 !files/templates
 git.txt
 logs/*.log
