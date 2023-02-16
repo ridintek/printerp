@@ -71,13 +71,6 @@ class Qms_model extends CI_Model
     if (!$customer) {
       $phone = preg_replace('/[^0-9]/', '', $data['phone']); // Filter phone number.
 
-      $lastTicket = $this->getTodayLastQueueTicket(['warehouse_id' => $data['warehouse_id']]);
-
-      // Prevent Duplicate entries.
-      if ($lastTicket && $lastTicket->customer_id == $customer->id) {
-        return FALSE;
-      }
-
       $customer_id = $this->site->addCustomer([
         'group_id' => 3,
         'group_name' => 'customer',
@@ -95,9 +88,21 @@ class Qms_model extends CI_Model
       }
     }
 
+    // Begin Prevent Duplicate entries.
+    $lastTicket = $this->getTodayLastQueueTicket([
+      'queue_category_id' => $data['queue_category_id'],
+      'warehouse_id'      => $data['warehouse_id']
+    ]);
+
+    if ($lastTicket && $lastTicket->customer_id == $customer->id) {
+      return FALSE;
+    }
+    // End Prevent Duplicate entries.
+
     // begin get estimated call date.
     $servingQueues = $this->getQueueTickets([
       'status' => self::STATUS_SERVING,
+      'status2' => $this->toStatus(self::STATUS_SERVING),
       'warehouse_id' => $data['warehouse_id'],
       'start_date' => date('Y-m-d'),
       'end_date' => date('Y-m-d')
@@ -105,6 +110,7 @@ class Qms_model extends CI_Model
 
     $waitingQueues = $this->getQueueTickets([
       'status' => self::STATUS_WAITING,
+      'status2' => $this->toStatus(self::STATUS_WAITING),
       'warehouse_id' => $data['warehouse_id'],
       'start_date' => date('Y-m-d'),
       'end_date' => date('Y-m-d')
@@ -141,6 +147,7 @@ class Qms_model extends CI_Model
       'queue_category_id' => $data['queue_category_id'],
       'queue_category_name' => $queue_category->name,
       'status' => self::STATUS_WAITING, // 1 = Waiting
+      'status2' => $this->toStatus(self::STATUS_WAITING), // 1 = Waiting
       'token' => $this->generateNewQueueTicketToken($data),
       'warehouse_id' => $data['warehouse_id'],
       'warehouse_name' => $warehouse->name
@@ -159,22 +166,22 @@ class Qms_model extends CI_Model
       $expDate = date('d M y - H:i', strtotime("+{$expMinute} minute", strtotime($newTicket->est_call_date)));
 
       $msg = "Halo kak *{$newTicket->customer_name}* \u{1F48C}\n" .
-      "Kaka telah berhasil Registrasi Pelayanan Outlet ".
-      "Indoprinting {$newTicket->warehouse_name} \u{1F389}\n\n".
-      "No. Antrian: *{$newTicket->token}* \u{1F3F7}\n".
-      "Estimasi pelayanan: *{$estCallDate}*\n".
-      "Tiket berlaku sampai: *{$expDate}*\n\n".
-      "*Jika terlewat di display antrian, silakan tunjukkan tiket ini ke CS untuk segera dipanggil dan dilayani.*\n\n".
-      "\u{1F4DD} Registrasi Pelayanan Outlet bisa darimana aja sehingga *tidak perlu antri di Outlet*, ".
-      "cukup datang ke Outlet sesuai jadwal yg terkirim ke WhatsApp kakak.. ".
-      "https://indoprinting.co.id/antrian-online\n\n".
-      "\u{1F3AF} Order Praktis & Simple darimana aja.. ".
-      "by Online indoprinting.co.id | by WhatsApp ".
-      "wa.me/6282132003200\n\n".
-      "\u{1F6E0} Beri kami masukkan ya.. bisa dikirim by WhatsApp wa.me/6281327043234\n\n".
-      "Follow us https://www.instagram.com/indoprinting/ \u{1F4E3}\n\n".
-      "Terima kasih \u{1F64F},\nIndoprinting Team\n\n".
-      "_#PesanOtomatis_";
+        "Kaka telah berhasil Registrasi Pelayanan Outlet " .
+        "Indoprinting {$newTicket->warehouse_name} \u{1F389}\n\n" .
+        "No. Antrian: *{$newTicket->token}* \u{1F3F7}\n" .
+        "Estimasi pelayanan: *{$estCallDate}*\n" .
+        "Tiket berlaku sampai: *{$expDate}*\n\n" .
+        "*Jika terlewat di display antrian, silakan tunjukkan tiket ini ke CS untuk segera dipanggil dan dilayani.*\n\n" .
+        "\u{1F4DD} Registrasi Pelayanan Outlet bisa darimana aja sehingga *tidak perlu antri di Outlet*, " .
+        "cukup datang ke Outlet sesuai jadwal yg terkirim ke WhatsApp kakak.. " .
+        "https://indoprinting.co.id/antrian-online\n\n" .
+        "\u{1F3AF} Order Praktis & Simple darimana aja.. " .
+        "by Online indoprinting.co.id | by WhatsApp " .
+        "wa.me/6282132003200\n\n" .
+        "\u{1F6E0} Beri kami masukkan ya.. bisa dikirim by WhatsApp wa.me/6281327043234\n\n" .
+        "Follow us https://www.instagram.com/indoprinting/ \u{1F4E3}\n\n" .
+        "Terima kasih \u{1F64F},\nIndoprinting Team\n\n" .
+        "_#PesanOtomatis_";
 
       $this->site->addWAJob([
         'phone'     => $newTicket->customer_phone,
@@ -216,6 +223,7 @@ class Qms_model extends CI_Model
         'wait_time' => $wait_time, // OK.
         'counter' => $user->counter,
         'status'  => self::STATUS_CALLING, // 2 = To be call by Display.
+        'status2' => $this->toStatus(self::STATUS_CALLING),
         'user_id' => $user->id,
       ];
 
@@ -284,8 +292,9 @@ class Qms_model extends CI_Model
       'end_date' => $end_date,
       'over_time' => $over_time, // OK
       'serve_time' => $serve_time, // OK
-      'status' => self::STATUS_SERVED
-      ])) {
+      'status' => self::STATUS_SERVED,
+      'status2' => $this->toStatus(self::STATUS_SERVED),
+    ])) {
       return TRUE;
     }
     return FALSE;
@@ -322,6 +331,7 @@ class Qms_model extends CI_Model
     if (!empty($clause['customer_id']))         $clauses['customer_id'] = $clause['customer_id'];
     if (!empty($clause['queue_category_name'])) $clauses['queue_category_name'] = $clause['queue_category_name'];
     if (!empty($clause['status']))              $clauses['status'] = $clause['status'];
+    if (!empty($clause['status2']))             $clauses['status2'] = $clause['status2'];
     if (!empty($clause['token']))               $clauses['token'] = $clause['token'];
     if (!empty($clause['user_id']))             $clauses['user_id'] = $clause['user_id'];
     if (!empty($clause['warehouse_id']))        $clauses['warehouse_id'] = $clause['warehouse_id'];
@@ -531,7 +541,10 @@ class Qms_model extends CI_Model
 
   public function recallQueue($ticket_id)
   {
-    if ($this->updateQueueTicket($ticket_id, ['status' => self::STATUS_CALLING])) {
+    if ($this->updateQueueTicket($ticket_id, [
+      'status' => self::STATUS_CALLING,
+      'status2' => $this->toStatus(self::STATUS_CALLING),
+    ])) {
       return $this->getQueueTicketByID($ticket_id);
     }
     return NULL;
@@ -539,7 +552,11 @@ class Qms_model extends CI_Model
 
   public function serveQueue($ticket_id)
   {
-    if ($this->updateQueueTicket($ticket_id, ['serve_date' => date('Y-m-d H:i:s'), 'status' => self::STATUS_SERVING])) {
+    if ($this->updateQueueTicket($ticket_id, [
+      'serve_date' => date('Y-m-d H:i:s'),
+      'status' => self::STATUS_SERVING,
+      'status2' => $this->toStatus(self::STATUS_SERVING),
+    ])) {
       return TRUE;
     }
     return FALSE;
@@ -547,7 +564,11 @@ class Qms_model extends CI_Model
 
   public function skipQueue($ticket_id)
   {
-    if ($this->updateQueueTicket($ticket_id, ['end_date' => date('Y-m-d H:i:s'), 'status' => self::STATUS_SKIPPED])) {
+    if ($this->updateQueueTicket($ticket_id, [
+      'end_date' => date('Y-m-d H:i:s'),
+      'status' => self::STATUS_SKIPPED,
+      'status2' => $this->toStatus(self::STATUS_SKIPPED),
+    ])) {
       return TRUE;
     }
     return FALSE;
@@ -558,10 +579,32 @@ class Qms_model extends CI_Model
     $qsess = $this->getTodayQueueSession($user_id);
 
     if ($qsess) {
-
     }
 
     return TRUE;
+  }
+
+  /**
+   * Convert status (int) to status (string).
+   */
+  public function toStatus(int $status)
+  {
+    switch ($status) {
+      case self::STATUS_WAITING;
+        return 'waiting';
+      case self::STATUS_CALLING;
+        return 'calling';
+      case self::STATUS_CALLED;
+        return 'called';
+      case self::STATUS_SERVING;
+        return 'serving';
+      case self::STATUS_SERVED;
+        return 'served';
+      case self::STATUS_SKIPPED;
+        return 'skipped';
+      default:
+        return null;
+    }
   }
 
   public function updateQueueSession($session_id, $data)

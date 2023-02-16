@@ -1081,8 +1081,8 @@ function getGet($name)
  */
 function getGoogleSheet($sheetId, $ranges)
 {
-  // Service Account: gsheet@indoprinting-20221007.iam.gserviceaccount.com
-  $tokenFile = FCPATH . 'app/credentials/indoprinting-20221007-ea745a0d9354.json';
+  // Service Account: 
+  $tokenFile = FCPATH . 'app/credentials/avian-computer-376003-3f343cd3901f.json';
   $client = new Google\Client();
 
   $client->setApplicationName('PrintERP');
@@ -2682,7 +2682,7 @@ function sendWA($phone, $text, $opt = [])
  */
 function setCreatedBy($data)
 {
-  $data['created_at'] = ($data['date'] ?? $data['created_at'] ?? date('Y-m-d H:i:s'));
+  $data['created_at'] = ($data['created_at'] ?? date('Y-m-d H:i:s'));
   $system = User::getRow(['username' => 'system']);
 
   $data['created_by'] = ($data['created_by'] ?? XSession::get('user_id') ?? $system->id);
@@ -2957,6 +2957,43 @@ function sendMail($data = [])
   } catch (Exception $e) {
     echo "Error could not be sent. Mailer Error: {$mail->ErrorInfo}";
   }
+}
+
+/**
+ * Set googlesheet cell value.
+ * @param string $sheetId Google Sheet Id.
+ * @param string $ranges A1 Notation ranges. Ex. 'A1:B1'
+ * @param array $values Array of array values. Ex. [[ 'OK', 'SIR' ]]
+ * @param string $valueInputOption USER_ENTERED or RAW.
+ */
+function setGoogleSheet($sheetId, $ranges, $values, $valueInputOption = 'USER_ENTERED')
+{
+  // Service Account: 
+  $tokenFile = FCPATH . 'app/credentials/avian-computer-376003-3f343cd3901f.json';
+  $client = new Google\Client();
+
+  $client->setApplicationName('PrintERP');
+  $client->setAuthConfig($tokenFile);
+  $client->setAccessType('offline');
+  $client->setScopes([Google\Service\Sheets::SPREADSHEETS]);
+
+  $service = new Google\Service\Sheets($client);
+
+  try {
+    $body = new Google\Service\Sheets\ValueRange([
+      'values' => $values
+    ]);
+
+    $res = $service->spreadsheets_values->update($sheetId, $ranges, $body, [
+      'valueInputOption' => $valueInputOption
+    ]);
+
+    return $res->getUpdatedCells();
+  } catch (Google\Service\Exception $e) {
+    echo 'Message: ' . $e->getMessage();
+  }
+
+  return false;
 }
 
 if (!function_exists('unitToBaseQty')) {

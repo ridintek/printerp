@@ -37,7 +37,7 @@ class Operators extends MY_Controller
       'to' => $customer->email,
       'subject' => 'Indoprinting Invoice ' . $sale->reference . ' [' . $item_status . ']'
     ], $data_mail)) {
-      return TRUE;
+      return true;
     }
     return FALSE;
   }
@@ -110,10 +110,10 @@ class Operators extends MY_Controller
 
   public function getItemsStatus()
   {
-    $this->sma->checkPermissions('orders', NULL, 'operators', TRUE);
+    $this->sma->checkPermissions('orders', NULL, 'operators', true);
     $this->form_validation->set_rules('product_ids', 'Product IDs', 'required');
 
-    $product_ids = json_decode(getPOST('product_ids'), TRUE); // as array
+    $product_ids = json_decode(getPOST('product_ids'), true); // as array
 
     if ($this->form_validation->run() && !empty($product_ids)) {
       $data_items = [];
@@ -251,7 +251,7 @@ class Operators extends MY_Controller
   public function completeSaleItems()
   { // Complete sale items.
     if ($this->requestMethod == 'POST') {
-      $items      = json_decode(getPOST('items'));
+      $items      = getJSON(getPOST('items'));
       $created_by = getPOST('created_by');
       $date       = getPOST('date');
       $_pg        = getPOST('_pg');
@@ -261,7 +261,11 @@ class Operators extends MY_Controller
       $responseMsg = '';
       $isCompleteOverTime = FALSE;
 
-      if ($saleItem = $this->site->getSaleItemByID($items[0]->id)) {
+      if (!is_array($items)) {
+        sendJSON(['error' => 1, 'msg' => 'Items is not array. Please contact developer.']);
+      }
+
+      if ($saleItem = SaleItem::getRow(['id' => $items[0]->id])) {
         if ($sale = $this->site->getSaleByID($saleItem->sale_id)) {
           $saleJS = getJSON($sale->json_data);
           $saleItemJS = getJSON($saleItem->json_data);
@@ -269,12 +273,12 @@ class Operators extends MY_Controller
             sendJSON(['error' => 1, 'msg' => "Nota <b>{$sale->reference}</b> belum di approved."]);
           }
           if (strtotime($this->serverDateTime) > strtotime($saleItemJS->due_date)) {
-            $isCompleteOverTime = TRUE;
+            $isCompleteOverTime = true;
           }
         }
       }
 
-      $hMutex = mutexCreate('Operators_completeSaleItems', TRUE); // Create mutex.
+      DB::transStart();
 
       foreach ($items as $item) {
         $saleItem = SaleItem::getRow(['id' => $item->id]);
@@ -290,19 +294,22 @@ class Operators extends MY_Controller
         $data['created_at'] = ($this->isAdmin || ($_pg && $isCompleteOverTime) ? $date : date('Y-m-d H:i:s'));
         $data['quantity']   = $item->quantity;
 
-        if (!SaleItem::complete((int)$item->id, $data)) {
-          $errorCount++;
-          $responseMsg .= "<span class=\"text-danger bold\">Failed</span> to complete item '{$saleItem->product_code}'.<br>";
-        } else {
+        if (SaleItem::complete((int)$item->id, $data)) {
           $responseMsg .= "Item '{$saleItem->product_code}' has been completed.<br>";
+        } else {
+          $errorCount++;
+          $msg = getLastError();
+          $responseMsg .= "<span class=\"text-danger bold\">Failed</span> to complete item '{$saleItem->product_code}'. {$msg}<br>";
         }
       }
 
-      mutexRelease($hMutex); // Release mutex Operators_completeSaleItems.
+      DB::transComplete();
 
-      if ($errorCount == count($items)) $error = 1;
+      if (DB::transStatus()) {
+        sendJSON(['error' => 0, 'msg' => $responseMsg]);
+      }
 
-      sendJSON(['error' => $error, 'msg' => $responseMsg]);
+      sendJSON(['error' => 1, 'msg' => $responseMsg]);
     } else {
       if (getPOST('update')) {
         sendJSON(['error' => 1, 'msg' => validation_errors()]);

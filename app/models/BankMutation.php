@@ -8,7 +8,7 @@ class BankMutation
    * Add new BankMutation.
    * @param array $data [ name, code ]
    */
-  public static function add(array $data, bool $useValidation = TRUE)
+  public static function add(array $data, bool $useValidation = true)
   {
     if (empty($data['date'])) $data['date'] = date('Y-m-d H:i:s');
     $data['reference'] = OrderRef::getReference('mutation');
@@ -26,12 +26,15 @@ class BankMutation
           'expired_date'  => date('Y-m-d H:i:s', strtotime('+1 day', strtotime($data['date']))), // 24 jam
           'reference'     => $data['reference'],
           'mutation_id'   => $insertID,
+          'biller_id'     => $data['biller_id'],
           'amount'        => $data['amount'],
           'description'   => $data['note']
         ];
 
         if (PaymentValidation::add($pv_data)) { // Add Payment Validation.
           DB::table('bank_mutations')->update(['status' => 'waiting_transfer'], ['id' => $insertID]);
+        } else {
+          return false;
         }
       } else {
         $paymentSent = [
@@ -59,12 +62,14 @@ class BankMutation
         ];
 
         Payment::add($paymentRecv);
+
+        DB::table('bank_mutations')->update(['status' => 'paid'], ['id' => $insertID]);
       }
 
-      return TRUE;
+      return true;
     }
 
-    return FALSE;
+    return false;
   }
 
   /**

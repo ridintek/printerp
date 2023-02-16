@@ -199,7 +199,7 @@ class Ridintek
   public function googlesheet()
   {
     $this->gsheet = new RD_Googlesheet();
-    $this->gsheet->setCredentialFile(FCPATH . 'assets/credentials/PrintERP-66452fc687c7.json');
+    // $this->gsheet->setCredentialFile(FCPATH . 'app/credentials/avian-computer-376003-3f343cd3901f.json');
     $this->gsheet->setScopes([Google\Service\Sheets::SPREADSHEETS]);
     $this->gsheet->getGoogleServiceSheet();
 
@@ -208,8 +208,7 @@ class Ridintek
 
   public function logger()
   {
-    $this->log = new RD_Logger();
-    return $this->log;
+    return new RD_Logger();
   }
 
   public function qrcode($data)

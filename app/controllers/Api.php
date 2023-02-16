@@ -350,10 +350,10 @@ class Api extends MY_Controller
       die();
     }
 
-    $mb_response = getJSON(file_get_contents('php://input'));
+    $mb_response = json_decode(file_get_contents('php://input'));
 
     if (empty($mb_response)) {
-      $this->redirect();
+      $this->response(400, ['message' => 'Data is empty.']);
     }
 
     if ($total = PaymentValidation::validate($mb_response)) { // Segala pengecekan dan validasi data di sini.
@@ -1202,10 +1202,15 @@ class Api extends MY_Controller
   private function users_v1()
   {
     if ($this->requestMethod == 'GET') {
-      $whCode = getGET('warehouse');
+      $id         = getGET('id');
+      $whCode     = getGET('warehouse');
       $groupName  = getGET('group');
 
       $clauses = [];
+
+      if ($id) {
+        $clauses['id'] = $id;
+      }
 
       if ($whCode) {
         $warehouse = $this->site->getWarehouseByCode($whCode);

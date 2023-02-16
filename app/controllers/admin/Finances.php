@@ -1557,11 +1557,10 @@ class Finances extends MY_Controller
         'created_by'      => XSession::get('user_id'),
         'paid_by'         => getPOST('paid_by'),
         'biller'          => Biller::getRow(['id' => getPOST('biller')])->code,
-        'biller_id'       => getPOST('biller'),
-        'status'          => 'paid'
+        'biller_id'       => getPOST('biller')
       ];
 
-      $skipPaymentValidation = (getPOST('skip_pv') ? TRUE : FALSE);
+      $skipPaymentValidation = (getPOST('skip_pv') == 1 ? TRUE : FALSE);
       // $bank_from_balance = $this->site->getBankBalanceByID($data['from_bank_id']);
       /*
       if ($bank_from_balance < $data['amount']) {
@@ -1583,7 +1582,18 @@ class Finances extends MY_Controller
         $data['attachment'] = $uploader->storeRandom();
       }
 
-      if (BankMutation::add($data, $useValidation)) {
+      DB::transStart();
+
+      $insertID = BankMutation::add($data, $useValidation);
+
+      if (!$insertID) {
+        XSession::set('error', getLastError());
+        admin_redirect('finances/mutations');
+      }
+
+      DB::transComplete();
+
+      if (DB::transStatus()) {
         $this->session->set_flashdata('message', lang('bank_mutation_added'));
         admin_redirect('finances/mutations');
       } else {

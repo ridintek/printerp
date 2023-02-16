@@ -1424,7 +1424,7 @@ class Products extends MY_Controller
     if ($warehouse_id) $clause['warehouse_id'] = $warehouse_id;
 
     $clause['order'] = [
-      'created_at', 'ASC'
+      'date', 'ASC'
     ];
 
     $rows = $this->site->getStocks($clause);
@@ -2497,9 +2497,9 @@ class Products extends MY_Controller
    */
   protected function import_sync_raw()
   {
-    $sheets = getGoogleSheet('1arv83XA2ySRAos6aFvhqLWIm804CjgUyChj7DsxaBj0', 'A3:AM');
+    $sheets = getGoogleSheet('1arv83XA2ySRAos6aFvhqLWIm804CjgUyChj7DsxaBj0', 'A3:AN');
 
-    if (!$sheets) $this->response(404, ['message' => 'Something wrong with google sheets.']);
+    if (!$sheets) $this->response(400, ['message' => 'Something wrong with google sheets.']);
 
     $headers = [ // ss = safety_stock
       'action', 'code', 'name', 'unit', 'category_code', 'subcategory_code',

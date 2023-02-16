@@ -3191,7 +3191,7 @@ class Reports extends MY_Controller
         ]);
 
         foreach ($assets as $asset) { // Filter items first.
-          if ($asset->active != 1) continue;
+          if ($asset->active == 0) continue;
           if ($asset->warehouses != $wh->name) continue;
 
           $items[] = $asset;

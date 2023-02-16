@@ -13,12 +13,12 @@
 
       <div class="form-group">
         <?= lang('category_code', 'code'); ?>
-        <?= form_input('code', set_value('code', $category->code), 'class="form-control" id="code" required="required"'); ?>
+        <?= form_input('code', set_value('code', $category->code), 'class="form-control gen_slug" id="code" required="required"'); ?>
       </div>
 
       <div class="form-group">
         <?= lang('category_name', 'name'); ?>
-        <?= form_input('name', set_value('name', $category->name), 'class="form-control gen_slug" id="name" required="required"'); ?>
+        <?= form_input('name', set_value('name', $category->name), 'class="form-control" id="name" required="required"'); ?>
       </div>
 
       <div class="form-group all">
@@ -58,7 +58,8 @@
 <script>
   $(document).ready(function() {
     $('.gen_slug').change(function(e) {
-      getSlug($(this).val(), 'category');
+      $('#slug').val(this.value);
+      // getSlug($(this).val(), 'category');
     });
   });
 </script>

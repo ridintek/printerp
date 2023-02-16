@@ -91,8 +91,8 @@
 
             if (!empty($iuseItems)) {
               foreach ($iuseItems as $iuseItem) {
-                $product = $this->site->getProductByID($iuseItem->product_id);
-                $machine = $this->site->getMachineByID($iuseItem->machine_id);
+                $product = Product::getRow(['id' => $iuseItem->product_id]);
+                $machine = Product::getRow(['id' => $iuseItem->machine_id]);
                 $price = $iuseItem->price;
                 $total = ($price * $iuseItem->quantity);
                 $grandTotal += $total;

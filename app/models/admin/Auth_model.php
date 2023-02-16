@@ -741,85 +741,12 @@ class Auth_model extends MY_Model
 
   public function login ($identity, $password, $remember = false)
   {
-    if (empty($identity) || empty($password)) {
-      $this->set_error('login_unsuccessful');
-      return false;
-    }
-
-    $identity = $this->db->escape_str($identity);
-
-    $query = $this->db->select('username, phone, id, password,
-      active, last_login, last_ip_address, avatar, counter, fullname, first_name, last_name, gender,
-      group_id, warehouse_id, biller_id, view_right, edit_right, allow_discount, show_cost, show_price')
-      ->where('username', $identity)
-      ->or_where('phone', $identity)
-      ->limit(1)
-      ->get('users');
-
-    if ($query->num_rows() === 1) {
-      $user = $query->row();
-
-      $password = $this->hash_password_db($user->id, $password);
-
-      if ($password === true) {
-        if ($user->active != 1) {
-          $this->set_error('login_unsuccessful_not_active');
-          return false;
-        }
-
-        $this->set_session($user);
-
-        if ($remember && $this->config->item('remember_users', 'ion_auth')) {
-          $this->remember_user($user->id);
-        }
-
-        $this->set_message('login_successful');
-
-        return true;
-      }
-    }
-
-    $this->set_error('login_unsuccessful');
-
-    return false;
+    
   }
 
   public function login_remembered_user()
   {
-    //check for valid data
-    if (!get_cookie('identity') || !get_cookie('remember_code') || !$this->identity_check(get_cookie('identity'))) {
-      $this->trigger_events(['post_login_remembered_user', 'post_login_remembered_user_unsuccessful']);
-      return false;
-    }
-
-    //get the user
-    $query = $this->db->select($this->identity_column . ', id, username, phone, last_login,
-      last_ip_address, fullname, first_name, last_name, avatar, counter, gender, group_id, warehouse_id,
-      biller_id, view_right, allow_discount, edit_right, show_cost, show_price')
-      ->where($this->identity_column, get_cookie('identity'))
-      ->where('remember_code', get_cookie('remember_code'))
-      ->limit(1)
-      ->get($this->tables['users']);
-
-    //if the user was found, sign them in
-    if ($query && $query->num_rows() == 1) {
-      $user = $query->row();
-
-      $this->set_session($user);
-
-      //extend the users cookies if the option is enabled
-      if ($this->config->item('user_extend_on_login', 'ion_auth')) {
-        $this->remember_user($user->id);
-      }
-
-      $this->trigger_events(['post_login_remembered_user', 'post_login_remembered_user_successful']);
-      return true;
-    } else {
-      die($this->db->error()['message']);
-    }
-
-    $this->trigger_events(['post_login_remembered_user', 'post_login_remembered_user_unsuccessful']);
-    return false;
+    
   }
 
   public function messages()
@@ -1146,55 +1073,7 @@ class Auth_model extends MY_Model
 
   public function set_session ($user)
   {
-    $this->trigger_events('pre_set_session');
-
-    $warehouse = $this->site->getWarehouseByID($user->warehouse_id);
-
-    // Reset counter user.
-    $this->site->updateUser($user->id, ['counter' => 0, 'token' => NULL, 'queue_category_id' => 0]);
-
-    $group = $this->site->getGroupByID($user->group_id);
-
-    $biller = $this->site->getBillerByID($user->biller_id);
-
-    $session_data = [
-      'identity'       => $user->{$this->identity_column},
-      'fullname'       => $user->fullname,
-      'first_name'     => $user->first_name,
-      'last_name'      => $user->last_name,
-      'username'       => $user->username,
-      'phone'          => $user->phone,
-      'user_id'        => $user->id, //everyone likes to overwrite id so we'll use user_id
-      'old_last_login' => $user->last_login,
-      'last_ip'        => $user->last_ip_address,
-      'avatar'         => $user->avatar,
-      'gender'         => $user->gender,
-      'group_id'       => $user->group_id,
-      'group_name'     => $group->name,
-      'warehouse_id'   => $user->warehouse_id,
-      'warehouse_name' => ($warehouse ? $warehouse->name : NULL),
-      'view_right'     => $user->view_right,
-      'edit_right'     => $user->edit_right,
-      'allow_discount' => $user->allow_discount,
-      'biller_id'      => $user->biller_id,
-      'biller_name'    => ($biller ? $biller->name : NULL),
-      'show_cost'      => $user->show_cost,
-      'show_price'     => $user->show_price,
-      'counter'        => 0,
-      'login_time'     => date('Y-m-d H:i:s'),
-      'token'          => NULL,
-      'queue_category_id' => 0
-    ];
-
-    if ($user->group_id != 1 && $user->group_id != 2) {
-      $session_data['logout_access'] = FALSE;
-    }
-
-    $this->session->set_userdata($session_data);
-
-    $this->trigger_events('post_set_session');
-
-    return true;
+    
   }
 
   public function trigger_events($events)
@@ -1303,26 +1182,10 @@ class Auth_model extends MY_Model
 
   public function update_last_login($id)
   {
-    $this->trigger_events('update_last_login');
-
-    $this->load->helper('date');
-
-    $this->trigger_events('extra_where');
-
-    $this->db->update($this->tables['users'], ['last_login' => time()], ['id' => $id]);
-
-    return $this->db->affected_rows() == 1;
   }
 
   public function update_last_login_ip($id)
   {
-    $this->trigger_events('update_last_login_ip');
-
-    $this->trigger_events('extra_where');
-
-    $this->db->update($this->tables['users'], ['last_ip_address' => $this->input->ip_address()], ['id' => $id]);
-
-    return $this->db->affected_rows() == 1;
   }
 
   public function updateAvatar($id, $avatar)

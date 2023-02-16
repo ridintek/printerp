@@ -483,12 +483,12 @@ class Sales extends MY_Controller
 
       if ($payment['method'] == 'Transfer') { // Transfer will be validated automatically.
         if (empty($customer->payment_term)) $customer->payment_term = 1; // If empty customer payment term, set it to 1.
-        $expired_date = strtotime("+2 days", strtotime($date)); // Expired date always 2 days.
+        $expiredDate = strtotime("+2 days", strtotime($date)); // Expired date always 2 days.
 
         $pvData = [
           'date'          => $date,
-          'expired_date'  => date('Y-m-d H:i:s', $expired_date),
-          'expired_at'    => date('Y-m-d H:i:s', $expired_date),
+          'expired_date'  => date('Y-m-d H:i:s', $expiredDate),
+          'expired_at'    => date('Y-m-d H:i:s', $expiredDate),
           'reference'     => $sale->reference,
           'sale_id'       => $payment['sale_id'],
           'amount'        => $payment['amount'],
@@ -497,11 +497,14 @@ class Sales extends MY_Controller
           'unique_code'   => (!empty(getPOST('use_unique_code')) ? getPOST('unique_code') : NULL)
         ];
 
+        if (isset($payment['attachment'])) $pvData['attachment'] = $payment['attachment'];
+
         if ($pvId = PaymentValidation::add($pvData)) {
           $pv = PaymentValidation::getRow(['id' => $pvId]);
 
           Sale::update((int)$pvData['sale_id'], [
-            'payment_status' => 'waiting_transfer'
+            'payment_status' => 'waiting_transfer',
+            'attachment'     => ($payment['attachment'] ?? NULL)
           ]);
 
           $hMutex = mutexCreate('syncSales', TRUE);
@@ -523,10 +526,11 @@ class Sales extends MY_Controller
 
             $vpvOpts = [
               'sale_id' => $sale_id,
-              'manual'  => TRUE,
+              'manual'  => TRUE
             ];
 
-            if (!empty($payment['attachment_id'])) $vpvOpts['attachment_id'] = $payment['attachment_id'];
+            if (isset($payment['attachment_id']))  $vpvOpts['attachment_id'] = $payment['attachment_id'];
+            if (isset($payment['attachment']))     $vpvOpts['attachment']    = $payment['attachment'];
 
             $ret = PaymentValidation::validate($vpvData, $vpvOpts);
 
@@ -1413,7 +1417,7 @@ class Sales extends MY_Controller
           ELSE customers.name
         END) AS customer_name,
         sales.status, sales.grand_total, sales.paid,
-        sales.balance AS balance, sales.payment_status, sales.attachment_id,
+        sales.balance AS balance, sales.payment_status, sales.attachment,
         pv.id as pv_id";
       } else
       if ($group_by == 'biller') {
@@ -1491,13 +1495,7 @@ class Sales extends MY_Controller
       }
 
       if (getGET('attachment') == 'yes') {
-        $this->datatables->where('payment_status !=', 'paid')->where('attachment !=', null);
-      }
-
-      if (!$this->Customer && !$this->Supplier && !$this->Owner && !$this->Admin && !XSession::get('view_right')) {
-        $this->datatables->where('created_by', XSession::get('user_id'));
-      } elseif ($this->Customer) {
-        $this->datatables->where('customer_id', XSession::get('user_id'));
+        $this->datatables->where('sales.payment_status !=', 'paid')->where('attachment !=', null);
       }
 
       if (!empty($group_by)) {
@@ -1597,13 +1595,13 @@ class Sales extends MY_Controller
       }
 
       if (getGET('attachment') == 'yes') {
-        $this->db->where('payment_status !=', 'paid')->where('attachment !=', null);
+        $this->db->where('sales.payment_status !=', 'paid')->where('attachment !=', null);
       }
 
       if (!$this->Customer && !$this->Supplier && !$this->Owner && !$this->Admin && !XSession::get('view_right')) {
-        $this->db->where('created_by', XSession::get('user_id'));
+        $this->db->where('sales.created_by', XSession::get('user_id'));
       } elseif ($this->Customer) {
-        $this->db->where('customer_id', XSession::get('user_id'));
+        $this->db->where('sales.customer_id', XSession::get('user_id'));
       }
 
       $this->db->order_by('sales.id', 'DESC');
@@ -2119,7 +2117,7 @@ class Sales extends MY_Controller
       $firstMonthDate = strtotime(date('Y-m-') . '01 00:00:00');
       $invDate = strtotime($sale->date);
 
-      if ($firstMonthDate > $invDate) {
+      if (!$this->Owner && $firstMonthDate > $invDate) {
         sendJSON(['error' => 1, 'msg' => 'Invoice lama tidak bisa di revert.']);
       }
 

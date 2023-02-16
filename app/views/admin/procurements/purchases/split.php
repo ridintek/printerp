@@ -53,7 +53,7 @@
             <td><?= $item->product_code; ?></td>
             <td><?= $item->product_name; ?></td>
             <td>
-              <input type="text" class="form-control currency text-right"
+              <input type="text" class="form-control text-right"
                 data-stock-id="<?= $item->id; ?>"
                 value="<?= formatDecimal($item->purchased_qty); ?>">
             </td>

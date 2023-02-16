@@ -254,6 +254,8 @@ class Machines extends MY_Controller
           $category = $this->site->getProductCategoryByCode($mt->category);
           $tsname = '-';
 
+          if (!$category) continue;
+
           if (!empty($mt->pic)) {
             $user = $this->site->getUserByID($mt->pic);
             $tsname = $user->fullname;
@@ -273,6 +275,8 @@ class Machines extends MY_Controller
 
         foreach ($maintenances as $mt) {
           $category = $this->site->getProductCategoryByCode($mt->category);
+
+          if (!$category) continue;
 
           $auto_assign = (!empty($mt->auto_assign) && $mt->auto_assign == 1 ? 'Yes' : 'No');
 
@@ -620,6 +624,8 @@ class Machines extends MY_Controller
           'order_by' => ['created_at', 'DESC']
         ]);
 
+        if (!$lastReport) continue;
+
         if ($lastReport->condition != 'good') {
           $problem = TRUE;
         }
@@ -765,8 +771,8 @@ class Machines extends MY_Controller
           condition, note, pic_note, creator.fullname AS creator_name, attachment_id")
         ->from('product_report')
         ->join('users creator', 'creator.id = product_report.created_by', 'left')
-        ->where('product_id', $productId)
-        ->where("created_at BETWEEN '{$period['start_date']} 00:00:00' AND '{$period['end_date']} 23:59:59'");
+        ->where('product_report.product_id', $productId)
+        ->where("product_report.created_at BETWEEN '{$period['start_date']} 00:00:00' AND '{$period['end_date']} 23:59:59'");
 
       $this->datatable
         ->addColumn('id', 'id', function ($data) {
