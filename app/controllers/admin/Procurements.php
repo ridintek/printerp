@@ -101,7 +101,7 @@ class Procurements extends MY_Controller
         $item_machine   = $_POST['machines'][$r];
         $item_price     = $_POST['price'][$r];
         $item_quantity  = $_POST['quantity'][$r];
-        $itemSpec      = $_POST['spec'][$r]; // Counter.
+        $itemSpec       = $_POST['spec'][$r]; // Counter.
         $itemUCR        = $_POST['ucr'][$r]; // Unique Code Replacement.
 
         // Prevent input lower counter than current counter.
@@ -206,6 +206,8 @@ class Procurements extends MY_Controller
     }
 
     if ($this->form_validation->run()) {
+      DB::transStart();
+
       if ($this->site->addStockInternalUse($internalUseData, $products)) {
         $this->session->set_userdata('remove_tols', 1);
         $this->session->set_flashdata('message', 'Internal use berhasil ditambahkan.');
@@ -213,6 +215,8 @@ class Procurements extends MY_Controller
         $this->session->set_userdata('remove_tols', 1);
         $this->session->set_flashdata('error', 'Gagal menambahkan internal use.');
       }
+      DB::transComplete();
+
       admin_redirect('procurements/internal_uses');
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));

@@ -1286,8 +1286,8 @@ class Products extends MY_Controller
       </li>';
 
     // if ($this->isAdmin || getPermission('products-history')) {
-      // History Product
-      $action .= "<li>{$history_link}</li>";
+    // History Product
+    $action .= "<li>{$history_link}</li>";
     // }
 
     $action .= '<li class="divider"></li>';
@@ -1429,7 +1429,7 @@ class Products extends MY_Controller
 
     $rows = $this->site->getStocks($clause);
     unset($clause['start_date'], $clause['end_date'], $clause['order']);
-    
+
     $beginning_qty  = ($start_date ? $this->site->getStockBeginningQuantity($clause, $start_date) : 0);
 
     $this->data['beginning_qty'] = $beginning_qty;

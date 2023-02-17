@@ -11,7 +11,14 @@ class SaleItem
   public static function add(array $data)
   {
     DB::table('sale_items')->insert($data);
-    return DB::insertID();
+
+    if ($insertId = DB::insertID()) {
+      return $insertId;
+    }
+
+    setLastError(DB::error()['message']);
+
+    return false;
   }
 
   /**

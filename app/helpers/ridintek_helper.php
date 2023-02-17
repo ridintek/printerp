@@ -640,52 +640,51 @@ function generateDatatables($db, $columns)
 
 function generateInternalUseUniqueCode(string $category)
 {
-  $code = '';
-  $noCode = true;
+  $code = null;
   $prefix = [
     'consumable'  => 'C',
     'sparepart'   => 'S'
   ];
 
-  $iuseItems = DB::table('stocks')->isNotNull('internal_use_id')
+  if (strcasecmp($category, 'consumable') != 0 && strcasecmp($category, 'sparepart') != 0) {
+    setLastError('Category must be consumable or sparepart.');
+    return false;
+  }
+
+  $lastItem = DB::table('stocks')->isNotNull('internal_use_id')
     ->like('unique_code', $prefix[$category], 'right')
-    ->orderBy('internal_use_id', 'DESC')->get(); // Find Cxxxx or Sxxxx
+    ->orderBy('internal_use_id', 'DESC')->getRow(); // Find Cxxxx or Sxxxx
 
-  foreach ($iuseItems as $item) {
-    if (!empty($item->unique_code)) {
-      $noCode = false;
-      $uniqueCode = $item->unique_code;
+  if ($lastItem) {
+    $lastUniqueCode = $lastItem->unique_code; // Ex. SA0001, CA0001
 
-      $prf = substr($uniqueCode, 0, 1); // Prefix C,S
-      $alp = substr($uniqueCode, 1, 1); // Alphabet A,B,C,...
-      $idx = substr($uniqueCode, 2); // Index 0001,0002,0003,...
+    $prf = substr($lastUniqueCode, 0, 1); // Prefix C (Consumable) or S (Sparepart)
+    $alp = substr($lastUniqueCode, 1, 1); // Alphabet A,B,C,...,Z
+    $idx = substr($lastUniqueCode, 2); // Index 0001,0002,0003,...,9999
 
-      if (intval($idx) == 9999) {
-        $a = ord($alp);
+    if (intval($idx) == 9999) {
+      $a = ord($alp);
 
-        if ($a == 90) { // if Z reset to A
-          $a = 65;
-        } else {
-          $a++;
-        }
-
-        $code = $prf . chr($a) . '0001';
+      if ($a == 90) { // if Z reset to A
+        $a = 65;
       } else {
-        $i = intval($idx);
-        $i++;
-
-        // Prepend zero.
-        $id = strval($i);
-        $id = ($i < 1000 ? ($i < 100 ? ($i < 10 ? '000' . $id : '00' . $id) : '0' . $id) : $id);
-
-        $code = $prf . $alp . $id;
+        $a++;
       }
 
-      break;
+      $code = $prf . chr($a) . '0001';
+    } else {
+      $i = intval($idx);
+      $i++;
+
+      // Prepend zero.
+      $id = strval($i);
+      $id = ($i < 1000 ? ($i < 100 ? ($i < 10 ? '000' . $id : '00' . $id) : '0' . $id) : $id);
+
+      $code = $prf . $alp . $id;
     }
   }
 
-  return ($noCode ? $prefix[$category] . 'A0001' : $code);
+  return ($code ? $code : $prefix[$category] . 'A0001');
 }
 
 /**
@@ -2393,7 +2392,6 @@ function dbglog($type, $msg = '')
   $ty     = strtoupper($type);
   $data   = "{$dt} [{$ty}]: {$tx}\r\n";
   fwrite($hFile, $data);
-  setLastError($data);
   return fclose($hFile);
 }
 

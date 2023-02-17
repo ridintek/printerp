@@ -4674,38 +4674,19 @@ class Site extends MY_Model
 
   public function getMachineByID($id)
   {
-    return DB::table('products')->select("products.id AS id, products.code AS code, products.name AS name,
-      warehouses.id AS warehouse_id,
-      JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_qty')) AS maintenance_qty,
-      JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_cost')) AS maintenance_cost")
+    return DB::table('products')
+      ->select("products.id AS id, products.code AS code, products.name AS name,
+        warehouses.id AS warehouse_id,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_qty')) AS maintenance_qty,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_cost')) AS maintenance_cost")
       ->join('categories', 'categories.id = products.subcategory_id', 'left')
       ->join('warehouses', 'warehouses.name LIKE products.warehouses', 'left')
       ->where('products.id', $id)
       ->like('categories.code', 'MACFIN', 'none')
       ->orLike('categories.code', 'MACMER', 'none')
       ->orLike('categories.code', 'MACOUTIN', 'none')
-      ->orLike('categories.code', 'MACPOD', 'none');
-
-    // $this->db
-    //   ->select("products.id AS id, products.code AS code, products.name AS name,
-    //     warehouses.id AS warehouse_id,
-    //     JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_qty')) AS maintenance_qty,
-    //     JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_cost')) AS maintenance_cost")
-    //   ->join('categories', 'categories.id = products.subcategory_id', 'left')
-    //   ->join('warehouses', 'warehouses.name LIKE products.warehouses', 'left')
-    //   ->like('categories.code', 'MACFIN', 'none')
-    //   ->or_like('categories.code', 'MACMER', 'none')
-    //   ->or_like('categories.code', 'MACOUTIN', 'none')
-    //   ->or_like('categories.code', 'MACPOD', 'none');
-
-    // $this->db->where('products.id', $id);
-
-    // $q = $this->db->get('products');
-
-    // if ($q->num_rows() > 0) {
-    //   return $q->row();
-    // }
-    // return NULL;
+      ->orLike('categories.code', 'MACPOD', 'none')
+      ->getRow();
   }
 
   public function getMachineCategoryByCode($code)
@@ -8815,51 +8796,52 @@ class Site extends MY_Model
    * @param array $data []
    * @param array $items []
    */
-  public function updateSale($sale_id, $data, $items = [])
+  public function updateSale($id, $data, $items = [])
   {
     if (!empty($data)) {
-      $sale_data = [];
+      $saleData = [];
 
-      $sale = $this->getSaleByID($sale_id);
+      $sale = $this->getSaleByID($id);
 
       if ($sale) {
-        if (!empty($data['date']))          $sale_data['date']            = $data['date'];
-        if (isset($data['reference']))      $sale_data['reference']       = $data['reference'];
-        if (isset($data['no_po']))          $sale_data['no_po']           = $data['no_po'];
-        if (isset($data['note']))           $sale_data['note']            = $data['note'];
-        if (isset($data['discount']))       $sale_data['discount']        = $data['discount'];
-        if (isset($data['shipping']))       $sale_data['shipping']        = $data['shipping'];
-        if (isset($data['total']))          $sale_data['total']           = $data['total'];
-        if (isset($data['grand_total']))    $sale_data['grand_total']     = $data['grand_total'];
-        if (isset($data['balance']))        $sale_data['balance']         = $data['balance'];
-        if (isset($data['status']))         $sale_data['status']          = $data['status'];
-        if (isset($data['payment_status'])) $sale_data['payment_status']  = $data['payment_status'];
-        if (isset($data['due_date']))       $sale_data['due_date']        = $data['due_date'];
+        if (!empty($data['date']))          $saleData['date']            = $data['date'];
+        if (isset($data['reference']))      $saleData['reference']       = $data['reference'];
+        if (isset($data['no_po']))          $saleData['no_po']           = $data['no_po'];
+        if (isset($data['note']))           $saleData['note']            = $data['note'];
+        if (isset($data['discount']))       $saleData['discount']        = $data['discount'];
+        if (isset($data['shipping']))       $saleData['shipping']        = $data['shipping'];
+        if (isset($data['tax']))            $saleData['tax']             = $data['tax'];
+        if (isset($data['total']))          $saleData['total']           = $data['total'];
+        if (isset($data['grand_total']))    $saleData['grand_total']     = $data['grand_total'];
+        if (isset($data['balance']))        $saleData['balance']         = $data['balance'];
+        if (isset($data['status']))         $saleData['status']          = $data['status'];
+        if (isset($data['payment_status'])) $saleData['payment_status']  = $data['payment_status'];
+        if (isset($data['due_date']))       $saleData['due_date']        = $data['due_date'];
 
-        if (isset($data['created_by']))     $sale_data['created_by']      = $data['created_by'];
-        if (isset($data['paid']))           $sale_data['paid']            = $data['paid'];
-        if (isset($data['attachment_id']))  $sale_data['attachment_id']   = $data['attachment_id'];
-        if (isset($data['payment_method'])) $sale_data['payment_method']  = $data['payment_method'];
+        if (isset($data['created_by']))     $saleData['created_by']      = $data['created_by'];
+        if (isset($data['paid']))           $saleData['paid']            = $data['paid'];
+        if (isset($data['attachment_id']))  $saleData['attachment_id']   = $data['attachment_id'];
+        if (isset($data['payment_method'])) $saleData['payment_method']  = $data['payment_method'];
 
-        if (!empty($data['updated_by'])) $sale_data['updated_by'] = $data['updated_by'];
-        if (!empty($data['updated_at'])) $sale_data['updated_at'] = $data['updated_at'];
+        if (!empty($data['updated_by'])) $saleData['updated_by'] = $data['updated_by'];
+        if (!empty($data['updated_at'])) $saleData['updated_at'] = $data['updated_at'];
 
         if (!empty($data['customer_id'])) {
           $customer = $this->getCustomerByID($data['customer_id']);
-          $sale_data['customer_id'] = $customer->id;
-          $sale_data['customer']    = $customer->phone;
+          $saleData['customer_id'] = $customer->id;
+          $saleData['customer']    = $customer->phone;
         }
 
         if (!empty($data['biller_id'])) {
           $biller = $this->getBillerByID($data['biller_id']);
-          $sale_data['biller_id'] = $biller->id;
-          $sale_data['biller']    = $biller->code;
+          $saleData['biller_id'] = $biller->id;
+          $saleData['biller']    = $biller->code;
         }
 
         if (!empty($data['warehouse_id'])) {
           $warehouse = $this->getWarehouseByID($data['warehouse_id']);
-          $sale_data['warehouse_id'] = $warehouse->id;
-          $sale_data['warehouse']    = $warehouse->code;
+          $saleData['warehouse_id'] = $warehouse->id;
+          $saleData['warehouse']    = $warehouse->code;
         }
 
         // Sale JSON
@@ -8872,21 +8854,22 @@ class Site extends MY_Model
         if (!empty($data['payment_due_date']))        $saleJS->payment_due_date        = $data['payment_due_date'];
         if (!empty($data['waiting_production_date'])) $saleJS->waiting_production_date = $data['waiting_production_date'];
 
-        $sale_data['json']      = json_encode($saleJS);
-        $sale_data['json_data'] = json_encode($saleJS);
+        $saleData['json']      = json_encode($saleJS);
+        $saleData['json_data'] = json_encode($saleJS);
 
         $this->db->trans_start();
-        $this->db->update('sales', $sale_data, ['id' => $sale_id]); // ORIGINAL UPDATE SALE #1.
+        $this->db->update('sales', $saleData, ['id' => $id]); // ORIGINAL UPDATE SALE #1.
         $this->db->trans_complete();
 
         if ($this->db->trans_status() !== FALSE) {
-          addEvent("Updated Sale [{$sale_id}: {$sale->reference}]", 'warning');
+          addEvent("Updated Sale [{$id}: {$sale->reference}]", 'warning');
 
           if ($items) { // Executed if items is present. Optional.
-            $sale_items = [];
-            $discount = filterDecimal($data['discount'] ?? 0);
-            $total_price = 0;
-            $total_qty = 0;
+            $saleItems    = [];
+            $discount     = filterDecimal($data['discount'] ?? 0);
+            $$totalPrice  = 0;
+            $totalQty     = 0;
+            $sale         = Sale::getRow(['id' => $id]);
 
             foreach ($items as $item) {
               if (isset($data['warehouse_id'])) {
@@ -8894,31 +8877,33 @@ class Site extends MY_Model
               }
 
               $item['date'] = $sale->date;
-              $item_w    = filterQuantity($item['width']  ?? 0);
-              $item_l    = filterQuantity($item['length'] ?? 0);
-              $item_area = ($item_w * $item_l);
-              $price     = filterDecimal($item['price']);
-              $quantity  = filterQuantity($item['quantity']);
+              $item_w       = filterQuantity($item['width']  ?? 0);
+              $item_l       = filterQuantity($item['length'] ?? 0);
+              $item_area    = ($item_w * $item_l);
+              $price        = filterDecimal($item['price']);
+              $quantity     = filterQuantity($item['quantity']);
 
               $qty = ($item_area > 0 ? $item_area * $quantity : $quantity);
 
-              $total_price  += round($price * $qty);
-              $total_qty    += $qty;
-              $sale_items[]  = $item;
+              $totalPrice  += round($price * $qty);
+              $totalQty    += $qty;
+              $saleItems[]  = $item;
 
               $_item = $this->getProductByID($item['product_id']);
               addEvent("Updated Sale Item [{$_item->name}], W:{$item_w}, L:{$item_l}, " .
                 "Price:{$price}, Qty:{$quantity}", 'warning');
             }
 
-            if ($sale_items) $this->updateSaleItems($sale_id, $sale_items);
+            if ($saleItems) $this->updateSaleItems($sale_id, $saleItems);
+
+            $grandTotal = ($totalPrice * 0.01 * $sale->tax) + $totalPrice - $discount;
 
             $this->db->update(
               'sales',
               [
-                'total' => roundDecimal($total_price),
-                'grand_total' => roundDecimal($total_price - $discount),
-                'total_items' => $total_qty
+                'total'       => roundDecimal($totalPrice),
+                'grand_total' => roundDecimal($grandTotal),
+                'total_items' => $totalQty
               ],
               ['id' => $sale_id]
             ); // ORIGINAL UPDATE SALE #2.

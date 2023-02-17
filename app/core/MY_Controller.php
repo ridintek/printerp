@@ -84,6 +84,9 @@ class MY_Controller extends CI_Controller
       die('Error: ' . getLastError());
     }
 
+    // Reset last Error.
+    setLastError();
+
     $this->SettingsJSON = $this->site->getSettingsJSON();
 
     if (!is_cli()) {

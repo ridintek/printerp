@@ -14,15 +14,15 @@ class Sale
     $data = setCreatedBy($data);
 
     $biller = Biller::getRow(['id' => $data['biller_id']]);
-    if (!$biller) return FALSE;
+    if (!$biller) return false;
 
     $customer = Customer::getRow(['id' => $data['customer_id']]);
-    if (!$customer) return FALSE;
+    if (!$customer) return false;
 
     $isSpecialCustomer = isSpecialCustomer($customer->id);
 
     $warehouse = Warehouse::getRow(['id' => $data['warehouse_id']]);
-    if (!$warehouse) return FALSE;
+    if (!$warehouse) return false;
 
     $grandTotal  = 0;
     $totalPrice  = 0;
@@ -42,8 +42,11 @@ class Sale
       $total_items += $qty;
     }
 
+    // Tax
+    $tax = (isset($data['tax']) ? floatval($data['tax']) * 0.01 * $totalPrice : 0);
+
     // Discount.
-    $grandTotal = ($totalPrice - ($data['discount'] ?? 0));
+    $grandTotal = ($totalPrice + $tax - ($data['discount'] ?? 0));
 
     // Get balance.
     $balance = ($isSpecialCustomer ? $grandTotal : 0);
@@ -169,7 +172,7 @@ class Sale
 
     DB::rollbackTransaction();
 
-    return FALSE;
+    return false;
   }
 
   public static function addPayment(array $data)
@@ -178,7 +181,7 @@ class Sale
     $sale    = self::getRow(['id' => $data['sale_id']]);
     $saleJS  = getJSON($sale->json_data);
     $balance = floatval($sale->grand_total) - floatval($sale->paid);
-    if (floatval($data['amount']) > floatval($balance)) return FALSE;
+    if (floatval($data['amount']) > floatval($balance)) return false;
 
     $data['created_at']     = ($data['created_at'] ?? $data['date'] ?? date('Y-m-d H:i:s'));
     $data['reference_date'] = $sale->created_at;
@@ -223,9 +226,9 @@ class Sale
 
       self::update((int)$sale->id, $saleData);
       self::sync(['sale_id' => $sale->id]); // Update status.
-      return TRUE;
+      return true;
     }
-    return FALSE;
+    return false;
   }
 
   /**
@@ -297,8 +300,8 @@ class Sale
         if ($stock->status !== 'sent') continue; // Sent only.
 
         // It's safe to use product code. Because case-sensitive.
-        // array_search('POCT15', ['POCT15A', 'LSPOCT15']) => return FALSE.
-        if (array_search($stock->product_code, array_column($items, 'product_code')) === FALSE) {
+        // array_search('POCT15', ['POCT15A', 'LSPOCT15']) => return false.
+        if (array_search($stock->product_code, array_column($items, 'product_code')) === false) {
           $items[] = $stock;
         }
       }
@@ -323,7 +326,7 @@ class Sale
         }
       } else {
         setLastError("Sale::sync() Unknown data type '" . gettype($clause['sale_id']) . "'");
-        return FALSE;
+        return false;
       }
     } else if (!empty($clause['id'])) {
       $saleType = gettype($clause['id']);
@@ -336,7 +339,7 @@ class Sale
         }
       } else {
         setLastError("Sale::sync() Unknown data type '" . gettype($clause['id']) . "'");
-        return FALSE;
+        return false;
       }
     } else { // Default if sale_id is NULL.
       $sales = Sale::get();
@@ -344,7 +347,7 @@ class Sale
 
     if (empty($sales)) {
       setLastError('Sale::sync() Why sales is empty?');
-      return FALSE;
+      return false;
     }
 
     foreach ($sales as $sale) {
@@ -377,8 +380,8 @@ class Sale
       $completedItems = 0;
       $deliveredItems = 0;
       $finishedItems  = 0;
-      $grandTotal     = 0;
-      $hasPartial     = FALSE;
+      $total     = 0;
+      $hasPartial     = false;
       $totalSaleItems = 0;
       $saleStatus     = $sale->status;
 
@@ -386,9 +389,9 @@ class Sale
         $saleItemJS = getJSON($saleItem->json_data);
         $saleItemStatus = $saleItemJS->status;
         $totalSaleItems++;
-        $grandTotal += round($saleItem->price * $saleItem->quantity);
-        $isItemFinished = ($saleItem->quantity == $saleItem->finished_qty ? TRUE : FALSE);
-        $isItemFinishedPartial = ($saleItem->finished_qty > 0 && $saleItem->quantity > $saleItem->finished_qty ? TRUE : FALSE);
+        $total += round($saleItem->price * $saleItem->quantity);
+        $isItemFinished = ($saleItem->quantity == $saleItem->finished_qty ? true : false);
+        $isItemFinishedPartial = ($saleItem->finished_qty > 0 && $saleItem->quantity > $saleItem->finished_qty ? true : false);
 
         if ($saleItemStatus == 'delivered') {
           $completedItems++;
@@ -400,7 +403,7 @@ class Sale
           $completedItems++;
           $saleItemStatus = 'completed';
         } else if ($isItemFinishedPartial) {
-          $hasPartial = TRUE;
+          $hasPartial = true;
           $saleItemStatus = 'completed_partial';
         } else if ($isSpecialCustomer || $payments) {
           if ($isW2PUser) {
@@ -420,18 +423,20 @@ class Sale
         ]);
       }
 
-      if ($sale->discount > $grandTotal) {
-        $sale->discount = $grandTotal;
+      if ($sale->discount > $total) {
+        $sale->discount = $total;
       }
 
-      $grandTotal = round($grandTotal - $sale->discount);
+      $tax        = ($sale->tax * 0.01 * $total);
+      $grandTotal = round($total + $tax - $sale->discount);
 
-      $saleData['grand_total'] = $grandTotal;
+      $saleData['total']        = $total;
+      $saleData['grand_total']  = $grandTotal;
 
-      $isSaleCompleted        = ($completedItems == $totalSaleItems ? TRUE : FALSE);
-      $isSaleCompletedPartial = (($completedItems > 0 && $completedItems < $totalSaleItems) || $hasPartial ? TRUE : FALSE);
-      $isSaleDelivered        = ($deliveredItems == $totalSaleItems ? TRUE : FALSE);
-      $isSaleFinished         = ($finishedItems == $totalSaleItems ? TRUE : FALSE);
+      $isSaleCompleted        = ($completedItems == $totalSaleItems ? true : false);
+      $isSaleCompletedPartial = (($completedItems > 0 && $completedItems < $totalSaleItems) || $hasPartial ? true : false);
+      $isSaleDelivered        = ($deliveredItems == $totalSaleItems ? true : false);
+      $isSaleFinished         = ($finishedItems == $totalSaleItems ? true : false);
 
       if ($isSaleCompleted) {
         if ($isSaleDelivered) {
@@ -457,8 +462,8 @@ class Sale
         $saleStatus = 'need_payment';
       }
 
-      $isPaid        = FALSE;
-      $isPaidPartial = FALSE;
+      $isPaid        = false;
+      $isPaidPartial = false;
       $totalPaid     = 0;
       $balance       = 0;
       $paymentStatus = $sale->payment_status;
@@ -470,8 +475,8 @@ class Sale
 
         $balance = ($grandTotal - $totalPaid);
 
-        $isPaid        = ($balance == 0 ? TRUE : FALSE);
-        $isPaidPartial = ($balance > 0  ? TRUE : FALSE);
+        $isPaid        = ($balance == 0 ? true : false);
+        $isPaidPartial = ($balance > 0  ? true : false);
 
         if ($isPaid) {
           $paymentStatus = 'paid';
@@ -487,8 +492,8 @@ class Sale
       }
 
       if ($paymentValidation) { // If any transfer.
-        $isPVPending  = ($paymentValidation->status == 'pending'  ? TRUE : FALSE);
-        $isPVExpired  = ($paymentValidation->status == 'expired'  ? TRUE : FALSE);
+        $isPVPending  = ($paymentValidation->status == 'pending'  ? true : false);
+        $isPVExpired  = ($paymentValidation->status == 'expired'  ? true : false);
 
         if ($isPaid) {
           $paymentStatus = 'paid';
@@ -537,6 +542,7 @@ class Sale
       if (isset($data['note']))           $saleData['note']           = $data['note'];
       if (isset($data['discount']))       $saleData['discount']       = $data['discount'];
       if (isset($data['shipping']))       $saleData['shipping']       = $data['shipping'];
+      if (isset($data['tax']))            $saleData['tax']            = $data['tax'];
       if (isset($data['total']))          $saleData['total']          = $data['total'];
       if (isset($data['grand_total']))    $saleData['grand_total']    = $data['grand_total'];
       if (isset($data['balance']))        $saleData['balance']        = $data['balance'];
@@ -573,6 +579,29 @@ class Sale
         $saleData['warehouse']    = $warehouse->name;
       }
 
+      $totalPrice = 0;
+      $totalItems = 0;
+
+      if ($items) {
+        for ($a = 0; $a < count($items); $a++) {
+          $price    = filterDecimal($items[$a]['price']);
+          $quantity = filterQuantity($items[$a]['quantity']);
+          $width    = filterQuantity($items[$a]['width'] ?? 0);
+          $length   = filterQuantity($items[$a]['length'] ?? 0);
+          $area     = ($width * $length);
+    
+          $qty         = ($area > 0 ? $area * $quantity : $quantity);
+          $totalPrice += round($price * $qty);
+          $totalItems += $qty;
+        }
+
+        $tax      = ($sale->tax * 0.01 * $totalPrice);
+        $discount = ($data['discount'] ?? $sale->discount);
+
+        $saleData['total'] = $totalPrice;
+        $saleData['grand_total'] = ($totalPrice + $tax - $discount);
+      }
+
       // Sale JSON
       $saleJS = getJSON($sale->json_data);
 
@@ -591,54 +620,62 @@ class Sale
       if (DB::affectedRows()) {
         addEvent("Updated Sale [{$id}: {$sale->reference}]", 'warning');
 
-        if ($items) { // Executed if items is present. Optional.
-          $saleItems = [];
-          $discount = filterDecimal($data['discount'] ?? 0);
-          $total_price = 0;
-          $total_qty = 0;
+        // Update sale items.
+        if ($items) {
+          SaleItem::delete(['sale_id' => $id]);
 
           foreach ($items as $item) {
-            if (isset($data['warehouse_id'])) {
-              $item['warehouse_id'] = $data['warehouse_id'];
+            $product = Product::getRow(['id' => $item['product_id']]);
+
+            if (!empty($item['width']) && !empty($item['length'])) {
+              $area = filterDecimal($item['width']) * filterDecimal($item['length']);
+              $quantity = ($area * filterDecimal($item['quantity']));
+            } else {
+              $area           = 0;
+              $quantity       = $item['quantity'];
+              $item['width']  = 0;
+              $item['length'] = 0;
             }
 
-            $item['sale_id']  = $id;
-            $item['date']     = $sale->date;
-            $item_w           = filterQuantity($item['width']  ?? 0);
-            $item_l           = filterQuantity($item['length'] ?? 0);
-            $item_area        = ($item_w * $item_l);
-            $price            = filterDecimal($item['price']);
-            $quantity         = filterQuantity($item['quantity']);
-
-            $qty = ($item_area > 0 ? $item_area * $quantity : $quantity);
-
-            $total_price  += round($price * $qty);
-            $total_qty    += $qty;
-            $saleItems[]  = $item;
-
-            $_item = Product::getRow(['id' => $item['product_id']]);
-            addEvent("Updated Sale Item [{$_item->name}], W:{$item_w}, L:{$item_l}, " .
-              "Price:{$price}, Qty:{$quantity}", 'warning');
+            SaleItem::add([
+              'sale'          => $sale->reference,
+              'sale_id'       => $sale->id,
+              'product'       => $product->code,
+              'product_id'    => $product->id,
+              'product_code'  => $product->code,
+              'product_name'  => $product->name,
+              'product_type'  => $product->type,
+              'price'         => $item['price'],
+              'quantity'      => $quantity,
+              'subtotal'      => ($item['price'] * $quantity),
+              'json'          => json_encode([
+                'w'             => $item['width'],
+                'l'             => $item['length'],
+                'area'          => $area,
+                'sqty'          => $item['quantity'],
+                'spec'          => ($item['spec'] ?? ''),
+                'status'        => $data['status'],
+                'operator_id'   => ($item['operator_id'] ?? ''),
+                'due_date'      => ($item['due_date'] ?? ''),
+                'completed_at'  => ($item['completed_at'] ?? '')
+              ]),
+              'json_data'     => json_encode([
+                'w'             => $item['width'],
+                'l'             => $item['length'],
+                'area'          => $area,
+                'sqty'          => $item['quantity'],
+                'spec'          => ($item['spec'] ?? ''),
+                'status'        => $data['status'],
+                'operator_id'   => ($item['operator_id'] ?? ''),
+                'due_date'      => ($item['due_date'] ?? ''),
+                'completed_at'  => ($item['completed_at'] ?? '')
+              ])
+            ]);
           }
-
-          // Update sale items.
-          if ($saleItems) {
-            SaleItem::delete(['sale_id' => $id]);
-
-            foreach ($saleItems as $saleItem) {
-              SaleItem::add($saleItem);
-            }
-          }
-
-          self::update((int)$id, [
-            'total' => roundDecimal($total_price),
-            'grand_total' => roundDecimal($total_price - $discount),
-            'total_items' => $total_qty
-          ]);
         }
-        return TRUE;
+        return true;
       }
     }
-    return FALSE;
+    return false;
   }
 }

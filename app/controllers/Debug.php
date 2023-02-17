@@ -16,6 +16,24 @@ class Debug extends MY_Controller
     echo "Index";
   }
 
+  public function dbtrans()
+  {
+    DB::transStart();
+
+    DB::table('test1')->insert(['name' => 'HAMNAH']);
+    DB::table('test2')->insert(['namex' => 'DONO']);
+
+    $err = DB::error();
+
+    DB::transComplete();
+
+    if (DB::transStatus()) {
+      echo "Success";
+    } else {
+      echo "Error: " . print_r($err['message'], true);
+    }
+  }
+
   public function writesheet()
   {
     $res = setGoogleSheet('1arv83XA2ySRAos6aFvhqLWIm804CjgUyChj7DsxaBj0_', 'B1414', [['CODE1', 'NAME1'], ['CODE2', 'NAME2']]);
@@ -74,10 +92,11 @@ class Debug extends MY_Controller
 
   public function log()
   {
-    dbglog('debug', 'WHAT IS YOU?');
+    dbglog('warning', 'WHAT IS YOU?');
     dbglog('error', 'WHAT IS YOU?');
     dbglog('success', 'WHAT IS YOU?');
     dbglog('info', 'WHAT IS YOU?');
+    log_message('error', 'GO FUCK YOURSELF');
   }
 
   public function null_safe()
