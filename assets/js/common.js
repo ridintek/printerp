@@ -1191,6 +1191,15 @@ function renderNumber(qty) {
 }
 
 /**
+ * Rendering payment status as label. See ridintek_helper.php:renderStatus().
+ * @param {string} status Status name
+ */
+function renderPaymentStatus(status)
+{
+  return payment_status(status);
+}
+
+/**
  * Rendering status as label. See ridintek_helper.php:renderStatus().
  * @param {string} status Status name
  */
