@@ -79,7 +79,7 @@ if ($endDate = getGET('end_date')) {
   <div class="box-header">
     <h2 class="blue">
       <i class="fa-fw fad fa-send"></i><?= $page_title ?>
-      <?= (getPOST('start_date') ? '(' . getPOST('start_date') . ')' : '') . (getPOST('end_date') ? ' to (' . getPOST('end_date') . ')' : ''); ?>
+      <?= (getPost('start_date') ? '(' . getPost('start_date') . ')' : '') . (getPost('end_date') ? ' to (' . getPost('end_date') . ')' : ''); ?>
     </h2>
 
     <div class="box-icon">

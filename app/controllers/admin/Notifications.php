@@ -25,7 +25,7 @@ class Notifications extends MY_Controller
   {
     $this->form_validation->set_rules('confirm', lang('confirm'), 'required');
 
-    $confirmed = (getPOST('confirm') == 1 ? TRUE : FALSE);
+    $confirmed = (getPost('confirm') == 1 ? TRUE : FALSE);
 
     if ($this->form_validation->run() == TRUE && $confirmed) {
       if ($this->site->notificationActivate($id)) {
@@ -33,7 +33,7 @@ class Notifications extends MY_Controller
       } else {
         sendJSON(['error' => 1, 'msg' => lang('bank_activate_failed')]);
       }
-    } else if (getPOST('activate')) {
+    } else if (getPost('activate')) {
       sendJSON(['error' => 1, 'msg' => validation_errors()]);
     }
 
@@ -46,7 +46,7 @@ class Notifications extends MY_Controller
   {
     $this->form_validation->set_rules('confirm', lang('confirm'), 'required');
 
-    $confirmed = (getPOST('confirm') == 1 ? TRUE : FALSE);
+    $confirmed = (getPost('confirm') == 1 ? TRUE : FALSE);
 
     if ($this->form_validation->run() == TRUE && $confirmed) {
       if ($this->site->notificationDeactivate($id)) {
@@ -54,7 +54,7 @@ class Notifications extends MY_Controller
       } else {
         sendJSON(['error' => 1, 'msg' => lang('bank_deactivate_failed')]);
       }
-    } else if (getPOST('activate')) {
+    } else if (getPost('activate')) {
       sendJSON(['error' => 1, 'msg' => validation_errors()]);
     }
 
@@ -74,13 +74,13 @@ class Notifications extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'comment'   => getPOST('comment'),
-        'from_date' => getPOST('from_date') ? $this->sma->fld(getPOST('from_date')) : null,
-        'till_date' => getPOST('to_date') ? $this->sma->fld(getPOST('to_date')) : null,
-        'scope'     => getPOST('scope'),
-        'type'      => getPOST('type')
+        'comment'   => getPost('comment'),
+        'from_date' => getPost('from_date') ? $this->sma->fld(getPost('from_date')) : null,
+        'till_date' => getPost('to_date') ? $this->sma->fld(getPost('to_date')) : null,
+        'scope'     => getPost('scope'),
+        'type'      => getPost('type')
       ];
-    } elseif (getPOST('submit')) {
+    } elseif (getPost('submit')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('notifications');
     }
@@ -122,8 +122,8 @@ class Notifications extends MY_Controller
       redirect($_SERVER['HTTP_REFERER']);
     }
 
-    if (getPOST('id')) {
-      $id = getPOST('id');
+    if (getPost('id')) {
+      $id = getPost('id');
     }
 
     $this->form_validation->set_rules('comment', lang('notifications'), 'required|min_length[3]');
@@ -131,13 +131,13 @@ class Notifications extends MY_Controller
     if ($this->form_validation->run() == true) {
       $data = [
         'date'      => date('Y-m-d H:i:s'),
-        'comment'   => getPOST('comment'),
-        'from_date' => getPOST('from_date') ? $this->sma->fld(getPOST('from_date')) : null,
-        'till_date' => getPOST('to_date') ? $this->sma->fld(getPOST('to_date')) : null,
-        'scope'     => getPOST('scope'),
-        'type'      => getPOST('type')
+        'comment'   => getPost('comment'),
+        'from_date' => getPost('from_date') ? $this->sma->fld(getPost('from_date')) : null,
+        'till_date' => getPost('to_date') ? $this->sma->fld(getPost('to_date')) : null,
+        'scope'     => getPost('scope'),
+        'type'      => getPost('type')
       ];
-    } elseif (getPOST('submit')) {
+    } elseif (getPost('submit')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('notifications');
     }

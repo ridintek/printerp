@@ -89,7 +89,7 @@ if ($endDate = getGET('end_date')) {
       }
       ?>
       <i class="fa-fw fad fa-cogs"></i><?= $page_title . ' (' . $whs . ')'; ?>
-      <?= (getPOST('start_date') ? '(' . getPOST('start_date') . ')' : '') . (getPOST('end_date') ? ' to (' . getPOST('end_date') . ')' : ''); ?>
+      <?= (getPost('start_date') ? '(' . getPost('start_date') . ')' : '') . (getPost('end_date') ? ' to (' . getPost('end_date') . ')' : ''); ?>
     </h2>
 
     <div class="box-icon">

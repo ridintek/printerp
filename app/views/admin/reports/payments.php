@@ -124,16 +124,16 @@ if ($endRefDate = getGET('end_ref_date')) {
 </script>
 <script type="text/javascript">
   $(document).ready(function() {
-    <?php if (getPOST('biller')) {
+    <?php if (getPost('biller')) {
     ?>
       $('#rbiller').select2({
         allowClear: true
       });
     <?php
     } ?>
-    <?php if (getPOST('supplier')) {
+    <?php if (getPost('supplier')) {
     ?>
-      $('#rsupplier').val(<?= getPOST('supplier') ?>).select2({
+      $('#rsupplier').val(<?= getPost('supplier') ?>).select2({
         minimumInputLength: 1,
         allowClear: true,
         initSelection: function(element, callback) {
@@ -173,12 +173,12 @@ if ($endRefDate = getGET('end_ref_date')) {
           }
         }
       });
-      $('#rsupplier').val(<?= getPOST('supplier') ?>);
+      $('#rsupplier').val(<?= getPost('supplier') ?>);
     <?php
     } ?>
-    <?php if (getPOST('customer')) {
+    <?php if (getPost('customer')) {
     ?>
-      $('#rcustomer').val(<?= getPOST('customer') ?>).select2({
+      $('#rcustomer').val(<?= getPost('customer') ?>).select2({
         minimumInputLength: 1,
         allowClear: true,
         initSelection: function(element, callback) {
@@ -227,8 +227,8 @@ if ($endRefDate = getGET('end_ref_date')) {
   <div class="box-header">
     <h2 class="blue"><i class="fa-fw fa fa-money-bill"></i><?= lang('payments_report'); ?>
       <?php
-      if (getPOST('start_date')) {
-        echo 'From ' . getPOST('start_date') . ' to ' . getPOST('end_date');
+      if (getPost('start_date')) {
+        echo 'From ' . getPost('start_date') . ' to ' . getPost('end_date');
       } ?>
     </h2>
 

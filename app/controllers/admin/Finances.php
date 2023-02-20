@@ -73,9 +73,9 @@ class Finances extends MY_Controller
 
   private function banks_actions()
   {
-    $action = getPOST('form_action');
+    $action = getPost('form_action');
     $error  = FALSE;
-    $vals   = getPOST('val');
+    $vals   = getPost('val');
     if ($action == 'activate') {
       if ($vals) {
         foreach ($vals as $val) {
@@ -114,7 +114,7 @@ class Finances extends MY_Controller
   {
     $this->form_validation->set_rules('confirm', lang('confirm'), 'required');
 
-    $confirmed = (getPOST('confirm') == 1 ? TRUE : FALSE);
+    $confirmed = (getPost('confirm') == 1 ? TRUE : FALSE);
 
     if ($this->form_validation->run() == TRUE && $confirmed) {
       if ($this->site->bankActivate($bank_id)) {
@@ -122,7 +122,7 @@ class Finances extends MY_Controller
       } else {
         sendJSON(['error' => 1, 'msg' => lang('bank_activate_failed')]);
       }
-    } else if (getPOST('activate')) {
+    } else if (getPost('activate')) {
       sendJSON(['error' => 1, 'msg' => lang('bank_activate_failed')]);
     }
 
@@ -143,13 +143,13 @@ class Finances extends MY_Controller
     $this->form_validation->set_rules('type', lang('type'), 'required');
     if ($this->form_validation->run() == TRUE) {
       $data = [
-        'code'      => getPOST('code'),
-        'biller_id' => getPOST('biller_id'),
-        'name'      => getPOST('name'),
-        'holder'    => getPOST('holder'),
-        'number'    => getPOST('number'),
-        'type'      => getPOST('type'),
-        'bic'       => getPOST('bic'),
+        'code'      => getPost('code'),
+        'biller_id' => getPost('biller_id'),
+        'name'      => getPost('name'),
+        'holder'    => getPost('holder'),
+        'number'    => getPost('number'),
+        'type'      => getPost('type'),
+        'bic'       => getPost('bic'),
         'active'    => 1
       ];
       if ($this->site->addBank($data)) {
@@ -159,7 +159,7 @@ class Finances extends MY_Controller
         $this->session->set_flashdata('error', lang('bank_add_failed'));
         admin_redirect('finances/banks');
       }
-    } else if (getPOST('add_bank_account')) {
+    } else if (getPost('add_bank_account')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('finances/banks');
     }
@@ -171,7 +171,7 @@ class Finances extends MY_Controller
   {
     $this->form_validation->set_rules('confirm', lang('confirm'), 'required');
 
-    $confirmed = (getPOST('confirm') == 1 ? TRUE : FALSE);
+    $confirmed = (getPost('confirm') == 1 ? TRUE : FALSE);
 
     if ($this->form_validation->run() == TRUE && $confirmed) {
       if ($this->site->bankDeactivate($bank_id)) {
@@ -179,7 +179,7 @@ class Finances extends MY_Controller
       } else {
         sendJSON(['error' => 1, 'msg' => lang('bank_deactivate_failed')]);
       }
-    } else if (getPOST('deactivate')) {
+    } else if (getPost('deactivate')) {
       sendJSON(['error' => 1, 'msg' => lang('bank_deactivate_failed')]);
     }
 
@@ -223,13 +223,13 @@ class Finances extends MY_Controller
     $this->form_validation->set_rules('type', lang('type'), 'required');
     if ($this->form_validation->run() == TRUE) {
       $data = [
-        'code'      => getPOST('code'),
-        'biller_id' => getPOST('biller_id'),
-        'name'      => getPOST('name'),
-        'number'    => getPOST('number'),
-        'holder'    => getPOST('holder'),
-        'type'      => getPOST('type'),
-        'bic'       => getPOST('bic')
+        'code'      => getPost('code'),
+        'biller_id' => getPost('biller_id'),
+        'name'      => getPost('name'),
+        'number'    => getPost('number'),
+        'holder'    => getPost('holder'),
+        'type'      => getPost('type'),
+        'bic'       => getPost('bic')
       ];
       if ($this->site->updateBank($id, $data)) {
         $this->session->set_flashdata('message', lang('bank_edited'));
@@ -403,7 +403,7 @@ class Finances extends MY_Controller
       if (isset($_FILES['csv_file'])) {
         checkPath($this->upload_banks_path);
 
-        $date = (getPOST('date') ?? date('Y-m-d H:i:s'));
+        $date = (getPost('date') ?? date('Y-m-d H:i:s'));
         $this->load->library('upload');
         $config['upload_path']   = $this->upload_banks_path;
         $config['allowed_types'] = $this->upload_csv_type;
@@ -493,7 +493,7 @@ class Finances extends MY_Controller
 
   private function banks_syncBankAmount()
   {
-    $vals = getPOST('val');
+    $vals = getPost('val');
 
     if ($vals) {
       foreach ($vals as $val) {
@@ -846,19 +846,19 @@ class Finances extends MY_Controller
     $this->form_validation->set_rules('amount', lang('amount'), 'required');
     $this->form_validation->set_rules('userfile', lang('attachment'), 'xss_clean');
     if ($this->form_validation->run() == true) {
-      $date = $this->sma->fld(trim(getPOST('date')));
+      $date = $this->sma->fld(trim(getPost('date')));
       $data = [
         'date'            => $date,
         'reference'       => $this->site->getReference('expense'),
-        'amount'          => roundDecimal(getPOST('amount')),
+        'amount'          => roundDecimal(getPost('amount')),
         'created_by'      => XSession::get('user_id'),
-        'note'            => getPOST('note', TRUE),
-        'category_id'     => getPOST('category', TRUE),
-        'biller_id'       => getPOST('biller', TRUE),
-        'bank_id'         => getPOST('paid_by', TRUE),
+        'note'            => getPost('note', TRUE),
+        'category_id'     => getPost('category', TRUE),
+        'biller_id'       => getPost('biller', TRUE),
+        'bank_id'         => getPost('paid_by', TRUE),
         'status'          => 'need_approval',
         'payment_status'  => 'pending',
-        'supplier_id'     => (getPOST('supplier') ?? 0)
+        'supplier_id'     => (getPost('supplier') ?? 0)
       ];
 
       $uploader = new FileUpload();
@@ -871,7 +871,7 @@ class Finances extends MY_Controller
 
         $data['attachment'] = $uploader->storeRandom();
       }
-    } elseif (getPOST('add_expense')) {
+    } elseif (getPost('add_expense')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('finances/expenses');
     }
@@ -899,8 +899,8 @@ class Finances extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'status'      => getPOST('status'),
-        'note'        => getPOST('note'),
+        'status'      => getPost('status'),
+        'note'        => getPost('note'),
         'approved_by' => XSession::get('user_id')
       ];
       if ($data['status'] == 'need_approval') {
@@ -913,7 +913,7 @@ class Finances extends MY_Controller
         $this->session->set_flashdata('error', lang('payment_approval_failed'));
       }
       admin_redirect('finances/expenses');
-    } else if (getPOST('update')) {
+    } else if (getPost('update')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('finances/expenses');
     }
@@ -958,13 +958,13 @@ class Finances extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'date'         => rd_trim(getPOST('date')),
-        'amount'       => round(filterDecimal(getPOST('new_amount'))),
-        'note'         => getPOST('note'),
-        'category_id'  => getPOST('category'),
-        'biller_id'    => getPOST('biller'),
-        'bank_id'      => getPOST('paid_by'),
-        'supplier_id'  => getPOST('supplier')
+        'date'         => rd_trim(getPost('date')),
+        'amount'       => round(filterDecimal(getPost('new_amount'))),
+        'note'         => getPost('note'),
+        'category_id'  => getPost('category'),
+        'biller_id'    => getPost('biller'),
+        'bank_id'      => getPost('paid_by'),
+        'supplier_id'  => getPost('supplier')
       ];
 
       $uploader = new FileUpload();
@@ -1217,14 +1217,14 @@ class Finances extends MY_Controller
     $bank    = $this->site->getBankById($expense->bank_id);
     $bank->balance = $bank->amount;
 
-    if (!$this->form_validation->run() && getPOST('update')) {
+    if (!$this->form_validation->run() && getPost('update')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('finances/expenses');
     }
 
     if ($this->form_validation->run() == true) {
-      $status  = getPOST('status');
-      $note    = getPOST('note');
+      $status  = getPost('status');
+      $note    = getPost('note');
       /* if (floatval($bank->balance) < floatval($expense->amount)) {
         $this->session->set_flashdata('warning', lang('insufficient_funds'));
         admin_redirect('finances/expenses');
@@ -1297,14 +1297,14 @@ class Finances extends MY_Controller
     $this->form_validation->set_rules('userfile', lang('attachment'), 'xss_clean');
 
     if ($this->form_validation->run() == true) {
-      $bank     = Bank::getRow(['id' => getPOST('transfer_to')]);
-      $biller   = Biller::getRow(['id' => getPOST('biller')]);
-      $category = IncomeCategory::getRow(['id' => getPOST('category')]);
+      $bank     = Bank::getRow(['id' => getPost('transfer_to')]);
+      $biller   = Biller::getRow(['id' => getPost('biller')]);
+      $category = IncomeCategory::getRow(['id' => getPost('category')]);
 
       $incomeData = [
-        'date'        => rd_trim(getPOST('date')),
-        'amount'      => round(filterDecimal(getPOST('amount'))),
-        'note'        => getPOST('note'),
+        'date'        => rd_trim(getPost('date')),
+        'amount'      => round(filterDecimal(getPost('amount'))),
+        'note'        => getPost('note'),
         'bank_id'     => $bank->id,
         'bank'        => $bank->code,
         'biller_id'   => $biller->id,
@@ -1323,7 +1323,7 @@ class Finances extends MY_Controller
 
         $incomeData['attachment'] = $uploader->storeRandom();
       }
-    } elseif (getPOST('add_income')) {
+    } elseif (getPost('add_income')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('finances/incomes');
     }
@@ -1372,14 +1372,14 @@ class Finances extends MY_Controller
     $this->form_validation->set_rules('userfile', lang('attachment'), 'xss_clean');
 
     if ($this->form_validation->run() == true) {
-      $bank     = Bank::getRow(['id' => getPOST('transfer_to')]);
-      $biller   = Biller::getRow(['id' => getPOST('biller')]);
-      $category = IncomeCategory::getRow(['id' => getPOST('category')]);
+      $bank     = Bank::getRow(['id' => getPost('transfer_to')]);
+      $biller   = Biller::getRow(['id' => getPost('biller')]);
+      $category = IncomeCategory::getRow(['id' => getPost('category')]);
 
       $incomeData = [
-        'date'        => rd_trim(getPOST('date')),
-        'amount'      => round(filterDecimal(getPOST('amount'))),
-        'note'        => getPOST('note'),
+        'date'        => rd_trim(getPost('date')),
+        'amount'      => round(filterDecimal(getPost('amount'))),
+        'note'        => getPost('note'),
         'bank_id'     => $bank->id,
         'bank'        => $bank->code,
         'biller_id'   => $biller->id,
@@ -1398,7 +1398,7 @@ class Finances extends MY_Controller
 
         $incomeData['attachment'] = $uploader->storeRandom();
       }
-    } elseif (getPOST('edit_income')) {
+    } elseif (getPost('edit_income')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('finances/incomes');
     }
@@ -1514,8 +1514,8 @@ class Finances extends MY_Controller
 
   private function mutations_actions()
   { // mutations
-    $vals = getPOST('val');
-    $action = getPOST('form_action');
+    $vals = getPost('val');
+    $action = getPost('form_action');
     $error = FALSE;
     if ($action == 'delete') { // mutations
       foreach ($vals as $val) {
@@ -1543,24 +1543,24 @@ class Finances extends MY_Controller
     $this->form_validation->set_rules('amount', lang('amount'), 'required');
 
     if ($this->form_validation->run()) {
-      $date = getPOST('date');
+      $date = getPost('date');
       $data = [
         'date'            => $date,
-        'bankfrom'        => Bank::getRow(['id' => getPOST('from_bank_id')])->code,
-        'bankto'          => Bank::getRow(['id' => getPOST('to_bank_id')])->code,
-        'from_bank_id'    => getPOST('from_bank_id'),
-        'from_bank_name'  => Bank::getRow(['id' => getPOST('from_bank_id')])->name,
-        'to_bank_id'      => getPOST('to_bank_id'),
-        'to_bank_name'    => Bank::getRow(['id' => getPOST('to_bank_id')])->name,
-        'note'            => getPOST('note'),
-        'amount'          => round(filterDecimal(getPOST('amount'))),
+        'bankfrom'        => Bank::getRow(['id' => getPost('from_bank_id')])->code,
+        'bankto'          => Bank::getRow(['id' => getPost('to_bank_id')])->code,
+        'from_bank_id'    => getPost('from_bank_id'),
+        'from_bank_name'  => Bank::getRow(['id' => getPost('from_bank_id')])->name,
+        'to_bank_id'      => getPost('to_bank_id'),
+        'to_bank_name'    => Bank::getRow(['id' => getPost('to_bank_id')])->name,
+        'note'            => getPost('note'),
+        'amount'          => round(filterDecimal(getPost('amount'))),
         'created_by'      => XSession::get('user_id'),
-        'paid_by'         => getPOST('paid_by'),
-        'biller'          => Biller::getRow(['id' => getPOST('biller')])->code,
-        'biller_id'       => getPOST('biller')
+        'paid_by'         => getPost('paid_by'),
+        'biller'          => Biller::getRow(['id' => getPost('biller')])->code,
+        'biller_id'       => getPost('biller')
       ];
 
-      $skipPaymentValidation = (getPOST('skip_pv') == 1 ? TRUE : FALSE);
+      $skipPaymentValidation = (getPost('skip_pv') == 1 ? TRUE : FALSE);
       // $bank_from_balance = $this->site->getBankBalanceByID($data['from_bank_id']);
       /*
       if ($bank_from_balance < $data['amount']) {
@@ -1600,7 +1600,7 @@ class Finances extends MY_Controller
         $this->session->set_flashdata('error', lang('bank_mutation_add_fail'));
         admin_redirect('finances/mutations');
       }
-    } elseif (getPOST('add_bank_mutation')) {
+    } elseif (getPost('add_bank_mutation')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('finances/mutations');
     }
@@ -1648,35 +1648,35 @@ class Finances extends MY_Controller
     $mutation = $this->site->getBankMutationById($mutation_id);
 
     if ($this->form_validation->run() == TRUE) {
-      $date = getPOST('date');
+      $date = getPost('date');
 
       // $data = [
       //   'date' => $date,
-      //   'reference'       => getPOST('reference'),
-      //   'from_bank_id'    => getPOST('from_bank_id'),
-      //   'from_bank_name'  => Bank::getRow(['id' => getPOST('from_bank_id')])->name,
-      //   'to_bank_id'      => getPOST('to_bank_id'),
-      //   'to_bank_name'    => Bank::getRow(['id' => getPOST('to_bank_id')])->name,
-      //   'bankfrom'        => Bank::getRow(['id' => getPOST('to_bank_id')])->code,
-      //   'bankto'          => Bank::getRow(['id' => getPOST('to_bank_id')])->code,
-      //   'note'            => getPOST('note'),
-      //   'amount'          => round(filterDecimal(getPOST('new_amount'))),
+      //   'reference'       => getPost('reference'),
+      //   'from_bank_id'    => getPost('from_bank_id'),
+      //   'from_bank_name'  => Bank::getRow(['id' => getPost('from_bank_id')])->name,
+      //   'to_bank_id'      => getPost('to_bank_id'),
+      //   'to_bank_name'    => Bank::getRow(['id' => getPost('to_bank_id')])->name,
+      //   'bankfrom'        => Bank::getRow(['id' => getPost('to_bank_id')])->code,
+      //   'bankto'          => Bank::getRow(['id' => getPost('to_bank_id')])->code,
+      //   'note'            => getPost('note'),
+      //   'amount'          => round(filterDecimal(getPost('new_amount'))),
       //   'updated_by'      => XSession::get('user_id'),
-      //   'biller_id'       => getPOST('biller')
+      //   'biller_id'       => getPost('biller')
       // ];
 
       $data = [
         'date'            => $date,
-        'bankfrom'        => Bank::getRow(['id' => getPOST('from_bank_id')])->code,
-        'bankto'          => Bank::getRow(['id' => getPOST('to_bank_id')])->code,
-        'from_bank_id'    => getPOST('from_bank_id'),
-        'from_bank_name'  => Bank::getRow(['id' => getPOST('from_bank_id')])->name,
-        'to_bank_id'      => getPOST('to_bank_id'),
-        'to_bank_name'    => Bank::getRow(['id' => getPOST('to_bank_id')])->name,
-        'note'            => getPOST('note'),
-        'amount'          => round(filterDecimal(getPOST('new_amount'))),
-        'biller'          => Biller::getRow(['id' => getPOST('biller')])->code,
-        'biller_id'       => getPOST('biller'),
+        'bankfrom'        => Bank::getRow(['id' => getPost('from_bank_id')])->code,
+        'bankto'          => Bank::getRow(['id' => getPost('to_bank_id')])->code,
+        'from_bank_id'    => getPost('from_bank_id'),
+        'from_bank_name'  => Bank::getRow(['id' => getPost('from_bank_id')])->name,
+        'to_bank_id'      => getPost('to_bank_id'),
+        'to_bank_name'    => Bank::getRow(['id' => getPost('to_bank_id')])->name,
+        'note'            => getPost('note'),
+        'amount'          => round(filterDecimal(getPost('new_amount'))),
+        'biller'          => Biller::getRow(['id' => getPost('biller')])->code,
+        'biller_id'       => getPost('biller'),
         'updated_by'      => XSession::get('user_id'),
       ];
 
@@ -1705,7 +1705,7 @@ class Finances extends MY_Controller
         $this->session->set_flashdata('error', lang('bank_mutation_failed'));
         admin_redirect('finances/mutations');
       }
-    } elseif (getPOST('edit_bank_mutation')) {
+    } elseif (getPost('edit_bank_mutation')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('finances/mutations');
     }
@@ -1981,8 +1981,8 @@ class Finances extends MY_Controller
         'date'          => $date,
         'expired_at'    => $expiredAt, // 24 jam
         'expired_date'  => $expiredAt, // 24 jam
-        'reference'     => (!empty(getPOST('reference')) ? getPOST('reference') : ''),
-        'amount'        => round(filterDecimal(getPOST('amount')))
+        'reference'     => (!empty(getPost('reference')) ? getPost('reference') : ''),
+        'amount'        => round(filterDecimal(getPost('amount')))
       ];
       if ($this->site->addPaymentValidation($data)) {
         $this->session->set_flashdata('message', lang('payment_validation_added'));
@@ -1991,7 +1991,7 @@ class Finances extends MY_Controller
         $this->session->set_flashdata('error', lang('payment_validation_add_fail'));
         admin_redirect('finances/validations');
       }
-    } elseif (getPOST('add_payment_validation')) {
+    } elseif (getPost('add_payment_validation')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('finances/validations');
     }
@@ -2326,17 +2326,17 @@ class Finances extends MY_Controller
     }
 
     if ($this->requestMethod == 'POST') {
-      $validate_manual = (getPOST('manual_validation') ? TRUE : FALSE);
+      $validate_manual = (getPost('manual_validation') ? TRUE : FALSE);
 
       if (!$validate_manual) {
         $this->session->set_flashdata('error', lang('agree_validate_manually'));
         admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
       }
 
-      $amount = round(filterDecimal(getPOST('amount')));
-      $bank_id = getPOST('to_bank');
-      $transaction_date = getPOST('trans_date');
-      $description = rd_trim(getPOST('description'));
+      $amount = round(filterDecimal(getPost('amount')));
+      $bank_id = getPost('to_bank');
+      $transaction_date = getPost('trans_date');
+      $description = rd_trim(getPost('description'));
       $bank = $this->site->getBankByID($bank_id);
 
       $data = (object)[
@@ -2378,7 +2378,7 @@ class Finances extends MY_Controller
         XSession::set('error', 'Pembayaran gagal tervalidasi.');
         admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
       }
-    } elseif (getPOST('manual_validation')) {
+    } elseif (getPost('manual_validation')) {
       XSession::set('error', validation_errors());
       admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
     }

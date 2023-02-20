@@ -42,8 +42,8 @@ class Sales extends MY_Controller
       sendJSON(['error' => 1, 'msg' => lang('access_denied')]);
     }
 
-    $action = getGET('form_action') ?? getPOST('form_action');
-    $vals   = getGET('val') ?? getPOST('val');
+    $action = getGET('form_action') ?? getPost('form_action');
+    $vals   = getGET('val') ?? getPost('val');
 
     if ($action == 'delete' && $this->input->is_ajax_request()) {
       if (!empty($vals)) {
@@ -136,6 +136,26 @@ class Sales extends MY_Controller
     }
   }
 
+  public function activate($id = null)
+  {
+    $sale = Sale::getRow(['id' => $id]);
+
+    if (!$sale) {
+      $this->response(404, ['message' => 'Sale is not found.']);
+    }
+
+    if ($sale->status != 'inactive') {
+      Sale::update((int)$sale->id, ['status' => 'inactive']);
+
+      $this->response(200, ['message' => 'Sale has been deactivated.']);
+    } else {
+      Sale::update((int)$sale->id, ['status' => 'need_payment']);
+      Sale::sync(['id' => $sale->id]);
+
+      $this->response(200, ['message' => 'Sale has been activated.']);
+    }
+  }
+
   public function add()
   {
     if (!$this->Owner && !$this->Admin && !getPermission('sales-add')) {
@@ -154,24 +174,24 @@ class Sales extends MY_Controller
     $this->form_validation->set_rules('warehouse', lang('warehouse'), 'required');
 
     if ($this->form_validation->run() == true) {
-      // $no_attachment    = getPOST('noattach');
-      $approved         = (getPOST('approved') == 1 ? 1 : 0);
-      $saleOptions      = getPOST('sale_options');
-      $draft_type       = getPOST('draft_type');
-      $no_po            = getPOST('no_po');
+      // $no_attachment    = getPost('noattach');
+      $approved         = (getPost('approved') == 1 ? 1 : 0);
+      $saleOptions      = getPost('sale_options');
+      $draft_type       = getPost('draft_type');
+      $no_po            = getPost('no_po');
       $date             = $this->serverDateTime; // Using server time.
-      $bank_transfer    = (getPOST('bank_transfer') == 1 ? TRUE : FALSE);
-      $created_by       = getPOST('created_by');
-      $cashier_by       = getPOST('cashier_by');
-      $warehouse_id     = getPOST('warehouse');
-      $customer_id      = getPOST('customer');
-      $biller_id        = getPOST('biller');
-      $status           = getPOST('status');
-      $payment_status   = getPOST('payment_status');
-      $payment_term     = getPOST('payment_term');
+      $bank_transfer    = (getPost('bank_transfer') == 1 ? TRUE : FALSE);
+      $created_by       = getPost('created_by');
+      $cashier_by       = getPost('cashier_by');
+      $warehouse_id     = getPost('warehouse');
+      $customer_id      = getPost('customer');
+      $biller_id        = getPost('biller');
+      $status           = getPost('status');
+      $payment_status   = getPost('payment_status');
+      $payment_term     = getPost('payment_term');
       $customer         = $this->site->getCustomerByID($customer_id);
-      $note             = htmlEncode(getPOST('note', FALSE));
-      $uriCallback      = getPOST('uri_callback');
+      $note             = htmlEncode(getPost('note', FALSE));
+      $uriCallback      = getPost('uri_callback');
       $total            = 0;
       $i                = isset($_POST['product_code']) ? count($_POST['product_code']) : 0; // Size of ITEM inserted.
 
@@ -231,8 +251,8 @@ class Sales extends MY_Controller
           $item_w = $_POST['w'][$r];
           $item_l = $_POST['l'][$r];
         } else {
-          $item_w = 0.0;
-          $item_l = 0.0;
+          $item_w = 1;
+          $item_l = 1;
         }
 
         if (isset($item_code) && isset($unit_price) && isset($item_subquantity)) {
@@ -415,7 +435,7 @@ class Sales extends MY_Controller
     }
 
     $hMutex = mutexCreate('syncSales', TRUE);
-    $this->site->syncSales(['sale_id' => $sale_id]);
+    Sale::sync(['sale_id' => $sale_id]);
     mutexRelease($hMutex);
 
     $sale = $this->site->getSaleByID($sale_id);
@@ -435,11 +455,11 @@ class Sales extends MY_Controller
     $this->form_validation->set_rules('userfile', lang('attachment'), 'xss_clean');
 
     if ($this->form_validation->run() == true && $this->input->is_ajax_request()) {
-      $bank_id                 = getPOST('bank_id');
-      $created_by              = getPOST('created_by');
+      $bank_id                 = getPost('bank_id');
+      $created_by              = getPost('created_by');
       $date                    = $this->serverDateTime;
-      $payment_method          = getPOST('payment_method');
-      $skip_payment_validation = (getPOST('skip_payment_validation') == 'true' ? TRUE : FALSE);
+      $payment_method          = getPost('payment_method');
+      $skip_payment_validation = (getPost('skip_payment_validation') == 'true' ? TRUE : FALSE);
       $user                    = $this->site->getUserByID($created_by);
       $customer                = $this->site->getCustomerByID($sale->customer_id);
 
@@ -465,10 +485,10 @@ class Sales extends MY_Controller
       $payment = [
         'date'       => $date,
         'sale_id'    => $sale_id,
-        'amount'     => roundDecimal(getPOST('amount')),
+        'amount'     => roundDecimal(getPost('amount')),
         'bank_id'    => $bank_id,
         'method'     => $payment_method, // Cash / EDC / Transfer
-        'note'       => htmlEncode(getPOST('note')),
+        'note'       => htmlEncode(getPost('note')),
         'created_by' => (!empty($created_by) ? $created_by : XSession::get('user_id')),
         'type'       => 'received' // Always received.
       ];
@@ -501,7 +521,7 @@ class Sales extends MY_Controller
           'amount'        => $payment['amount'],
           'created_by'    => $payment['created_by'],
           'biller_id'     => (isset($bank) ? $bank->biller_id : $sale->biller_id), // Do not change.
-          'unique_code'   => (!empty(getPOST('use_unique_code')) ? getPOST('unique_code') : NULL)
+          'unique_code'   => (!empty(getPost('use_unique_code')) ? getPost('unique_code') : NULL)
         ];
 
         if (isset($payment['attachment'])) $pvData['attachment'] = $payment['attachment'];
@@ -552,7 +572,7 @@ class Sales extends MY_Controller
           sendJSON(['error' => 1, 'msg' => 'Payment Validation gagal ditambahkan']);
         }
       }
-    } elseif (getPOST('add_payment')) {
+    } elseif (getPost('add_payment')) {
       sendJSON(['error' => 1, 'msg' => validation_errors()]);
     }
 
@@ -563,7 +583,7 @@ class Sales extends MY_Controller
         sendJSON(['error' => 1, 'msg' => 'Add Payment Failed']);
       }
     } else {
-      if (getPOST('add_payment')) {
+      if (getPost('add_payment')) {
         sendJSON(['error' => 1, 'msg' => 'Add Payment Failed']);
       }
       $paymentValidation = PaymentValidation::getRow(['sale_id' => $sale->id]);
@@ -652,13 +672,13 @@ class Sales extends MY_Controller
   public function deletePayment()
   {
     if ($this->requestMethod == 'POST' && $this->input->is_ajax_request()) {
-      $paymentId = getPOST('id');
+      $paymentId = getPost('id');
 
       $sale = $this->site->getSaleByPaymentID($paymentId);
 
       if ($this->site->deletePayment($paymentId) && $sale) {
         $hMutex = mutexCreate('syncSales', TRUE);
-        $this->site->syncSales(['sale_id' => $sale->id]);
+        Sale::sync(['sale_id' => $sale->id]);
         mutexRelease($hMutex);
         sendJSON(['error' => 0, 'msg' => 'Payment has been deleted successfully.']);
       }
@@ -670,7 +690,7 @@ class Sales extends MY_Controller
   public function deleteSalesTBPayment()
   {
     if ($this->requestMethod == 'POST' && $this->input->is_ajax_request()) {
-      $salesTBId = getPOST('val');
+      $salesTBId = getPost('val');
 
       if ($salesTBId) {
         $success = 0;
@@ -707,9 +727,9 @@ class Sales extends MY_Controller
     checkPermission('sales-add_discount_payment');
 
     if ($this->requestMethod == 'POST') {
-      $vals = getPOST('val'); // val[]
-      $disc = getPOST('discount'); // 10
-      $bankId = getPOST('bank'); // bank_id
+      $vals = getPost('val'); // val[]
+      $disc = getPost('discount'); // 10
+      $bankId = getPost('bank'); // bank_id
 
       if ($vals && is_array($vals)) {
         $failed  = 0;
@@ -736,7 +756,7 @@ class Sales extends MY_Controller
               'type'       => 'received'
             ]);
             $hMutex = mutexCreate('syncSales', TRUE);
-            $this->site->syncSales(['sale_id' => $sale->id]);
+            Sale::sync(['sale_id' => $sale->id]);
             mutexRelease($hMutex);
             $success++;
           } else {
@@ -781,23 +801,23 @@ class Sales extends MY_Controller
     }
 
     if ($this->requestMethod == 'POST') {
-      $approved         = (getPOST('approved') == 1 ? 1 : 0);
-      $draft_type       = (getPOST('draft_type') == 1 ? TRUE : FALSE);
-      $reference        = getPOST('reference');
-      $no_po            = getPOST('no_po');
-      $date             = filterDateTime(getPOST('date'));
-      $discount         = getPOST('discount');
-      $warehouse_id     = getPOST('warehouse');
-      $customer_id      = getPOST('customer');
-      $created_by       = getPOST('created_by');
-      $biller_id        = getPOST('biller');
-      $status           = getPOST('status');
-      $payment_status   = getPOST('payment_status');
-      $payment_term     = getPOST('payment_term');
+      $approved         = (getPost('approved') == 1 ? 1 : 0);
+      $draft_type       = (getPost('draft_type') == 1 ? TRUE : FALSE);
+      $reference        = getPost('reference');
+      $no_po            = getPost('no_po');
+      $date             = filterDateTime(getPost('date'));
+      $discount         = getPost('discount');
+      $warehouse_id     = getPost('warehouse');
+      $customer_id      = getPost('customer');
+      $created_by       = getPost('created_by');
+      $biller_id        = getPost('biller');
+      $status           = getPost('status');
+      $payment_status   = getPost('payment_status');
+      $payment_term     = getPost('payment_term');
       $payment_term     = (!empty($payment_term) ? $payment_term : 1); // Default to 1 if not set.
       $customer = $this->site->getCustomerByID($customer_id);
-      $note             = htmlEncode(getPOST('note', FALSE));
-      $uriCallback      = getPOST('uri_callback');
+      $note             = htmlEncode(getPost('note', FALSE));
+      $uriCallback      = getPost('uri_callback');
 
       $total            = 0;
       $i                = isset($_POST['product_code']) ? sizeof($_POST['product_code']) : 0;
@@ -863,8 +883,8 @@ class Sales extends MY_Controller
           $item_w = $_POST['w'][$r];
           $item_l = $_POST['l'][$r];
         } else {
-          $item_w = 0.0;
-          $item_l = 0.0;
+          $item_w = 1;
+          $item_l = 1;
         }
 
         if (isset($item_code) && isset($unit_price) && isset($item_quantity)) {
@@ -938,7 +958,7 @@ class Sales extends MY_Controller
 
       if (Sale::update((int)$id, $saleData, $saleItems)) {
         $hMutex = mutexCreate('syncSales', TRUE);
-        $this->site->syncSales(['sale_id' => $id]);
+        Sale::sync(['sale_id' => $id]);
         mutexRelease($hMutex);
 
         XSession::set('remove_slls', 1);
@@ -1106,11 +1126,11 @@ class Sales extends MY_Controller
     $sale = $this->site->getSaleByPaymentID($payment_id);
 
     if ($this->requestMethod == 'POST' && isAJAX()) {
-      $bank_id                 = getPOST('bank_id');
-      $created_by              = getPOST('created_by');
-      $date                    = $this->sma->fld(getPOST('date'));
-      $payment_method          = getPOST('payment_method');
-      $skip_payment_validation = (getPOST('skip_payment_validation') ? TRUE : FALSE);
+      $bank_id                 = getPost('bank_id');
+      $created_by              = getPost('created_by');
+      $date                    = $this->sma->fld(getPost('date'));
+      $payment_method          = getPost('payment_method');
+      $skip_payment_validation = (getPost('skip_payment_validation') ? TRUE : FALSE);
       $user                    = $this->site->getUserByID($created_by);
       $customer                = $this->site->getCustomerByID($sale->customer_id);
 
@@ -1126,10 +1146,10 @@ class Sales extends MY_Controller
         'date'          => $date,
         'sale_id'       => $sale->id,
         'reference'     => $sale->reference,
-        'amount'        => roundDecimal(getPOST('amount')),
+        'amount'        => roundDecimal(getPost('amount')),
         'bank_id'       => $bank_id,
         'method'        => $payment_method, // Cash / EDC / Transfer
-        'note'          => $this->sma->clear_tags(getPOST('note')),
+        'note'          => $this->sma->clear_tags(getPost('note')),
         'created_by'    => ($created_by ?? XSession::get('user_id')),
         'type'          => 'received'
       ];
@@ -1154,7 +1174,7 @@ class Sales extends MY_Controller
             'payment_status' => 'waiting_transfer'
           ]);
           $hMutex = mutexCreate('syncSales', TRUE);
-          $this->site->syncSales(['sale_id' => $data['sale_id']]);
+          Sale::sync(['sale_id' => $data['sale_id']]);
           mutexRelease($hMutex);
           sendJSON(['error' => 0, 'msg' => lang('payment_validation_added')]);
         } else {
@@ -1172,21 +1192,21 @@ class Sales extends MY_Controller
 
         $payment['attachment'] = $uploader->storeRandom();
       }
-    } elseif (getPOST('edit_payment')) {
+    } elseif (getPost('edit_payment')) {
       sendJSON(['error' => 1, 'msg' => validation_errors()]);
     }
 
     if ($this->requestMethod == 'POST' && isAJAX()) {
       if ($this->site->updatePayment($payment_id, $data_payment)) { // Sales Add Payment.
         $hMutex = mutexCreate('syncSales', TRUE);
-        $this->site->syncSales(['sale_id' => $sale->id]);
+        Sale::sync(['sale_id' => $sale->id]);
         mutexRelease($hMutex);
         sendJSON(['error' => 0, 'msg' => lang('payment_edited')]);
       } else {
         sendJSON(['error' => 1, 'msg' => 'Failed to update payment']);
       }
     } else {
-      if (getPOST('edit_payment')) {
+      if (getPost('edit_payment')) {
         sendJSON(['error' => 1, 'msg' => 'Failed to update payment.']);
       }
       $payment_validation = $this->site->getPaymentValidationBySaleID($sale->id);
@@ -1218,6 +1238,16 @@ class Sales extends MY_Controller
     $end_date       = getGET('end_date');
     $group_by       = getGET('group_by')   ?? 'sale';
     $xls            = (getGET('xls') == 1 ? TRUE : FALSE);
+
+    $startDate  = getGET('start_date');
+    $endDate    = getGET('end_date');
+
+    if (!$startDate && !$endDate) {
+      $period = getLastMonthPeriod();
+
+      $startDate  = $period['start_date'];
+      $endDate    = $period['end_date'];
+    }
 
     if (!$this->Owner && !$this->Admin && XSession::get('biller_id')) {
       $user = $this->site->getUserByID(XSession::get('user_id'));
@@ -1266,6 +1296,12 @@ class Sales extends MY_Controller
       . lang('actions') . ' <span class="caret"></span></button>
     <ul class="dropdown-menu dropdown-menu-right" role="menu">
       <li>' . $add_payment_link . '</li>';
+
+    if ($this->Owner || $this->Admin) {
+      $action .= '<li><a href="' . admin_url('sales/activate/$1') . '" data-action="confirm"
+        data-message="Nonaktifkan / Aktifkan Sale?" data-title="Activate / Deactivate Sale">
+        <i class="fad fa-fw fa-check"></i> Activate/Deactivate</a></li>';
+    }
 
     if ($this->isAdmin || getPermission('sales-add')) {
       $action .= '<li>' . $approve_link . '</li>';
@@ -1383,15 +1419,11 @@ class Sales extends MY_Controller
       }
 
       if ($start_date) {
-        $start_date = $start_date . ' 00:00:00';
-        $end_date   = $end_date . ' 23:59:59';
-        $this->datatables->where("sales.date BETWEEN '{$start_date}' AND '{$end_date}'");
+        $this->datatables->where("sales.date BETWEEN '{$start_date} 00:00:00' AND '{$end_date} 23:59:59'");
       } else { // For optimizing Query.
         // $period = getCurrentMonthPeriod();
         $period = getLastMonthPeriod();
-        $start_date = $period['start_date'] . ' 00:00:00';
-        $end_date   = $period['end_date'] . ' 23:59:59';
-        $this->datatables->where("sales.date BETWEEN '{$start_date}' AND '{$end_date}'");
+        $this->datatables->where("sales.date BETWEEN '{$period['start_date']} 00:00:00' AND '{$period['end_date']} 23:59:59'");
       }
 
       if (getGET('attachment') == 'yes') {
@@ -1895,7 +1927,7 @@ class Sales extends MY_Controller
     }
 
     $hMutex = mutexCreate('syncSales', TRUE);
-    $this->site->syncSales(['sale_id' => $sale_id]);
+    Sale::sync(['id' => $sale_id]);
     mutexRelease($hMutex);
 
     $this->data['payments']    = $this->site->getPaymentsBySaleID($sale_id);
@@ -1975,7 +2007,7 @@ class Sales extends MY_Controller
   public function processSalesTBPayment()
   {
     if ($this->requestMethod == 'POST' && $this->input->is_ajax_request()) {
-      $salesTBId = getPOST('val');
+      $salesTBId = getPost('val');
 
       if ($salesTBId) {
         $success = 0;
@@ -2005,7 +2037,7 @@ class Sales extends MY_Controller
    */
   public function revertSaleStatus()
   {
-    $sale_id = getPOST('sale');
+    $sale_id = getPost('sale');
 
     if (!$this->Owner && !$this->Admin) {
       sendJSON(['error' => 1, 'msg' => 'You do not have permissions.']);
@@ -2042,7 +2074,7 @@ class Sales extends MY_Controller
           }
 
           $hMutex = mutexCreate('syncSales', TRUE);
-          $this->site->syncSales(['sale_id' => $sale_id]);
+          Sale::sync(['sale_id' => $sale_id]);
           mutexRelease($hMutex);
 
           sendJSON(['error' => 0, 'msg' => "Sale '{$sale->reference}' has been reverted successfully."]);
@@ -2230,7 +2262,7 @@ class Sales extends MY_Controller
       $sale = $this->site->getSaleByID($sale_id);
 
       $hMutex = mutexCreate('syncSales', TRUE);
-      $this->site->syncSales(['sale_id' => $sale->id]);
+      Sale::sync(['sale_id' => $sale->id]);
       mutexRelease($hMutex);
       sendJSON(['error' => 0, 'msg' => 'Sync sale success.']);
     } else {
@@ -2239,7 +2271,7 @@ class Sales extends MY_Controller
       $hMutex = mutexCreate('syncSales', TRUE);
 
       foreach ($sales as $sale) {
-        $this->site->syncSales(['sale_id' => $sale->id]);
+        Sale::sync(['sale_id' => $sale->id]);
       }
 
       mutexRelease($hMutex);
@@ -2339,13 +2371,13 @@ class Sales extends MY_Controller
     $this->form_validation->set_rules('status', lang('status'), 'required');
 
     $hMutex = mutexCreate('syncSales', TRUE);
-    $this->site->syncSales(['sale_id' => $id]); // New added to sync sales.
+    Sale::sync(['sale_id' => $id]); // New added to sync sales.
     mutexRelease($hMutex);
 
     if ($this->requestMethod == 'POST') {
-      $status = getPOST('status');
-      $note   = $this->sma->clear_tags(getPOST('note'));
-    } elseif (getPOST('update')) {
+      $status = getPost('status');
+      $note   = $this->sma->clear_tags(getPost('note'));
+    } elseif (getPost('update')) {
       XSession::set('error', validation_errors());
       admin_redirect($_SERVER['HTTP_REFERER'] ?? 'sales');
     }

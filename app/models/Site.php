@@ -7679,6 +7679,10 @@ class Site extends MY_Model
           $saleItemStatus = 'need_payment';
         }
 
+        if ($sale->status == 'inactive') {
+          $saleItemStatus = 'inactive';
+        }
+
         $saleItemData['status'] = $saleItemStatus;
 
         $this->updateSaleItem($saleItem->id, $saleItemData);
@@ -7762,6 +7766,10 @@ class Site extends MY_Model
 
       if ($saleStatus == 'waiting_production' && empty($saleJS->waiting_production_date)) {
         $saleData['waiting_production_date'] = date('Y-m-d H:i:s');
+      }
+
+      if ($sale->status == 'inactive') {
+        $saleStatus = 'inactive';
       }
 
       $saleData['paid']           = $totalPaid;

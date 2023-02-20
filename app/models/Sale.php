@@ -415,6 +415,10 @@ class Sale
           $saleItemStatus = 'need_payment';
         }
 
+        if ($sale->status == 'inactive') {
+          $saleItemStatus = 'inactive';
+        }
+
         $saleItemJS->status = $saleItemStatus;
 
         SaleItem::update((int)$saleItem->id, [
@@ -508,6 +512,10 @@ class Sale
         $saleData['waiting_production_date'] = date('Y-m-d H:i:s');
       }
 
+      if ($sale->status == 'inactive') {
+        $saleStatus = 'inactive';
+      }
+
       $saleData['paid']           = $totalPaid;
       $saleData['balance']        = $balance;
       $saleData['status']         = $saleStatus;
@@ -589,7 +597,7 @@ class Sale
           $width    = filterQuantity($items[$a]['width'] ?? 0);
           $length   = filterQuantity($items[$a]['length'] ?? 0);
           $area     = ($width * $length);
-    
+
           $qty         = ($area > 0 ? $area * $quantity : $quantity);
           $totalPrice += round($price * $qty);
           $totalItems += $qty;

@@ -1553,7 +1553,7 @@ function getPermission($permission_name, $user_id = NULL)
  * Get POST request.
  * @param string $name Request name.
  */
-function getPOST($name)
+function getPost($name)
 {
   return (isset($_POST[$name]) ? $_POST[$name] : NULL);
 }

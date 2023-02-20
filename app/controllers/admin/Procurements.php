@@ -81,13 +81,13 @@ class Procurements extends MY_Controller
       $createdAt        = $this->serverDateTime; // Using server date time.
       $grandTotal       = 0;
       $items            = '';
-      $warehouseIdFrom  = getPOST('from_warehouse');
-      $warehouseIdTo    = getPOST('to_warehouse');
-      $note             = htmlEncode(getPOST('note'));
-      $status           = getPOST('status'); // Must 'need_approval';
-      $category         = getPOST('category'); // Sparepart, Consumable
-      $supplierId       = getPOST('supplier');
-      $tsId             = getPOST('ts');
+      $warehouseIdFrom  = getPost('from_warehouse');
+      $warehouseIdTo    = getPost('to_warehouse');
+      $note             = htmlEncode(getPost('note'));
+      $status           = getPost('status'); // Must 'need_approval';
+      $category         = getPost('category'); // Sparepart, Consumable
+      $supplierId       = getPost('supplier');
+      $tsId             = getPost('ts');
 
       if (empty($category)) {
         $this->session->set_flashdata('error', "Harap pilih kategory, Consumable atau Sparepart.");
@@ -274,16 +274,16 @@ class Procurements extends MY_Controller
 
     if ($this->form_validation->run()) {
       $counter          = '';
-      $date             = rd_trim(getPOST('date'));
+      $date             = rd_trim(getPost('date'));
       $grand_total      = 0;
       $items            = '';
-      $warehouseIdFrom  = getPOST('from_warehouse');
-      $warehouseIdTo    = getPOST('to_warehouse');
-      $note             = htmlEncode(getPOST('note'));
-      $status           = getPOST('status');
-      $category         = getPOST('category');
-      $supplierId       = getPOST('supplier');
-      $tsId             = getPOST('ts');
+      $warehouseIdFrom  = getPost('from_warehouse');
+      $warehouseIdTo    = getPost('to_warehouse');
+      $note             = htmlEncode(getPost('note'));
+      $status           = getPost('status');
+      $category         = getPost('category');
+      $supplierId       = getPost('supplier');
+      $tsId             = getPost('ts');
 
       if ($this->iuse_mode == 'status') {
         if ($status == $iuse->status) {
@@ -300,13 +300,13 @@ class Procurements extends MY_Controller
       $i = isset($_POST['product_id']) ? count($_POST['product_id']) : 0;
 
       for ($r = 0; $r < $i; $r++) {
-        $itemCode       = getPOST('product_code')[$r];
-        $item_machine   = getPOST('machines')[$r];
-        $item_price     = getPOST('price')[$r];
-        $item_quantity  = getPOST('quantity')[$r];
-        $itemSpec       = getPOST('spec')[$r];
-        $itemUCR        = getPOST('ucr')[$r];
-        $itemUniqueCode = getPOST('unique_code')[$r];
+        $itemCode       = getPost('product_code')[$r];
+        $item_machine   = getPost('machines')[$r];
+        $item_price     = getPost('price')[$r];
+        $item_quantity  = getPost('quantity')[$r];
+        $itemSpec       = getPost('spec')[$r];
+        $itemUCR        = getPost('ucr')[$r];
+        $itemUniqueCode = getPost('unique_code')[$r];
 
         if (isset($itemCode) && isset($item_quantity)) {
           $product = Product::getRow(['code' => $itemCode]);
@@ -475,8 +475,8 @@ class Procurements extends MY_Controller
 
     if ($this->requestMethod == 'POST') {
       $product = $this->site->getProductByID($itemId);
-      $price        = filterDecimal(getPOST('price'));
-      $markon_price = filterDecimal(getPOST('markon_price'));
+      $price        = filterDecimal(getPost('price'));
+      $markon_price = filterDecimal(getPost('markon_price'));
 
       if ($product) {
         if ($this->site->updateProducts([[
@@ -793,7 +793,7 @@ class Procurements extends MY_Controller
   public function internal_uses_sync()
   {
     if ($this->requestMethod == 'POST') {
-      $ids = getPOST('val');
+      $ids = getPost('val');
 
       if (is_array($ids) && !empty($ids)) {
         $count = 0;
@@ -859,11 +859,11 @@ class Procurements extends MY_Controller
     checkPermission('purchases-add');
 
     if ($this->requestMethod == 'POST') {
-      $createdAt   = getPOST('created_at');
-      $createdBy   = getPOST('created_by');
-      $warehouseId = getPOST('warehouse');
-      $note        = getPOST('note');
-      $products    = getPOST('product');
+      $createdAt   = getPost('created_at');
+      $createdBy   = getPost('created_by');
+      $warehouseId = getPost('warehouse');
+      $note        = getPost('note');
+      $products    = getPost('product');
 
       $items = [];
       $productSize = count($products['id']);
@@ -1375,14 +1375,14 @@ class Procurements extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $date         = $this->serverDateTime;
-      $status       = getPOST('status');
-      $biller_id    = getPOST('biller');
-      $category_id  = getPOST('category');
-      $warehouse_id = getPOST('warehouse');
-      $supplier_id  = getPOST('supplier');
+      $status       = getPost('status');
+      $biller_id    = getPost('biller');
+      $category_id  = getPost('category');
+      $warehouse_id = getPost('warehouse');
+      $supplier_id  = getPost('supplier');
       $supplier     = $this->site->getSupplierByID($supplier_id);
-      $note         = htmlEncode(getPOST('note'));
-      $payment_term = (getPOST('payment_term') > 0 ? getPOST('payment_term') : ($supplier->payment_term > 0 ? $supplier->payment_term : NULL) ?? 1);
+      $note         = htmlEncode(getPost('note'));
+      $payment_term = (getPost('payment_term') > 0 ? getPost('payment_term') : ($supplier->payment_term > 0 ? $supplier->payment_term : NULL) ?? 1);
       $total        = 0;
       $i            = count($_POST['product_id'] ?? []); // If not set product, use empty array.
       $purchase_items = [];
@@ -1468,7 +1468,7 @@ class Procurements extends MY_Controller
 
   private function purchases_addPurchasesFromPlan()
   {
-    $supplier_ids = getPOST('supplier_ids');
+    $supplier_ids = getPost('supplier_ids');
 
     if ($supplier_ids) {
       $suppl_ids = explode(',', $supplier_ids);
@@ -1524,14 +1524,14 @@ class Procurements extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $date = $this->serverDateTime;
-      $amount = getPOST('amount-paid');
-      $bank = $this->site->getBankById(getPOST('paid_by'));
-      $discount = (getPOST('discount') == 1 ? TRUE : FALSE);
+      $amount = getPost('amount-paid');
+      $bank = $this->site->getBankById(getPost('paid_by'));
+      $discount = (getPost('discount') == 1 ? TRUE : FALSE);
       $discount_amount = 0;
 
       $payment = [
         'date'            => $date,
-        'purchase_id'     => getPOST('purchase_id'),
+        'purchase_id'     => getPost('purchase_id'),
         'reference'       => $purchase->reference,
         'bank_id'         => $bank->id,
         'method'          => $bank->type,
@@ -1539,7 +1539,7 @@ class Procurements extends MY_Controller
         'created_by'      => XSession::get('user_id'),
         'status'          => 'need_approval',
         'type'            => 'pending', // will be received if paid, after approved.
-        'note'            => htmlEncode(getPOST('note'))
+        'note'            => htmlEncode(getPost('note'))
       ];
 
       if ($discount) {
@@ -1563,7 +1563,7 @@ class Procurements extends MY_Controller
 
         $payment['attachment'] = $uploader->storeRandom();
       }
-    } elseif (getPOST('add_payment')) {
+    } elseif (getPost('add_payment')) {
       $this->session->set_flashdata('error', validation_errors());
       redirect($_SERVER['HTTP_REFERER']);
     }
@@ -1576,7 +1576,7 @@ class Procurements extends MY_Controller
       }
       redirect($_SERVER['HTTP_REFERER']);
     } else {
-      if (getPOST('add_payment')) {
+      if (getPost('add_payment')) {
         $this->session->set_flashdata('error', validation_errors());
         redirect($_SERVER['HTTP_REFERER']);
       }
@@ -1645,17 +1645,17 @@ class Procurements extends MY_Controller
     $this->form_validation->set_rules('warehouse', $this->lang->line('warehouse'), 'required');
 
     if ($this->form_validation->run() == true) {
-      $date           = getPOST('date');
-      $postatus       = getPOST('status');
-      $biller_id      = getPOST('biller');
-      $category_id    = getPOST('category');
-      $warehouse_id   = getPOST('warehouse');
-      $supplier_id    = getPOST('supplier');
+      $date           = getPost('date');
+      $postatus       = getPost('status');
+      $biller_id      = getPost('biller');
+      $category_id    = getPost('category');
+      $warehouse_id   = getPost('warehouse');
+      $supplier_id    = getPost('supplier');
       $supplier       = $this->site->getSupplierByID($supplier_id);
-      $note           = htmlEncode(getPOST('note'));
+      $note           = htmlEncode(getPost('note'));
       $payment_term   = ($supplier->payment_term > 0 ? $supplier->payment_term : 1);
       $due_date       = ($payment_term ? date('Y-m-d H:i:s', strtotime('+' . $payment_term . ' days', strtotime($date))) : NULL);
-      $discount       = filterDecimal(getPOST('discount'));
+      $discount       = filterDecimal(getPost('discount'));
       $total          = 0;
       $balance        = 0;
       $i              = count($_POST['product_id'] ?? []); // If not set product, use empty array.
@@ -1873,8 +1873,8 @@ class Procurements extends MY_Controller
 
   private function purchases_edit_cost()
   {
-    $product_id = getPOST('product_id');
-    $cost       = getPOST('cost');
+    $product_id = getPost('product_id');
+    $cost       = getPost('cost');
 
     if ($product = $this->site->getProductByID($product_id)) {
       $markOnPrice = getMarkonPrice($cost, $product->markon);
@@ -1908,22 +1908,22 @@ class Procurements extends MY_Controller
     $this->form_validation->set_rules('bank_id', lang('paid_by'), 'required');
     $this->form_validation->set_rules('userfile', lang('attachment'), 'xss_clean');
 
-    $old_amount = round(filterDecimal(getPOST('old_amount')));
-    $new_amount = round(filterDecimal(getPOST('new_amount')));
+    $old_amount = round(filterDecimal(getPost('old_amount')));
+    $new_amount = round(filterDecimal(getPost('new_amount')));
 
     if ($this->form_validation->run() == true) {
-      $date = $this->sma->fld(trim(getPOST('date'))) . date(':s');
-      $bank = $this->site->getBankById(getPOST('bank_id'));
+      $date = $this->sma->fld(trim(getPost('date'))) . date(':s');
+      $bank = $this->site->getBankById(getPost('bank_id'));
       $data_payment = [
         'date'      => $date,
         'reference' => $payment->reference,
-        'bank_id'   => getPOST('bank_id'),
+        'bank_id'   => getPost('bank_id'),
         'method'    => $bank->type,
         'amount'    => $new_amount,
-        'note'      => htmlEncode(getPOST('note'))
+        'note'      => htmlEncode(getPost('note'))
       ];
 
-      $bank_balance = $this->site->getBankBalanceByID(getPOST('bank_id'));
+      $bank_balance = $this->site->getBankBalanceByID(getPost('bank_id'));
 
       if (floatval($purchase->grand_total) < floatval($data_payment['amount'])) {
         $this->session->set_flashdata('error', lang('paid_over_grandtotal'));
@@ -1940,7 +1940,7 @@ class Procurements extends MY_Controller
 
         $data_payment['attachment'] = $uploader->storeRandom();
       }
-    } elseif (getPOST('edit_payment')) {
+    } elseif (getPost('edit_payment')) {
       $this->session->set_flashdata('error', validation_errors());
       redirect($_SERVER['HTTP_REFERER']);
     }
@@ -1954,7 +1954,7 @@ class Procurements extends MY_Controller
       $this->session->set_flashdata('message', lang('payment_added'));
       redirect($_SERVER['HTTP_REFERER']);
     } else {
-      if (getPOST('edit_payment')) {
+      if (getPost('edit_payment')) {
         $this->session->set_flashdata('error', validation_errors());
         redirect($_SERVER['HTTP_REFERER']);
       }
@@ -2309,8 +2309,8 @@ class Procurements extends MY_Controller
     $purchase     = $this->site->getStockPurchaseById($payment->purchase_id);
 
     if ($this->form_validation->run() == true) {
-      $status = getPOST('status');
-      $note   = $this->sma->clear_tags(getPOST('note'));
+      $status = getPost('status');
+      $note   = $this->sma->clear_tags(getPost('note'));
 
       if ($payment->status == $status) {
         $this->session->set_flashdata('error', lang('status_not_changed'));
@@ -2331,7 +2331,7 @@ class Procurements extends MY_Controller
         $this->session->set_flashdata('error', lang('status_not_known'));
         $this->sma->md();
       }
-    } elseif (getPOST('update')) {
+    } elseif (getPost('update')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect($_SERVER['HTTP_REFERER'] ?? 'procurements/purchases');
     }
@@ -2378,9 +2378,9 @@ class Procurements extends MY_Controller
 
 
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-      $date        = getPOST('date');
-      $po_items    = getPOST('item');
-      $supplier_id = getPOST('supplier');
+      $date        = getPost('date');
+      $po_items    = getPost('item');
+      $supplier_id = getPost('supplier');
 
       $total     = 0;
       $warehouse = $this->site->getWarehouseByCode('LUC');
@@ -2472,12 +2472,12 @@ class Procurements extends MY_Controller
 
   private function purchases_stock_suggestions()
   { // Called by Product Quantity Alerts
-    $action = getPOST('name');
+    $action = getPost('name');
     $data = (object)[
       'msg' => 'failed'
     ];
 
-    $product_ids = getPOST('ids');
+    $product_ids = getPost('ids');
     $warehouse_id = $this->site->getWarehouseByName('Lucretia Enterprise')->id; // Destination stock to Lucretia Enterprise.
 
     if ($action == 'add_purchases' && !empty($product_ids)) {
@@ -2648,8 +2648,8 @@ class Procurements extends MY_Controller
 
   private function transfers_actions()
   {
-    $action = getPOST('form_action');
-    $vals   = getPOST('val');
+    $action = getPost('form_action');
+    $vals   = getPost('val');
 
     if ($action && $action == 'delete') {
       if ($vals) {
@@ -2671,10 +2671,10 @@ class Procurements extends MY_Controller
 
     if ($this->form_validation->run()) {
       $date              = $this->serverDateTime;
-      $warehouseIdFrom = getPOST('from_warehouse');
-      $warehouseIdTo   = getPOST('to_warehouse');
-      $note              = $this->sma->clear_tags(getPOST('note'));
-      $status            = (getPOST('status') == 'packing' ? getPOST('status') : 'packing'); // Status must 'packing'
+      $warehouseIdFrom = getPost('from_warehouse');
+      $warehouseIdTo   = getPost('to_warehouse');
+      $note              = $this->sma->clear_tags(getPost('note'));
+      $status            = (getPost('status') == 'packing' ? getPost('status') : 'packing'); // Status must 'packing'
 
       $total = 0;
 
@@ -2796,10 +2796,10 @@ class Procurements extends MY_Controller
 
       $data = [
         'date' => $date,
-        'from_bank_id'    => getPOST('from_bank_id'),
-        'to_bank_id'      => getPOST('to_bank_id'),
-        'note'            => getPOST('note'),
-        'amount'          => round(filterDecimal(getPOST('amount'))),
+        'from_bank_id'    => getPost('from_bank_id'),
+        'to_bank_id'      => getPost('to_bank_id'),
+        'note'            => getPost('note'),
+        'amount'          => round(filterDecimal(getPost('amount'))),
         'created_by'      => XSession::get('user_id')
       ];
 
@@ -2836,7 +2836,7 @@ class Procurements extends MY_Controller
         $this->session->set_flashdata('error', lang('stock_transfer_paid_fail'));
         admin_redirect('procurements/transfers');
       }
-    } elseif (getPOST('add_bank_mutation')) {
+    } elseif (getPost('add_bank_mutation')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('procurements/transfers');
     }
@@ -2854,7 +2854,7 @@ class Procurements extends MY_Controller
 
   private function transfers_addTransfersFromPlan()
   {
-    $warehouse_ids = getPOST('warehouse_ids'); // ID: durian, fatmawati, tembalang...
+    $warehouse_ids = getPost('warehouse_ids'); // ID: durian, fatmawati, tembalang...
 
     if ($warehouse_ids) {
       $wh_ids = explode(',', $warehouse_ids);
@@ -2937,11 +2937,11 @@ class Procurements extends MY_Controller
     $this->form_validation->set_rules('from_warehouse', lang('warehouse') . ' (' . lang('from') . ')', 'required|is_natural_no_zero');
 
     if ($this->form_validation->run()) {
-      $date              = rd_trim(getPOST('date'));
-      $warehouseIdTo   = getPOST('to_warehouse');
-      $warehouseIdFrom = getPOST('from_warehouse');
-      $note              = htmlEncode(getPOST('note'));
-      $status            = getPOST('status');
+      $date              = rd_trim(getPost('date'));
+      $warehouseIdTo   = getPost('to_warehouse');
+      $warehouseIdFrom = getPost('from_warehouse');
+      $note              = htmlEncode(getPost('note'));
+      $status            = getPost('status');
       $total             = 0;
 
       $i = isset($_POST['product_id']) ? count($_POST['product_id']) : 0;
@@ -3108,22 +3108,22 @@ class Procurements extends MY_Controller
     $this->form_validation->set_rules('bank_id', lang('paid_by'), 'required');
     $this->form_validation->set_rules('userfile', lang('attachment'), 'xss_clean');
 
-    $old_amount = round(filterDecimal(getPOST('old_amount')));
-    $new_amount = round(filterDecimal(getPOST('new_amount')));
+    $old_amount = round(filterDecimal(getPost('old_amount')));
+    $new_amount = round(filterDecimal(getPost('new_amount')));
 
     if ($this->form_validation->run() == true) {
-      $date = $this->sma->fld(trim(getPOST('date'))) . date(':s');
-      $bank = $this->site->getBankById(getPOST('bank_id'));
+      $date = $this->sma->fld(trim(getPost('date'))) . date(':s');
+      $bank = $this->site->getBankById(getPost('bank_id'));
       $data_payment = [
         'date'      => $date,
         'reference' => $payment->reference,
-        'bank_id'   => getPOST('bank_id'),
+        'bank_id'   => getPost('bank_id'),
         'method'    => $bank->type,
         'amount'    => $new_amount,
-        'note'      => htmlEncode(getPOST('note'))
+        'note'      => htmlEncode(getPost('note'))
       ];
 
-      $bank_balance = $this->site->getBankBalanceByID(getPOST('bank_id'));
+      $bank_balance = $this->site->getBankBalanceByID(getPost('bank_id'));
 
       if (floatval($transfer->grand_total) < floatval($data_payment['amount'])) {
         $this->session->set_flashdata('error', lang('paid_over_grandtotal'));
@@ -3140,7 +3140,7 @@ class Procurements extends MY_Controller
 
         $data_payment['attachment'] = $uploader->storeRandom();
       }
-    } elseif (getPOST('edit_payment')) {
+    } elseif (getPost('edit_payment')) {
       $this->session->set_flashdata('error', validation_errors());
       redirect($_SERVER['HTTP_REFERER']);
     }
@@ -3150,7 +3150,7 @@ class Procurements extends MY_Controller
         redirect($_SERVER['HTTP_REFERER']);
       }
     } else {
-      if (getPOST('edit_payment')) {
+      if (getPost('edit_payment')) {
         $this->session->set_flashdata('error', validation_errors());
         redirect($_SERVER['HTTP_REFERER']);
       }
@@ -3449,16 +3449,16 @@ class Procurements extends MY_Controller
     $this->form_validation->set_rules('from_warehouse', lang('warehouse') . ' (' . lang('from') . ')', 'required|is_natural_no_zero');
 
     if ($this->form_validation->run()) {
-      if ($transfer->status == getPOST('status')) {
+      if ($transfer->status == getPost('status')) {
         $this->session->set_flashdata('error', lang('status_not_changed'));
         admin_redirect('procurements/transfers/status/' . $transfer_id);
       }
 
-      $date                   = rd_trim(getPOST('date'));
-      $warehouseIdTo        = getPOST('to_warehouse');
-      $warehouseIdFrom      = getPOST('from_warehouse');
-      $note                   = htmlEncode(getPOST('note'));
-      $status                 = getPOST('status');
+      $date                   = rd_trim(getPost('date'));
+      $warehouseIdTo        = getPost('to_warehouse');
+      $warehouseIdFrom      = getPost('from_warehouse');
+      $note                   = htmlEncode(getPost('note'));
+      $status                 = getPost('status');
       $total = 0;
 
       $i = isset($_POST['product_id']) ? count($_POST['product_id']) : 0;
@@ -3615,11 +3615,11 @@ class Procurements extends MY_Controller
 
   private function transfers_stock_suggestions() // MANUAL
   { // Called by warehouse stock alert
-    $action = getPOST('name');
+    $action = getPost('name');
     $data = (object)[
       'msg' => 'failed'
     ];
-    $product_ids = json_decode(getPOST('ids'));
+    $product_ids = json_decode(getPost('ids'));
     $warehouseIdFrom = $this->site->getWarehouseByName('Lucretia Enterprise')->id; // Default from Lucretia Enterprise.
     $warehouseIdTo = 0;
 

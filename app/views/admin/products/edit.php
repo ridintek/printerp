@@ -149,7 +149,8 @@
                   <?= lang('product_category', 'category'); ?>
                   <?php
                   $opt = [];
-                  $categories = $this->site->getAllProductCategories();
+                  $categories = ProductCategory::select('*')->where('parent_code IS NULL')
+                    ->orWhere("parent_code = ''")->orderBy('name', 'asc')->get();
 
                   if ($categories) {
                     $opt[''] = 'Select Product Category';

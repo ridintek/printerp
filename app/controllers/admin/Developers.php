@@ -26,11 +26,11 @@ class Developers extends MY_Controller
   private function api_keys_add()
   {
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-      $name         = getPOST('name');
-      $token        = getPOST('tokens');
-      $scopes       = getPOST('scopes');
-      $active       = getPOST('active');
-      $expired_date = getPOST('expired_date');
+      $name         = getPost('name');
+      $token        = getPost('tokens');
+      $scopes       = getPost('scopes');
+      $active       = getPost('active');
+      $expired_date = getPost('expired_date');
 
       if (!$name) {
         sendJSON(['error' => 1, 'msg' => 'Name must be specified.']);
@@ -56,7 +56,7 @@ class Developers extends MY_Controller
   private function api_keys_delete()
   {
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-      $api_id = getPOST('id');
+      $api_id = getPost('id');
       if ($this->site->deleteApiKey($api_id)) {
         sendJSON(['error' => 0, 'msg' => 'API Key has been deleted successfully.']);
       }
@@ -224,11 +224,11 @@ class Developers extends MY_Controller
   public function sendWA()
   {
     if ($this->requestMethod == 'POST') {
-      $phone    = getPOST('phone');
-      $server   = getPOST('server');
-      $deviceId = getPOST('deviceid');
-      $apiKey   = getPOST('apikey');
-      $message  = getPOST('message');
+      $phone    = getPost('phone');
+      $server   = getPost('server');
+      $deviceId = getPost('deviceid');
+      $apiKey   = getPost('apikey');
+      $message  = getPost('message');
 
       $data = [];
       $url  = '';

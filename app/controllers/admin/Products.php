@@ -37,55 +37,55 @@ class Products extends MY_Controller
     $this->form_validation->set_rules('name', lang('product_name'), 'required');
     $this->form_validation->set_rules('type', 'Type required', 'required');
 
-    if (getPOST('type') == 'standard') {
+    if (getPost('type') == 'standard') {
       $this->form_validation->set_rules('cost', lang('product_cost'), 'required');
       $this->form_validation->set_rules('unit', lang('product_unit'), 'required');
     }
 
     if ($this->form_validation->run()) {
-      $cat = getPOST('category');
+      $cat = getPost('category');
       $category = $this->site->getProductCategoryByCode($cat);
 
-      $scat = getPOST('subcategory');
+      $scat = getPost('subcategory');
       $subcategory = $this->site->getProductCategoryByCode($scat);
 
-      $product_type = getPOST('type');
+      $product_type = getPost('type');
       $product_data = [
-        'code'               => getPOST('code'),
-        'name'               => getPOST('name'),
-        'unit'               => getPOST('unit'),
-        'cost'               => filterDecimal(getPOST('cost')),
-        'price'              => filterDecimal(getPOST('price')),
-        'warehouses'         => getPOST('warehouses'),
-        'markon_price'       => filterDecimal(getPOST('markon_price')),
-        'markon'             => getPOST('markon'),
-        'safety_stock_ratio' => getPOST('safety_stock_ratio'),
-        'min_order_qty'      => getPOST('min_order_qty'),
-        'iuse_type'          => getPOST('iuse_type'),
-        'active'             => getPOST('active'),
-        'autocomplete'       => getPOST('autocomplete'),
+        'code'               => getPost('code'),
+        'name'               => getPost('name'),
+        'unit'               => getPost('unit'),
+        'cost'               => filterDecimal(getPost('cost')),
+        'price'              => filterDecimal(getPost('price')),
+        'warehouses'         => getPost('warehouses'),
+        'markon_price'       => filterDecimal(getPost('markon_price')),
+        'markon'             => getPost('markon'),
+        'safety_stock_ratio' => getPost('safety_stock_ratio'),
+        'min_order_qty'      => getPost('min_order_qty'),
+        'iuse_type'          => getPost('iuse_type'),
+        'active'             => getPost('active'),
+        'autocomplete'       => getPost('autocomplete'),
         'category_id'        => ($category ? $category->id : NULL),
         'subcategory_id'     => ($subcategory ? $subcategory->id : NULL),
-        'type'               => getPOST('type'),
-        'supplier_id'        => getPOST('supplier'),
-        'sale_unit'          => getPOST('sale_unit'),
-        'purchase_unit'      => getPOST('purchase_unit'),
-        'price_ranges_value' => getPOST('price_ranges_value'),
-        'min_prod_time'      => getPOST('min_prod_time'),
-        'prod_time_qty'      => getPOST('prod_time_qty'),
-        'sn'                 => getPOST('sn'),
-        'priority'           => getPOST('priority'),
-        'purchased_at'       => getPOST('purchased_at'),
-        'purchase_source'    => getPOST('purchase_source')
+        'type'               => getPost('type'),
+        'supplier_id'        => getPost('supplier'),
+        'sale_unit'          => getPost('sale_unit'),
+        'purchase_unit'      => getPost('purchase_unit'),
+        'price_ranges_value' => getPost('price_ranges_value'),
+        'min_prod_time'      => getPost('min_prod_time'),
+        'prod_time_qty'      => getPost('prod_time_qty'),
+        'sn'                 => getPost('sn'),
+        'priority'           => getPost('priority'),
+        'purchased_at'       => getPost('purchased_at'),
+        'purchase_source'    => getPost('purchase_source')
       ];
 
       if ($product_type == 'combo') {
-        $item = getPOST('combo_item_code');
+        $item = getPost('combo_item_code');
         $total = count($item);
 
         for ($a = 0; $a < $total; $a++) {
-          $combo_item_code     = getPOST('combo_item_code');
-          $combo_item_quantity = getPOST('combo_item_quantity');
+          $combo_item_code     = getPost('combo_item_code');
+          $combo_item_quantity = getPost('combo_item_quantity');
 
           $product_data['combo_items'][] = [
             'item_code' => $combo_item_code[$a],
@@ -97,17 +97,17 @@ class Products extends MY_Controller
       $warehouses = $this->site->getAllWarehouses();
       if ($warehouses) {
         foreach ($warehouses as $wh) {
-          if (getPOST('safety_stock_' . $wh->id)) {
+          if (getPost('safety_stock_' . $wh->id)) {
             $product_data['safety_stock'][] = [
-              'quantity' => getPOST('safety_stock_' . $wh->id),
+              'quantity' => getPost('safety_stock_' . $wh->id),
               'warehouse_id' => $wh->id
             ];
           }
 
-          if (getPOST('pic_' . $wh->id) && getPOST('cycle_' . $wh->id)) {
+          if (getPost('pic_' . $wh->id) && getPost('cycle_' . $wh->id)) {
             $product_data['stock_opname'][] = [
-              'user_id'      => getPOST('pic_' . $wh->id),
-              'so_cycle'     => getPOST('cycle_' . $wh->id),
+              'user_id'      => getPost('pic_' . $wh->id),
+              'so_cycle'     => getPost('cycle_' . $wh->id),
               'warehouse_id' => $wh->id,
             ];
           }
@@ -117,9 +117,9 @@ class Products extends MY_Controller
       $price_groups = $this->site->getAllPriceGroups();
       if ($price_groups) {
         foreach ($price_groups as $pg) {
-          if (getPOST('price_groups_' . $pg->id)) {
+          if (getPost('price_groups_' . $pg->id)) {
             $price_ranges = [];
-            foreach (getPOST('price_groups_' . $pg->id) as $price_range) {
+            foreach (getPost('price_groups_' . $pg->id) as $price_range) {
               $price_ranges[] = filterDecimal($price_range);
             }
             $product_data['price_groups'][] = [
@@ -156,10 +156,10 @@ class Products extends MY_Controller
     $this->form_validation->set_rules('warehouse', lang('warehouse'), 'required');
 
     if ($this->form_validation->run() == true) {
-      $date = $this->sma->fld(getPOST('date'));
-      $mode = getPOST('mode');
-      $warehouse_id = getPOST('warehouse');
-      $note         = $this->sma->clear_tags(getPOST('note'));
+      $date = $this->sma->fld(getPost('date'));
+      $mode = getPost('mode');
+      $warehouse_id = getPost('warehouse');
+      $note         = $this->sma->clear_tags(getPost('note'));
 
       $i = isset($_POST['product_id']) ? sizeof($_POST['product_id']) : 0;
       for ($r = 0; $r < $i; $r++) {
@@ -247,10 +247,10 @@ class Products extends MY_Controller
     $this->form_validation->set_rules('warehouse', lang('warehouse'), 'required');
 
     if ($this->form_validation->run() == true) {
-      $date = getPOST('date');
-      $mode = getPOST('mode');
-      $warehouse_id = getPOST('warehouse');
-      $note         = $this->sma->clear_tags(getPOST('note'));
+      $date = getPost('date');
+      $mode = getPost('mode');
+      $warehouse_id = getPost('warehouse');
+      $note         = $this->sma->clear_tags(getPost('note'));
 
       $adjustmentData = [
         'date'         => $date,
@@ -419,11 +419,11 @@ class Products extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'name'        => getPOST('name'),
-        'code'        => getPOST('code'),
-        'slug'        => getPOST('slug'),
-        'description' => getPOST('description'),
-        'parent_code' => getPOST('parent'),
+        'name'        => getPost('name'),
+        'code'        => getPost('code'),
+        'slug'        => getPost('slug'),
+        'description' => getPost('description'),
+        'parent_code' => getPost('parent'),
       ];
 
       if ($_FILES['userfile']['size'] > 0) {
@@ -477,7 +477,7 @@ class Products extends MY_Controller
         $this->image_lib->clear();
         $config = null;
       }
-    } elseif (getPOST('add_category')) {
+    } elseif (getPost('add_category')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('products/categories');
     }
@@ -503,14 +503,14 @@ class Products extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       if (!empty($_POST['val'])) {
-        if (getPOST('form_action') == 'delete') {
+        if (getPost('form_action') == 'delete') {
           $this->sma->checkPermissions('delete');
           foreach ($_POST['val'] as $id) {
             $this->site->deleteStockAdjustment($id);
           }
           $this->session->set_flashdata('message', $this->lang->line('adjustment_deleted'));
           redirect($_SERVER['HTTP_REFERER']);
-        } elseif (getPOST('form_action') == 'export_excel') {
+        } elseif (getPost('form_action') == 'export_excel') {
           // ON PROGRESS
         }
       } else {
@@ -555,7 +555,7 @@ class Products extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       if (!empty($_POST['val'])) {
-        if (getPOST('form_action') == 'delete') {
+        if (getPost('form_action') == 'delete') {
           foreach ($_POST['val'] as $id) {
             $this->site->deleteProductCategory($id);
           }
@@ -563,7 +563,7 @@ class Products extends MY_Controller
           redirect($_SERVER['HTTP_REFERER']);
         }
 
-        if (getPOST('form_action') == 'export_excel') {
+        if (getPost('form_action') == 'export_excel') {
         }
       } else {
         $this->session->set_flashdata('error', lang('no_record_selected'));
@@ -598,10 +598,10 @@ class Products extends MY_Controller
   //   $this->form_validation->set_rules('type', lang('type'), 'required');
 
   //   if ($this->form_validation->run() == true) {
-  //     $warehouse_id = getPOST('warehouse');
-  //     $type         = getPOST('type');
-  //     $categories   = getPOST('category') ? getPOST('category') : null;
-  //     $brands       = getPOST('brand') ? getPOST('brand') : null;
+  //     $warehouse_id = getPost('warehouse');
+  //     $type         = getPost('type');
+  //     $categories   = getPost('category') ? getPost('category') : null;
+  //     $brands       = getPost('brand') ? getPost('brand') : null;
   //     $this->load->helper('string');
   //     $name     = random_string('md5') . '.csv';
   //     $products = $this->products_model->getStockCountProducts($warehouse_id, $type, $categories, $brands);
@@ -647,7 +647,7 @@ class Products extends MY_Controller
   //     }
 
   //     if ($this->Owner || $this->Admin) {
-  //       $date = $this->sma->fld(getPOST('date'));
+  //       $date = $this->sma->fld(getPost('date'));
   //     } else {
   //       $date = date('Y-m-d H:s:i');
   //     }
@@ -690,7 +690,7 @@ class Products extends MY_Controller
   //     $data = [
   //       'date'           => $date,
   //       'warehouse_id'   => $warehouse_id,
-  //       'reference'      => getPOST('reference'),
+  //       'reference'      => getPost('reference'),
   //       'type'           => $type,
   //       'categories'     => $category_ids,
   //       'category_names' => $category_names,
@@ -784,58 +784,58 @@ class Products extends MY_Controller
     $this->form_validation->set_rules('name', lang('product_name'), 'required');
     $this->form_validation->set_rules('type', 'Type required', 'required');
 
-    if (getPOST('type') == 'standard') {
+    if (getPost('type') == 'standard') {
       $this->form_validation->set_rules('cost', lang('product_cost'), 'required');
       $this->form_validation->set_rules('unit', lang('product_unit'), 'required');
     }
 
     $product = $this->site->getProductByID($product_id);
 
-    $cat = getPOST('category');
+    $cat = getPost('category');
     $category = $this->site->getProductCategoryByCode($cat);
 
-    $scat = getPOST('subcategory');
+    $scat = getPost('subcategory');
     $subcategory = $this->site->getProductCategoryByCode($scat);
 
     if ($this->form_validation->run()) {
-      $product_type = getPOST('type');
+      $product_type = getPost('type');
       $product_data = [
         'product_id'          => $product_id,
-        'code'                => getPOST('code'),
-        'name'                => getPOST('name'),
-        'unit'                => getPOST('unit'),
-        'cost'                => filterDecimal(getPOST('cost')),
-        'price'               => filterDecimal(getPOST('price')),
-        'warehouses'          => getPOST('warehouses'),
-        'markon_price'        => filterDecimal(getPOST('markon_price')),
-        'markon'              => getPOST('markon'),
-        'safety_stock_ratio'  => getPOST('safety_stock_ratio'),
-        'min_order_qty'       => getPOST('min_order_qty'),
-        'iuse_type'           => getPOST('iuse_type'),
-        'active'              => (getPOST('active') ?? 0),
-        'autocomplete'        => (getPOST('autocomplete') ?? 0),
+        'code'                => getPost('code'),
+        'name'                => getPost('name'),
+        'unit'                => getPost('unit'),
+        'cost'                => filterDecimal(getPost('cost')),
+        'price'               => filterDecimal(getPost('price')),
+        'warehouses'          => getPost('warehouses'),
+        'markon_price'        => filterDecimal(getPost('markon_price')),
+        'markon'              => getPost('markon'),
+        'safety_stock_ratio'  => getPost('safety_stock_ratio'),
+        'min_order_qty'       => getPost('min_order_qty'),
+        'iuse_type'           => getPost('iuse_type'),
+        'active'              => (getPost('active') ?? 0),
+        'autocomplete'        => (getPost('autocomplete') ?? 0),
         'category_id'         => ($category ? $category->id : NULL),
         'subcategory_id'      => ($subcategory ? $subcategory->id : NULL),
-        'type'                => getPOST('type'),
-        'supplier_id'         => getPOST('supplier'),
-        'sale_unit'           => getPOST('sale_unit'),
-        'purchase_unit'       => getPOST('purchase_unit'),
-        'price_ranges_value'  => getPOST('price_ranges_value'),
-        'min_prod_time'       => getPOST('min_prod_time'),
-        'prod_time_qty'       => getPOST('prod_time_qty'),
-        'sn'                  => getPOST('sn'),
-        'priority'            => getPOST('priority'),
-        'purchased_at'        => getPOST('purchased_at'),
-        'purchase_source'     => getPOST('purchase_source')
+        'type'                => getPost('type'),
+        'supplier_id'         => getPost('supplier'),
+        'sale_unit'           => getPost('sale_unit'),
+        'purchase_unit'       => getPost('purchase_unit'),
+        'price_ranges_value'  => getPost('price_ranges_value'),
+        'min_prod_time'       => getPost('min_prod_time'),
+        'prod_time_qty'       => getPost('prod_time_qty'),
+        'sn'                  => getPost('sn'),
+        'priority'            => getPost('priority'),
+        'purchased_at'        => getPost('purchased_at'),
+        'purchase_source'     => getPost('purchase_source')
       ];
 
       if ($product_type == 'combo') {
-        $item = getPOST('combo_item_code');
+        $item = getPost('combo_item_code');
         $total = (is_array($item) ? count($item) : 0);
 
         for ($a = 0; $a < $total; $a++) {
-          $combo_item_code     = getPOST('combo_item_code');
-          $combo_item_quantity = getPOST('combo_item_quantity');
+          $combo_item_code     = getPost('combo_item_code');
+          $combo_item_quantity = getPost('combo_item_quantity');
 
           $product_data['combo_items'][] = [
             'item_code' => $combo_item_code[$a],
@@ -847,17 +847,17 @@ class Products extends MY_Controller
       $warehouses = $this->site->getAllWarehouses();
       if ($warehouses) {
         foreach ($warehouses as $wh) {
-          if (getPOST('safety_stock_' . $wh->id)) {
+          if (getPost('safety_stock_' . $wh->id)) {
             $product_data['safety_stock'][] = [
-              'quantity' => getPOST('safety_stock_' . $wh->id),
+              'quantity' => getPost('safety_stock_' . $wh->id),
               'warehouse_id' => $wh->id
             ];
           }
 
-          if (getPOST('pic_' . $wh->id) && getPOST('cycle_' . $wh->id)) {
+          if (getPost('pic_' . $wh->id) && getPost('cycle_' . $wh->id)) {
             $product_data['stock_opname'][] = [
-              'user_id'      => getPOST('pic_' . $wh->id),
-              'so_cycle'     => getPOST('cycle_' . $wh->id),
+              'user_id'      => getPost('pic_' . $wh->id),
+              'so_cycle'     => getPost('cycle_' . $wh->id),
               'warehouse_id' => $wh->id,
             ];
           }
@@ -867,9 +867,9 @@ class Products extends MY_Controller
       $price_groups = $this->site->getAllPriceGroups();
       if ($price_groups) {
         foreach ($price_groups as $pg) {
-          if (getPOST('price_groups_' . $pg->id)) {
+          if (getPost('price_groups_' . $pg->id)) {
             $price_ranges = [];
-            foreach (getPOST('price_groups_' . $pg->id) as $price_range) {
+            foreach (getPost('price_groups_' . $pg->id) as $price_range) {
               $price_ranges[] = filterDecimal($price_range);
             }
             $product_data['price_groups'][] = [
@@ -918,11 +918,11 @@ class Products extends MY_Controller
     }
 
     if ($this->form_validation->run() == true) {
-      $date = getPOST('date');
-      $mode = getPOST('mode');
-      $reference = getPOST('reference');
-      $warehouse_id = getPOST('warehouse');
-      $note         = $this->sma->clear_tags(getPOST('note'));
+      $date = getPost('date');
+      $mode = getPost('mode');
+      $reference = getPost('reference');
+      $warehouse_id = getPost('warehouse');
+      $note         = $this->sma->clear_tags(getPost('note'));
 
       $i = isset($_POST['product_id']) ? count($_POST['product_id']) : 0;
       for ($r = 0; $r < $i; $r++) {
@@ -1036,11 +1036,11 @@ class Products extends MY_Controller
     $this->load->helper('security');
     $this->form_validation->set_rules('code', lang('category_code'), 'trim|required');
     $pr_details = $this->site->getProductCategoryByID($id);
-    if (getPOST('code') != $pr_details->code) {
+    if (getPost('code') != $pr_details->code) {
       $this->form_validation->set_rules('code', lang('category_code'), 'required|is_unique[categories.code]');
     }
     $this->form_validation->set_rules('slug', lang('slug'), 'required|alpha_dash');
-    if (getPOST('slug') != $pr_details->slug) {
+    if (getPost('slug') != $pr_details->slug) {
       $this->form_validation->set_rules('slug', lang('slug'), 'required|alpha_dash|is_unique[categories.slug]');
     }
     $this->form_validation->set_rules('name', lang('category_name'), 'required|min_length[3]');
@@ -1049,11 +1049,11 @@ class Products extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'name'        => getPOST('name'),
-        'code'        => getPOST('code'),
-        'slug'        => getPOST('slug'),
-        'description' => getPOST('description'),
-        'parent_code' => getPOST('parent'),
+        'name'        => getPost('name'),
+        'code'        => getPost('code'),
+        'slug'        => getPost('slug'),
+        'description' => getPost('description'),
+        'parent_code' => getPost('parent'),
       ];
 
       if ($_FILES['userfile']['size'] > 0) {
@@ -1105,7 +1105,7 @@ class Products extends MY_Controller
         $this->image_lib->clear();
         $config = null;
       }
-    } elseif (getPOST('edit_category')) {
+    } elseif (getPost('edit_category')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('products/categories');
     }
@@ -3143,12 +3143,12 @@ class Products extends MY_Controller
     }
 
     if ($this->requestMethod == 'POST') {
-      $createdAt       = ($this->isAdmin ? dtPHP(getPOST('created_at')) : $this->serverDateTime);
-      $createdBy       = getPOST('created_by');
-      $warehouseIdFrom = getPOST('from_warehouse');
-      $warehouseIdTo   = getPOST('to_warehouse');
-      $note            = getPOST('note');
-      $products        = getPOST('product');
+      $createdAt       = ($this->isAdmin ? dtPHP(getPost('created_at')) : $this->serverDateTime);
+      $createdBy       = getPost('created_by');
+      $warehouseIdFrom = getPost('from_warehouse');
+      $warehouseIdTo   = getPost('to_warehouse');
+      $note            = getPost('note');
+      $products        = getPost('product');
 
       $items = [];
 
@@ -3288,12 +3288,12 @@ class Products extends MY_Controller
     checkPermission('products-mutation_add');
 
     if ($this->requestMethod == 'POST') {
-      $createdAt       = dtPHP(getPOST('created_at'));
-      $createdBy       = getPOST('created_by');
-      $fromWarehouseId = getPOST('from_warehouse');
-      $toWarehouseId   = getPOST('to_warehouse');
-      $note            = getPOST('note');
-      $products        = getPOST('product');
+      $createdAt       = dtPHP(getPost('created_at'));
+      $createdBy       = getPost('created_by');
+      $fromWarehouseId = getPost('from_warehouse');
+      $toWarehouseId   = getPost('to_warehouse');
+      $note            = getPost('note');
+      $products        = getPost('product');
 
       $items = [];
       $productSize = count($products['id']);
@@ -3341,7 +3341,7 @@ class Products extends MY_Controller
       $this->response(401, ['message' => 'Anda tidak punya akses untuk menghapus.']);
     }
 
-    if ($vals = getPOST('val')) {
+    if ($vals = getPost('val')) {
       $deleted = 0;
 
       foreach ($vals as $pmId) {
@@ -3367,7 +3367,7 @@ class Products extends MY_Controller
   protected function mutation_edit($pmId = NULL)
   {
     $pm = $this->site->getProductMutation(['id' => $pmId]);
-    $mode = (getGET('mode') ?? getPOST('mode') ?? 'edit');
+    $mode = (getGET('mode') ?? getPost('mode') ?? 'edit');
 
     if ($mode == 'edit') {
       checkPermission('products-mutation_edit');
@@ -3376,13 +3376,13 @@ class Products extends MY_Controller
     }
 
     if ($this->requestMethod == 'POST') {
-      $createdAt       = dtPHP($this->isAdmin ? getPOST('created_at') : $pm->created_at);
-      $createdBy       = getPOST('created_by');
-      $fromWarehouseId = getPOST('from_warehouse');
-      $toWarehouseId   = getPOST('to_warehouse');
-      $note            = getPOST('note');
-      $products        = getPOST('product');
-      $status          = getPOST('status');
+      $createdAt       = dtPHP($this->isAdmin ? getPost('created_at') : $pm->created_at);
+      $createdBy       = getPost('created_by');
+      $fromWarehouseId = getPost('from_warehouse');
+      $toWarehouseId   = getPost('to_warehouse');
+      $note            = getPost('note');
+      $products        = getPost('product');
+      $status          = getPost('status');
 
       if (empty($status)) {
         $this->response(400, ['message' => 'Status tidak boleh kosong.']);
@@ -3577,7 +3577,7 @@ class Products extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       if (empty($_POST['val'])) { // If empty val then all products synced.
-        if (getPOST('form_action') == 'sync_quantity') {
+        if (getPost('form_action') == 'sync_quantity') {
           $products = $this->site->getProducts();
 
           if ($products) {
@@ -3602,7 +3602,7 @@ class Products extends MY_Controller
           }
         }
       } else if (!empty($_POST['val'])) { // If not empty val then val products synced.
-        if (getPOST('form_action') == 'sync_quantity') { // Sync quantity.
+        if (getPost('form_action') == 'sync_quantity') { // Sync quantity.
           foreach ($_POST['val'] as $id) {
             $product = Product::getRow(['id' => $id]);
 
@@ -3622,7 +3622,7 @@ class Products extends MY_Controller
             $this->session->set_flashdata('message', $this->lang->line('products_quantity_sync'));
             redirect($_SERVER['HTTP_REFERER']);
           }
-        } elseif (getPOST('form_action') == 'activate') {
+        } elseif (getPost('form_action') == 'activate') {
           $msg = '';
 
           foreach ($_POST['val'] as $id) {
@@ -3636,7 +3636,7 @@ class Products extends MY_Controller
           }
 
           sendJSON(['error' => 0, 'msg' => $msg]);
-        } elseif (getPOST('form_action') == 'deactivate') {
+        } elseif (getPost('form_action') == 'deactivate') {
           $msg = '';
 
           foreach ($_POST['val'] as $id) {
@@ -3650,7 +3650,7 @@ class Products extends MY_Controller
           }
 
           sendJSON(['error' => 0, 'msg' => $msg]);
-        } elseif (getPOST('form_action') == 'delete') {
+        } elseif (getPost('form_action') == 'delete') {
           $this->sma->checkPermissions('delete');
           foreach ($_POST['val'] as $id) {
             Product::delete(['id' => $id]);
@@ -3661,7 +3661,7 @@ class Products extends MY_Controller
             $this->session->set_flashdata('message', $this->lang->line('products_deleted'));
             redirect($_SERVER['HTTP_REFERER']);
           }
-        } elseif (getPOST('form_action') == 'export_excel') {
+        } elseif (getPost('form_action') == 'export_excel') {
           $sheet = $this->ridintek->spreadsheet();
           $sheet->setTitle('Products');
           $sheet->setTabColor('#008000');
@@ -3796,11 +3796,11 @@ class Products extends MY_Controller
 
   //   if ($this->form_validation->run() == true) {
   //     $data = [
-  //       'rack'    => getPOST('rack'),
+  //       'rack'    => getPost('rack'),
   //       'product_id'   => $product_id,
   //       'warehouse_id' => $warehouse_id,
   //     ];
-  //   } elseif (getPOST('set_rack')) {
+  //   } elseif (getPost('set_rack')) {
   //     $this->session->set_flashdata('error', validation_errors());
   //     admin_redirect('products/' . $warehouse_id);
   //   }
@@ -3835,16 +3835,16 @@ class Products extends MY_Controller
     $this->form_validation->set_rules('warehouse', 'Warehouse', 'required');
 
     if ($this->form_validation->run()) {
-      $cycle        = (getPOST('cycle') ?? 1);
-      $date         = dtPHP(getPOST('date'));
-      $item_ids     = getPOST('item_id');
-      $real_qtys    = getPOST('real_qty');
-      $first_qtys   = getPOST('first_qty');
-      $reject_qtys  = getPOST('reject_qty');
-      $note         = htmlEncode(getPOST('note'));
-      $warehouse_id = getPOST('warehouse');
+      $cycle        = (getPost('cycle') ?? 1);
+      $date         = dtPHP(getPost('date'));
+      $item_ids     = getPost('item_id');
+      $real_qtys    = getPost('real_qty');
+      $first_qtys   = getPost('first_qty');
+      $reject_qtys  = getPost('reject_qty');
+      $note         = htmlEncode(getPost('note'));
+      $warehouse_id = getPost('warehouse');
 
-      $pic_id = getPOST('pic');
+      $pic_id = getPost('pic');
 
       if (empty($item_ids)) {
         $this->session->set_flashdata('error', 'No items.');
@@ -3931,7 +3931,7 @@ class Products extends MY_Controller
 
   private function stock_opname_delete()
   {
-    $id = getPOST('id');
+    $id = getPost('id');
     if ($opname = $this->site->getStockOpnameByID($id)) {
       if ($this->site->deleteStockOpname($opname->id)) {
         sendJSON(['error' => 0, 'msg' => 'Stock opname has been delete successfully.']);
@@ -3962,18 +3962,18 @@ class Products extends MY_Controller
     }
 
     if ($this->form_validation->run()) {
-      $product_ids = getPOST('product_id');
-      $prices      = getPOST('price');
-      $quantities  = getPOST('quantity');
-      $first_qtys  = getPOST('first_qty');
-      $reject_qtys = getPOST('reject_qty');
-      $last_qtys   = getPOST('last_qty');
+      $product_ids = getPost('product_id');
+      $prices      = getPost('price');
+      $quantities  = getPost('quantity');
+      $first_qtys  = getPost('first_qty');
+      $reject_qtys = getPost('reject_qty');
+      $last_qtys   = getPost('last_qty');
 
       $so_data = [
-        'reference'    => getPOST('reference'),
-        'note'         => htmlEncode(getPOST('note')),
-        'status'       => getPOST('status'),
-        'warehouse_id' => getPOST('warehouse'),
+        'reference'    => getPost('reference'),
+        'note'         => htmlEncode(getPost('note')),
+        'status'       => getPost('status'),
+        'warehouse_id' => getPost('warehouse'),
         'updated_by'   => XSession::get('user_id'),
         'updated_at'   => date('Y-m-d H:i:s')
       ];
@@ -4341,7 +4341,7 @@ class Products extends MY_Controller
   private function stock_opname_syncStockOpname()
   {
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && $this->input->is_ajax_request()) {
-      if ($values = getPOST('val')) {
+      if ($values = getPost('val')) {
         foreach ($values as $opname_id) {
           $this->site->syncStockOpname($opname_id);
         }
@@ -4464,12 +4464,12 @@ class Products extends MY_Controller
     }
 
     if ($this->requestMethod == 'POST') {
-      $createdAt       = ($this->isAdmin ? dtPHP(getPOST('created_at')) : $this->serverDateTime);
-      $createdBy       = getPOST('created_by');
-      $warehouseIdFrom = getPOST('from_warehouse');
-      $warehouseIdTo   = getPOST('to_warehouse');
-      $note            = getPOST('note');
-      $products        = getPOST('product');
+      $createdAt       = ($this->isAdmin ? dtPHP(getPost('created_at')) : $this->serverDateTime);
+      $createdBy       = getPost('created_by');
+      $warehouseIdFrom = getPost('from_warehouse');
+      $warehouseIdTo   = getPost('to_warehouse');
+      $note            = getPost('note');
+      $products        = getPost('product');
 
       $items = [];
 
@@ -4519,12 +4519,12 @@ class Products extends MY_Controller
     $pt = ProductTransfer::getRow(['id' => $ptId]);
 
     if ($this->requestMethod == 'POST') {
-      $createdAt   = dtPHP(getPOST('created_at'));
-      $createdBy   = getPOST('created_by');
-      $bankIdFrom  = getPOST('bank_id_from');
-      $bankIdTo    = getPOST('bank_id_to');
-      $amount      = filterDecimal(getPOST('amount'));
-      $note        = htmlEncode(getPOST('note'));
+      $createdAt   = dtPHP(getPost('created_at'));
+      $createdBy   = getPost('created_by');
+      $bankIdFrom  = getPost('bank_id_from');
+      $bankIdTo    = getPost('bank_id_to');
+      $amount      = filterDecimal(getPost('amount'));
+      $note        = htmlEncode(getPost('note'));
 
       $paymentData = [
         'transfer_id'        => $pt->id,
@@ -4553,7 +4553,7 @@ class Products extends MY_Controller
 
   protected function transfer_addProductTransferFromPlan()
   {
-    $warehouses = getPOST('warehouse'); // ID: durian, fatmawati, tembalang...
+    $warehouses = getPost('warehouse'); // ID: durian, fatmawati, tembalang...
 
     if ($warehouses) {
       $failed  = 0;
@@ -4579,7 +4579,7 @@ class Products extends MY_Controller
       $this->response(401, ['message' => 'Anda tidak punya akses untuk menghapus.']);
     }
 
-    if ($vals = getPOST('val')) {
+    if ($vals = getPost('val')) {
       $deleted = 0;
 
       foreach ($vals as $pmId) {
@@ -4620,7 +4620,7 @@ class Products extends MY_Controller
   protected function transfer_edit($ptId = NULL)
   {
     $pt = ProductTransfer::getRow(['id' => $ptId]);
-    $mode = (getGET('mode') ?? getPOST('mode') ?? 'edit');
+    $mode = (getGET('mode') ?? getPost('mode') ?? 'edit');
 
     if ($mode == 'edit') {
       checkPermission('products-transfer_edit');
@@ -4629,13 +4629,13 @@ class Products extends MY_Controller
     }
 
     if ($this->requestMethod == 'POST') {
-      $createdAt       = dtPHP($this->isAdmin ? getPOST('created_at') : $pt->created_at);
-      $createdBy       = getPOST('created_by');
-      $warehouseIdFrom = getPOST('from_warehouse');
-      $warehouseIdTo   = getPOST('to_warehouse');
-      $note            = getPOST('note');
-      $products        = getPOST('product');
-      $status          = getPOST('status');
+      $createdAt       = dtPHP($this->isAdmin ? getPost('created_at') : $pt->created_at);
+      $createdBy       = getPost('created_by');
+      $warehouseIdFrom = getPost('from_warehouse');
+      $warehouseIdTo   = getPost('to_warehouse');
+      $note            = getPost('note');
+      $products        = getPost('product');
+      $status          = getPost('status');
 
       $isReceived = ($status == 'received' || $status == 'received_partial');
 

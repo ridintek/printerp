@@ -38,37 +38,37 @@ class Suppliers extends MY_Controller
 
     if ($this->form_validation->run('suppliers/add') == true) {
       $data = [
-        'name'              => getPOST('name'),
-        'email'             => getPOST('email'),
-        'company'           => getPOST('company'),
-        'address'           => getPOST('address'),
-        'city'              => getPOST('city'),
-        'postal_code'       => getPOST('postal_code'),
-        'country'           => getPOST('country'),
-        'phone'             => preg_replace('/[^0-9]/', '', getPOST('phone')),
-        'payment_term'      => getPOST('payment_term'),
+        'name'              => getPost('name'),
+        'email'             => getPost('email'),
+        'company'           => getPost('company'),
+        'address'           => getPost('address'),
+        'city'              => getPost('city'),
+        'postal_code'       => getPost('postal_code'),
+        'country'           => getPost('country'),
+        'phone'             => preg_replace('/[^0-9]/', '', getPost('phone')),
+        'payment_term'      => getPost('payment_term'),
         'json'              => json_encode([
-          'acc_holder'     => getPOST('acc_holder'),
-          'acc_no'         => preg_replace('/[^0-9]/', '', getPOST('acc_no')),
-          'acc_name'       => getPOST('acc_name'),
-          'acc_bic'        => getPOST('acc_bic'),
-          'cycle_purchase' => getPOST('cycle_purchase'),
-          'delivery_time'  => getPOST('delivery_time'),
-          'visit_days'     => getPOST('visit_days'),
-          'visit_weeks'    => getPOST('visit_weeks'),
+          'acc_holder'     => getPost('acc_holder'),
+          'acc_no'         => preg_replace('/[^0-9]/', '', getPost('acc_no')),
+          'acc_name'       => getPost('acc_name'),
+          'acc_bic'        => getPost('acc_bic'),
+          'cycle_purchase' => getPost('cycle_purchase'),
+          'delivery_time'  => getPost('delivery_time'),
+          'visit_days'     => getPost('visit_days'),
+          'visit_weeks'    => getPost('visit_weeks'),
         ]),
         'json_data'         => json_encode([
-          'acc_holder'     => getPOST('acc_holder'),
-          'acc_no'         => preg_replace('/[^0-9]/', '', getPOST('acc_no')),
-          'acc_name'       => getPOST('acc_name'),
-          'acc_bic'        => getPOST('acc_bic'),
-          'cycle_purchase' => getPOST('cycle_purchase'),
-          'delivery_time'  => getPOST('delivery_time'),
-          'visit_days'     => getPOST('visit_days'),
-          'visit_weeks'    => getPOST('visit_weeks'),
+          'acc_holder'     => getPost('acc_holder'),
+          'acc_no'         => preg_replace('/[^0-9]/', '', getPost('acc_no')),
+          'acc_name'       => getPost('acc_name'),
+          'acc_bic'        => getPost('acc_bic'),
+          'cycle_purchase' => getPost('cycle_purchase'),
+          'delivery_time'  => getPost('delivery_time'),
+          'visit_days'     => getPost('visit_days'),
+          'visit_weeks'    => getPost('visit_weeks'),
         ])
       ];
-    } elseif (getPOST('add_supplier')) {
+    } elseif (getPost('add_supplier')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('suppliers');
     }
@@ -97,21 +97,21 @@ class Suppliers extends MY_Controller
     $this->form_validation->set_rules('password_confirm', $this->lang->line('confirm_password'), 'required');
 
     if ($this->form_validation->run('suppliers/add_user') == true) {
-      $active                  = getPOST('status');
-      $notify                  = getPOST('notify');
-      list($username, $domain) = explode('@', getPOST('email'));
-      $email                   = strtolower(getPOST('email'));
-      $password                = getPOST('password');
+      $active                  = getPost('status');
+      $notify                  = getPost('notify');
+      list($username, $domain) = explode('@', getPost('email'));
+      $email                   = strtolower(getPost('email'));
+      $password                = getPost('password');
       $additional_data         = [
-        'first_name' => getPOST('first_name'),
-        'last_name'  => getPOST('last_name'),
-        'phone'      => preg_replace('/[^0-9]/', '', getPOST('phone')),
-        'gender'     => getPOST('gender'),
+        'first_name' => getPost('first_name'),
+        'last_name'  => getPost('last_name'),
+        'phone'      => preg_replace('/[^0-9]/', '', getPost('phone')),
+        'gender'     => getPost('gender'),
         'supplier_id' => $supplier->id,
         'company'    => $supplier->company
       ];
       $this->load->library('ion_auth');
-    } elseif (getPOST('add_user')) {
+    } elseif (getPost('add_user')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('suppliers');
     }
@@ -150,7 +150,7 @@ class Suppliers extends MY_Controller
     }
 
     $supplier = $this->site->getSupplierByID($supplier_id);
-    $update_ss = getPOST('update_ss'); // Update safety stock.
+    $update_ss = getPost('update_ss'); // Update safety stock.
     $this->form_validation->set_rules('name',         lang('name'), 'required');
     $this->form_validation->set_rules('company',      lang('company'), 'required');
     $this->form_validation->set_rules('phone',        lang('phone'), 'required');
@@ -164,37 +164,37 @@ class Suppliers extends MY_Controller
 
     if ($this->form_validation->run('suppliers/add') == true) {
       $data = [
-        'name'              => getPOST('name'),
-        'email'             => getPOST('email'),
-        'company'           => getPOST('company'),
-        'address'           => getPOST('address'),
-        'city'              => getPOST('city'),
-        'postal_code'       => getPOST('postal_code'),
-        'country'           => getPOST('country'),
-        'phone'             => preg_replace('/[^0-9]/', '', getPOST('phone')),
-        'payment_term'      => getPOST('payment_term'),
+        'name'              => getPost('name'),
+        'email'             => getPost('email'),
+        'company'           => getPost('company'),
+        'address'           => getPost('address'),
+        'city'              => getPost('city'),
+        'postal_code'       => getPost('postal_code'),
+        'country'           => getPost('country'),
+        'phone'             => preg_replace('/[^0-9]/', '', getPost('phone')),
+        'payment_term'      => getPost('payment_term'),
         'json'              => json_encode([
-          'acc_holder'     => getPOST('acc_holder'),
-          'acc_no'         => preg_replace('/[^0-9]/', '', getPOST('acc_no')),
-          'acc_name'       => getPOST('acc_name'),
-          'acc_bic'        => getPOST('acc_bic'),
-          'cycle_purchase' => getPOST('cycle_purchase'),
-          'delivery_time'  => getPOST('delivery_time'),
-          'visit_days'     => getPOST('visit_days'),
-          'visit_weeks'    => getPOST('visit_weeks'),
+          'acc_holder'     => getPost('acc_holder'),
+          'acc_no'         => preg_replace('/[^0-9]/', '', getPost('acc_no')),
+          'acc_name'       => getPost('acc_name'),
+          'acc_bic'        => getPost('acc_bic'),
+          'cycle_purchase' => getPost('cycle_purchase'),
+          'delivery_time'  => getPost('delivery_time'),
+          'visit_days'     => getPost('visit_days'),
+          'visit_weeks'    => getPost('visit_weeks'),
         ]),
         'json_data'         => json_encode([
-          'acc_holder'     => getPOST('acc_holder'),
-          'acc_no'         => preg_replace('/[^0-9]/', '', getPOST('acc_no')),
-          'acc_name'       => getPOST('acc_name'),
-          'acc_bic'        => getPOST('acc_bic'),
-          'cycle_purchase' => getPOST('cycle_purchase'),
-          'delivery_time'  => getPOST('delivery_time'),
-          'visit_days'     => getPOST('visit_days'),
-          'visit_weeks'    => getPOST('visit_weeks'),
+          'acc_holder'     => getPost('acc_holder'),
+          'acc_no'         => preg_replace('/[^0-9]/', '', getPost('acc_no')),
+          'acc_name'       => getPost('acc_name'),
+          'acc_bic'        => getPost('acc_bic'),
+          'cycle_purchase' => getPost('cycle_purchase'),
+          'delivery_time'  => getPost('delivery_time'),
+          'visit_days'     => getPost('visit_days'),
+          'visit_weeks'    => getPost('visit_weeks'),
         ])
       ];
-    } elseif (getPOST('edit_supplier')) {
+    } elseif (getPost('edit_supplier')) {
       $this->session->set_flashdata('error', validation_errors());
       redirect($_SERVER['HTTP_REFERER']);
     }
@@ -349,7 +349,7 @@ class Suppliers extends MY_Controller
           }
         }
       }
-    } elseif (getPOST('import')) {
+    } elseif (getPost('import')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('suppliers');
     }
@@ -416,7 +416,7 @@ class Suppliers extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       if (!empty($_POST['val'])) {
-        if (getPOST('form_action') == 'delete') {
+        if (getPost('form_action') == 'delete') {
           $this->sma->checkPermissions('delete');
           $error = false;
           foreach ($_POST['val'] as $id) {
@@ -432,7 +432,7 @@ class Suppliers extends MY_Controller
           redirect($_SERVER['HTTP_REFERER']);
         }
 
-        if (getPOST('form_action') == 'export_excel') {
+        if (getPost('form_action') == 'export_excel') {
           $this->load->library('excel');
           $this->excel->setActiveSheetIndex(0);
           $this->excel->getActiveSheet()->setTitle(lang('customer'));

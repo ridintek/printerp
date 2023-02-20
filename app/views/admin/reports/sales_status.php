@@ -1,16 +1,16 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <?php
 $q = '';
-$biller     = getPOST('biller');
-$customer   = getPOST('customer');
-$categories = getPOST('categories'); // product categories
-$group_by   = getPOST('group_by');
-$product    = getPOST('product');
-$reference  = getPOST('reference');
-$warehouse  = getPOST('warehouse');
-$users      = getPOST('users');
-$start_date = getPOST('start_date');
-$end_date   = getPOST('end_date');
+$biller     = getPost('biller');
+$customer   = getPost('customer');
+$categories = getPost('categories'); // product categories
+$group_by   = getPost('group_by');
+$product    = getPost('product');
+$reference  = getPost('reference');
+$warehouse  = getPost('warehouse');
+$users      = getPost('users');
+$start_date = getPost('start_date');
+$end_date   = getPost('end_date');
 
 if ($group_by) {
   $q .= '&group_by=' . $group_by;
@@ -150,9 +150,9 @@ if ($end_date) {
 </script>
 <script type="text/javascript">
   $(document).ready(function() {
-    <?php if (getPOST('customer')) {
+    <?php if (getPost('customer')) {
     ?>
-      $('#customer').val(<?= getPOST('customer') ?>).select2({
+      $('#customer').val(<?= getPost('customer') ?>).select2({
         minimumInputLength: 1,
         data: [],
         initSelection: function(element, callback) {
@@ -193,7 +193,7 @@ if ($end_date) {
         }
       });
 
-      $('#customer').val(<?= getPOST('customer') ?>);
+      $('#customer').val(<?= getPost('customer') ?>);
     <?php
     } ?>
     $('.toggle_down').click(function() {

@@ -136,7 +136,7 @@ if ($end_payment_date = getGET('end_payment_date')) {
 
     $('#dtfilter').datatableFilter();
 
-    <?php if ($supp = getPOST('supplier')) { ?>
+    <?php if ($supp = getPost('supplier')) { ?>
       $('#supplier_x').val(<?= $supp; ?>).select2({
         minimumInputLength: 1,
         initSelection: function(element, callback) {

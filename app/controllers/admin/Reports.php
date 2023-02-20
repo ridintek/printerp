@@ -601,6 +601,7 @@ class Reports extends MY_Controller
       $sheet->getSheetByName('Sheet2'); // Goto sheet2.
 
       foreach ($sales as $sale) {
+        if ($sale->status == 'inactive') continue;
         if ($sale->created_by != $user->id) continue;
         $saleJS = getJSON($sale->json_data);
 
@@ -740,6 +741,8 @@ class Reports extends MY_Controller
 
       // Over-Payment
       foreach ($sales as $sale) {
+        if ($sale->status == 'inactive') continue;
+
         $saleJS = getJSON($sale->json_data);
 
         if (empty($saleJS->cashier_by) || $saleJS->cashier_by != $user->id) continue;
@@ -851,6 +854,7 @@ class Reports extends MY_Controller
     $r1 = 3;
 
     foreach ($sales as $sale) {
+      if ($sale->status == 'inactive') continue;
       if ($sale->payment_status == 'paid') continue;
 
       $customer = $this->site->getCustomerByID($sale->customer_id);
@@ -1920,6 +1924,8 @@ class Reports extends MY_Controller
     $r = 2;
 
     foreach ($sales as $sale) {
+      if ($sale->status == 'inactive') continue;
+
       $biller     = Biller::getRow(['id' => $sale->biller_id]);
       $warehouse  = Warehouse::getRow(['id' => $sale->warehouse_id]);
       $pic        = User::getRow(['id' => $sale->created_by]);

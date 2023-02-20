@@ -915,8 +915,8 @@
     <div class="box">
       <div class="box-header">
         <h2 class="blue"><i class="fa-fw fa fa-filter"></i><?= lang('adjustments_report'); ?><?php
-          if (getPOST('start_date')) {
-            echo 'From ' . getPOST('start_date') . ' to ' . getPOST('end_date');
+          if (getPost('start_date')) {
+            echo 'From ' . getPost('start_date') . ' to ' . getPost('end_date');
           } ?>
         </h2>
         <div class="box-icon">

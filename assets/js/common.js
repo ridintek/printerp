@@ -1213,7 +1213,7 @@ function renderStatus(status) {
     'served', 'success', 'validated', 'verified'
   ];
   let warning = [
-    'called', 'cancelled', 'checked', 'draft', 'packing', 'pending', 'slow', 'trouble',
+    'called', 'cancelled', 'checked', 'draft', 'inactive', 'packing', 'pending', 'slow', 'trouble',
     'waiting', 'waiting_production', 'waiting_transfer'
   ];
 

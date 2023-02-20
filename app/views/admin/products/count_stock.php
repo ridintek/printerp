@@ -68,13 +68,13 @@
                   <div class="panel-body">
                     <div class="row">
                       <div class="col-xs-6 col-sm-2">
-                        <input type="radio" class="checkbox type" value="full" name="type" id="full" <?= getPOST('type') ? 'checked="checked"' : ''; ?> required="required">
+                        <input type="radio" class="checkbox type" value="full" name="type" id="full" <?= getPost('type') ? 'checked="checked"' : ''; ?> required="required">
                         <label for="full" class="padding05">
                           <?= lang('full'); ?>
                         </label>
                       </div>
                       <div class="col-xs-6 col-sm-2">
-                        <input type="radio" class="checkbox type" value="partial" name="type" id="partial" <?= getPOST('type') ? 'checked="checked"' : ''; ?>>
+                        <input type="radio" class="checkbox type" value="partial" name="type" id="partial" <?= getPost('type') ? 'checked="checked"' : ''; ?>>
                         <label for="partial" class="padding05">
                           <?= lang('partial'); ?>
                         </label>

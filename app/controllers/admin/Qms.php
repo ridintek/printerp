@@ -17,10 +17,10 @@ class Qms extends MY_Controller
    */
   public function addQueueTicket()
   {
-    $name         = getPOST('name');
-    $phone        = getPOST('phone');
-    $category_id  = getPOST('category');
-    $warehouse_id = getPOST('warehouse');
+    $name         = getPost('name');
+    $phone        = getPost('phone');
+    $category_id  = getPost('category');
+    $warehouse_id = getPost('warehouse');
 
     $ticket_data = [
       'name'  => $name,
@@ -116,10 +116,10 @@ class Qms extends MY_Controller
 
   public function endQueue()
   {
-    $ticket_id = getPOST('ticket');
+    $ticket_id = getPost('ticket');
 
     $queueData = [
-      'serve_time' => (getPOST('serve_time') ?? NULL)
+      'serve_time' => (getPost('serve_time') ?? NULL)
     ];
 
     if ($this->Qms_model->endQueue($ticket_id, $queueData)) {
@@ -627,10 +627,10 @@ class Qms extends MY_Controller
 
     if ($queueSession = $this->Qms_model->getTodayQueueSession($user_id)) {
       $sessionData = [
-        'over_wcall_time'  => getPOST('over_wait_call_time'),
-        'over_wserve_time' => getPOST('over_wait_serve_time'),
-        'over_serve_time'  => getPOST('over_serve_time'),
-        'over_rest_time'   => getPOST('over_rest_time')
+        'over_wcall_time'  => getPost('over_wait_call_time'),
+        'over_wserve_time' => getPost('over_wait_serve_time'),
+        'over_serve_time'  => getPost('over_serve_time'),
+        'over_rest_time'   => getPost('over_rest_time')
       ];
 
       if ($this->Qms_model->updateQueueSession($queueSession->id, $sessionData)) {
@@ -645,7 +645,7 @@ class Qms extends MY_Controller
 
   public function serveQueue()
   {
-    $ticket_id = getPOST('ticket');
+    $ticket_id = getPost('ticket');
 
     if ($this->Qms_model->serveQueue($ticket_id)) {
       sendJSON(['error' => 0, 'msg' => 'OK']);
@@ -655,7 +655,7 @@ class Qms extends MY_Controller
 
   public function setCounter()
   {
-    $counter = intval(getPOST('counter'));
+    $counter = intval(getPost('counter'));
     $user_id = XSession::get('user_id');
     $warehouse_id = (XSession::get('warehouse_id') ?? $this->Settings->default_warehouse);
 
@@ -694,7 +694,7 @@ class Qms extends MY_Controller
 
   public function skipQueue()
   {
-    $ticket_id = getPOST('ticket');
+    $ticket_id = getPost('ticket');
 
     if ($this->Qms_model->skipQueue($ticket_id)) {
       sendJSON(['error' => 0, 'msg' => 'OK']);

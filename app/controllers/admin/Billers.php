@@ -28,19 +28,19 @@ class Billers extends MY_Controller
 
     if ($this->form_validation->run('billers/add') == true) {
       $data = [
-        'name'      => getPOST('name'),
-        'email'     => getPOST('email'),
-        'company'   => getPOST('company'),
-        'address'   => getPOST('address'),
-        'city'      => getPOST('city'),
-        'phone'     => getPOST('phone'),
-        'logo'      => getPOST('logo'),
+        'name'      => getPost('name'),
+        'email'     => getPost('email'),
+        'company'   => getPost('company'),
+        'address'   => getPost('address'),
+        'city'      => getPost('city'),
+        'phone'     => getPost('phone'),
+        'logo'      => getPost('logo'),
         'json_data' => json_encode([
-          'target'    => filterDecimal(getPOST('target')),
-          'whatsapp'  => getPOST('whatsapp')
+          'target'    => filterDecimal(getPost('target')),
+          'whatsapp'  => getPost('whatsapp')
         ])
       ];
-    } elseif (getPOST('add_biller')) {
+    } elseif (getPost('add_biller')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('billers');
     }
@@ -66,7 +66,7 @@ class Billers extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       if (!empty($_POST['val'])) {
-        if (getPOST('form_action') == 'delete') {
+        if (getPost('form_action') == 'delete') {
           $this->sma->checkPermissions('delete');
           $error = false;
           foreach ($_POST['val'] as $id) {
@@ -115,25 +115,25 @@ class Billers extends MY_Controller
     }
 
     $biller = $this->site->getBillerByID($id);
-    if (getPOST('email') != $biller->email) {
+    if (getPost('email') != $biller->email) {
       $this->form_validation->set_rules('code', lang('email_address'), 'is_unique[billers.email]');
     }
 
     if ($this->form_validation->run('billers/add') == true) {
       $data = [
-        'name'      => getPOST('name'),
-        'email'     => getPOST('email'),
-        'company'   => getPOST('company'),
-        'address'   => getPOST('address'),
-        'city'      => getPOST('city'),
-        'phone'     => getPOST('phone'),
-        'logo'      => getPOST('logo'),
+        'name'      => getPost('name'),
+        'email'     => getPost('email'),
+        'company'   => getPost('company'),
+        'address'   => getPost('address'),
+        'city'      => getPost('city'),
+        'phone'     => getPost('phone'),
+        'logo'      => getPost('logo'),
         'json_data' => json_encode([
-          'target'    => filterDecimal(getPOST('target')),
-          'whatsapp'  => getPOST('whatsapp')
+          'target'    => filterDecimal(getPost('target')),
+          'whatsapp'  => getPost('whatsapp')
         ])
       ];
-    } elseif (getPOST('edit_biller')) {
+    } elseif (getPost('edit_biller')) {
       $this->session->set_flashdata('error', validation_errors());
       admin_redirect('billers');
     }
@@ -142,7 +142,7 @@ class Billers extends MY_Controller
       $this->session->set_flashdata('message', $this->lang->line('biller_updated'));
       admin_redirect('billers');
     } else {
-      if (getPOST('edit_biller')) {
+      if (getPost('edit_biller')) {
         $this->session->set_flashdata('error', 'Failed to save');
         admin_redirect('billers');
       }
@@ -263,7 +263,7 @@ class Billers extends MY_Controller
           }
         } // foreach
       }
-    } else if (getPOST('import')) {
+    } else if (getPost('import')) {
       $this->session->set_flashdata('error', 'E1: ' . validation_errors());
       admin_redirect('billers');
     }
@@ -286,7 +286,7 @@ class Billers extends MY_Controller
       $this->session->set_flashdata('message', sprintf(lang('csv_billers_imported'), $added, $updated));
       admin_redirect('billers');
     } else {
-      if (getPOST('import')) {
+      if (getPost('import')) {
         $this->session->set_flashdata('error', 'E2: ' . validation_errors());
         admin_redirect('billers');
       }
