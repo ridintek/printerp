@@ -85,7 +85,6 @@ class Sale
       'attachment'      => ($data['attachment'] ?? NULL),
       'payment_method'  => ($data['payment_method'] ?? NULL),
       'use_tb'          => $useTB,
-      'active'          => 1,
       'json'            => json_encode([
         'approved'          => ($data['approved'] ?? 0),
         'cashier_by'        => ($data['cashier_by'] ?? ''),
@@ -564,7 +563,6 @@ class Sale
       if (isset($data['attachment']))     $saleData['attachment']     = $data['attachment'];
       if (isset($data['payment_method'])) $saleData['payment_method'] = $data['payment_method'];
       if (isset($data['use_tb']))         $saleData['use_tb']         = $data['use_tb'];
-      if (isset($data['active']))         $saleData['active']         = $data['active'];
 
       if (!empty($data['updated_by'])) $saleData['updated_by'] = $data['updated_by'];
       if (!empty($data['updated_at'])) $saleData['updated_at'] = $data['updated_at'];

@@ -130,7 +130,7 @@ class Sales extends MY_Controller
         $excel->setColumnAutoWidth('L');
         $excel->setColumnAutoWidth('M');
         $excel->setColumnAutoWidth('N');
-        $filename = 'PrintERP - SalesList-' . date('Y_m_d_H_i_s');
+        $filename = 'PrintERP - SalesList-' . date('Ymd_His');
         $excel->export($filename);
       }
     }

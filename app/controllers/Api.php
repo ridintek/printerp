@@ -1,9 +1,6 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-/* Change this version as you need. */
-const API_VERSION = 'v1';
-
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\PHPMailer;
@@ -333,6 +330,43 @@ class Api extends MY_Controller
    *
    * https://github.com/daffigusti/mutasi_api_sample/blob/master/callback.php
    */
+  private function mutasibank_v2($mode = NULL) // Callback untuk mutasibank.co.id
+  {
+    if ($mode == 'accounts') {
+      $this->mutasibank_accounts();
+      die();
+    }
+
+    if ($mode == 'accountStatements') {
+      $this->mutasibank_accountStatements();
+      die();
+    }
+
+    if ($mode == 'manualValidation') {
+      $this->mutasibank_manualValidation();
+      die();
+    }
+
+    // WE GET VALIDATION DATA FROM mutasibank TABLE.
+    // $response = json_decode(file_get_contents('php://input'));
+
+    // if (empty($response)) {
+    //   $this->response(400, ['message' => 'Data is empty.']);
+    // }
+
+    if ($total = PaymentValidation::validate2()) { // Segala pengecekan dan validasi data di sini.
+      $this->response(200, ['message' => sprintf('V2: Success validate %d payment validations.', $total)]);
+    } else {
+      $this->response(404, ['message' => 'V2: No validated payment validations']);
+    }
+  }
+
+  /**
+   * Ketika ada transaksi debet/kredit di salah satu akun, server mutasibank.co.id akan
+   * mengirimkan data ke method ini melalui link: https://printerp.indoprinting.co.id/api/v1/mutasibank
+   *
+   * https://github.com/daffigusti/mutasi_api_sample/blob/master/callback.php
+   */
   private function mutasibank_v1($mode = NULL) // Callback untuk mutasibank.co.id
   {
     if ($mode == 'accounts') {
@@ -350,13 +384,13 @@ class Api extends MY_Controller
       die();
     }
 
-    $mb_response = json_decode(file_get_contents('php://input'));
+    $response = json_decode(file_get_contents('php://input'));
 
-    if (empty($mb_response)) {
+    if (empty($response)) {
       $this->response(400, ['message' => 'Data is empty.']);
     }
 
-    if ($total = PaymentValidation::validate($mb_response)) { // Segala pengecekan dan validasi data di sini.
+    if ($total = PaymentValidation::validate($response)) { // Segala pengecekan dan validasi data di sini.
       $this->response(200, ['message' => sprintf('Success validate %d payment validations.', $total)]);
     } else {
       $this->response(404, ['message' => 'No validated payment validations']);
@@ -1354,9 +1388,23 @@ class Api extends MY_Controller
   public function v1($module = NULL)
   {
     $args = func_get_args();
-    if (method_exists($this, $module . '_' . API_VERSION)) {
+    if (method_exists($this, $module . '_' . __FUNCTION__)) {
       array_shift($args); // Important to remove $module from args.
-      call_user_func_array(array($this, $module . '_' . API_VERSION), $args);
+      call_user_func_array(array($this, $module . '_' . __FUNCTION__), $args);
+    } else {
+      $this->redirect();
+    }
+  }
+
+  /**
+   * API Version 2
+   */
+  public function v2($module = NULL)
+  {
+    $args = func_get_args();
+    if (method_exists($this, $module . '_' . __FUNCTION__)) {
+      array_shift($args); // Important to remove $module from args.
+      call_user_func_array(array($this, $module . '_' . __FUNCTION__), $args);
     } else {
       $this->redirect();
     }

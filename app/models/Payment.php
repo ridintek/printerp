@@ -49,7 +49,7 @@ class Payment
     // If type is not defined, sent or received depended on amount.
     $data['type'] = ($data['type'] ?? ($data['amount'] < 0 ? 'sent' : 'received'));
 
-    $data['reference_date'] = ($data['reference_date'] ?? $inv->created_at);
+    $data['reference_date'] = ($data['reference_date'] ?? $inv->date);
     $data['reference']      = $inv->reference;
     $data['biller_id']      = $bank->biller_id;
     $data['bank']   = $bank->code;
