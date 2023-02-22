@@ -607,6 +607,7 @@ class Reports extends MY_Controller
 
         $cashier = $this->site->getUserByID($saleJS->cashier_by ?? 0);
         $payments = $this->site->getPayments(['sale_id' => $sale->id]);
+        $customer = Customer::getRow(['id' => $sale->customer_id]);
         $custGroup = $this->site->getCustomerGroupByCustomerID($sale->customer_id);
         $productionStatus = '';
         $getStatus = '';
@@ -664,7 +665,7 @@ class Reports extends MY_Controller
         $sheet->setCellValue("G{$r2}", ($saleJS->est_complete_date ?? ''));
         $sheet->setCellValue("H{$r2}", ($saleJS->source ?? ''));
         $sheet->setCellValue("I{$r2}", ($sale->use_tb ? $sale->warehouse : ''));
-        $sheet->setCellValue("J{$r2}", $sale->customer_name);
+        $sheet->setCellValue("J{$r2}", $customer->name . ($customer->company ? " ({$customer->company})": ''));
         $sheet->setCellValue("K{$r2}", $custGroup->name);
         $sheet->setCellValue("L{$r2}", lang($sale->status));
         $sheet->setCellValue("M{$r2}", ($saleJS->waiting_production_date ?? ''));
@@ -728,7 +729,7 @@ class Reports extends MY_Controller
         $sheet->setCellValue("I{$r3}", ($payments ? $payments[0]->created_at : ''));
         $sheet->setCellValue("J{$r3}", ($saleItemJS->due_date ?? ''));
         $sheet->setCellValue("K{$r3}", ($saleItemJS->completed_at ?? $saleItemJS->updated_at ?? ''));
-        $sheet->setCellValue("L{$r3}", $sale->customer_name);
+        $sheet->setCellValue("L{$r3}", $customer->name . ($customer->company ? " ({$customer->company})" : ''));
         $sheet->setCellValue("M{$r3}", lang($saleItemJS->status));
         $sheet->setCellValue("N{$r3}", ($overProduction ? lang('over_due') : ''));
         $sheet->setCellValue("O{$r3}", $sale->warehouse);
@@ -863,7 +864,7 @@ class Reports extends MY_Controller
 
       $sheet->setCellValue("A{$r1}", $sale->created_at);
       $sheet->setCellValue("B{$r1}", $sale->reference);
-      $sheet->setCellValue("C{$r1}", $sale->customer_name);
+      $sheet->setCellValue("C{$r1}", $customer->name . ($customer->company ? " ({$customer->company})" : ''));
       $sheet->setCellValue("D{$r1}", $customerGroup->name);
       $sheet->setCellValue("E{$r1}", $sale->biller);
       $sheet->setCellValue("F{$r1}", $sale->warehouse);
@@ -1927,6 +1928,7 @@ class Reports extends MY_Controller
       if ($sale->status == 'inactive') continue;
 
       $biller     = Biller::getRow(['id' => $sale->biller_id]);
+      $customer   = Customer::getRow(['id' => $sale->customer_id]);
       $warehouse  = Warehouse::getRow(['id' => $sale->warehouse_id]);
       $pic        = User::getRow(['id' => $sale->created_by]);
 
@@ -1935,7 +1937,7 @@ class Reports extends MY_Controller
       $sheet->setCellValue('C' . $r, $sale->created_at);
       $sheet->setCellValue('D' . $r, $biller->name);
       $sheet->setCellValue('E' . $r, $warehouse->name);
-      $sheet->setCellValue('F' . $r, $sale->customer_name);
+      $sheet->setCellValue('F' . $r, $customer->name . ($customer->company ? " ({$customer->company})" : ''));
       $sheet->setCellValue('G' . $r, lang($sale->status));
       $sheet->setCellValue('H' . $r, lang($sale->payment_status));
       $sheet->setCellValue('I' . $r, $sale->grand_total);

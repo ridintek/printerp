@@ -368,7 +368,11 @@ class Sale
       $isW2PUser         = isW2PUser($sale->created_by); // Is sale created_by user is w2p?
       $isSpecialCustomer = isSpecialCustomer($sale->customer_id); // Special customer (Privilege, TOP)
       $payments          = Payment::get(['sale_id' => $sale->id]);
-      $paymentValidation = PaymentValidation::getRow(['sale_id' => $sale->id]);
+      $paymentValidation = PaymentValidation::select('*')
+        ->orderBy('id', 'DESC')
+        ->where('sale_id', $sale->id)
+        ->getRow();
+
       $saleItems         = SaleItem::get(['sale_id' => $sale->id]);
 
       if (empty($saleItems)) {

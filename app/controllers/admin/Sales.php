@@ -586,7 +586,11 @@ class Sales extends MY_Controller
       if (getPost('add_payment')) {
         sendJSON(['error' => 1, 'msg' => 'Add Payment Failed']);
       }
-      $paymentValidation = PaymentValidation::getRow(['sale_id' => $sale->id]);
+
+      $paymentValidation = PaymentValidation::select('*')
+        ->where('sale_id', $sale->id)
+        ->orderBy('id', 'DESC')
+        ->getRow();
 
       $this->data['customer']           = Customer::getRow(['id' => $sale->customer_id]);
       $this->data['payment_validation'] = ($paymentValidation ?? NULL);
