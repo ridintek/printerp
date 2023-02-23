@@ -434,9 +434,7 @@ class Sales extends MY_Controller
       $sale_id = getGET('sale_id');
     }
 
-    $hMutex = mutexCreate('syncSales', TRUE);
     Sale::sync(['sale_id' => $sale_id]);
-    mutexRelease($hMutex);
 
     $sale = $this->site->getSaleByID($sale_id);
 
@@ -450,11 +448,7 @@ class Sales extends MY_Controller
       $this->sma->md();
     }
 
-    $this->form_validation->set_rules('amount', lang('amount'), 'required');
-    $this->form_validation->set_rules('payment_method', lang('payment_method'), 'required');
-    $this->form_validation->set_rules('userfile', lang('attachment'), 'xss_clean');
-
-    if ($this->form_validation->run() == true && $this->input->is_ajax_request()) {
+    if ($this->requestMethod == 'POST') {
       $bank_id                 = getPost('bank_id');
       $created_by              = getPost('created_by');
       $date                    = $this->serverDateTime;
@@ -534,9 +528,7 @@ class Sales extends MY_Controller
             'attachment'     => ($payment['attachment'] ?? NULL)
           ]);
 
-          $hMutex = mutexCreate('syncSales', TRUE);
           Sale::sync(['sale_id' => $pvData['sale_id']]);
-          mutexRelease($hMutex);
 
           if ($skip_payment_validation) {
             $vpvData = (object)[
@@ -572,21 +564,13 @@ class Sales extends MY_Controller
           sendJSON(['error' => 1, 'msg' => 'Payment Validation gagal ditambahkan']);
         }
       }
-    } elseif (getPost('add_payment')) {
-      sendJSON(['error' => 1, 'msg' => validation_errors()]);
-    }
 
-    if ($this->form_validation->run() == true) {
       if (Sale::addPayment($payment)) { // Add Sale payment.
         sendJSON(['error' => 0, 'msg' => lang('payment_added')]);
       } else {
         sendJSON(['error' => 1, 'msg' => 'Add Payment Failed']);
       }
     } else {
-      if (getPost('add_payment')) {
-        sendJSON(['error' => 1, 'msg' => 'Add Payment Failed']);
-      }
-
       $paymentValidation = PaymentValidation::select('*')
         ->where('sale_id', $sale->id)
         ->orderBy('id', 'DESC')

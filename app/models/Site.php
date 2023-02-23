@@ -1331,7 +1331,7 @@ class Site extends MY_Model
       }
 
       $this->updateSale($sale->id, $sale_data);
-      $this->syncSales(['sale_id' => $sale->id]); // Update status.
+      Sale::sync(['sale_id' => $sale->id]); // Update status.
       return TRUE;
     }
     return FALSE;
@@ -2392,7 +2392,7 @@ class Site extends MY_Model
         }
 
         // Sync sale after operator complete the item.
-        $this->syncSales(['sale_id' => $sale->id]);
+        Sale::sync(['sale_id' => $sale->id]);
 
         return TRUE;
       }
@@ -3020,7 +3020,7 @@ class Site extends MY_Model
       if ($this->db->delete('payment_validations', ['id' => $pv_id])) {
         if ($opv->sale_id) {
           $this->updateSale($opv->sale_id, ['payment_status' => 'pending']);
-          $this->syncSales(['sale_id' => $opv->sale_id]);
+          Sale::sync(['sale_id' => $opv->sale_id]);
         } elseif ($opv->mutation_id) {
           $this->updateBankMutation($opv->mutation_id, ['status' => 'cancelled']);
         }
@@ -7205,7 +7205,8 @@ class Site extends MY_Model
             $this->updateSale($pp->sale_id, [
               'payment_status' => 'expired'
             ]);
-            $this->syncSales(['sale_id' => $pp->sale_id]);
+
+            Sale::sync(['id' => $pp->sale_id]);
           }
           if ($pp->mutation_id) {
             $this->updateBankMutation($pp->mutation_id, [
@@ -7228,7 +7229,7 @@ class Site extends MY_Model
           $this->updateSale($wt->id, ['payment_status' => 'partial']);
         }
 
-        $this->syncSales(['sale_id' => $wt->id]);
+        Sale::sync(['sale_id' => $wt->id]);
       }
     }
 
@@ -7596,7 +7597,8 @@ class Site extends MY_Model
   public function syncSales($clause = [])
   {
     $sales = [];
-
+    die('Change to Sale::sync');
+return false;
     // $this->syncPaymentValidations(); // Cause memory crash (looping).
 
     if (!empty($clause['sale_id'])) {
@@ -9113,7 +9115,7 @@ class Site extends MY_Model
         $this->updateSaleItem($saleItem->id, ['status' => $status]);
       }
 
-      $this->syncSales(['sale_id' => $sale->id]);
+      Sale::sync(['sale_id' => $sale->id]);
 
       return TRUE;
     }

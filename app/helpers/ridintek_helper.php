@@ -182,10 +182,6 @@ function billerToWarehouse($billerId)
   return NULL;
 }
 
-function cache(string $name = '')
-{
-}
-
 /**
  * Check path existence, create directory if not exist.
  * @param string $path Path to check.
