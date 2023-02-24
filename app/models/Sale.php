@@ -573,8 +573,9 @@ class Sale
 
       if (!empty($data['customer_id'])) {
         $customer = Customer::getRow(['id' => $data['customer_id']]);
-        $saleData['customer_id'] = $customer->id;
-        $saleData['customer']    = $customer->phone;
+        $saleData['customer_id']    = $customer->id;
+        $saleData['customer_name']  = $customer->name . ($customer->company ? " ({$customer->company})" : '');
+        $saleData['customer']       = $customer->phone;
       }
 
       if (!empty($data['biller_id'])) {
