@@ -574,19 +574,19 @@ class Sale
       if (!empty($data['customer_id'])) {
         $customer = Customer::getRow(['id' => $data['customer_id']]);
         $saleData['customer_id'] = $customer->id;
-        $saleData['customer']    = $customer->name;
+        $saleData['customer']    = $customer->phone;
       }
 
       if (!empty($data['biller_id'])) {
         $biller = Biller::getRow(['id' => $data['biller_id']]);
         $saleData['biller_id'] = $biller->id;
-        $saleData['biller']    = $biller->name;
+        $saleData['biller']    = $biller->code;
       }
 
       if (!empty($data['warehouse_id'])) {
         $warehouse = Warehouse::getRow(['id' => $data['warehouse_id']]);
         $saleData['warehouse_id'] = $warehouse->id;
-        $saleData['warehouse']    = $warehouse->name;
+        $saleData['warehouse']    = $warehouse->code;
       }
 
       $totalPrice = 0;
