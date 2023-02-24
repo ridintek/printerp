@@ -357,7 +357,7 @@ class Api extends MY_Controller
     if ($total = PaymentValidation::validate2()) { // Segala pengecekan dan validasi data di sini.
       $this->response(200, ['message' => sprintf('V2: Success validate %d payment validations.', $total)]);
     } else {
-      $this->response(404, ['message' => 'V2: No validated payment validations']);
+      $this->response(404, ['message' => 'V2: ' . getLastError()]);
     }
   }
 

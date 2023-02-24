@@ -190,8 +190,13 @@ class PaymentValidation
 
     $mutasiBanks = DB::table('mutasibank')
       ->whereIn('status', $status)
-      ->where("date >= '{$startDate} 00:00:00'")
+      ->where("created_at >= '{$startDate} 00:00:00'")
       ->get();
+
+    if (!$mutasiBanks) {
+      setLastError('No mutasibank.');
+      return false;
+    }
 
     $status = array_merge($status, ['expired']);
 
@@ -199,6 +204,11 @@ class PaymentValidation
       ->whereIn('status', $status)
       ->where("date >= '{$startDate} 00:00:00'")
       ->get();
+
+    if (!$paymentValidations) {
+      setLastError('No Payment Validation.');
+      return false;
+    }
 
     $validated = 0;
 
@@ -234,6 +244,11 @@ class PaymentValidation
             if ($pv->sale_id) {
               $sale = Sale::getRow(['id' => $pv->sale_id]);
 
+              if ($sale->payment_status == 'paid') {
+                setLastError('Sale is already paid.');
+                return false;
+              }
+
               $payment = [
                 'reference_date'  => $sale->date,
                 'reference'       => $sale->reference,
@@ -257,6 +272,11 @@ class PaymentValidation
 
             if ($pv->mutation_id) {
               $mutation = BankMutation::getRow(['id' => $pv->mutation_id]);
+
+              if ($mutation->status == 'paid') {
+                setLastError('Bank mutation is already paid.');
+                return false;
+              }
 
               $payment_from = [
                 'created_at'      => date('Y-m-d H:i:s'),
@@ -300,13 +320,13 @@ class PaymentValidation
             }
           }
         }
+      }
 
-        if ($validated) {
-          DB::table('mutasibank')->update([
-            'status' => 'validated',
-            'validated' => $validated
-          ], ['id' => $mutasiBank->id]);
-        }
+      if ($validated) {
+        DB::table('mutasibank')->update([
+          'status' => 'validated',
+          'validated' => $validated
+        ], ['id' => $mutasiBank->id]);
       }
     }
 

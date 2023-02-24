@@ -1051,7 +1051,7 @@ class Reports extends MY_Controller
 
     if ($xls) { // EXPORT EXCEL
       $this->db
-        ->select("DATE_FORMAT(payments.created_at, '%Y-%m-%d %T') as created_at,
+        ->select("DATE_FORMAT(payments.date, '%Y-%m-%d %T') as created_at,
           payments.reference_date,
           payments.reference as payment_ref,
           payments.expense_id, payments.income_id, payments.mutation_id, payments.purchase_id,
@@ -1218,7 +1218,7 @@ class Reports extends MY_Controller
     // Datatables.
     $this->load->library('datatables');
     $this->datatables
-      ->select("payments.created_at as created_at,
+      ->select("payments.date as date,
         payments.reference_date,
         payments.reference as payment_ref,
         users.username as pic_id,
