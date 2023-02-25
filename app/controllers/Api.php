@@ -1067,20 +1067,20 @@ class Api extends MY_Controller
             if ($voucherCode) {
               $voucher = Voucher::getRow(['code' => $voucherCode]);
 
-              if (!$voucher) {
+              if ($voucher) {
+                if (strtotime($voucher->valid_from) > time()) {
+                  $notice = 'Voucher is too early to be used.';
+                }
+
+                if (strtotime($voucher->valid_to) < time()) {
+                  $notice = 'Voucher has been expired.';
+                }
+
+                if (intval($voucher->quota) == 0) {
+                  $notice = 'Voucher quota has been exceeded';
+                }
+              } else {
                 $notice = 'Voucher is not found.';
-              }
-
-              if (strtotime($voucher->valid_from) > time()) {
-                $notice = 'Voucher is too early to be used.';
-              }
-
-              if (strtotime($voucher->valid_to) < time()) {
-                $notice = 'Voucher has been expired.';
-              }
-
-              if (intval($voucher->quota) == 0) {
-                $notice = 'Voucher quota has been exceeded';
               }
 
               if (!$notice) {
