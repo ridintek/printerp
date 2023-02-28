@@ -476,6 +476,10 @@ class Sales extends MY_Controller
         }
       }
 
+      if ($payment_method != 'Cash' && $payment_method != 'EDC' && $payment_method != 'Transfer') {
+        sendJSON(['error' => 1, 'msg' => 'Payment method is not valid: ' . $payment_method]);
+      }
+
       $payment = [
         'date'       => $date,
         'sale_id'    => $sale_id,
@@ -1914,9 +1918,7 @@ class Sales extends MY_Controller
       $this->sma->view_rights($inv->created_by, true);
     }
 
-    $hMutex = mutexCreate('syncSales', TRUE);
     Sale::sync(['id' => $sale_id]);
-    mutexRelease($hMutex);
 
     $this->data['payments']    = $this->site->getPaymentsBySaleID($sale_id);
     $this->data['customer']    = $this->site->getCustomerByID($inv->customer_id);

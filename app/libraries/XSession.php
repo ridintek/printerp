@@ -14,7 +14,9 @@ class XSession
 
   public static function delete(string $name)
   {
-    unset($_SESSION[$name]);
+    if (isset($_SESSION[$name])) {
+      unset($_SESSION[$name]);
+    }
   }
 
   public static function destroy()

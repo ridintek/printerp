@@ -771,7 +771,7 @@ class Api extends MY_Controller
 
     if ($sale = $this->site->getSaleByReference($inv)) {
       if ($this->site->updateSale($sale->id, $saleData)) {
-        $this->site->syncSales(['sale_id' => $sale->id]);
+        Sale::sync(['sale_id' => $sale->id]);
         sendJSON(['error' => 0, 'msg' => "Sale {$inv} has been updated successfully."]);
       }
       sendJSON(['error' => 1, 'msg' => "Failed to update sale {$inv}"]);

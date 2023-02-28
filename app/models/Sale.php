@@ -186,15 +186,21 @@ class Sale
     $data['reference_date'] = $sale->created_at;
     $data['reference']      = ($data['reference'] ?? $sale->reference);
 
+    if (empty($data['method'])) {
+      setLastError('Method is empty.');
+      return false;
+    }
+
+    if ($data['method'] != 'Cash' && $data['method'] != 'EDC' && $data['method'] != 'Transfer') {
+      setLastError("Invalid payment method {$data['method']}.");
+      return false;
+    }
+
     if ($sale && Payment::add($data)) {
       // Update sale payment
       $saleData = [
         'payment_method' => $data['method']
       ];
-
-      if ($cashierBy = XSession::get('user_id')) {
-        $saleData['cashier_by'] = $cashierBy;
-      }
 
       if (!empty($data['attachment_id'])) $saleData['attachment_id'] = $data['attachment_id'];
       if (!empty($data['attachment'])) $saleData['attachment'] = $data['attachment'];
@@ -203,6 +209,10 @@ class Sale
 
       if (!$saleJS || empty($saleJS->est_complete_date)) {
         addSaleDueDate($sale->id);
+      }
+
+      if ($cashierBy = XSession::get('user_id')) {
+        $saleJS->cashier_by = $cashierBy;
       }
 
       if ($saleItems = SaleItem::get(['sale_id' => $sale->id])) {
@@ -373,12 +383,12 @@ class Sale
         ->where('sale_id', $sale->id)
         ->getRow();
 
-      $saleItems         = SaleItem::get(['sale_id' => $sale->id]);
+      $saleItems  = SaleItem::get(['sale_id' => $sale->id]);
 
-      if (empty($saleItems)) {
-        setLastError("Sale::sync() Sale items empty. Sale id {$sale->id}, {$sale->reference}");
-        continue;
-      }
+      // if (empty($saleItems)) {
+      //   setLastError("Sale::sync() Sale items empty. Sale id {$sale->id}, {$sale->reference}");
+      //   continue;
+      // }
 
       $completedItems = 0;
       $deliveredItems = 0;
@@ -494,7 +504,6 @@ class Sale
         if ($isSpecialCustomer) {
           $balance = $grandTotal;
         }
-
         $paymentStatus = ($isDuePayment ? 'due' : 'pending');
       }
 

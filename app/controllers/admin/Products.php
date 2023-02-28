@@ -2535,9 +2535,9 @@ class Products extends MY_Controller
       if ($csv['action'] != 1) continue;
 
       // If item exists.
-      if ($item = $this->site->getProduct(['code' => $csv['code']])) {
-        $category = $this->site->getCategory(['code' => $csv['category_code']]);
-        $subcategory  = $this->site->getCategory(['code' => $csv['subcategory_code']]);
+      if ($item = Product::getRow(['code' => $csv['code']])) {
+        $category = ProductCategory::getRow(['code' => $csv['category_code']]);
+        $subcategory  = ProductCategory::getRow(['code' => $csv['subcategory_code']]);
         $supplier     = $this->site->getSupplierByCompanyName($csv['supplier']);
         $unit         = $this->site->getUnit(['code' => rd_unit($csv['unit'])]);
 

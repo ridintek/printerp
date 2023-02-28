@@ -261,6 +261,7 @@ function dispatchW2PSale($saleId = NULL)
 
   if ($sale = $ci->site->getSaleByID($saleId)) {
     $saleJS = getJSON($sale->json_data);
+    $response = [];
 
     if ($saleJS->source != 'W2P') {
       setLastError('Sale ID is not from Web2Print.');
