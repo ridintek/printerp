@@ -20,17 +20,22 @@ class Debug extends MY_Controller
   {
     DB::transStart();
 
-    DB::table('test1')->insert(['name' => 'HAMNAH']);
-    DB::table('test2')->insert(['namex' => 'DONO']);
+    $res = DB::table('test1')->insert(['name' => 'HAMNAH']);
 
-    $err = DB::error();
+    if (!$res) {
+      echo "Error 1: " . print_r(DB::error()['message'], true);
+    }
+
+    $res = DB::table('test2')->insert(['namex' => 'DONO']);
+
+    if (!$res) {
+      echo "Error 2: " . print_r(DB::error()['message'], true);
+    }
 
     DB::transComplete();
 
     if (DB::transStatus()) {
       echo "Success";
-    } else {
-      echo "Error: " . print_r($err['message'], true);
     }
   }
 

@@ -651,10 +651,10 @@ class Sale
               $area = filterDecimal($item['width']) * filterDecimal($item['length']);
               $quantity = ($area * filterDecimal($item['quantity']));
             } else {
-              $area           = 0;
+              $area           = 1;
               $quantity       = $item['quantity'];
-              $item['width']  = 0;
-              $item['length'] = 0;
+              $item['width']  = 1;
+              $item['length'] = 1;
             }
 
             SaleItem::add([

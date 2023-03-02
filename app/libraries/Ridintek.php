@@ -538,7 +538,7 @@ class RD_Spreadsheet
       exit();
     }
 
-    return 'https://printerp.indoprinting.co.id/files/exports/' . $filename;
+    return 'https://printerp.indoprinting.co.id/files/exports/' . $filename . "\r\n";
   }
 
   public function export_($filename)

@@ -12,7 +12,9 @@ class SaleItem
   {
     DB::table('sale_items')->insert($data);
 
-    if ($insertId = DB::insertID()) {
+    if (DB::error()['code'] == 0) {
+      $insertId = DB::insertID();
+
       return $insertId;
     }
 

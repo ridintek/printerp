@@ -87,7 +87,7 @@ class DB
   }
 
   /**
-   * Return error DB message. ['errno', 'message']
+   * Return error DB message. ['code', 'message']
    */
   public static function error()
   {

@@ -104,9 +104,8 @@ class Auth extends MY_Controller
       admin_redirect('auth/profile/' . $user->id . '/#cpassword');
     } else {
       // $change = $this->ion_auth->change_password($identity, getPost('old_password'), getPost('new_password'));
-      $pass = password_hash(getPost('new_password_confirm'), PASSWORD_DEFAULT);
-      // die($pass);
-      $change = User::update((int)XSession::get('user_id'), ['password' => $pass]);
+
+      $change = User::update((int)XSession::get('user_id'), ['password' => getPost('new_password_confirm')]);
 
       if ($change) {
         $this->session->set_flashdata('message', 'Password success changed.');

@@ -12,7 +12,7 @@ class Reports extends MY_Controller
       // $this->session->set_userdata('requested_page', $this->uri->uri_string());
       // $this->sma->md('login');
 
-      loginPage();
+      // loginPage();
     }
 
     $this->lang->admin_load('reports', $this->Settings->user_language);
@@ -27,11 +27,11 @@ class Reports extends MY_Controller
    */
   public function balancesheet()
   {
-    $startDate = (getGET('start_date') ?? NULL);
+    $startDate = (getGET('start_date') ?? null);
     $endDate   = (getGET('end_date') ?? date('Y-m-d')); // Default current date
 
-    $billerId    = (getGET('biller') ?? NULL);
-    $warehouseId = (getGET('warehouse') ?? NULL);
+    $billerId    = (getGET('biller') ?? null);
+    $warehouseId = (getGET('warehouse') ?? null);
 
     $clause = [];
     if ($billerId)  $clause['biller_id']  = $billerId;
@@ -406,7 +406,7 @@ class Reports extends MY_Controller
     $sheet->setTitle('Summary Report');
 
     $A1DateGrid = [
-      NULL, 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
+      null, 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
       'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ'
     ];
     $dayName = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
@@ -434,8 +434,8 @@ class Reports extends MY_Controller
       ]);
 
       for ($x = 1; $x <= $lastDate; $x++) {
-        $isChecked = FALSE;
-        $mutationStatus = NULL;
+        $isChecked = false;
+        $mutationStatus = null;
         $dayCode = date('D', strtotime(date('Y-m-', strtotime($endDate)) . $x));
         $dayIndex = date('w', strtotime(date('Y-m-', strtotime($endDate)) . $x));
 
@@ -446,7 +446,7 @@ class Reports extends MY_Controller
 
         foreach ($mutations as $mut) {
           if (date('j', strtotime($mut->created_at)) == $x) {
-            $isChecked = TRUE;
+            $isChecked = true;
             $mutationStatus = $mut->status;
             break;
           }
@@ -665,7 +665,7 @@ class Reports extends MY_Controller
         $sheet->setCellValue("G{$r2}", ($saleJS->est_complete_date ?? ''));
         $sheet->setCellValue("H{$r2}", ($saleJS->source ?? ''));
         $sheet->setCellValue("I{$r2}", ($sale->use_tb ? $sale->warehouse : ''));
-        $sheet->setCellValue("J{$r2}", $customer->name . ($customer->company ? " ({$customer->company})": ''));
+        $sheet->setCellValue("J{$r2}", $customer->name . ($customer->company ? " ({$customer->company})" : ''));
         $sheet->setCellValue("K{$r2}", $custGroup->name);
         $sheet->setCellValue("L{$r2}", lang($sale->status));
         $sheet->setCellValue("M{$r2}", ($saleJS->waiting_production_date ?? ''));
@@ -683,7 +683,17 @@ class Reports extends MY_Controller
       $overComplete = 0;
 
       foreach ($saleItems as $saleItem) {
+        $sale = Sale::getRow(['id' => $saleItem->sale_id]);
+
+        if (!$sale) {
+          SaleItem::delete(['id' => $saleItem->id]);
+          continue;
+        }
+
+        if ($sale->status == 'inactive') continue;
+
         $saleItemJS = getJSON($saleItem->json_data);
+        $customer = Customer::getRow(['id' => $sale->customer_id]);
 
         if (!isset($saleItemJS->status)) {
           die("Something wrong for sale item id {$saleItem->id}");
@@ -693,27 +703,20 @@ class Reports extends MY_Controller
           if ($saleItemJS->operator_id != $user->id) continue;
         }
 
-        $overProduction = FALSE;
+        $overProduction = false;
 
         if (!empty($saleItemJS->due_date)) {
           if (isCompleted($saleItemJS->status)) {
             if (strtotime($saleItemJS->completed_at) > strtotime($saleItemJS->due_date)) {
-              $overProduction = TRUE;
+              $overProduction = true;
               $overComplete++;
             }
           } else {
             if (strtotime(date('Y-m-d H:i:s')) > strtotime($saleItemJS->due_date)) {
-              $overProduction = TRUE;
+              $overProduction = true;
               $overComplete++;
             }
           }
-        }
-
-        $sale = $this->site->getSaleByID($saleItem->sale_id);
-
-        if (!$sale) {
-          SaleItem::delete(['id' => $saleItem->id]);
-          continue;
         }
 
         $payments = $this->site->getPayments(['sale_id' => $sale->id]);
@@ -854,6 +857,7 @@ class Reports extends MY_Controller
 
     $r1 = 3;
 
+    // Need Payment MUST BE included.
     foreach ($sales as $sale) {
       if ($sale->status == 'inactive') continue;
       if ($sale->payment_status == 'paid') continue;
@@ -960,7 +964,7 @@ class Reports extends MY_Controller
   public function getDailyPerformanceReport()
   {
     $period = getGET('period'); // 2022-11
-    $xls    = (getGET('xls') == 1 ? TRUE : FALSE);
+    $xls    = (getGET('xls') == 1 ? true : false);
 
     $opt = [];
 
@@ -1039,7 +1043,7 @@ class Reports extends MY_Controller
     $endDate      = getGET('end_date');
     $startRefDate = getGET('start_ref_date');
     $endRefDate   = getGET('end_ref_date');
-    $xls         = (getGET('xls') == 1 ? TRUE : FALSE);
+    $xls         = (getGET('xls') == 1 ? true : false);
 
     if (!$this->Owner && !$this->Admin && !XSession::get('view_right')) {
       $users[] = XSession::get('user_id');
@@ -1289,12 +1293,12 @@ class Reports extends MY_Controller
   public function getIncomeStatementReport()
   {
     $biller_ids = getGET('biller'); // If biller not specified, then all billers except lucretia
-    $start_date = (getGET('start_date') ?? NULL);
-    $end_date   = (getGET('end_date') ?? NULL);
-    $xls        = (getGET('xls') == 1 ? TRUE : FALSE);
+    $start_date = (getGET('start_date') ?? null);
+    $end_date   = (getGET('end_date') ?? null);
+    $xls        = (getGET('xls') == 1 ? true : false);
 
     $opt = [];
-    $lucretaiMode = FALSE;
+    $lucretaiMode = false;
 
     if ($start_date) $opt['start_date'] = $start_date;
     if ($end_date)   $opt['end_date']   = $end_date;
@@ -1308,16 +1312,16 @@ class Reports extends MY_Controller
       $billerLucretai = $this->site->getBiller(['code' => 'LUC']);
 
       if (gettype($biller_ids) !== 'array' && $biller_ids == $billerLucretai->id) {
-        $lucretaiMode = TRUE;
+        $lucretaiMode = true;
       } else if (is_array($biller_ids)) {
         foreach ($biller_ids as $biller_id) {
-          if ($biller_id == $billerLucretai->id) $lucretaiMode = TRUE; // Find biller LUC
+          if ($biller_id == $billerLucretai->id) $lucretaiMode = true; // Find biller LUC
         }
       }
 
       $opt['biller_id'] = $biller_ids; // Array
     } else {
-      $lucretaiMode = FALSE;
+      $lucretaiMode = false;
       $billers = $this->site->getBillers();
       $opt['biller_id'] = [];
 
@@ -1427,11 +1431,11 @@ class Reports extends MY_Controller
     $endDate     = getGET('end_date');
     $warehouseId = getGET('warehouse');
 
-    $lucretaiMode = FALSE;
+    $lucretaiMode = false;
     $warehouse = $this->site->getWarehouseByID($warehouseId);
 
     if ($warehouse && $warehouse->code == 'LUC') {
-      $lucretaiMode = TRUE;
+      $lucretaiMode = true;
     }
 
     if ($startDate) {
@@ -1538,7 +1542,7 @@ class Reports extends MY_Controller
       ->where_in('products.type', ['standard']) // Standard only
       ->where_not_in('products.category_id', [2, 14, 16, 17, 18]); // Not Assets and Sub-Assets.
 
-    // echo $this->datatables->generate(['returnCompiled' => TRUE]); die;
+    // echo $this->datatables->generate(['returnCompiled' => true]); die;
     echo $this->datatables->generate();
   }
 
@@ -1556,11 +1560,11 @@ class Reports extends MY_Controller
     $warehouseId = getGET('warehouse');
     $xls          = getGET('xls');
 
-    $lucretaiMode = FALSE;
+    $lucretaiMode = false;
     $warehouse = $this->site->getWarehouseByID($warehouseId);
 
     if ($warehouse && $warehouse->code == 'LUC') {
-      $lucretaiMode = TRUE;
+      $lucretaiMode = true;
     }
 
     if ($startDate) {
@@ -2097,7 +2101,7 @@ class Reports extends MY_Controller
       $sheet->setCellValue('V' . $r, html2Note($asset->pic_note ?? ''));
       $sheet->setCellValue('W' . $r, $duration); // Duration in days
 
-      $colorStatus = NULL;
+      $colorStatus = null;
 
       switch ($asset->last_condition) {
         case 'good':
@@ -2157,9 +2161,9 @@ class Reports extends MY_Controller
       $ts           = User::getRow(['id' => $iuse->ts_id]);
       $warehouseTo  = Warehouse::getRow(['id' => $iuse->to_warehouse_id]);
 
-      $nextItem = NULL;
-      $nextIUse = NULL;
-      $nextTS   = NULL;
+      $nextItem = null;
+      $nextIUse = null;
+      $nextTS   = null;
 
       if ($sameItems) {
         for ($a = 0; $a < count($sameItems); $a++) {
@@ -2303,7 +2307,7 @@ class Reports extends MY_Controller
         )
         ->where('warehouses_products.safety_stock > (stock_recv.total_qty - stock_sent.total_qty)')
         ->where('warehouses_products.safety_stock <> 0')
-        ->where('warehouses_products.safety_stock IS NOT NULL');
+        ->where('warehouses_products.safety_stock IS NOT null');
 
       if ($warehouse_id) {
         $this->datatables->where('warehouses.id', $warehouse_id);
@@ -2669,7 +2673,7 @@ class Reports extends MY_Controller
       $query .= "sales.id as id";
 
       /* EXECUTE QUERIES */
-      $this->db->select($query, FALSE)->from('sales');
+      $this->db->select($query, false)->from('sales');
 
       /* JOIN TABLES */
       if ($group_by == 'sale' || $group_by == 'product' || $group_by == 'category') {
@@ -2782,7 +2786,7 @@ class Reports extends MY_Controller
         $excel->SetCellValue('Q1', lang('status'));
         $excel->SetCellValue('R1', lang('payment_status'));
 
-        $excel->setBold('A1:R1', TRUE);
+        $excel->setBold('A1:R1', true);
         $excel->setFillColor('A1:R1', 'FFFF00');
 
         $row     = 2;
@@ -3005,7 +3009,7 @@ class Reports extends MY_Controller
     if ($warehouse_id) {
       $this->data['warehouse']    = $this->site->getWarehouseByID($warehouse_id);
     } else {
-      $this->data['warehouse']    = NULL;
+      $this->data['warehouse']    = null;
     }
 
     $bc   = [
@@ -3038,7 +3042,7 @@ class Reports extends MY_Controller
     if ($warehouse_id) {
       $this->data['warehouse']    = $this->site->getWarehouseByID($warehouse_id);
     } else {
-      $this->data['warehouse']    = NULL;
+      $this->data['warehouse']    = null;
     }
 
     $bc   = [
@@ -3153,7 +3157,7 @@ class Reports extends MY_Controller
 
     // Summary Report (TAKETOOLONGTIME)
     $A1DateGrid = [
-      NULL, 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
+      null, 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
       'W', 'X', 'Y', 'Z', 'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ', 'AK', 'AL'
     ];
 
@@ -3209,10 +3213,10 @@ class Reports extends MY_Controller
         $filteredItems = [];
 
         foreach ($items as $item) {
-          $isNewItem = FALSE; // New item is not allowed.
+          $isNewItem = false; // New item is not allowed.
 
           if (!empty($item->purchased_at)) {
-            $isNewItem = (date('j', strtotime($item->purchased_at)) > $x ? TRUE : FALSE);
+            $isNewItem = (date('j', strtotime($item->purchased_at)) > $x ? true : false);
           }
 
           foreach ($reports as $report) {
@@ -3320,7 +3324,7 @@ class Reports extends MY_Controller
       $sheet->setCellValue('V' . $r, html2Note($asset->pic_note ?? ''));
       $sheet->setCellValue('W' . $r, $duration); // Duration in days
 
-      $colorStatus = NULL;
+      $colorStatus = null;
 
       switch ($asset->last_condition) {
         case 'good':
@@ -3493,7 +3497,7 @@ class Reports extends MY_Controller
     $sheet->setCellValue('A1', date('F Y', strtotime($startDate)));
 
     $A1DateGrid = [
-      NULL, 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
+      null, 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
       'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ'
     ];
 
@@ -3520,7 +3524,7 @@ class Reports extends MY_Controller
       ]);
 
       for ($x = 1; $x <= $lastDate; $x++) {
-        $isChecked = FALSE;
+        $isChecked = false;
         $dayCode = date('D', strtotime(date('Y-m-', strtotime($endDate)) . $x));
 
         // On Sunday, for DUR, FAT, TEM and UNG only.
@@ -3532,7 +3536,7 @@ class Reports extends MY_Controller
 
         foreach ($tracks as $track) {
           if (date('j', strtotime($track->created_at)) == $x) {
-            $isChecked = TRUE;
+            $isChecked = true;
             break;
           }
         }

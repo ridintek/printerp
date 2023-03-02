@@ -1131,8 +1131,8 @@ class Site extends MY_Model
         $finished_qty = (!empty($item['finished_qty']) ? filterDecimal($item['finished_qty']) : 0);
 
         // json_data
-        $item_w            = filterQuantity($item['width']  ?? 0);
-        $item_l            = filterQuantity($item['length'] ?? 0);
+        $item_w            = filterQuantity($item['width']  ?? 1);
+        $item_l            = filterQuantity($item['length'] ?? 1);
         $item_area         = filterQuantity($item_w * $item_l);
         $item_spec         = ($item['spec']        ?? '');
         $item_operator     = ($item['operator_id'] ?? '');
