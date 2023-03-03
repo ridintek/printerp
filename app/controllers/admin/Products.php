@@ -276,7 +276,7 @@ class Products extends MY_Controller
         if (!$this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
           $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
 
         $csv = $this->upload->file_name;
@@ -442,7 +442,7 @@ class Products extends MY_Controller
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
           $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
         $photo         = $this->upload->file_name;
         $data['image'] = $photo;
@@ -496,7 +496,7 @@ class Products extends MY_Controller
   {
     if (!$this->Owner && !$this->GP['bulk_actions']) {
       $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     $this->form_validation->set_rules('form_action', lang('form_action'), 'required');
@@ -509,17 +509,17 @@ class Products extends MY_Controller
             $this->site->deleteStockAdjustment($id);
           }
           $this->session->set_flashdata('message', $this->lang->line('adjustment_deleted'));
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         } elseif (getPost('form_action') == 'export_excel') {
           // ON PROGRESS
         }
       } else {
         $this->session->set_flashdata('error', $this->lang->line('no_record_selected'));
-        redirect($_SERVER['HTTP_REFERER']);
+        redirect_to($_SERVER['HTTP_REFERER']);
       }
     } else {
       $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
 
@@ -560,18 +560,18 @@ class Products extends MY_Controller
             $this->site->deleteProductCategory($id);
           }
           $this->session->set_flashdata('message', lang('categories_deleted'));
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
 
         if (getPost('form_action') == 'export_excel') {
         }
       } else {
         $this->session->set_flashdata('error', lang('no_record_selected'));
-        redirect($_SERVER['HTTP_REFERER']);
+        redirect_to($_SERVER['HTTP_REFERER']);
       }
     } else {
       $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
 
@@ -643,7 +643,7 @@ class Products extends MY_Controller
   //       fclose($csv_file);
   //     } else {
   //       $this->session->set_flashdata('error', lang('no_product_found'));
-  //       redirect($_SERVER['HTTP_REFERER']);
+  //       redirect_to($_SERVER['HTTP_REFERER']);
   //     }
 
   //     if ($this->Owner || $this->Admin) {
@@ -1070,7 +1070,7 @@ class Products extends MY_Controller
         if (!$this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
           $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
         $photo         = $this->upload->file_name;
         $data['image'] = $photo;
@@ -3569,7 +3569,7 @@ class Products extends MY_Controller
         sendJSON(['error' => 1, 'msg' => lang('access_denied')]);
       } else {
         $this->session->set_flashdata('error', lang('access_denied'));
-        redirect($_SERVER['HTTP_REFERER']);
+        redirect_to($_SERVER['HTTP_REFERER']);
       }
     }
 
@@ -3597,7 +3597,7 @@ class Products extends MY_Controller
               sendJSON(['error' => 0, 'msg' => $this->lang->line('products_quantity_sync')]);
             } else {
               $this->session->set_flashdata('message', $this->lang->line('products_quantity_sync'));
-              redirect($_SERVER['HTTP_REFERER']);
+              redirect_to($_SERVER['HTTP_REFERER']);
             }
           }
         }
@@ -3620,7 +3620,7 @@ class Products extends MY_Controller
             sendJSON(['error' => 0, 'msg' => $this->lang->line('products_quantity_sync')]);
           } else {
             $this->session->set_flashdata('message', $this->lang->line('products_quantity_sync'));
-            redirect($_SERVER['HTTP_REFERER']);
+            redirect_to($_SERVER['HTTP_REFERER']);
           }
         } elseif (getPost('form_action') == 'activate') {
           $msg = '';
@@ -3659,7 +3659,7 @@ class Products extends MY_Controller
             sendJSON(['error' => 0, 'msg' => $this->lang->line('products_deleted')]);
           } else {
             $this->session->set_flashdata('message', $this->lang->line('products_deleted'));
-            redirect($_SERVER['HTTP_REFERER']);
+            redirect_to($_SERVER['HTTP_REFERER']);
           }
         } elseif (getPost('form_action') == 'export_excel') {
           $sheet = $this->ridintek->spreadsheet();
@@ -3717,7 +3717,7 @@ class Products extends MY_Controller
           sendJSON(['error' => 1, 'msg' => $this->lang->line('no_product_selected')]);
         } else {
           $this->session->set_flashdata('error', $this->lang->line('no_product_selected'));
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
       }
     } else {
@@ -3725,7 +3725,7 @@ class Products extends MY_Controller
         sendJSON(['error' => 1, 'msg' => validation_errors()]);
       } else {
         $this->session->set_flashdata('error', validation_errors());
-        redirect($_SERVER['HTTP_REFERER'] ?? 'admin/products');
+        redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/products');
       }
     }
   }
@@ -4941,7 +4941,7 @@ class Products extends MY_Controller
     $pr_details = $this->site->getProductByID($id);
     if (!$id || !$pr_details) {
       $this->session->set_flashdata('error', lang('prduct_not_found'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     $this->data['barcode'] = "<img src='" . admin_url('products/gen_barcode/' . $pr_details->code . '/' . $pr_details->barcode_symbology . '/40/0') . "' alt='" . $pr_details->code . "' class='pull-left' />";
     if ($pr_details->type == 'combo') {

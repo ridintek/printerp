@@ -21,7 +21,7 @@ class Ion_auth
         //auto-login the user if they are remembered
         if (!$this->logged_in() && get_cookie('identity') && get_cookie('remember_code')) {
             if ($this->auth_model->login_remembered_user()) {
-                redirect(XSession::get('requested_page') ? XSession::get('requested_page') : (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'admin/welcome'));
+                redirect_to(XSession::get('requested_page') ? XSession::get('requested_page') : (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'admin/welcome'));
             }
         }
 

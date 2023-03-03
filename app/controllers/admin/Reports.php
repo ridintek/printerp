@@ -2388,7 +2388,7 @@ class Reports extends MY_Controller
         $excel->export($filename);
       }
       $this->session->set_flashdata('error', lang('nothing_found'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
 
@@ -2869,7 +2869,7 @@ class Reports extends MY_Controller
         $excel->export($filename);
       }
       $this->session->set_flashdata('error', lang('nothing_found'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
 

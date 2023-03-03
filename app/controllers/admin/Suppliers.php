@@ -15,7 +15,7 @@ class Suppliers extends MY_Controller
     }
     if ($this->Customer || $this->Supplier) {
       $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     $this->lang->admin_load('suppliers', $this->Settings->user_language);
     $this->load->library('form_validation');
@@ -196,7 +196,7 @@ class Suppliers extends MY_Controller
       ];
     } elseif (getPost('edit_supplier')) {
       $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     if ($this->form_validation->run()) {
@@ -218,7 +218,7 @@ class Suppliers extends MY_Controller
       } else {
         $this->session->set_flashdata('error', 'Failed to update supplier.');
       }
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     } else {
       $this->data['supplier']   = $supplier;
       $this->data['json_data']  = json_decode($supplier->json_data);
@@ -409,7 +409,7 @@ class Suppliers extends MY_Controller
   {
     if (!$this->Owner && !$this->GP['bulk_actions']) {
       $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     $this->form_validation->set_rules('form_action', lang('form_action'), 'required');
@@ -429,7 +429,7 @@ class Suppliers extends MY_Controller
           } else {
             $this->session->set_flashdata('message', $this->lang->line('suppliers_deleted'));
           }
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
 
         if (getPost('form_action') == 'export_excel') {
@@ -470,11 +470,11 @@ class Suppliers extends MY_Controller
         }
       } else {
         $this->session->set_flashdata('error', $this->lang->line('no_supplier_selected'));
-        redirect($_SERVER['HTTP_REFERER']);
+        redirect_to($_SERVER['HTTP_REFERER']);
       }
     } else {
       $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
 

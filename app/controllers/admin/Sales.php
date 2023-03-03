@@ -19,7 +19,7 @@ class Sales extends MY_Controller
 
     if (isset($this->Supplier) && $this->Supplier) {
       XSession::set('danger', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     $this->load->library('form_validation');
@@ -160,7 +160,7 @@ class Sales extends MY_Controller
   {
     if (!$this->Owner && !$this->Admin && !getPermission('sales-add')) {
       XSession::set('error', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+      redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
     }
 
     $sale_id     = getGET('sale_id');
@@ -201,13 +201,13 @@ class Sales extends MY_Controller
       // If no customer registered. Then cancel add sale.
       if (empty($customer)) {
         XSession::set('error', 'Customer is not registered.');
-        redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
+        redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
       }
 
       // Overdate Protection.
       if (strtotime($date) > now()) {
         XSession::set('error', 'Do not try to cheating.');
-        redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+        redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
       }
 
       // Double Sale Protection.
@@ -216,7 +216,7 @@ class Sales extends MY_Controller
         $time_difference = now() - strtotime($last_sale->date);
         if ($time_difference < 30) { // If time difference between last sale and this sale is less than 30s then canceled.
           XSession::set('error', 'Anda punya invoice 30 detik yang lalu. Tunggu 30 detik lagi untuk buat nota baru.');
-          redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+          redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
         }
       }
 
@@ -244,7 +244,7 @@ class Sales extends MY_Controller
 
         if (empty($item_operator)) {
           XSession::set('error', 'Mohon masukkan Operator!');
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
 
         if ($item_category === 'DPI' && $item_type == 'combo') {
@@ -299,18 +299,18 @@ class Sales extends MY_Controller
       if ($uploader->has('document')) {
         if ($uploader->getSize('mb') > 2) {
           XSession::set('error', 'Besar attachment tidak boleh lebih dari 2MB.');
-          redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
+          redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
         }
 
         $saleData['attachment'] = $uploader->storeRandom();
       } else if (!getPermission('sales-no_attachment')) {
         if ($customerGroup->name == 'TOP') { // Prevent CS create sale without attachment for Customer TOP.
           XSession::set('error', lang('top_no_attachment'));
-          redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+          redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
         } else if (XSession::get('group_name') == 'tl' && $saleOptions !== 'noattachment') {
           // If TL add sale not from counter. must include attachment.
           XSession::set('error', lang('attachment_required'));
-          redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+          redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
         }
       }
     }
@@ -359,10 +359,10 @@ class Sales extends MY_Controller
         }
       } else {
         XSession::set('error', 'Failed to add sale.');
-        redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
+        redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
       }
 
-      redirect('admin/sales');
+      redirect_to('admin/sales');
     } else {
       if ($sale_id) {
         if ($sale_id) {
@@ -637,7 +637,7 @@ class Sales extends MY_Controller
         sendJSON(['success' => 1, 'message' => lang('sale_deleted')]);
       }
       XSession::set('message', lang('sale_deleted'));
-      redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+      redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
     }
   }
 
@@ -645,7 +645,7 @@ class Sales extends MY_Controller
   {
     if (!$this->Owner && !$this->Admin && !getPermission('sales-delete')) {
       XSession::set('error', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+      redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
     }
 
     if (getGET('id')) {
@@ -654,10 +654,10 @@ class Sales extends MY_Controller
 
     if ($this->site->deletePayment($id)) {
       XSession::set('message', lang('payment_deleted'));
-      redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+      redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
     } else {
       XSession::set('error', lang('payment_not_deleted'));
-      redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+      redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
     }
   }
 
@@ -787,7 +787,7 @@ class Sales extends MY_Controller
       ) {
         if ($sale->status != 'draft' || $sale->created_by != XSession::get('user_id')) {
           XSession::set('error', lang('access_denied'));
-          redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+          redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
         }
       }
     }
@@ -819,7 +819,7 @@ class Sales extends MY_Controller
       // Overdate Protection.
       if (strtotime($date) > now()) {
         // XSession::set('error', 'DO NOT TRY TO CHEATING.');
-        // redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+        // redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
       }
 
       // If draft sale.
@@ -849,7 +849,7 @@ class Sales extends MY_Controller
 
         if (empty($item_due_date) && !empty($saleJS->est_complete_date)) {
           XSession::set('error', 'Mohon masukkan Due Date!');
-          redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+          redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
         }
 
         // If current sale status == preparing and changed to waiting production, add due date.
@@ -863,7 +863,7 @@ class Sales extends MY_Controller
 
         if (!$this->Owner && !$this->Admin && empty($item_operator)) {
           XSession::set('error', 'Mohon masukkan Operator!');
-          redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+          redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
         }
 
         // If category Design and type Service then always completed. Ex. JASA EDIT DESIGN
@@ -936,7 +936,7 @@ class Sales extends MY_Controller
       if ($uploader->has('document')) {
         if ($uploader->getSize('mb') > 2) {
           XSession::set('error', 'Besar attachment tidak boleh lebih dari 2MB.');
-          redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
+          redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
         }
 
         $saleData['attachment'] = $uploader->storeRandom();
@@ -944,7 +944,7 @@ class Sales extends MY_Controller
         // Prevent CS create sale without attachment for Customer TOP.
         if ($customer_group_name == 'top' && !$sale->attachment) {
           XSession::set('error', lang('top_no_attachment'));
-          redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
+          redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
         }
       }
 
@@ -963,7 +963,7 @@ class Sales extends MY_Controller
 
       DB::transComplete();
 
-      redirect('admin/sales');
+      redirect_to('admin/sales');
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : XSession::get('error'));
       $sale = $this->site->getSaleByID($id);
@@ -975,7 +975,7 @@ class Sales extends MY_Controller
       if ($this->Settings->disable_editing) {
         if ($this->data['inv']->date <= date('Y-m-d', strtotime('-' . $this->Settings->disable_editing . ' days'))) {
           XSession::set('error', sprintf(lang('sale_x_edited_older_than_x_days'), $this->Settings->disable_editing));
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
       }
 
@@ -1100,7 +1100,7 @@ class Sales extends MY_Controller
 
     if (!$this->Owner && !$this->Admin && $user->username != 'w2p') {
       XSession::set('error', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+      redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
     }
 
     $this->editMode = 'operator';

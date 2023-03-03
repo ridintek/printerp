@@ -14,7 +14,7 @@ class Billers extends MY_Controller
 
     if (!$this->Owner) {
       $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     $this->lang->admin_load('billers', $this->Settings->user_language);
     $this->load->library('form_validation');
@@ -59,7 +59,7 @@ class Billers extends MY_Controller
   {
     if (!$this->Owner && !$this->GP['bulk_actions']) {
       $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     $this->form_validation->set_rules('form_action', lang('form_action'), 'required');
@@ -79,15 +79,15 @@ class Billers extends MY_Controller
           } else {
             $this->session->set_flashdata('message', $this->lang->line('billers_deleted'));
           }
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
       } else {
         $this->session->set_flashdata('error', $this->lang->line('no_biller_selected'));
-        redirect($_SERVER['HTTP_REFERER']);
+        redirect_to($_SERVER['HTTP_REFERER']);
       }
     } else {
       $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
 

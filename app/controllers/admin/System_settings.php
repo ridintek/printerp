@@ -15,7 +15,7 @@ class system_settings extends MY_Controller
 
     if (!$this->Owner && !$this->Admin && !getPermission('edit-system')) {
       $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect('admin');
+      redirect_to('admin');
     }
 
     $this->lang->admin_load('settings', $this->Settings->user_language);
@@ -57,7 +57,7 @@ class system_settings extends MY_Controller
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
           $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
         $photo         = $this->upload->file_name;
         $data['image'] = $photo;
@@ -121,7 +121,7 @@ class system_settings extends MY_Controller
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
           $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
         $photo         = $this->upload->file_name;
         $data['image'] = $photo;
@@ -484,7 +484,7 @@ class system_settings extends MY_Controller
   {
     if (DEMO) {
       $this->session->set_flashdata('warning', lang('disabled_in_demo'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
       $this->session->set_flashdata('error', lang('access_denied'));
@@ -509,7 +509,7 @@ class system_settings extends MY_Controller
   {
     if (DEMO) {
       $this->session->set_flashdata('warning', lang('disabled_in_demo'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
       $this->session->set_flashdata('error', lang('access_denied'));
@@ -561,7 +561,7 @@ class system_settings extends MY_Controller
         if (!$this->upload->do_upload('site_logo')) {
           $error = $this->upload->display_errors();
           $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
         $site_logo = $this->upload->file_name;
         $this->db->update('settings', ['logo' => $site_logo], ['setting_id' => 1]);
@@ -581,7 +581,7 @@ class system_settings extends MY_Controller
         if (!$this->upload->do_upload('login_logo')) {
           $error = $this->upload->display_errors();
           $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
         $login_logo = $this->upload->file_name;
         $this->db->update('settings', ['logo2' => $login_logo], ['setting_id' => 1]);
@@ -601,16 +601,16 @@ class system_settings extends MY_Controller
         if (!$this->upload->do_upload('biller_logo')) {
           $error = $this->upload->display_errors();
           $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
         $photo = $this->upload->file_name;
       }
 
       $this->session->set_flashdata('message', lang('logo_uploaded'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     } elseif (getPost('upload_logo')) {
       $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     } else {
       $this->data['error']    = validation_errors() ? validation_errors() : $this->session->flashdata('error');
       $this->load->view($this->theme . 'settings/change_logo', $this->data);
@@ -678,7 +678,7 @@ class system_settings extends MY_Controller
   {
     if (DEMO) {
       $this->session->set_flashdata('warning', lang('disabled_in_demo'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
       $this->session->set_flashdata('error', lang('access_denied'));
@@ -729,7 +729,7 @@ class system_settings extends MY_Controller
   {
     if (DEMO) {
       $this->session->set_flashdata('warning', lang('disabled_in_demo'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
       $this->session->set_flashdata('error', lang('access_denied'));
@@ -836,7 +836,7 @@ class system_settings extends MY_Controller
   {
     if (DEMO) {
       $this->session->set_flashdata('warning', lang('disabled_in_demo'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
       $this->session->set_flashdata('error', lang('access_denied'));
@@ -851,7 +851,7 @@ class system_settings extends MY_Controller
   {
     if (DEMO) {
       $this->session->set_flashdata('warning', lang('disabled_in_demo'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
       $this->session->set_flashdata('error', lang('access_denied'));
@@ -899,7 +899,7 @@ class system_settings extends MY_Controller
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
           $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
         $photo         = $this->upload->file_name;
         $data['image'] = $photo;
@@ -971,7 +971,7 @@ class system_settings extends MY_Controller
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
           $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
         $photo         = $this->upload->file_name;
         $data['image'] = $photo;
@@ -2484,7 +2484,7 @@ class system_settings extends MY_Controller
   {
     if (DEMO) {
       $this->session->set_flashdata('warning', lang('disabled_in_demo'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
       $this->session->set_flashdata('error', lang('access_denied'));
@@ -2749,7 +2749,7 @@ class system_settings extends MY_Controller
 
     if ($this->form_validation->run() == true && $this->settings_model->updatePermissions($group_id, $data)) {
       $this->session->set_flashdata('message', lang('group_permissions_updated'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     } else {
       $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
       $permissions = $this->settings_model->getGroupPermissions($group_id);
@@ -2931,7 +2931,7 @@ class system_settings extends MY_Controller
   {
     if (DEMO) {
       $this->session->set_flashdata('warning', lang('disabled_in_demo'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
       $this->session->set_flashdata('error', lang('access_denied'));

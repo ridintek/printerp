@@ -14,7 +14,7 @@ class Notifications extends MY_Controller
 
     if (!$this->Owner && !$this->Admin && !getPermission('notify-index')) {
       $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     $this->lang->admin_load('notifications', $this->Settings->user_language);
     $this->load->library('form_validation');
@@ -67,7 +67,7 @@ class Notifications extends MY_Controller
   {
     if (!$this->Owner && !$this->Admin && !getPermission('notify-add')) {
       $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     $this->form_validation->set_rules('comment', lang('comment'), 'required|min_length[3]');
@@ -107,7 +107,7 @@ class Notifications extends MY_Controller
   {
     if (!$this->Owner && !$this->Admin && !getPermission('notify-delete')) {
       $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     if ($this->cmt_model->deleteComment($id)) {
@@ -119,7 +119,7 @@ class Notifications extends MY_Controller
   {
     if (!$this->Owner && !$this->Admin && getPermission('notify-edit')) {
       $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     if (getPost('id')) {
@@ -183,7 +183,7 @@ class Notifications extends MY_Controller
   {
     if (!$this->Owner && !$this->Admin && !getPermission('notify-index')) {
       $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     $this->data['error'] = validation_errors() ? validation_errors() : $this->session->flashdata('error');

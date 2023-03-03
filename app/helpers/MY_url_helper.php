@@ -17,7 +17,7 @@ if (!function_exists('admin_redirect')) {
         if (!preg_match('#^(\w+:)?//#i', $uri)) {
             $uri = site_url('admin/' . $uri);
         }
-        return redirect($uri, $method, $code);
+        return redirect_to($uri, $method, $code);
     }
 }
 
@@ -36,6 +36,6 @@ if (!function_exists('shop_redirect')) {
         if (!preg_match('#^(\w+:)?//#i', $uri)) {
             $uri = site_url('shop/' . $uri);
         }
-        return redirect($uri, $method, $code);
+        return redirect_to($uri, $method, $code);
     }
 }

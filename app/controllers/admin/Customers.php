@@ -51,16 +51,16 @@ class Customers extends MY_Controller
       ];
       if (!$this->Owner && !$this->Admin && stripos($data['company'], 'INDOPRINTING') !== FALSE) {
         $this->session->set_flashdata('error', "Forbidden. You cannot use 'INDOPRINTING' as company.");;
-        redirect($_SERVER['HTTP_REFERER'] ?? 'admin/customers');
+        redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/customers');
       }
       $cust = $this->site->getCustomerByPhone($data['phone']);
       if ($cust) {
         $this->session->set_flashdata('error', "Phone number {$data['phone']} sudah terdaftar sebelumnya.");;
-        redirect($_SERVER['HTTP_REFERER'] ?? 'admin/customers');
+        redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/customers');
       }
     } elseif (getPost('add_customer')) {
       $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER'] ?? 'admin/customers');
+      redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/customers');
     }
 
     if ($this->form_validation->run() == true && $cid = Customer::add($data)) {
@@ -215,7 +215,7 @@ class Customers extends MY_Controller
   {
     if (!$this->Owner && !$this->GP['bulk_actions']) {
       $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     $this->form_validation->set_rules('form_action', lang('form_action'), 'required');
@@ -235,7 +235,7 @@ class Customers extends MY_Controller
           } else {
             $this->session->set_flashdata('message', lang('customers_deleted'));
           }
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
 
         if (getPost('form_action') == 'export_excel') {
@@ -278,11 +278,11 @@ class Customers extends MY_Controller
         }
       } else {
         $this->session->set_flashdata('error', lang('no_customer_selected'));
-        redirect($_SERVER['HTTP_REFERER']);
+        redirect_to($_SERVER['HTTP_REFERER']);
       }
     } else {
       $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
 
@@ -411,12 +411,12 @@ class Customers extends MY_Controller
       ];
     } elseif (getPost('edit_customer')) {
       $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     if ($this->form_validation->run() == true && $this->site->updateCustomer($id, $data)) {
       $this->session->set_flashdata('message', lang('customer_updated'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     } else {
       $jsdata = json_decode($customer->json_data);
       $customer->ship_address = (!empty($jsdata->shipaddr) ? $jsdata->shipaddr : NULL);
@@ -552,12 +552,12 @@ class Customers extends MY_Controller
       ];
     } elseif (getPost('edit_customer')) {
       $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     if ($this->form_validation->run() == true && $this->site->updateCustomer($id, $data)) {
       $this->session->set_flashdata('message', lang('customer_updated'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     } else {
       $jsdata = json_decode($customer->json_data);
       $customer->ship_address = (isset($jsdata->shipaddr) ? $jsdata->shipaddr : NULL);

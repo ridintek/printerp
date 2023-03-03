@@ -93,7 +93,7 @@ class Sma
       if ($js) {
         die("<script type='text/javascript'>setTimeout(function(){ window.top.location.href = '" . ($_SERVER['HTTP_REFERER'] ?? site_url('welcome')) . "'; }, 10);</script>");
       }
-      redirect($_SERVER['HTTP_REFERER'] ?? 'welcome');
+      redirect_to($_SERVER['HTTP_REFERER'] ?? 'welcome');
     }
   }
 
@@ -113,7 +113,7 @@ class Sma
         $this->send_json(['error' => 1, 'msg' => lang('access_denied')]);
       } else {
         $this->session->set_flashdata('error', lang('access_denied'));
-        redirect($_SERVER['HTTP_REFERER'] ?? admin_url());
+        redirect_to($_SERVER['HTTP_REFERER'] ?? admin_url());
       }
     }
   }
@@ -625,7 +625,7 @@ class Sma
         if ($js) {
           die("<script type='text/javascript'>setTimeout(function(){ window.top.location.href = '" . ($_SERVER['HTTP_REFERER'] ?? 'welcome') . "'; }, 10);</script>");
         }
-        redirect($_SERVER['HTTP_REFERER'] ?? 'welcome');
+        redirect_to($_SERVER['HTTP_REFERER'] ?? 'welcome');
       }
     }
     return true;

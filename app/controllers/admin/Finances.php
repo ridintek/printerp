@@ -14,7 +14,7 @@ class Finances extends MY_Controller
 
     if ($this->Supplier) {
       $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     $this->load->helper('security');

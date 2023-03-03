@@ -19,7 +19,7 @@ class Welcome extends MY_Controller
     }
 
     if ($this->Customer || $this->Supplier) {
-      redirect('/');
+      redirect_to('/');
     }
 
     $this->load->admin_model('db_model');
@@ -33,7 +33,7 @@ class Welcome extends MY_Controller
       exit();
     }
     $this->session->set_flashdata('error', lang('file_x_exist'));
-    redirect($_SERVER['HTTP_REFERER']);
+    redirect_to($_SERVER['HTTP_REFERER']);
   }
 
   public function hideAllNotifications()
@@ -326,7 +326,7 @@ class Welcome extends MY_Controller
       ];
       $this->input->set_cookie($cookie);
     }
-    redirect($_SERVER['HTTP_REFERER']);
+    redirect_to($_SERVER['HTTP_REFERER']);
   }
 
   public function promotions()
@@ -356,6 +356,6 @@ class Welcome extends MY_Controller
       'secure' => false,
     ];
     $this->input->set_cookie($cookie);
-    redirect($_SERVER['HTTP_REFERER']);
+    redirect_to($_SERVER['HTTP_REFERER']);
   }
 }

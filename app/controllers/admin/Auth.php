@@ -65,7 +65,7 @@ class Auth extends MY_Controller
     if ($activation) {
       $this->session->set_flashdata('message', $this->ion_auth->messages());
       if ($this->Owner || $this->Admin) {
-        redirect($_SERVER['HTTP_REFERER']);
+        redirect_to($_SERVER['HTTP_REFERER']);
       } else {
         admin_redirect('auth/login');
       }
@@ -121,7 +121,7 @@ class Auth extends MY_Controller
   {
     if (!$this->Owner && !$this->Admin) {
       $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     $this->data['title'] = 'Create User';
@@ -190,7 +190,7 @@ class Auth extends MY_Controller
     if ($this->form_validation->run() == false) {
       if (getPost('deactivate')) {
         $this->session->set_flashdata('error', validation_errors());
-        redirect($_SERVER['HTTP_REFERER']);
+        redirect_to($_SERVER['HTTP_REFERER']);
       } else {
         $this->data['csrf']     = $this->_get_csrf_nonce();
         $this->data['user']     = $this->ion_auth->user($id)->row();
@@ -208,7 +208,7 @@ class Auth extends MY_Controller
         }
       }
 
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
 
@@ -229,7 +229,7 @@ class Auth extends MY_Controller
     if (!$this->ion_auth->logged_in() || (!$this->Owner && !$this->Admin) && $id != XSession::get('user_id')) {
       $this->session->set_flashdata('warning', lang('access_denied'));
       die("<script type='text/javascript'>setTimeout(function(){ window.top.location.href = '" . $_SERVER['HTTP_REFERER'] . "'; }, 0);</script>");
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     } else {
       unlink('assets/uploads/avatars/' . $avatar);
       unlink('assets/uploads/avatars/thumbs/' . $avatar);
@@ -239,7 +239,7 @@ class Auth extends MY_Controller
       $this->db->update('user', ['avatar' => null], ['id' => $id]);
       $this->session->set_flashdata('message', lang('avatar_deleted'));
       die("<script type='text/javascript'>setTimeout(function(){ window.top.location.href = '" . $_SERVER['HTTP_REFERER'] . "'; }, 0);</script>");
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
 
@@ -252,7 +252,7 @@ class Auth extends MY_Controller
 
     if (!$this->loggedIn || (!$this->isAdmin) && $id != XSession::get('user_id')) {
       $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     $user = User::getRow(['id' => $id]);
@@ -328,14 +328,14 @@ class Auth extends MY_Controller
     if ($this->form_validation->run() === true) {
       if ($this->ion_auth->update($user->id, $data)) {
         $this->session->set_flashdata('message', lang('user_updated'));
-        redirect(admin_url('users'));
+        redirect_to(admin_url('users'));
       } else {
         $this->session->set_flashdata('error', validation_errors());
-        redirect($_SERVER['HTTP_REFERER']);
+        redirect_to($_SERVER['HTTP_REFERER']);
       }
     } else {
       $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
 
@@ -544,7 +544,7 @@ class Auth extends MY_Controller
       admin_redirect('login');
     } else {
       $this->data['message'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('message');
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
 
@@ -559,7 +559,7 @@ class Auth extends MY_Controller
 
     if ($this->requestMethod == 'POST') {
       if (Authentication::login($identity, $password, $remember)) {
-        redirect($_SERVER['HTTP_REFERER'] ?? '/');
+        redirect_to($_SERVER['HTTP_REFERER'] ?? '/');
       }
     } else if (XSession::has('user_id')) {
       admin_redirect();
@@ -626,7 +626,7 @@ class Auth extends MY_Controller
   {
     if (!Authentication::isLoggedIn() || (!$this->isAdmin) && $id != XSession::get('user_id')) {
       $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER'] ?? 'admin');
+      redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin');
     }
     if (!$id || empty($id)) {
       admin_redirect('auth');
@@ -920,7 +920,7 @@ class Auth extends MY_Controller
 
     if (!$this->ion_auth->logged_in() || (!$this->Owner && !$this->Admin) && $id != XSession::get('user_id')) {
       $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     //validate form input
@@ -944,7 +944,7 @@ class Auth extends MY_Controller
         if (!$this->upload->do_upload('avatar')) {
           $error = $this->upload->display_errors();
           $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
 
         $photo = $this->upload->file_name;
@@ -987,7 +987,7 @@ class Auth extends MY_Controller
   {
     if (!$this->Owner && !$this->Admin) {
       $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     $this->form_validation->set_rules('form_action', lang('form_action'), 'required');
@@ -1005,15 +1005,15 @@ class Auth extends MY_Controller
             }
             $this->session->set_flashdata('message', lang('users_deleted'));
           }
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
       } else {
         $this->session->set_flashdata('error', lang('no_user_selected'));
-        redirect($_SERVER['HTTP_REFERER']);
+        redirect_to($_SERVER['HTTP_REFERER']);
       }
     } else {
       $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
 

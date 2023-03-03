@@ -605,7 +605,7 @@ class Api extends MY_Controller
     echo $this->ridintek->qrcode('https://indoprinting.co.id/trackorder?inv=INV-2020/08/9883&phone=085641258879&submit=1');
   }
 
-  private function redirect()
+  private function redirect_to()
   {
     admin_redirect('./'); // For security reason. DO NOT ERASE !!! Comment it for debugging purpose.
   }

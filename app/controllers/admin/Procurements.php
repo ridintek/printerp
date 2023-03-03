@@ -16,7 +16,7 @@ class Procurements extends MY_Controller
 
     if ($this->Supplier) {
       $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     $this->load->helper('security');
@@ -1565,7 +1565,7 @@ class Procurements extends MY_Controller
       }
     } elseif (getPost('add_payment')) {
       $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     if ($this->form_validation->run() == true) {
@@ -1574,11 +1574,11 @@ class Procurements extends MY_Controller
       } else {
         $this->session->set_flashdata('error', lang('payment_add_failed'));
       }
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     } else {
       if (getPost('add_payment')) {
         $this->session->set_flashdata('error', validation_errors());
-        redirect($_SERVER['HTTP_REFERER']);
+        redirect_to($_SERVER['HTTP_REFERER']);
       }
       $banks = $this->site->getBanks(['type' => ['Cash', 'EDC', 'INV', 'Transfer']]);
       for ($a = 0; $a < count($banks); $a++) {
@@ -1633,7 +1633,7 @@ class Procurements extends MY_Controller
 
     if (!$purchase) {
       $this->session->set_flashdata('error', 'Purchase tidak ditemukan.');
-      redirect($_SERVER['HTTP_REFERER'] ?? admin_url('procurements/purchases'));
+      redirect_to($_SERVER['HTTP_REFERER'] ?? admin_url('procurements/purchases'));
     }
 
     if (!XSession::get('edit_right')) {
@@ -1942,7 +1942,7 @@ class Procurements extends MY_Controller
       }
     } elseif (getPost('edit_payment')) {
       $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     if ($this->form_validation->run() == true && $this->site->updatePayment($payment_id, $data_payment)) {
       // $this->procurements_model->addPurchaseHistory([
@@ -1952,11 +1952,11 @@ class Procurements extends MY_Controller
       //   'user_id'           => XSession::get('user_id')
       // ]);
       $this->session->set_flashdata('message', lang('payment_added'));
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     } else {
       if (getPost('edit_payment')) {
         $this->session->set_flashdata('error', validation_errors());
-        redirect($_SERVER['HTTP_REFERER']);
+        redirect_to($_SERVER['HTTP_REFERER']);
       }
       $banks = $this->site->getBanksByType(['transfer', 'edc']);
       for ($a = 0; $a < count($banks); $a++) {
@@ -3142,17 +3142,17 @@ class Procurements extends MY_Controller
       }
     } elseif (getPost('edit_payment')) {
       $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     if ($this->form_validation->run() == true) {
       if ($this->site->updatePayment($payment_id, $data_payment)) {
         $this->session->set_flashdata('message', lang('payment_added'));
-        redirect($_SERVER['HTTP_REFERER']);
+        redirect_to($_SERVER['HTTP_REFERER']);
       }
     } else {
       if (getPost('edit_payment')) {
         $this->session->set_flashdata('error', validation_errors());
-        redirect($_SERVER['HTTP_REFERER']);
+        redirect_to($_SERVER['HTTP_REFERER']);
       }
       $banks = $this->site->getBanks();
       // for ($a = 0; $a < count($banks); $a++) {

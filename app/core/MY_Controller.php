@@ -187,7 +187,7 @@ class MY_Controller extends CI_Controller
       // }
 
       // if (($this->maintenance || $this->maintenance_by_time) && !$this->Owner && $this->uri->segment(1) !== 'maintenance') {
-      //   redirect('/maintenance');
+      //   redirect_to('/maintenance');
       // }
 
       if ($sd = $this->site->getDateFormat($this->Settings->dateformat)) { // Always use this.
