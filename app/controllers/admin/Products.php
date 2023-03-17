@@ -131,7 +131,7 @@ class Products extends MY_Controller
       }
 
       if ($this->site->addProducts([$product_data])) {
-        $this->session->set_flashdata('message', lang('product_added'));
+        XSession::set_flash('message', lang('product_added'));
         admin_redirect('products');
       }
     } else {
@@ -217,7 +217,7 @@ class Products extends MY_Controller
     if ($this->form_validation->run() == true) {
       if ($this->site->addAdjustmentStock($adjustmentData, $products)) {
         $this->session->set_userdata('remove_qals', 1);
-        $this->session->set_flashdata('message', lang('quantity_adjusted'));
+        XSession::set_flash('message', lang('quantity_adjusted'));
         admin_redirect('products/quantity_adjustments');
       }
     } else {
@@ -275,7 +275,7 @@ class Products extends MY_Controller
 
         if (!$this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           redirect_to($_SERVER['HTTP_REFERER']);
         }
 
@@ -295,7 +295,7 @@ class Products extends MY_Controller
         $titles    = array_shift($arrResult);
 
         if ($header_id[0] != 'QTAJ') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('products/add_adjustment_by_csv');
         }
 
@@ -343,7 +343,7 @@ class Products extends MY_Controller
     if ($this->form_validation->run() == true) {
       if ($this->site->addAdjustmentStock($adjustmentData, $products)) {
         $msg = lang('quantity_adjusted') . ($err_msg ? '<br>' . $err_msg : '');
-        $this->session->set_flashdata('message', $msg);
+        XSession::set_flash('message', $msg);
         admin_redirect('products/quantity_adjustments');
       }
     } else {
@@ -441,7 +441,7 @@ class Products extends MY_Controller
         $this->upload->initialize($config);
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           redirect_to($_SERVER['HTTP_REFERER']);
         }
         $photo         = $this->upload->file_name;
@@ -478,12 +478,12 @@ class Products extends MY_Controller
         $config = null;
       }
     } elseif (getPost('add_category')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('products/categories');
     }
 
     if ($this->form_validation->run() == true && $this->site->addProductCategory($data)) {
-      $this->session->set_flashdata('message', lang('product_categories_added'));
+      XSession::set_flash('message', lang('product_categories_added'));
       admin_redirect('products/categories');
     } else {
       $this->data['error']      = validation_errors() ? validation_errors() : $this->session->flashdata('error');
@@ -495,7 +495,7 @@ class Products extends MY_Controller
   public function adjustment_actions()
   {
     if (!$this->Owner && !$this->GP['bulk_actions']) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
 
@@ -508,17 +508,17 @@ class Products extends MY_Controller
           foreach ($_POST['val'] as $id) {
             $this->site->deleteStockAdjustment($id);
           }
-          $this->session->set_flashdata('message', $this->lang->line('adjustment_deleted'));
+          XSession::set_flash('message', $this->lang->line('adjustment_deleted'));
           redirect_to($_SERVER['HTTP_REFERER']);
         } elseif (getPost('form_action') == 'export_excel') {
           // ON PROGRESS
         }
       } else {
-        $this->session->set_flashdata('error', $this->lang->line('no_record_selected'));
+        XSession::set_flash('error', $this->lang->line('no_record_selected'));
         redirect_to($_SERVER['HTTP_REFERER']);
       }
     } else {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
@@ -559,18 +559,18 @@ class Products extends MY_Controller
           foreach ($_POST['val'] as $id) {
             $this->site->deleteProductCategory($id);
           }
-          $this->session->set_flashdata('message', lang('categories_deleted'));
+          XSession::set_flash('message', lang('categories_deleted'));
           redirect_to($_SERVER['HTTP_REFERER']);
         }
 
         if (getPost('form_action') == 'export_excel') {
         }
       } else {
-        $this->session->set_flashdata('error', lang('no_record_selected'));
+        XSession::set_flash('error', lang('no_record_selected'));
         redirect_to($_SERVER['HTTP_REFERER']);
       }
     } else {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
@@ -642,7 +642,7 @@ class Products extends MY_Controller
   //       // fwrite($csv_file, $txt);
   //       fclose($csv_file);
   //     } else {
-  //       $this->session->set_flashdata('error', lang('no_product_found'));
+  //       XSession::set_flash('error', lang('no_product_found'));
   //       redirect_to($_SERVER['HTTP_REFERER']);
   //     }
 
@@ -704,7 +704,7 @@ class Products extends MY_Controller
   //   }
 
   //   if ($this->form_validation->run() == true && $this->products_model->addStockCount($data)) {
-  //     $this->session->set_flashdata('message', lang('stock_count_intiated'));
+  //     XSession::set_flash('message', lang('stock_count_intiated'));
   //     admin_redirect('products/stock_counts');
   //   } else {
   //     $this->data['error']      = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -733,7 +733,7 @@ class Products extends MY_Controller
       if ($this->input->is_ajax_request()) {
         sendJSON(['error' => 0, 'msg' => lang('product_deleted')]);
       }
-      $this->session->set_flashdata('message', lang('product_deleted'));
+      XSession::set_flash('message', lang('product_deleted'));
       admin_redirect('welcome');
     }
   }
@@ -776,7 +776,7 @@ class Products extends MY_Controller
   { // New rewrite Edit method.
 
     if (!$this->Owner && !$this->Admin && !getPermission('products-edit')) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       admin_redirect($_SERVER['HTTP_REFERER'] ?? 'products');
     }
 
@@ -882,7 +882,7 @@ class Products extends MY_Controller
 
       //rd_print($product_data); die();
       if ($this->site->updateProducts([$product_data])) {
-        $this->session->set_flashdata('message', lang('product_updated'));
+        XSession::set_flash('message', lang('product_updated'));
         admin_redirect('products');
       }
     } else {
@@ -913,7 +913,7 @@ class Products extends MY_Controller
     $adjustment = $this->site->getStockAdjustmentByID($id);
 
     if (!$id || !$adjustment) {
-      $this->session->set_flashdata('error', lang('adjustment_not_found'));
+      XSession::set_flash('error', lang('adjustment_not_found'));
       $this->sma->md();
     }
 
@@ -984,7 +984,7 @@ class Products extends MY_Controller
     if ($this->form_validation->run()) {
       if ($this->site->updateStockAdjustment($id, $adjustment_data, $products)) {
         $this->session->set_userdata('remove_qals', 1);
-        $this->session->set_flashdata('message', lang('quantity_adjusted'));
+        XSession::set_flash('message', lang('quantity_adjusted'));
       }
       admin_redirect('products/quantity_adjustments');
     } else {
@@ -1069,7 +1069,7 @@ class Products extends MY_Controller
         $this->upload->initialize($config);
         if (!$this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           redirect_to($_SERVER['HTTP_REFERER']);
         }
         $photo         = $this->upload->file_name;
@@ -1106,12 +1106,12 @@ class Products extends MY_Controller
         $config = null;
       }
     } elseif (getPost('edit_category')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('products/categories');
     }
 
     if ($this->form_validation->run() == true && $this->site->updateProductCategory($id, $data)) {
-      $this->session->set_flashdata('message', lang('category_updated'));
+      XSession::set_flash('message', lang('category_updated'));
       admin_redirect('products/categories');
     } else {
       $this->data['error']      = validation_errors() ? validation_errors() : $this->session->flashdata('error');
@@ -1646,7 +1646,7 @@ class Products extends MY_Controller
 
         if (!$this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('products/categories');
         }
 
@@ -1667,7 +1667,7 @@ class Products extends MY_Controller
         $categories = $subcategories = [];
 
         if ($header_id[0] != 'PCAT') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('products/categories');
         }
 
@@ -1712,14 +1712,14 @@ class Products extends MY_Controller
     }
 
     if ($this->form_validation->run() == true && $this->site->addProductCategories($categories, $subcategories)) {
-      $this->session->set_flashdata('message', lang('product_categories_added') . $updated);
+      XSession::set_flash('message', lang('product_categories_added') . $updated);
       admin_redirect('products/categories');
     } else {
       if ((isset($categories) && empty($categories)) || (isset($subcategories) && empty($subcategories))) {
         if ($updated) {
-          $this->session->set_flashdata('message', $updated);
+          XSession::set_flash('message', $updated);
         } else {
-          $this->session->set_flashdata('warning', lang('data_x_categories'));
+          XSession::set_flash('warning', lang('data_x_categories'));
         }
         admin_redirect('products/categories');
       }
@@ -1759,7 +1759,7 @@ class Products extends MY_Controller
 
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('products/import#raw_material');
         }
 
@@ -1789,7 +1789,7 @@ class Products extends MY_Controller
         ];
 
         if ($header_id[0] != 'RXMT') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('products/import#raw_material');
         }
 
@@ -1885,7 +1885,7 @@ class Products extends MY_Controller
                 }
               }
             } else {
-              $this->session->set_flashdata('error', lang('check_unit') . ' (' . $item['unit'] . '). ' . lang('unit_code_x_exist') . ' ' . lang('line_no') . ' ' . ($line + 1));
+              XSession::set_flash('error', lang('check_unit') . ' (' . $item['unit'] . '). ' . lang('unit_code_x_exist') . ' ' . lang('line_no') . ' ' . ($line + 1));
               admin_redirect('products/import#raw_material');
             }
 
@@ -1909,7 +1909,7 @@ class Products extends MY_Controller
               $item = false;
             }
           } else {
-            $this->session->set_flashdata('error', lang('check_category_code') . ' (' . $item['category_code'] . '). ' . lang('category_code_x_exist') . ' ' . lang('line_no') . ' ' . ($line + 1));
+            XSession::set_flash('error', lang('check_category_code') . ' (' . $item['category_code'] . '). ' . lang('category_code_x_exist') . ' ' . lang('line_no') . ' ' . ($line + 1));
             admin_redirect('products/import#raw_material');
           }
 
@@ -1925,16 +1925,16 @@ class Products extends MY_Controller
     if ($this->form_validation->run() && !empty($items)) {
       if ($this->site->addProducts($items)) { // csv_raw
         $updated = $updated ? '<p>' . sprintf(lang('products_updated'), $updated) . '</p>' : '';
-        $this->session->set_flashdata('message', sprintf(lang('products_added'), count($items)) . $updated);
+        XSession::set_flash('message', sprintf(lang('products_added'), count($items)) . $updated);
         admin_redirect('products');
       }
     } else {
       if (isset($items) && empty($items)) {
         if ($updated) {
-          $this->session->set_flashdata('message', sprintf(lang('products_updated'), $updated));
+          XSession::set_flash('message', sprintf(lang('products_updated'), $updated));
           admin_redirect('products');
         } else {
-          $this->session->set_flashdata('warning', lang('csv_issue'));
+          XSession::set_flash('warning', lang('csv_issue'));
         }
         admin_redirect('products/import#raw_material');
       }
@@ -1980,7 +1980,7 @@ class Products extends MY_Controller
 
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('products/import#selling_product');
         }
 
@@ -2003,7 +2003,7 @@ class Products extends MY_Controller
         $updated = 0;
 
         if ($header_id[0] != 'SLPRD') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('products/import#selling_product');
         }
 
@@ -2155,7 +2155,7 @@ class Products extends MY_Controller
 
             $unit = $this->site->getUnitByCode($col_unit);
             if (!$unit) {
-              $this->session->set_flashdata('warning', sprintf("Unit '%s' (%s) cannot be found. Product '%s' skipped", $col_unit, rd_unit($col_unit), $col_code));
+              XSession::set_flash('warning', sprintf("Unit '%s' (%s) cannot be found. Product '%s' skipped", $col_unit, rd_unit($col_unit), $col_code));
               continue;
             }
 
@@ -2207,15 +2207,15 @@ class Products extends MY_Controller
 
     if ($this->form_validation->run() == TRUE && $added) {
       $updated = $updated ? '<p>' . sprintf(lang('products_updated'), $updated) . '</p>' : '';
-      $this->session->set_flashdata('message', sprintf(lang('products_added'), $added) . $updated);
+      XSession::set_flash('message', sprintf(lang('products_added'), $added) . $updated);
       admin_redirect('products');
     } else {
       if (isset($sell_item)) {
         if ($updated) {
-          $this->session->set_flashdata('message', sprintf(lang('products_updated'), $updated));
+          XSession::set_flash('message', sprintf(lang('products_updated'), $updated));
           admin_redirect('products');
         } else {
-          $this->session->set_flashdata('warning', lang('csv_issue'));
+          XSession::set_flash('warning', lang('csv_issue'));
         }
         admin_redirect('products/import#selling_product');
       }
@@ -2261,7 +2261,7 @@ class Products extends MY_Controller
 
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('products/import#service');
         }
 
@@ -2286,7 +2286,7 @@ class Products extends MY_Controller
         $price_groups = [];
 
         if ($header_id[0] != 'SRVCX') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('products/import#service');
         }
 
@@ -2391,7 +2391,7 @@ class Products extends MY_Controller
               $item = []; // Empty the product.
             }
           } else {
-            $this->session->set_flashdata('error', lang('check_category_code') . ' (' . $item['category_code'] . '). ' . lang('category_code_x_exist') . ' ' . lang('line_no') . ' ' . ($key + 1));
+            XSession::set_flash('error', lang('check_category_code') . ' (' . $item['category_code'] . '). ' . lang('category_code_x_exist') . ' ' . lang('line_no') . ' ' . ($key + 1));
             admin_redirect('products/import#service');
           }
 
@@ -2442,16 +2442,16 @@ class Products extends MY_Controller
         }
 
         $updated = $updated ? '<p>' . sprintf(lang('products_updated'), $updated) . '</p>' : '';
-        $this->session->set_flashdata('message', sprintf(lang('products_added'), count($items)) . $updated);
+        XSession::set_flash('message', sprintf(lang('products_added'), count($items)) . $updated);
         admin_redirect('products');
       }
     } else {
       if (isset($items) && empty($items)) {
         if ($updated) {
-          $this->session->set_flashdata('message', sprintf(lang('products_updated'), $updated));
+          XSession::set_flash('message', sprintf(lang('products_updated'), $updated));
           admin_redirect('products');
         } else {
-          $this->session->set_flashdata('warning', lang('csv_issue'));
+          XSession::set_flash('warning', lang('csv_issue'));
         }
         admin_redirect('products/import#service');
       }
@@ -3222,7 +3222,7 @@ class Products extends MY_Controller
     $product = Product::getRow(['id' => $product_id]);
 
     if (!$product_id || !$product) {
-      $this->session->set_flashdata('error', lang('prduct_not_found'));
+      XSession::set_flash('error', lang('prduct_not_found'));
       $this->sma->md();
     }
 
@@ -3568,7 +3568,7 @@ class Products extends MY_Controller
       if ($this->input->is_ajax_request()) {
         sendJSON(['error' => 1, 'msg' => lang('access_denied')]);
       } else {
-        $this->session->set_flashdata('error', lang('access_denied'));
+        XSession::set_flash('error', lang('access_denied'));
         redirect_to($_SERVER['HTTP_REFERER']);
       }
     }
@@ -3596,7 +3596,7 @@ class Products extends MY_Controller
             if ($this->input->is_ajax_request()) {
               sendJSON(['error' => 0, 'msg' => $this->lang->line('products_quantity_sync')]);
             } else {
-              $this->session->set_flashdata('message', $this->lang->line('products_quantity_sync'));
+              XSession::set_flash('message', $this->lang->line('products_quantity_sync'));
               redirect_to($_SERVER['HTTP_REFERER']);
             }
           }
@@ -3619,7 +3619,7 @@ class Products extends MY_Controller
           if ($this->input->is_ajax_request()) {
             sendJSON(['error' => 0, 'msg' => $this->lang->line('products_quantity_sync')]);
           } else {
-            $this->session->set_flashdata('message', $this->lang->line('products_quantity_sync'));
+            XSession::set_flash('message', $this->lang->line('products_quantity_sync'));
             redirect_to($_SERVER['HTTP_REFERER']);
           }
         } elseif (getPost('form_action') == 'activate') {
@@ -3658,7 +3658,7 @@ class Products extends MY_Controller
           if ($this->input->is_ajax_request()) {
             sendJSON(['error' => 0, 'msg' => $this->lang->line('products_deleted')]);
           } else {
-            $this->session->set_flashdata('message', $this->lang->line('products_deleted'));
+            XSession::set_flash('message', $this->lang->line('products_deleted'));
             redirect_to($_SERVER['HTTP_REFERER']);
           }
         } elseif (getPost('form_action') == 'export_excel') {
@@ -3716,7 +3716,7 @@ class Products extends MY_Controller
         if ($this->input->is_ajax_request()) {
           sendJSON(['error' => 1, 'msg' => $this->lang->line('no_product_selected')]);
         } else {
-          $this->session->set_flashdata('error', $this->lang->line('no_product_selected'));
+          XSession::set_flash('error', $this->lang->line('no_product_selected'));
           redirect_to($_SERVER['HTTP_REFERER']);
         }
       }
@@ -3724,7 +3724,7 @@ class Products extends MY_Controller
       if ($this->input->is_ajax_request()) {
         sendJSON(['error' => 1, 'msg' => validation_errors()]);
       } else {
-        $this->session->set_flashdata('error', validation_errors());
+        XSession::set_flash('error', validation_errors());
         redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/products');
       }
     }
@@ -3801,12 +3801,12 @@ class Products extends MY_Controller
   //       'warehouse_id' => $warehouse_id,
   //     ];
   //   } elseif (getPost('set_rack')) {
-  //     $this->session->set_flashdata('error', validation_errors());
+  //     XSession::set_flash('error', validation_errors());
   //     admin_redirect('products/' . $warehouse_id);
   //   }
 
   //   if ($this->form_validation->run() == true && $this->products_model->setRack($data)) {
-  //     $this->session->set_flashdata('message', lang('rack_set'));
+  //     XSession::set_flash('message', lang('rack_set'));
   //     admin_redirect('products/' . $warehouse_id);
   //   } else {
   //     $this->data['error']        = validation_errors() ? validation_errors() : $this->session->flashdata('error');
@@ -3838,7 +3838,7 @@ class Products extends MY_Controller
       $cycle        = (getPost('cycle') ?? 1);
       $date         = dtPHP(getPost('date'));
       $item_ids     = getPost('item_id');
-      $real_qtys    = getPost('real_qty');
+      $real_qtys    = getPost('real_qty'); // Not used.
       $first_qtys   = getPost('first_qty');
       $reject_qtys  = getPost('reject_qty');
       $note         = htmlEncode(getPost('note'));
@@ -3847,7 +3847,7 @@ class Products extends MY_Controller
       $pic_id = getPost('pic');
 
       if (empty($item_ids)) {
-        $this->session->set_flashdata('error', 'No items.');
+        XSession::set_flash('error', 'No items.');
         admin_redirect('products/stock_opname/add');
       }
 
@@ -3856,21 +3856,23 @@ class Products extends MY_Controller
 
       // Looping SO items.
       for ($a = 0; $a < $item_count; $a++) {
-        $showQty = ($this->isAdmin || getPermission('products-so_quantity') ? TRUE : FALSE);
         $item_id    = $item_ids[$a];
         $first_qty  = $first_qtys[$a];
         $reject_qty = $reject_qtys[$a];
 
-        $warehouseProduct = $this->site->getWarehouseProduct($item_id, $warehouse_id);
+        Product::sync($item_id, $warehouse_id);
 
-        if (!$warehouseProduct) {
-          $this->session->set_flashdata('error', "Product ID [{$item_id}] not found.");
+        // $warehouseProduct = $this->site->getWarehouseProduct($item_id, $warehouse_id);
+        $whp = WarehouseProduct::getRow(['product_id' => $item_id, 'warehouse_id' => $warehouse_id]);
+
+        if (!$whp) {
+          XSession::set('error', "Product ID [{$item_id}] not found.");
           admin_redirect('products/stock_opname/add');
         }
 
         $items_data[] = [
           'product_id' => $item_id,
-          'quantity'   => $warehouseProduct->quantity,  // Real qty.
+          'quantity'   => $whp->quantity,  // Real qty.
           'first_qty'  => (!empty($first_qty) ? $first_qty : 0), // If quantity not set then make as zero.
           'reject_qty' => (!empty($reject_qty) ? $reject_qty : 0)
         ];
@@ -3894,20 +3896,20 @@ class Products extends MY_Controller
 
         $so_data['attachment'] = $uploader->storeRandom();
       } else {
-        $this->session->set_flashdata('error', 'Attachment harus dilampirkan.');
+        XSession::set_flash('error', 'Attachment harus dilampirkan.');
         admin_redirect('products/stock_opname/add');
       }
 
       if ($this->site->addStockOpname($so_data, $items_data)) {
         setcookie('soremove', 1, 0, '/');
-        $this->session->set_flashdata('message', 'Stock opname berhasil ditambahkan.');
+        XSession::set_flash('message', 'Stock opname berhasil ditambahkan.');
         admin_redirect('products/stock_opname');
       }
-      $this->session->set_flashdata('error', 'Stock opname gagal ditambahkan.');
+      XSession::set_flash('error', 'Stock opname gagal ditambahkan.');
       admin_redirect('products/stock_opname');
     } else {
       if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        $this->session->set_flashdata('error', validation_errors());
+        XSession::set_flash('error', validation_errors());
       }
     }
 
@@ -3952,12 +3954,12 @@ class Products extends MY_Controller
     $opname = $this->site->getStockOpnameByID($opname_id);
 
     if ($opname->status == 'verified' && $this->so_mode == 'confirm') {
-      $this->session->set_flashdata('error', 'Stock Opname has been verified.');
+      XSession::set_flash('error', 'Stock Opname has been verified.');
       admin_redirect("products/stock_opname");
     }
 
     if ($opname->status == 'confirmed' && (!$this->Owner && !$this->Admin && !$granted)) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       admin_redirect("products/stock_opname");
     }
 
@@ -3999,7 +4001,7 @@ class Products extends MY_Controller
           ];
         }
       } else {
-        $this->session->set_flashdata('error', 'Cancelled. Why no items present?');
+        XSession::set_flash('error', 'Cancelled. Why no items present?');
         admin_redirect("products/stock_opname/{$this->so_mode}/{$opname_id}");
       }
 
@@ -4013,21 +4015,21 @@ class Products extends MY_Controller
 
         $so_data['attachment'] = $uploader->storeRandom();
       } else if ($opname->status == 'checked' && $this->so_mode == 'confirm') { // If confirm checked, must include attachment.
-        $this->session->set_flashdata('error', lang('attachment_required'));
+        XSession::set_flash('error', lang('attachment_required'));
         admin_redirect("products/stock_opname/{$this->so_mode}/{$opname_id}");
       }
 
       if ($this->site->updateStockOpname($opname_id, $so_data, $items)) {
         setcookie('soremove', 1, 0, '/');
-        $this->session->set_flashdata('message', "Stock opname has been {$this->so_mode}ed successfully.");
+        XSession::set_flash('message', "Stock opname has been {$this->so_mode}ed successfully.");
         admin_redirect('products/stock_opname');
       }
 
-      $this->session->set_flashdata('error', "Stock opname failed to {$this->so_mode}.");
+      XSession::set_flash('error', "Stock opname failed to {$this->so_mode}.");
       admin_redirect('products/stock_opname');
     } else {
       if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        $this->session->set_flashdata('error', validation_errors());
+        XSession::set_flash('error', validation_errors());
       }
     }
 
@@ -4940,7 +4942,7 @@ class Products extends MY_Controller
 
     $pr_details = $this->site->getProductByID($id);
     if (!$id || !$pr_details) {
-      $this->session->set_flashdata('error', lang('prduct_not_found'));
+      XSession::set_flash('error', lang('prduct_not_found'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
     $this->data['barcode'] = "<img src='" . admin_url('products/gen_barcode/' . $pr_details->code . '/' . $pr_details->barcode_symbology . '/40/0') . "' alt='" . $pr_details->code . "' class='pull-left' />";
@@ -4972,7 +4974,7 @@ class Products extends MY_Controller
     $adjustment = $this->site->getStockAdjustmentByID($id);
 
     if (!$id || !$adjustment) {
-      $this->session->set_flashdata('error', lang('adjustment_not_found'));
+      XSession::set_flash('error', lang('adjustment_not_found'));
       $this->sma->md();
     }
 

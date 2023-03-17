@@ -14,7 +14,7 @@ class system_settings extends MY_Controller
     }
 
     if (!$this->Owner && !$this->Admin && !getPermission('edit-system')) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       redirect_to('admin');
     }
 
@@ -56,7 +56,7 @@ class system_settings extends MY_Controller
         $this->upload->initialize($config);
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           redirect_to($_SERVER['HTTP_REFERER']);
         }
         $photo         = $this->upload->file_name;
@@ -76,12 +76,12 @@ class system_settings extends MY_Controller
         $this->image_lib->clear();
       }
     } elseif (getPost('add_brand')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/brands');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addBrand($data)) {
-      $this->session->set_flashdata('message', lang('brand_added'));
+      XSession::set_flash('message', lang('brand_added'));
       admin_redirect('system_settings/brands');
     } else {
       $this->data['error']    = validation_errors() ? validation_errors() : $this->session->flashdata('error');
@@ -120,7 +120,7 @@ class system_settings extends MY_Controller
         $this->upload->initialize($config);
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           redirect_to($_SERVER['HTTP_REFERER']);
         }
         $photo         = $this->upload->file_name;
@@ -157,12 +157,12 @@ class system_settings extends MY_Controller
         $config = null;
       }
     } elseif (getPost('add_category')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/categories');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addCategory($data)) {
-      $this->session->set_flashdata('message', lang('category_added'));
+      XSession::set_flash('message', lang('category_added'));
       admin_redirect('system_settings/categories');
     } else {
       $this->data['error']      = validation_errors() ? validation_errors() : $this->session->flashdata('error');
@@ -186,12 +186,12 @@ class system_settings extends MY_Controller
         'auto_update' => getPost('auto_update') ? getPost('auto_update') : 0,
       ];
     } elseif (getPost('add_currency')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/currencies');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addCurrency($data)) { //check to see if we are creating the customer
-      $this->session->set_flashdata('message', lang('currency_added'));
+      XSession::set_flash('message', lang('currency_added'));
       admin_redirect('system_settings/currencies');
     } else {
       $this->data['error']      = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -211,12 +211,12 @@ class system_settings extends MY_Controller
         'percent'   => getPost('percent'),
       ];
     } elseif (getPost('add_customer_group')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/customer_groups');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addCustomerGroup($data)) {
-      $this->session->set_flashdata('message', lang('customer_group_added'));
+      XSession::set_flash('message', lang('customer_group_added'));
       admin_redirect('system_settings/customer_groups');
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -236,12 +236,12 @@ class system_settings extends MY_Controller
         'code' => getPost('code'),
       ];
     } elseif (getPost('add_expense_category')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/expense_categories');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addExpenseCategory($data)) {
-      $this->session->set_flashdata('message', lang('expense_category_added'));
+      XSession::set_flash('message', lang('expense_category_added'));
       admin_redirect('system_settings/expense_categories');
     } else {
       $this->data['error']    = validation_errors() ? validation_errors() : $this->session->flashdata('error');
@@ -260,12 +260,12 @@ class system_settings extends MY_Controller
         'code' => getPost('code'),
       ];
     } elseif (getPost('add_income_category')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/income_categories');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addIncomeCategory($data)) {
-      $this->session->set_flashdata('message', lang('income_category_added'));
+      XSession::set_flash('message', lang('income_category_added'));
       admin_redirect('system_settings/income_categories');
     } else {
       $this->data['error']    = validation_errors() ? validation_errors() : $this->session->flashdata('error');
@@ -280,12 +280,12 @@ class system_settings extends MY_Controller
     if ($this->form_validation->run() == true) {
       $data = ['name' => getPost('name')];
     } elseif (getPost('add_price_group')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/price_groups');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addPriceGroup($data)) {
-      $this->session->set_flashdata('message', lang('price_group_added'));
+      XSession::set_flash('message', lang('price_group_added'));
       admin_redirect('system_settings/price_groups');
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -301,12 +301,12 @@ class system_settings extends MY_Controller
     if ($this->form_validation->run() == true) {
       $data = ['name' => getPost('name')];
     } elseif (getPost('add_price_range')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/price_ranges');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addPriceRange($data)) {
-      $this->session->set_flashdata('message', lang('Price range added successfully.'));
+      XSession::set_flash('message', lang('Price range added successfully.'));
       admin_redirect('system_settings/price_ranges');
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -329,12 +329,12 @@ class system_settings extends MY_Controller
         'rate'      => getPost('rate'),
       ];
     } elseif (getPost('add_tax_rate')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/tax_rates');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addTaxRate($data)) {
-      $this->session->set_flashdata('message', lang('tax_rate_added'));
+      XSession::set_flash('message', lang('tax_rate_added'));
       admin_redirect('system_settings/tax_rates');
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -361,15 +361,15 @@ class system_settings extends MY_Controller
         'operation_value' => getPost('operation_value') ?? NULL,
       ];
     } elseif (getPost('add_unit')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/units');
     }
 
     if ($this->form_validation->run()) {
       if ($this->settings_model->addUnit($data)) {
-        $this->session->set_flashdata('message', lang('unit_added'));
+        XSession::set_flash('message', lang('unit_added'));
       } else {
-        $this->session->set_flashdata('error', 'Unit failed to add.');
+        XSession::set_flash('error', 'Unit failed to add.');
       }
       admin_redirect('system_settings/units');
     } else {
@@ -386,12 +386,12 @@ class system_settings extends MY_Controller
     if ($this->form_validation->run() == true) {
       $data = ['name' => getPost('name')];
     } elseif (getPost('add_variant')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/variants');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addVariant($data)) {
-      $this->session->set_flashdata('message', lang('variant_added'));
+      XSession::set_flash('message', lang('variant_added'));
       admin_redirect('system_settings/variants');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -422,7 +422,7 @@ class system_settings extends MY_Controller
 
       //   if (!$this->upload->do_upload()) {
       //     $error = $this->upload->display_errors();
-      //     $this->session->set_flashdata('message', $error);
+      //     XSession::set_flash('message', $error);
       //     admin_redirect('system_settings/warehouses');
       //   }
 
@@ -462,15 +462,15 @@ class system_settings extends MY_Controller
         ])
       ];
     } elseif (getPost('add_warehouse')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/warehouses');
     }
 
     if ($this->form_validation->run()) {
       if ($this->site->addWarehouse($data)) {
-        $this->session->set_flashdata('message', lang('warehouse_added'));
+        XSession::set_flash('message', lang('warehouse_added'));
       } else {
-        $this->session->set_flashdata('error', 'Failed to add warehouse.');
+        XSession::set_flash('error', 'Failed to add warehouse.');
       }
       admin_redirect('system_settings/warehouses');
     } else {
@@ -483,11 +483,11 @@ class system_settings extends MY_Controller
   public function backup_database()
   {
     if (DEMO) {
-      $this->session->set_flashdata('warning', lang('disabled_in_demo'));
+      XSession::set_flash('warning', lang('disabled_in_demo'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       admin_redirect('welcome');
     }
     $this->load->dbutil();
@@ -501,23 +501,23 @@ class system_settings extends MY_Controller
     $save    = './files/backups/' . $db_name;
     $this->load->helper('file');
     write_file($save, $backup);
-    $this->session->set_flashdata('messgae', lang('db_saved'));
+    XSession::set_flash('messgae', lang('db_saved'));
     admin_redirect('system_settings/backups');
   }
 
   public function backup_files()
   {
     if (DEMO) {
-      $this->session->set_flashdata('warning', lang('disabled_in_demo'));
+      XSession::set_flash('warning', lang('disabled_in_demo'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       admin_redirect('welcome');
     }
     $name = 'file-backup-' . date('Y-m-d-H-i-s');
     $this->sma->zip('./', './files/backups/', $name);
-    $this->session->set_flashdata('messgae', lang('backup_saved'));
+    XSession::set_flash('messgae', lang('backup_saved'));
     admin_redirect('system_settings/backups');
     exit();
   }
@@ -539,7 +539,7 @@ class system_settings extends MY_Controller
   public function change_logo()
   {
     if (DEMO) {
-      $this->session->set_flashdata('warning', lang('disabled_in_demo'));
+      XSession::set_flash('warning', lang('disabled_in_demo'));
       $this->sma->md();
     }
     $this->load->helper('security');
@@ -560,7 +560,7 @@ class system_settings extends MY_Controller
         $this->upload->initialize($config);
         if (!$this->upload->do_upload('site_logo')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           redirect_to($_SERVER['HTTP_REFERER']);
         }
         $site_logo = $this->upload->file_name;
@@ -580,7 +580,7 @@ class system_settings extends MY_Controller
         $this->upload->initialize($config);
         if (!$this->upload->do_upload('login_logo')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           redirect_to($_SERVER['HTTP_REFERER']);
         }
         $login_logo = $this->upload->file_name;
@@ -600,16 +600,16 @@ class system_settings extends MY_Controller
         $this->upload->initialize($config);
         if (!$this->upload->do_upload('biller_logo')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           redirect_to($_SERVER['HTTP_REFERER']);
         }
         $photo = $this->upload->file_name;
       }
 
-      $this->session->set_flashdata('message', lang('logo_uploaded'));
+      XSession::set_flash('message', lang('logo_uploaded'));
       redirect_to($_SERVER['HTTP_REFERER']);
     } elseif (getPost('upload_logo')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       redirect_to($_SERVER['HTTP_REFERER']);
     } else {
       $this->data['error']    = validation_errors() ? validation_errors() : $this->session->flashdata('error');
@@ -624,12 +624,12 @@ class system_settings extends MY_Controller
     if ($this->form_validation->run() == true) {
       $data = ['name' => strtolower(getPost('group_name')), 'description' => getPost('description')];
     } elseif (getPost('create_group')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/user_groups');
     }
 
     if ($this->form_validation->run() == true && ($new_group_id = $this->settings_model->addGroup($data))) {
-      $this->session->set_flashdata('message', lang('group_added'));
+      XSession::set_flash('message', lang('group_added'));
       admin_redirect('system_settings/permissions/' . $new_group_id);
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -677,15 +677,15 @@ class system_settings extends MY_Controller
   public function delete_backup($zipfile)
   {
     if (DEMO) {
-      $this->session->set_flashdata('warning', lang('disabled_in_demo'));
+      XSession::set_flash('warning', lang('disabled_in_demo'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       admin_redirect('welcome');
     }
     unlink('./files/backups/' . $zipfile . '.zip');
-    $this->session->set_flashdata('messgae', lang('backup_deleted'));
+    XSession::set_flash('messgae', lang('backup_deleted'));
     admin_redirect('system_settings/backups');
   }
 
@@ -728,15 +728,15 @@ class system_settings extends MY_Controller
   public function delete_database($dbfile)
   {
     if (DEMO) {
-      $this->session->set_flashdata('warning', lang('disabled_in_demo'));
+      XSession::set_flash('warning', lang('disabled_in_demo'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       admin_redirect('welcome');
     }
     unlink('./files/backups/' . $dbfile . '.txt');
-    $this->session->set_flashdata('messgae', lang('db_deleted'));
+    XSession::set_flash('messgae', lang('db_deleted'));
     admin_redirect('system_settings/backups');
   }
 
@@ -776,12 +776,12 @@ class system_settings extends MY_Controller
   public function delete_group($id = null)
   {
     if ($this->settings_model->checkGroupUsers($id)) {
-      $this->session->set_flashdata('error', lang('group_x_b_deleted'));
+      XSession::set_flash('error', lang('group_x_b_deleted'));
       admin_redirect('system_settings/user_groups');
     }
 
     if ($this->settings_model->deleteGroup($id)) {
-      $this->session->set_flashdata('message', lang('group_deleted'));
+      XSession::set_flash('message', lang('group_deleted'));
       admin_redirect('system_settings/user_groups');
     }
   }
@@ -835,11 +835,11 @@ class system_settings extends MY_Controller
   public function download_backup($zipfile)
   {
     if (DEMO) {
-      $this->session->set_flashdata('warning', lang('disabled_in_demo'));
+      XSession::set_flash('warning', lang('disabled_in_demo'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       admin_redirect('welcome');
     }
     $this->load->helper('download');
@@ -850,11 +850,11 @@ class system_settings extends MY_Controller
   public function download_database($dbfile)
   {
     if (DEMO) {
-      $this->session->set_flashdata('warning', lang('disabled_in_demo'));
+      XSession::set_flash('warning', lang('disabled_in_demo'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       admin_redirect('welcome');
     }
     $this->load->library('zip');
@@ -898,7 +898,7 @@ class system_settings extends MY_Controller
         $this->upload->initialize($config);
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           redirect_to($_SERVER['HTTP_REFERER']);
         }
         $photo         = $this->upload->file_name;
@@ -918,12 +918,12 @@ class system_settings extends MY_Controller
         $this->image_lib->clear();
       }
     } elseif (getPost('edit_brand')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/brands');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updateBrand($id, $data)) {
-      $this->session->set_flashdata('message', lang('brand_updated'));
+      XSession::set_flash('message', lang('brand_updated'));
       admin_redirect('system_settings/brands');
     } else {
       $this->data['error']    = validation_errors() ? validation_errors() : $this->session->flashdata('error');
@@ -970,7 +970,7 @@ class system_settings extends MY_Controller
         $this->upload->initialize($config);
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           redirect_to($_SERVER['HTTP_REFERER']);
         }
         $photo         = $this->upload->file_name;
@@ -1007,12 +1007,12 @@ class system_settings extends MY_Controller
         $config = null;
       }
     } elseif (getPost('edit_category')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/categories');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updateCategory($id, $data)) {
-      $this->session->set_flashdata('message', lang('category_updated'));
+      XSession::set_flash('message', lang('category_updated'));
       admin_redirect('system_settings/categories');
     } else {
       $this->data['error']      = validation_errors() ? validation_errors() : $this->session->flashdata('error');
@@ -1041,12 +1041,12 @@ class system_settings extends MY_Controller
         'auto_update' => getPost('auto_update') ? getPost('auto_update') : 0,
       ];
     } elseif (getPost('edit_currency')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/currencies');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updateCurrency($id, $data)) { //check to see if we are updateing the customer
-      $this->session->set_flashdata('message', lang('currency_updated'));
+      XSession::set_flash('message', lang('currency_updated'));
       admin_redirect('system_settings/currencies');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -1071,12 +1071,12 @@ class system_settings extends MY_Controller
         'percent'   => getPost('percent'),
       ];
     } elseif (getPost('edit_customer_group')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/customer_groups');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updateCustomerGroup($id, $data)) {
-      $this->session->set_flashdata('message', lang('customer_group_updated'));
+      XSession::set_flash('message', lang('customer_group_updated'));
       admin_redirect('system_settings/customer_groups');
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -1103,12 +1103,12 @@ class system_settings extends MY_Controller
         'name' => getPost('name'),
       ];
     } elseif (getPost('edit_expense_category')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/expense_categories');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updateExpenseCategory($id, $data)) {
-      $this->session->set_flashdata('message', lang('expense_category_updated'));
+      XSession::set_flash('message', lang('expense_category_updated'));
       admin_redirect('system_settings/expense_categories');
     } else {
       $this->data['error']    = validation_errors() ? validation_errors() : $this->session->flashdata('error');
@@ -1132,9 +1132,9 @@ class system_settings extends MY_Controller
       $group_update = $this->settings_model->updateGroup($id, $data);
 
       if ($group_update) {
-        $this->session->set_flashdata('message', lang('group_udpated'));
+        XSession::set_flash('message', lang('group_udpated'));
       } else {
-        $this->session->set_flashdata('error', lang('attempt_failed'));
+        XSession::set_flash('error', lang('attempt_failed'));
       }
       admin_redirect('system_settings/user_groups');
     } else {
@@ -1171,12 +1171,12 @@ class system_settings extends MY_Controller
     if ($this->form_validation->run() == true) {
       $data = ['name' => getPost('name')];
     } elseif (getPost('edit_price_group')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/price_groups');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updatePriceGroup($id, $data)) {
-      $this->session->set_flashdata('message', lang('price_group_updated'));
+      XSession::set_flash('message', lang('price_group_updated'));
       admin_redirect('system_settings/price_groups');
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -1199,12 +1199,12 @@ class system_settings extends MY_Controller
     if ($this->form_validation->run() == true) {
       $data = ['name' => getPost('name')];
     } elseif (getPost('edit_price_range')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/price_ranges');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updatePriceRange($id, $data)) {
-      $this->session->set_flashdata('message', lang('Price Range updated successfully.'));
+      XSession::set_flash('message', lang('Price Range updated successfully.'));
       admin_redirect('system_settings/price_ranges');
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -1233,12 +1233,12 @@ class system_settings extends MY_Controller
         'rate'      => getPost('rate'),
       ];
     } elseif (getPost('edit_tax_rate')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/tax_rates');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updateTaxRate($id, $data)) { //check to see if we are updateing the customer
-      $this->session->set_flashdata('message', lang('tax_rate_updated'));
+      XSession::set_flash('message', lang('tax_rate_updated'));
       admin_redirect('system_settings/tax_rates');
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -1272,15 +1272,15 @@ class system_settings extends MY_Controller
         'operation_value' => getPost('operation_value')
       ];
     } elseif (getPost('edit_unit')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/units');
     }
 
     if ($this->form_validation->run()) {
       if ($this->settings_model->updateUnit($id, $data)) {
-        $this->session->set_flashdata('message', lang('unit_updated'));
+        XSession::set_flash('message', lang('unit_updated'));
       } else {
-        $this->session->set_flashdata('error', 'Failed to update unit.');
+        XSession::set_flash('error', 'Failed to update unit.');
       }
       admin_redirect('system_settings/units');
     } else {
@@ -1302,12 +1302,12 @@ class system_settings extends MY_Controller
     if ($this->form_validation->run() == true) {
       $data = ['name' => getPost('name')];
     } elseif (getPost('edit_variant')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/variants');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updateVariant($id, $data)) {
-      $this->session->set_flashdata('message', lang('variant_updated'));
+      XSession::set_flash('message', lang('variant_updated'));
       admin_redirect('system_settings/variants');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -1360,7 +1360,7 @@ class system_settings extends MY_Controller
 
       //   if (!$this->upload->do_upload()) {
       //     $error = $this->upload->display_errors();
-      //     $this->session->set_flashdata('message', $error);
+      //     XSession::set_flash('message', $error);
       //     admin_redirect('system_settings/warehouses');
       //   }
 
@@ -1383,7 +1383,7 @@ class system_settings extends MY_Controller
       //   }
       // }
     } elseif (getPost('edit_warehouse')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/warehouses');
     }
 
@@ -1407,9 +1407,9 @@ class system_settings extends MY_Controller
           }
         }
 
-        $this->session->set_flashdata('message', lang('warehouse_updated'));
+        XSession::set_flash('message', lang('warehouse_updated'));
       } else {
-        $this->session->set_flashdata('error', 'Failed to update warehouse.');
+        XSession::set_flash('error', 'Failed to update warehouse.');
       }
       admin_redirect('system_settings/warehouses');
     } else {
@@ -1432,10 +1432,10 @@ class system_settings extends MY_Controller
     if ($this->form_validation->run() == true) {
       $data = $_POST['mail_body'];
       if (write_file('./themes/' . $this->theme . 'email_templates/' . $template . '.html', $data)) {
-        $this->session->set_flashdata('message', lang('message_successfully_saved'));
+        XSession::set_flash('message', lang('message_successfully_saved'));
         admin_redirect('system_settings/email_templates#' . $template);
       } else {
-        $this->session->set_flashdata('error', lang('failed_to_save_message'));
+        XSession::set_flash('error', lang('failed_to_save_message'));
         admin_redirect('system_settings/email_templates#' . $template);
       }
     } else {
@@ -1573,7 +1573,7 @@ class system_settings extends MY_Controller
   public function getProductPrices($group_id = null)
   {
     if (!$group_id) {
-      $this->session->set_flashdata('error', lang('no_price_group_selected'));
+      XSession::set_flash('error', lang('no_price_group_selected'));
       admin_redirect('system_settings/price_groups');
     }
 
@@ -1660,7 +1660,7 @@ class system_settings extends MY_Controller
   public function group_product_prices($group_id = null)
   {
     if (!$group_id) {
-      $this->session->set_flashdata('error', lang('no_price_group_selected'));
+      XSession::set_flash('error', lang('no_price_group_selected'));
       admin_redirect('system_settings/price_groups');
     }
 
@@ -1690,7 +1690,7 @@ class system_settings extends MY_Controller
 
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('system_settings/brands');
         }
 
@@ -1726,7 +1726,7 @@ class system_settings extends MY_Controller
     }
 
     if ($this->form_validation->run() == true && !empty($data) && $this->settings_model->addBrands($data)) {
-      $this->session->set_flashdata('message', lang('brands_added'));
+      XSession::set_flash('message', lang('brands_added'));
       admin_redirect('system_settings/brands');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -1755,7 +1755,7 @@ class system_settings extends MY_Controller
         $this->upload->initialize($config);
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('system_settings/categories');
         }
         $csv       = $this->upload->file_name;
@@ -1772,7 +1772,7 @@ class system_settings extends MY_Controller
         $updated    = '';
         $categories = $subcategories = [];
         if ($header_id[0] != 'ID' || $header_id[1] != 'PRODUCT CATEGORY') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('products/categories');
         }
         foreach ($arrResult as $key => $value) {
@@ -1807,14 +1807,14 @@ class system_settings extends MY_Controller
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addCategories($categories, $subcategories)) {
-      $this->session->set_flashdata('message', lang('categories_added') . $updated);
+      XSession::set_flash('message', lang('categories_added') . $updated);
       admin_redirect('system_settings/categories');
     } else {
       if ((isset($categories) && empty($categories)) || (isset($subcategories) && empty($subcategories))) {
         if ($updated) {
-          $this->session->set_flashdata('message', $updated);
+          XSession::set_flash('message', $updated);
         } else {
-          $this->session->set_flashdata('warning', lang('data_x_categories'));
+          XSession::set_flash('warning', lang('data_x_categories'));
         }
         admin_redirect('system_settings/categories');
       }
@@ -1847,7 +1847,7 @@ class system_settings extends MY_Controller
 
         if (!$this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('system_settings/expense_categories');
         }
 
@@ -1869,7 +1869,7 @@ class system_settings extends MY_Controller
         $updated = 0;
 
         if ($header_id[0] != 'EXCA') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('system_settings/expense_categories');
         }
         foreach ($arrResult as $key => $value) {
@@ -1894,11 +1894,11 @@ class system_settings extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       if ($this->settings_model->addExpenseCategories($data_expense)) {
-        $this->session->set_flashdata('message', lang('categories_added'));
+        XSession::set_flash('message', lang('categories_added'));
       } else if ($updated) {
-        $this->session->set_flashdata('message', lang('categories_added'));
+        XSession::set_flash('message', lang('categories_added'));
       } else {
-        $this->session->set_flashdata('error', 'Something error');
+        XSession::set_flash('error', 'Something error');
       }
       admin_redirect('system_settings/expense_categories');
     } else {
@@ -1923,7 +1923,7 @@ class system_settings extends MY_Controller
 
         if (!$this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('system_settings/income_categories');
         }
 
@@ -1945,7 +1945,7 @@ class system_settings extends MY_Controller
         $updated = 0;
 
         if ($header_id[0] != 'INCA') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('system_settings/income_categories');
         }
         foreach ($arrResult as $key => $value) {
@@ -1971,11 +1971,11 @@ class system_settings extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       if ($this->site->addIncomeCategories($data)) {
-        $this->session->set_flashdata('message', lang('categories_added'));
+        XSession::set_flash('message', lang('categories_added'));
       } else if ($updated) {
-        $this->session->set_flashdata('message', lang('categories_added'));
+        XSession::set_flash('message', lang('categories_added'));
       } else {
-        $this->session->set_flashdata('error', 'Something error.');
+        XSession::set_flash('error', 'Something error.');
       }
       admin_redirect('system_settings/income_categories');
     } else {
@@ -2006,7 +2006,7 @@ class system_settings extends MY_Controller
 
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('system_settings/categories');
         }
 
@@ -2038,7 +2038,7 @@ class system_settings extends MY_Controller
                 'category_id' => $parent_actegory->id,
               ];
             } else {
-              $this->session->set_flashdata('error', lang('check_category_code') . ' (' . $csv_ct['category_code'] . '). ' . lang('category_code_x_exist') . ' ' . lang('line_no') . ' ' . $rw);
+              XSession::set_flash('error', lang('check_category_code') . ' (' . $csv_ct['category_code'] . '). ' . lang('category_code_x_exist') . ' ' . lang('line_no') . ' ' . $rw);
               admin_redirect('system_settings/categories');
             }
           }
@@ -2048,7 +2048,7 @@ class system_settings extends MY_Controller
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addSubCategories($data)) {
-      $this->session->set_flashdata('message', lang('subcategories_added'));
+      XSession::set_flash('message', lang('subcategories_added'));
       admin_redirect('system_settings/categories');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -2089,7 +2089,7 @@ class system_settings extends MY_Controller
 
           if (!$this->upload->do_upload('csv_file')) {
             $error = $this->upload->display_errors();
-            $this->session->set_flashdata('error', $error);
+            XSession::set_flash('error', $error);
             admin_redirect('system_settings/units');
           }
 
@@ -2106,7 +2106,7 @@ class system_settings extends MY_Controller
           $csvs = [];
         }
       } else if (getPost('import')) {
-        $this->session->set_flashdata('error', 'E1: ' . validation_errors());
+        XSession::set_flash('error', 'E1: ' . validation_errors());
         admin_redirect('system_settings/units');
       }
     }
@@ -2123,7 +2123,7 @@ class system_settings extends MY_Controller
         if ($command == 'syncGoogleSheet') {
           sendJSON(['error' => 1, 'msg' => 'File format is invalid on Googlesheet.']);
         } else {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('system_settings/units');
         }
       }
@@ -2165,12 +2165,12 @@ class system_settings extends MY_Controller
       if ($command == 'syncGoogleSheet') {
         sendJSON(['error' => 0, 'msg' => sprintf(lang('csv_units_imported'), $added, $updated)]);
       } else {
-        $this->session->set_flashdata('message', sprintf(lang('csv_units_imported'), $added, $updated));
+        XSession::set_flash('message', sprintf(lang('csv_units_imported'), $added, $updated));
         admin_redirect('system_settings/units');
       }
     } else {
       if (getPost('import')) {
-        $this->session->set_flashdata('error', 'E2: ' . validation_errors());
+        XSession::set_flash('error', 'E2: ' . validation_errors());
         admin_redirect('system_settings/units');
       }
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -2195,7 +2195,7 @@ class system_settings extends MY_Controller
 
         if (!$this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('system_settings/warehouses');
         }
 
@@ -2221,7 +2221,7 @@ class system_settings extends MY_Controller
         ];
 
         if ($header_id[0] != 'WRHS') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('system_settings/warehouses');
         }
 
@@ -2234,7 +2234,7 @@ class system_settings extends MY_Controller
           $price_group = $this->site->getPriceGroupByName($csv['price_group']);
 
           if (!$price_group) {
-            $this->session->set_flashdata('error', sprintf('Price Group [%s] is not found.', $csv['price_group']));
+            XSession::set_flash('error', sprintf('Price Group [%s] is not found.', $csv['price_group']));
             admin_redirect('system_settings/warehouses');
           }
 
@@ -2259,7 +2259,7 @@ class system_settings extends MY_Controller
         } // foreach
       }
     } else if (getPost('import')) {
-      $this->session->set_flashdata('error', 'E1: ' . validation_errors());
+      XSession::set_flash('error', 'E1: ' . validation_errors());
       admin_redirect('system_settings/warehouses');
     }
 
@@ -2279,11 +2279,11 @@ class system_settings extends MY_Controller
         }
       }
 
-      $this->session->set_flashdata('message', sprintf(lang('csv_warehouses_imported'), $added, $updated));
+      XSession::set_flash('message', sprintf(lang('csv_warehouses_imported'), $added, $updated));
       admin_redirect('system_settings/warehouses');
     } else {
       if (getPost('import')) {
-        $this->session->set_flashdata('error', 'E2: ' . validation_errors());
+        XSession::set_flash('error', 'E2: ' . validation_errors());
         admin_redirect('system_settings/warehouses');
       }
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -2348,7 +2348,7 @@ class system_settings extends MY_Controller
       if ((file_exists(APPPATH . 'language' . DIRECTORY_SEPARATOR . $language . DIRECTORY_SEPARATOR . 'admin' . DIRECTORY_SEPARATOR . 'sma_lang.php') && is_dir(APPPATH . DIRECTORY_SEPARATOR . 'language' . DIRECTORY_SEPARATOR . $language)) || $language == 'english') {
         $lang = $language;
       } else {
-        $this->session->set_flashdata('error', lang('language_x_found'));
+        XSession::set_flash('error', lang('language_x_found'));
         admin_redirect('system_settings');
         $lang = 'english';
       }
@@ -2453,12 +2453,12 @@ class system_settings extends MY_Controller
     if ($this->form_validation->run() == true && $this->settings_model->updateSetting($data)) {
       if (!DEMO && TIMEZONE != $data['timezone']) {
         if (!$this->write_index($data['timezone'])) {
-          $this->session->set_flashdata('error', lang('setting_updated_timezone_failed'));
+          XSession::set_flash('error', lang('setting_updated_timezone_failed'));
           admin_redirect('system_settings');
         }
       }
 
-      $this->session->set_flashdata('message', lang('setting_updated'));
+      XSession::set_flash('message', lang('setting_updated'));
       admin_redirect('system_settings');
     } else {
       $settings                      = $this->site->getSettings();
@@ -2483,11 +2483,11 @@ class system_settings extends MY_Controller
   public function install_update($file, $m_version, $version)
   {
     if (DEMO) {
-      $this->session->set_flashdata('warning', lang('disabled_in_demo'));
+      XSession::set_flash('warning', lang('disabled_in_demo'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       admin_redirect('welcome');
     }
     $this->load->helper('update');
@@ -2496,13 +2496,13 @@ class system_settings extends MY_Controller
     if ($m_version) {
       $this->load->library('migration');
       if (!$this->migration->latest()) {
-        $this->session->set_flashdata('error', $this->migration->error_string());
+        XSession::set_flash('error', $this->migration->error_string());
         admin_redirect('system_settings/updates');
       }
     }
     $this->db->update('settings', ['version' => $version, 'update' => 0], ['setting_id' => 1]);
     unlink('./files/updates/' . $file . '.zip');
-    $this->session->set_flashdata('success', lang('update_done'));
+    XSession::set_flash('success', lang('update_done'));
     admin_redirect('system_settings/updates');
   }
 
@@ -2523,7 +2523,7 @@ class system_settings extends MY_Controller
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updateMutasibank($data)) {
-      $this->session->set_flashdata('message', lang('mutasibank_updated'));
+      XSession::set_flash('message', lang('mutasibank_updated'));
       admin_redirect('system_settings/mutasibank');
     } else {
       $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
@@ -2564,7 +2564,7 @@ class system_settings extends MY_Controller
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updatePaypal($data)) {
-      $this->session->set_flashdata('message', $this->lang->line('paypal_setting_updated'));
+      XSession::set_flash('message', $this->lang->line('paypal_setting_updated'));
       admin_redirect('system_settings/paypal');
     } else {
       $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
@@ -2748,7 +2748,7 @@ class system_settings extends MY_Controller
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updatePermissions($group_id, $data)) {
-      $this->session->set_flashdata('message', lang('group_permissions_updated'));
+      XSession::set_flash('message', lang('group_permissions_updated'));
       redirect_to($_SERVER['HTTP_REFERER']);
     } else {
       $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
@@ -2815,7 +2815,7 @@ class system_settings extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       if (DEMO) {
-        $this->session->set_flashdata('message', lang('disabled_in_demo'));
+        XSession::set_flash('message', lang('disabled_in_demo'));
         admin_redirect('welcome');
       }
 
@@ -2831,7 +2831,7 @@ class system_settings extends MY_Controller
 
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('system_settings/group_product_prices/' . $group_id);
         }
 
@@ -2868,20 +2868,20 @@ class system_settings extends MY_Controller
               'price_group_id' => $group_id,
             ];
           } else {
-            $this->session->set_flashdata('message', lang('check_product_code') . ' (' . $csv_pr['code'] . '). ' . lang('code_x_exist') . ' ' . lang('line_no') . ' ' . $rw);
+            XSession::set_flash('message', lang('check_product_code') . ' (' . $csv_pr['code'] . '). ' . lang('code_x_exist') . ' ' . lang('line_no') . ' ' . $rw);
             admin_redirect('system_settings/group_product_prices/' . $group_id);
           }
           $rw++;
         }
       }
     } elseif (getPost('update_price')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/group_product_prices/' . $group_id);
     }
 
     if ($this->form_validation->run() == true && !empty($data)) {
       $this->settings_model->updateGroupPrices($data);
-      $this->session->set_flashdata('message', lang('price_updated'));
+      XSession::set_flash('message', lang('price_updated'));
       admin_redirect('system_settings/group_product_prices/' . $group_id);
     } else {
       $this->data['userfile'] = [
@@ -2930,11 +2930,11 @@ class system_settings extends MY_Controller
   public function updates()
   {
     if (DEMO) {
-      $this->session->set_flashdata('warning', lang('disabled_in_demo'));
+      XSession::set_flash('warning', lang('disabled_in_demo'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       admin_redirect('welcome');
     }
     $this->form_validation->set_rules('purchase_code', lang('purchase_code'), 'required');
@@ -2959,7 +2959,7 @@ class system_settings extends MY_Controller
   public function user_groups()
   {
     if (!$this->Owner) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       admin_redirect('auth');
     }
 

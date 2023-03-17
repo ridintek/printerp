@@ -16,8 +16,6 @@ class Payment
   {
     $data = setCreatedBy($data);
 
-    $hMutex = mutexCreate('Payment_Add', TRUE);
-
     if (isset($data['expense_id'])) {
       $inv = Expense::getRow(['id' => $data['expense_id']]);
       $data['expense'] = $inv->reference;
@@ -42,7 +40,6 @@ class Payment
 
     if (!$bank) {
       setLastError('Bank is not valid.');
-      mutexRelease($hMutex);
       return FALSE;
     }
 
@@ -69,11 +66,11 @@ class Payment
         setLastError('Amount is zero.');
       }
 
-      mutexRelease($hMutex);
       return $insertId;
     }
 
-    mutexRelease($hMutex);
+    setLastError(DB::error()['message']);
+
     return FALSE;
   }
 

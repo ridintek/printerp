@@ -15,7 +15,7 @@ class Procurements extends MY_Controller
     }
 
     if ($this->Supplier) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
 
@@ -90,7 +90,7 @@ class Procurements extends MY_Controller
       $tsId             = getPost('ts');
 
       if (empty($category)) {
-        $this->session->set_flashdata('error', "Harap pilih kategory, Consumable atau Sparepart.");
+        XSession::set_flash('error', "Harap pilih kategory, Consumable atau Sparepart.");
         admin_redirect('procurements/internal_uses/add');
       }
 
@@ -112,7 +112,7 @@ class Procurements extends MY_Controller
             $lastKLIKQty = intval($whp->quantity);
 
             if ($lastKLIKQty > intval($itemSpec)) {
-              $this->session->set_flashdata('error', "Klik {$itemSpec} tidak sesuai klik terakhir {$lastKLIKQty}.");
+              XSession::set_flash('error', "Klik {$itemSpec} tidak sesuai klik terakhir {$lastKLIKQty}.");
               admin_redirect('procurements/internal_uses/add');
             }
           }
@@ -123,24 +123,24 @@ class Procurements extends MY_Controller
           $pcategory = Category::getRow(['id' => $product->category_id]);
 
           if (!$item_quantity) {
-            $this->session->set_flashdata('error', "No quantity for item {$itemCode}");
+            XSession::set_flash('error', "No quantity for item {$itemCode}");
             admin_redirect('procurements/internal_uses/add');
           }
 
           if (!$product) {
-            $this->session->set_flashdata('error', lang('no_match_found') . ' (' . lang('product_name') . ' <strong>' . $product->name . '</strong> ' . lang('product_code') . ' <strong>' . $product->code . '</strong>)');
+            XSession::set_flash('error', lang('no_match_found') . ' (' . lang('product_name') . ' <strong>' . $product->name . '</strong> ' . lang('product_code') . ' <strong>' . $product->code . '</strong>)');
             admin_redirect('procurements/internal_uses/add');
           }
 
           if ($product->iuse_type == 'sparepart') { // If item sparepart and no machine. then error.
             if (empty($item_machine)) {
-              $this->session->set_flashdata('error', "MESIN BELUM DIPILIH UNTUK ITEM <b>{$itemCode}</b>!");
+              XSession::set_flash('error', "MESIN BELUM DIPILIH UNTUK ITEM <b>{$itemCode}</b>!");
               admin_redirect('procurements/internal_uses/add');
             }
           } else if ($product->iuse_type == 'consumable') {
             if (empty($item_machine)) {
               if ($pcategory->code == 'DPI' || $pcategory->code == 'POD') {
-                $this->session->set_flashdata('error', "MESIN BELUM DIPILIH UNTUK ITEM <b>{$itemCode}</b>!");
+                XSession::set_flash('error', "MESIN BELUM DIPILIH UNTUK ITEM <b>{$itemCode}</b>!");
                 admin_redirect('procurements/internal_uses/add');
               }
             }
@@ -151,7 +151,7 @@ class Procurements extends MY_Controller
           $total_markon_price = (getMarkonPrice($product->cost, $product->markon) * $item_quantity);
 
           if ($warehouseQtyFrom < $item_quantity) {
-            $this->session->set_flashdata('error', "Stok di outlet ({$warehouseQtyFrom}) kurang dari yang diperlukan ({$item_quantity}).");
+            XSession::set_flash('error', "Stok di outlet ({$warehouseQtyFrom}) kurang dari yang diperlukan ({$item_quantity}).");
             admin_redirect('procurements/internal_uses/add');
           }
 
@@ -200,7 +200,7 @@ class Procurements extends MY_Controller
         }
         $internalUseData['attachment'] = $upload->storeRandom();
       } else if ($category == 'consumable') {
-        $this->session->set_flashdata('error', 'Attachment maks. 2MB harus disertakan.');
+        XSession::set_flash('error', 'Attachment maks. 2MB harus disertakan.');
         admin_redirect('procurements/internal_uses/add');
       }
     }
@@ -210,10 +210,10 @@ class Procurements extends MY_Controller
 
       if ($this->site->addStockInternalUse($internalUseData, $products)) {
         $this->session->set_userdata('remove_tols', 1);
-        $this->session->set_flashdata('message', 'Internal use berhasil ditambahkan.');
+        XSession::set_flash('message', 'Internal use berhasil ditambahkan.');
       } else {
         $this->session->set_userdata('remove_tols', 1);
-        $this->session->set_flashdata('error', 'Gagal menambahkan internal use.');
+        XSession::set_flash('error', 'Gagal menambahkan internal use.');
       }
       DB::transComplete();
 
@@ -250,14 +250,14 @@ class Procurements extends MY_Controller
       if ($this->input->is_ajax_request()) {
         sendJSON(['error' => 0, 'msg' => 'Internal Use has been deleted successfully.']);
       } else {
-        $this->session->set_flashdata('message', 'Internal Use has been deleted successfully.');
+        XSession::set_flash('message', 'Internal Use has been deleted successfully.');
         admin_redirect('procurements/internal_uses');
       }
     } else {
       if ($this->input->is_ajax_request()) {
         sendJSON(['error' => 1, 'msg' => 'Failed to delete Internal Use.']);
       } else {
-        $this->session->set_flashdata('message', 'Failed to delete Internal Use.');
+        XSession::set_flash('message', 'Failed to delete Internal Use.');
         admin_redirect('procurements/internal_uses');
       }
     }
@@ -287,13 +287,13 @@ class Procurements extends MY_Controller
 
       if ($this->iuse_mode == 'status') {
         if ($status == $iuse->status) {
-          $this->session->set_flashdata('error', 'Status not changed');
+          XSession::set_flash('error', 'Status not changed');
           admin_redirect('procurements/internal_uses/status/' . $iuse->id);
         }
       }
 
       if (empty($category)) {
-        $this->session->set_flashdata('error', 'Category is empty.');
+        XSession::set_flash('error', 'Category is empty.');
         admin_redirect('procurements/internal_uses/status/' . $iuse->id);
       }
 
@@ -312,13 +312,13 @@ class Procurements extends MY_Controller
           $product = Product::getRow(['code' => $itemCode]);
 
           if (!$product) {
-            $this->session->set_flashdata('error', lang('no_match_found') . ' (' . lang('product_name') . ' <strong>' . $product->name . '</strong> ' . lang('product_code') . ' <strong>' . $product->code . '</strong>)');
+            XSession::set_flash('error', lang('no_match_found') . ' (' . lang('product_name') . ' <strong>' . $product->name . '</strong> ' . lang('product_code') . ' <strong>' . $product->code . '</strong>)');
             admin_redirect('procurements/internal_uses/edit/' . $iuse->id);
           }
 
           if ($product->iuse_type == 'sparepart') {
             if (empty($item_machine)) {
-              $this->session->set_flashdata('error', "Machine is not selected for {$itemCode}.");
+              XSession::set_flash('error', "Machine is not selected for {$itemCode}.");
               admin_redirect('procurements/internal_uses/edit/' . $iuse->id);
             }
           }
@@ -329,7 +329,7 @@ class Procurements extends MY_Controller
           $total_markon_price = (getMarkonPrice($product->cost, $product->markon) * $item_quantity);
 
           if ($from_warehouse_qty < $item_quantity) {
-            // $this->session->set_flashdata('error', 'Stock on warehouse is more than requested.');
+            // XSession::set_flash('error', 'Stock on warehouse is more than requested.');
             // admin_redirect('procurements/internal_uses/edit/' . $internal_use->id);
           }
 
@@ -380,7 +380,7 @@ class Procurements extends MY_Controller
 
         $internalUseData['attachment'] = $upload->storeRandom();
       } else if ($status == 'installed' && empty($iuse->attachment_id)) {
-        $this->session->set_flashdata('error', 'Attachment harus disertakan jika sudah selesai instalasi.');
+        XSession::set_flash('error', 'Attachment harus disertakan jika sudah selesai instalasi.');
         admin_redirect('procurements/internal_uses/status/' . $iuse->id);
       }
     }
@@ -389,10 +389,10 @@ class Procurements extends MY_Controller
 
       if ($this->site->updateStockInternalUse($iuse->id, $internalUseData, $products)) {
         $this->session->set_userdata('remove_tols', 1);
-        $this->session->set_flashdata('message', 'Internal Use has been edited successfully.');
+        XSession::set_flash('message', 'Internal Use has been edited successfully.');
       } else {
         $this->session->set_userdata('remove_tols', 1);
-        $this->session->set_flashdata('error', 'Failed to edit Internal Use.');
+        XSession::set_flash('error', 'Failed to edit Internal Use.');
         admin_redirect('procurements/internal_uses/edit/' . $iuse->id);
       }
 
@@ -469,7 +469,7 @@ class Procurements extends MY_Controller
   private function internal_uses_edit_item($itemId)
   {
     if (!$this->isAdmin) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       die('<script>setTimeout(() => location.reload(), 0)</script>');
     }
 
@@ -718,6 +718,8 @@ class Procurements extends MY_Controller
       $opt['iuse_type'] = $category;
     }
 
+    $warehouseFrom = Warehouse::getRow(['id' => $warehouseIdFrom]);
+
     $rows = $this->site->getProductNames($term, 25, $opt);
 
     if ($rows) {
@@ -726,6 +728,12 @@ class Procurements extends MY_Controller
 
       foreach ($rows as $row) {
         if ($row->active != 1) continue; // No inactive item.
+
+        if (!empty($row->warehouses)) {
+          if (!isProductWarehouses($row->warehouses, $warehouseFrom->name)) {
+            continue;
+          }
+        }
 
         // Sync product quantity.
         Product::sync($row->id, $warehouseIdFrom);
@@ -1088,7 +1096,7 @@ class Procurements extends MY_Controller
     if ($form_action == 'approve_send') {
       /*
       if ( empty($vals)) {
-        $this->session->set_flashdata('error', 'Cannot approve and send email.');
+        XSession::set_flash('error', 'Cannot approve and send email.');
         admin_redirect('procurements/purchases');
       }
 
@@ -1240,11 +1248,11 @@ class Procurements extends MY_Controller
       $this->sma->send_email('sd@indoprinting.co.id', "Pembayaran {$date} - Indoprinting", $msg, null, null,
         $attachments);
 
-      $this->session->set_flashdata('message', 'Email has been sent successfully.');
+      XSession::set_flash('message', 'Email has been sent successfully.');
       admin_redirect('procurements/purchases');*/
     } else if ($form_action == 'export_payments' || $form_action == 'send_payments') {
       if (empty($vals)) {
-        $this->session->set_flashdata('error', 'Cannot export Purchase Order.');
+        XSession::set_flash('error', 'Cannot export Purchase Order.');
         admin_redirect('procurements/purchases');
       }
 
@@ -1437,7 +1445,7 @@ class Procurements extends MY_Controller
       //rd_print('purchase_data:', $purchase_data, 'products:', $products); die();
       if ($this->site->addStockPurchase($purchase_data, $purchase_items)) {
         $this->session->set_userdata('remove_pols', 1);
-        $this->session->set_flashdata('message', $this->lang->line('purchase_added'));
+        XSession::set_flash('message', $this->lang->line('purchase_added'));
         admin_redirect('procurements/purchases');
       }
       admin_redirect('procurements/purchases/add');
@@ -1492,29 +1500,29 @@ class Procurements extends MY_Controller
     $payments = $this->site->getStockPurchasePayments($purchase_id);
 
     if (!$purchase) {
-      $this->session->set_flashdata('error', 'Purchase tidak ditemukan.');
+      XSession::set_flash('error', 'Purchase tidak ditemukan.');
       $this->sma->md();
     }
 
     if ($payments != NULL) {
       foreach ($payments as $pym) {
         if ($pym->status == 'need_approval') {
-          $this->session->set_flashdata('error', lang('payment_need_approval'));
+          XSession::set_flash('error', lang('payment_need_approval'));
           $this->sma->md();
         }
         if ($pym->status == 'approved') {
-          $this->session->set_flashdata('error', lang('paid_approved_payment'));
+          XSession::set_flash('error', lang('paid_approved_payment'));
           $this->sma->md();
         }
       }
     }
 
     if ($purchase->payment_status == 'paid' && $purchase->grand_total == $purchase->paid) {
-      $this->session->set_flashdata('error', lang('purchase_already_paid'));
+      XSession::set_flash('error', lang('purchase_already_paid'));
       $this->sma->md();
     }
     if ($purchase->status == 'need_approval') {
-      $this->session->set_flashdata('error', lang('purchase_need_approval'));
+      XSession::set_flash('error', lang('purchase_need_approval'));
       $this->sma->md();
     }
 
@@ -1549,7 +1557,7 @@ class Procurements extends MY_Controller
       }
 
       if (floatval($purchase->grand_total) < floatval($payment['amount'])) {
-        $this->session->set_flashdata('error', lang('paid_over_grandtotal'));
+        XSession::set_flash('error', lang('paid_over_grandtotal'));
         $this->sma->md();
       }
 
@@ -1564,20 +1572,20 @@ class Procurements extends MY_Controller
         $payment['attachment'] = $uploader->storeRandom();
       }
     } elseif (getPost('add_payment')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     if ($this->form_validation->run() == true) {
       if ($this->site->addStockPurchasePayment($purchase->id, $payment)) { // New payment method.
-        $this->session->set_flashdata('message', lang('payment_added'));
+        XSession::set_flash('message', lang('payment_added'));
       } else {
-        $this->session->set_flashdata('error', lang('payment_add_failed'));
+        XSession::set_flash('error', lang('payment_add_failed'));
       }
       redirect_to($_SERVER['HTTP_REFERER']);
     } else {
       if (getPost('add_payment')) {
-        $this->session->set_flashdata('error', validation_errors());
+        XSession::set_flash('error', validation_errors());
         redirect_to($_SERVER['HTTP_REFERER']);
       }
       $banks = $this->site->getBanks(['type' => ['Cash', 'EDC', 'INV', 'Transfer']]);
@@ -1611,11 +1619,11 @@ class Procurements extends MY_Controller
         if (!$payments) {
           $this->site->updateStockPurchase($purchase_id, ['payment_status' => 'pending', 'paid' => 0]);
         }
-        $this->session->set_flashdata('message', 'Payment deleted successfully.');
+        XSession::set_flash('message', 'Payment deleted successfully.');
         admin_redirect('procurements/purchases');
       }
     }
-    $this->session->set_flashdata('error', 'Delete payment failed.');
+    XSession::set_flash('error', 'Delete payment failed.');
     admin_redirect('procurements/purchases');
   }
 
@@ -1632,7 +1640,7 @@ class Procurements extends MY_Controller
     $purchase = $this->site->getStockPurchaseByID($purchase_id);
 
     if (!$purchase) {
-      $this->session->set_flashdata('error', 'Purchase tidak ditemukan.');
+      XSession::set_flash('error', 'Purchase tidak ditemukan.');
       redirect_to($_SERVER['HTTP_REFERER'] ?? admin_url('procurements/purchases'));
     }
 
@@ -1663,7 +1671,7 @@ class Procurements extends MY_Controller
       $received_date  = NULL;
 
       if ($postatus == 'received') {
-        $received_date = $date; // date('Y-m-d H:i:s');
+        $received_date = date('Y-m-d H:i:s');
       }
 
       for ($r = 0; $r < $i; $r++) {
@@ -1787,7 +1795,7 @@ class Procurements extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       if ($this->site->updateStockPurchase($purchase_id, $purchase_data, $products)) {
-        $this->session->set_flashdata('message', $this->lang->line('purchase_status_updated'));
+        XSession::set_flash('message', $this->lang->line('purchase_status_updated'));
         admin_redirect('procurements/purchases');
       }
       admin_redirect("procurements/purchases/{$this->po_mode}/" . $purchase_id);
@@ -1894,12 +1902,12 @@ class Procurements extends MY_Controller
     $purchase = $this->site->getStockPurchaseByID($payment->purchase_id);
 
     if (!$purchase) {
-      $this->session->set_flashdata('error', 'Cannot find stock purchase id.');
+      XSession::set_flash('error', 'Cannot find stock purchase id.');
       $this->sma->md();
     }
 
     // if ($payment->status == 'approved') {
-    //   $this->session->set_flashdata('error', lang('paid_approved_payment'));
+    //   XSession::set_flash('error', lang('paid_approved_payment'));
     //   $this->sma->md();
     // }
 
@@ -1926,7 +1934,7 @@ class Procurements extends MY_Controller
       $bank_balance = $this->site->getBankBalanceByID(getPost('bank_id'));
 
       if (floatval($purchase->grand_total) < floatval($data_payment['amount'])) {
-        $this->session->set_flashdata('error', lang('paid_over_grandtotal'));
+        XSession::set_flash('error', lang('paid_over_grandtotal'));
         $this->sma->md();
       }
 
@@ -1941,7 +1949,7 @@ class Procurements extends MY_Controller
         $data_payment['attachment'] = $uploader->storeRandom();
       }
     } elseif (getPost('edit_payment')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       redirect_to($_SERVER['HTTP_REFERER']);
     }
     if ($this->form_validation->run() == true && $this->site->updatePayment($payment_id, $data_payment)) {
@@ -1951,11 +1959,11 @@ class Procurements extends MY_Controller
       //   'description'       => "Payment has been edited, from amount <b>{$this->sma->formatMoney($old_amount)}</b> to <b>{$this->sma->formatMoney($new_amount)}</b>, paid by <b>{$bank->name}</b>.",
       //   'user_id'           => XSession::get('user_id')
       // ]);
-      $this->session->set_flashdata('message', lang('payment_added'));
+      XSession::set_flash('message', lang('payment_added'));
       redirect_to($_SERVER['HTTP_REFERER']);
     } else {
       if (getPost('edit_payment')) {
-        $this->session->set_flashdata('error', validation_errors());
+        XSession::set_flash('error', validation_errors());
         redirect_to($_SERVER['HTTP_REFERER']);
       }
       $banks = $this->site->getBanksByType(['transfer', 'edc']);
@@ -2313,7 +2321,7 @@ class Procurements extends MY_Controller
       $note   = $this->sma->clear_tags(getPost('note'));
 
       if ($payment->status == $status) {
-        $this->session->set_flashdata('error', lang('status_not_changed'));
+        XSession::set_flash('error', lang('status_not_changed'));
         $this->sma->md();
       }
 
@@ -2328,11 +2336,11 @@ class Procurements extends MY_Controller
       } else if ($status == 'paid') {
         $stat = 'Payment has been <strong>paid</strong>.';
       } else {
-        $this->session->set_flashdata('error', lang('status_not_known'));
+        XSession::set_flash('error', lang('status_not_known'));
         $this->sma->md();
       }
     } elseif (getPost('update')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect($_SERVER['HTTP_REFERER'] ?? 'procurements/purchases');
     }
 
@@ -2344,9 +2352,9 @@ class Procurements extends MY_Controller
         'description'       => $stat,
         'user_id'           => XSession::get('user_id')
       ]);*/
-        $this->session->set_flashdata('message', $stat);
+        XSession::set_flash('message', $stat);
       } else {
-        $this->session->set_flashdata('error', lang('update_payment_status_failed'));
+        XSession::set_flash('error', lang('update_payment_status_failed'));
       }
       admin_redirect($_SERVER['HTTP_REFERER'] ?? 'procurements/purchases');
     } else {
@@ -2690,7 +2698,7 @@ class Procurements extends MY_Controller
           $from_warehouse_qty = $this->site->getStockQuantity($product->id, $warehouseIdFrom); // Get source stock.
 
           if ($from_warehouse_qty < $item_quantity) {
-            $this->session->set_flashdata('error', lang('no_match_found') . ' (' . lang('product_name') . ' <strong>' . $product->name . '</strong> ' . lang('product_code') . ' <strong>' . $product->code . '</strong>)');
+            XSession::set_flash('error', lang('no_match_found') . ' (' . lang('product_name') . ' <strong>' . $product->name . '</strong> ' . lang('product_code') . ' <strong>' . $product->code . '</strong>)');
             admin_redirect('procurements/transfers/add');
           }
 
@@ -2739,10 +2747,10 @@ class Procurements extends MY_Controller
     if ($this->form_validation->run() == true) {
       if ($this->site->addTransfer($transferData, $productData)) {
         $this->session->set_userdata('remove_tols', 1);
-        $this->session->set_flashdata('message', lang('transfer_added'));
+        XSession::set_flash('message', lang('transfer_added'));
       } else {
         $this->session->set_userdata('remove_tols', 1);
-        $this->session->set_flashdata('error', lang('transfer_add_failed'));
+        XSession::set_flash('error', lang('transfer_add_failed'));
       }
       admin_redirect('procurements/transfers');
     } else {
@@ -2787,7 +2795,7 @@ class Procurements extends MY_Controller
     $transfer = $this->site->getStockTransferByID($transfer_id);
 
     if ($transfer->payment_status == 'paid') {
-      $this->session->set_flashdata('error', lang('transfer_already_paid'));
+      XSession::set_flash('error', lang('transfer_already_paid'));
       $this->sma->md();
     }
 
@@ -2804,11 +2812,11 @@ class Procurements extends MY_Controller
       ];
 
       if ($data['amount'] > ($transfer->grand_total - $transfer->paid)) {
-        $this->session->set_flashdata('error', 'You cannot pay more than grand total.');
+        XSession::set_flash('error', 'You cannot pay more than grand total.');
         $this->sma->md();
       }
       if ($data['amount'] == 0) {
-        $this->session->set_flashdata('error', 'Are you kidding me to pay 0 rupiah?');
+        XSession::set_flash('error', 'Are you kidding me to pay 0 rupiah?');
         $this->sma->md();
       }
 
@@ -2826,18 +2834,18 @@ class Procurements extends MY_Controller
       $bank_from_balance = $this->site->getBankBalanceByID($data['from_bank_id']);
 
       if ($bank_from_balance < $data['amount']) {
-        $this->session->set_flashdata('warning', lang('insufficient_funds'));
+        XSession::set_flash('warning', lang('insufficient_funds'));
         admin_redirect('procurements/transfers');
       }
       if ($this->site->addStockTransferPayment($transfer_id, $data)) { // Transfer Payment as Bank Mutation.
-        $this->session->set_flashdata('message', lang('stock_transfer_paid'));
+        XSession::set_flash('message', lang('stock_transfer_paid'));
         admin_redirect('procurements/transfers');
       } else {
-        $this->session->set_flashdata('error', lang('stock_transfer_paid_fail'));
+        XSession::set_flash('error', lang('stock_transfer_paid_fail'));
         admin_redirect('procurements/transfers');
       }
     } elseif (getPost('add_bank_mutation')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('procurements/transfers');
     }
 
@@ -2880,14 +2888,14 @@ class Procurements extends MY_Controller
       if ($this->input->is_ajax_request()) {
         sendJSON(['error' => 0, 'msg' => lang('transfer_deleted')]);
       } else {
-        $this->session->set_flashdata('message', lang('transfer_deleted'));
+        XSession::set_flash('message', lang('transfer_deleted'));
         admin_redirect('procurements/transfers');
       }
     } else {
       if ($this->input->is_ajax_request()) {
         sendJSON(['error' => 1, 'msg' => lang('transfer_delete_failed')]);
       } else {
-        $this->session->set_flashdata('message', lang('transfer_delete_failed'));
+        XSession::set_flash('message', lang('transfer_delete_failed'));
         admin_redirect('procurements/transfers');
       }
     }
@@ -2903,11 +2911,11 @@ class Procurements extends MY_Controller
         if (!$payments) {
           $this->site->updateStockTransfer($transfer_id, ['payment_status' => 'pending', 'paid' => 0]);
         }
-        $this->session->set_flashdata('message', 'Payment deleted successfully.');
+        XSession::set_flash('message', 'Payment deleted successfully.');
         admin_redirect('procurements/transfers');
       }
     }
-    $this->session->set_flashdata('error', 'Delete payment failed.');
+    XSession::set_flash('error', 'Delete payment failed.');
     admin_redirect('procurements/transfers');
   }
 
@@ -2924,7 +2932,7 @@ class Procurements extends MY_Controller
     $transfer = $this->site->getTransfer(['id' => $transferId]);
 
     if (!$transfer) {
-      $this->session->set_flashdata('error', 'Stock Transfer ID is not set.');
+      XSession::set_flash('error', 'Stock Transfer ID is not set.');
       admin_redirect('procurements/transfers');
     }
 
@@ -2957,7 +2965,7 @@ class Procurements extends MY_Controller
           $from_warehouse_qty = ($wh_product ? $wh_product->quantity + $item_quantity : 0);
 
           if ($from_warehouse_qty < $item_quantity) {
-            $this->session->set_flashdata('error', lang('no_match_found') . ' (' . lang('product_name') . ' <strong>' . $product->name . '</strong> ' . lang('product_code') . ' <strong>' . $product->code . '</strong>)');
+            XSession::set_flash('error', lang('no_match_found') . ' (' . lang('product_name') . ' <strong>' . $product->name . '</strong> ' . lang('product_code') . ' <strong>' . $product->code . '</strong>)');
             admin_redirect('procurements/transfers/edit/' . $transferId);
           }
 
@@ -3016,10 +3024,10 @@ class Procurements extends MY_Controller
     if ($this->form_validation->run() == true) {
       if ($this->site->updateTransfer($transferId, $transferData, $items)) {
         $this->session->set_userdata('remove_tols', 1);
-        $this->session->set_flashdata('message', lang('stock_transfer_edited'));
+        XSession::set_flash('message', lang('stock_transfer_edited'));
       } else {
         $this->session->set_userdata('remove_tols', 1);
-        $this->session->set_flashdata('error', lang('stock_transfer_edit_failed'));
+        XSession::set_flash('error', lang('stock_transfer_edit_failed'));
         admin_redirect('procurements/transfers/edit/' . $transferId);
       }
       admin_redirect('procurements/transfers');
@@ -3094,12 +3102,12 @@ class Procurements extends MY_Controller
     $transfer = $this->site->getStockTransferByID($payment->transfer_id);
 
     if (!$transfer) {
-      $this->session->set_flashdata('error', 'Cannot find stock transfer id.');
+      XSession::set_flash('error', 'Cannot find stock transfer id.');
       $this->sma->md();
     }
 
     // if ($payment->status == 'approved') {
-    //   $this->session->set_flashdata('error', lang('paid_approved_payment'));
+    //   XSession::set_flash('error', lang('paid_approved_payment'));
     //   $this->sma->md();
     // }
 
@@ -3126,7 +3134,7 @@ class Procurements extends MY_Controller
       $bank_balance = $this->site->getBankBalanceByID(getPost('bank_id'));
 
       if (floatval($transfer->grand_total) < floatval($data_payment['amount'])) {
-        $this->session->set_flashdata('error', lang('paid_over_grandtotal'));
+        XSession::set_flash('error', lang('paid_over_grandtotal'));
         $this->sma->md();
       }
 
@@ -3141,17 +3149,17 @@ class Procurements extends MY_Controller
         $data_payment['attachment'] = $uploader->storeRandom();
       }
     } elseif (getPost('edit_payment')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       redirect_to($_SERVER['HTTP_REFERER']);
     }
     if ($this->form_validation->run() == true) {
       if ($this->site->updatePayment($payment_id, $data_payment)) {
-        $this->session->set_flashdata('message', lang('payment_added'));
+        XSession::set_flash('message', lang('payment_added'));
         redirect_to($_SERVER['HTTP_REFERER']);
       }
     } else {
       if (getPost('edit_payment')) {
-        $this->session->set_flashdata('error', validation_errors());
+        XSession::set_flash('error', validation_errors());
         redirect_to($_SERVER['HTTP_REFERER']);
       }
       $banks = $this->site->getBanks();
@@ -3421,14 +3429,14 @@ class Procurements extends MY_Controller
     }
 
     if (empty($transfer_id)) {
-      $this->session->set_flashdata('error', 'Stock Transfer ID is not set.');
+      XSession::set_flash('error', 'Stock Transfer ID is not set.');
       admin_redirect('procurements/transfers');
     }
 
     $transfer = $this->site->getStockTransferByID($transfer_id);
 
     if (!$transfer) {
-      $this->session->set_flashdata('error', 'Stock Transfer ID is not set.');
+      XSession::set_flash('error', 'Stock Transfer ID is not set.');
       admin_redirect('procurements/transfers');
     }
 
@@ -3450,7 +3458,7 @@ class Procurements extends MY_Controller
 
     if ($this->form_validation->run()) {
       if ($transfer->status == getPost('status')) {
-        $this->session->set_flashdata('error', lang('status_not_changed'));
+        XSession::set_flash('error', lang('status_not_changed'));
         admin_redirect('procurements/transfers/status/' . $transfer_id);
       }
 
@@ -3473,7 +3481,7 @@ class Procurements extends MY_Controller
           /*$from_warehouse_qty = $this->site->getStockQuantity($product->id, $warehouseIdFrom) + $item_quantity; // Get source stock.
 
 		  		if ($from_warehouse_qty < $item_quantity) {
-		  			$this->session->set_flashdata('error', lang('no_match_found') . ' (' . lang('product_name') . ' <strong>' . $product->name . '</strong> ' . lang('product_code') . ' <strong>' . $product->code . '</strong>)');
+		  			XSession::set_flash('error', lang('no_match_found') . ' (' . lang('product_name') . ' <strong>' . $product->name . '</strong> ' . lang('product_code') . ' <strong>' . $product->code . '</strong>)');
 		  			admin_redirect('procurements/transfers/status/' . $transfer_id);
 		  		}*/
 
@@ -3531,11 +3539,11 @@ class Procurements extends MY_Controller
     if ($this->form_validation->run() == true) {
       if ($this->site->updateStockTransfer($transfer_id, $transfer_data, $products)) {
         $this->session->set_userdata('remove_tols', 1);
-        $this->session->set_flashdata('message', lang('stock_transfer_updated'));
+        XSession::set_flash('message', lang('stock_transfer_updated'));
         admin_redirect('procurements/transfers');
       } else {
         $this->session->set_userdata('remove_tols', 1);
-        $this->session->set_flashdata('error', lang('stock_transfer_edit_failed'));
+        XSession::set_flash('error', lang('stock_transfer_edit_failed'));
         admin_redirect('procurements/transfers/status/' . $transfer_id);
       }
       admin_redirect('procurements/transfers/transfers');

@@ -13,7 +13,7 @@ class Finances extends MY_Controller
     }
 
     if ($this->Supplier) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
 
@@ -80,32 +80,32 @@ class Finances extends MY_Controller
       if ($vals) {
         foreach ($vals as $val) {
           if (!$this->site->bankActivate($val)) {
-            $this->session->set_flashdata('error', lang('bank_activate_failed'));
+            XSession::set_flash('error', lang('bank_activate_failed'));
             $error = TRUE;
             break;
           }
         }
-        if (!$error) $this->session->set_flashdata('message', lang('bank_activated'));
+        if (!$error) XSession::set_flash('message', lang('bank_activated'));
       } else {
-        $this->session->set_flashdata('error', lang('check_one'));
+        XSession::set_flash('error', lang('check_one'));
       }
     } else if ($action == 'deactivate') {
       if ($vals) {
         foreach ($vals as $val) {
           if (!$this->site->bankDeactivate($val)) {
-            $this->session->set_flashdata('error', lang('bank_deactivate_failed'));
+            XSession::set_flash('error', lang('bank_deactivate_failed'));
             $error = TRUE;
             break;
           }
         }
-        if (!$error) $this->session->set_flashdata('message', lang('bank_deactivated'));
+        if (!$error) XSession::set_flash('message', lang('bank_deactivated'));
       } else {
-        $this->session->set_flashdata('error', lang('check_one'));
+        XSession::set_flash('error', lang('check_one'));
       }
     } else if ($action == 'delete') {
-      $this->session->set_flashdata('error', lang('function_disabled'));
+      XSession::set_flash('error', lang('function_disabled'));
     } else if ($action == 'export_excel') {
-      $this->session->set_flashdata('warning', lang('function_underdevelopment'));
+      XSession::set_flash('warning', lang('function_underdevelopment'));
     }
     admin_redirect('finances/banks');
   }
@@ -153,14 +153,14 @@ class Finances extends MY_Controller
         'active'    => 1
       ];
       if ($this->site->addBank($data)) {
-        $this->session->set_flashdata('message', lang('bank_added'));
+        XSession::set_flash('message', lang('bank_added'));
         admin_redirect('finances/banks');
       } else {
-        $this->session->set_flashdata('error', lang('bank_add_failed'));
+        XSession::set_flash('error', lang('bank_add_failed'));
         admin_redirect('finances/banks');
       }
     } else if (getPost('add_bank_account')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('finances/banks');
     }
     $this->data['billers'] = $this->site->getAllBillers();
@@ -203,13 +203,13 @@ class Finances extends MY_Controller
       if (isAJAX()) {
         sendJSON(['error' => 0, 'msg' => lang('bank_deleted')]);
       }
-      $this->session->set_flashdata('message', lang('bank_deleted'));
+      XSession::set_flash('message', lang('bank_deleted'));
       admin_redirect('finances/banks');
     } else {
       if (isAJAX()) {
         sendJSON(['error' => 1, 'msg' => lang('bank_delete_failed')]);
       }
-      $this->session->set_flashdata('error', lang('bank_delete_failed'));
+      XSession::set_flash('error', lang('bank_delete_failed'));
       admin_redirect('finances/banks');
     }
   }
@@ -232,10 +232,10 @@ class Finances extends MY_Controller
         'bic'       => getPost('bic')
       ];
       if ($this->site->updateBank($id, $data)) {
-        $this->session->set_flashdata('message', lang('bank_edited'));
+        XSession::set_flash('message', lang('bank_edited'));
         admin_redirect('finances/banks');
       } else {
-        $this->session->set_flashdata('error', lang('bank_edit_failed'));
+        XSession::set_flash('error', lang('bank_edit_failed'));
         admin_redirect('finances/banks');
       }
     }
@@ -400,7 +400,7 @@ class Finances extends MY_Controller
     $this->form_validation->set_rules('csv_file', lang('upload_file'), 'xss_clean');
 
     if ($this->form_validation->run() == true) {
-      if (isset($_FILES['csv_file'])) {
+      if (isset_flash($_FILES['csv_file'])) {
         checkPath($this->upload_banks_path);
 
         $date = (getPost('date') ?? date('Y-m-d H:i:s'));
@@ -413,7 +413,7 @@ class Finances extends MY_Controller
 
         if (!$this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('finances/banks');
         }
 
@@ -436,7 +436,7 @@ class Finances extends MY_Controller
         $csvs   = [];
 
         if ($header_id[0] != 'BKAC') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('finances/banks');
         }
 
@@ -477,10 +477,10 @@ class Finances extends MY_Controller
         $this->site->addBanks($data_banks);
       }
 
-      $this->session->set_flashdata('message', sprintf(lang('banks_added_success'), count($data_banks), $updated));
+      XSession::set_flash('message', sprintf(lang('banks_added_success'), count($data_banks), $updated));
       admin_redirect('finances/banks');
     } else {
-      $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+      $this->data['error']    = (validation_errors() ? validation_errors() : XSession::get('error'));
       $this->data['userfile'] = [
         'name' => 'userfile',
         'id'                          => 'userfile',
@@ -525,7 +525,7 @@ class Finances extends MY_Controller
   private function expenses_index($biller_id = NULL)
   {
     $this->sma->checkPermissions('index', NULL, 'expenses');
-    $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+    $this->data['error'] = (validation_errors()) ? validation_errors() : XSession::get('error');
 
     if ($biller_id) {
       $this->data['biller_id'] = $biller_id;
@@ -554,7 +554,7 @@ class Finances extends MY_Controller
 
     if ($form_action == 'send_email') { // Send Email
       // if (empty($_GET['val'])) {
-      //   $this->session->set_flashdata('error', 'Cannot send email.');
+      //   XSession::set_flash('error', 'Cannot send email.');
       //   admin_redirect('finances/expenses');
       // }
 
@@ -712,7 +712,7 @@ class Finances extends MY_Controller
       //   $attachments
       // );
 
-      // $this->session->set_flashdata('message', 'Email has been sent successfully.');
+      // XSession::set_flash('message', 'Email has been sent successfully.');
     } else if ($form_action == 'export_payment') { // EXPORT PAYMENTS
       if (empty($_GET['val'])) {
         sendJSON(['error' => 1, 'msg' => lang('no_expense_selected')]);
@@ -865,25 +865,25 @@ class Finances extends MY_Controller
 
       if ($uploader->has('userfile')) {
         if ($uploader->getSize('mb') > 2) {
-          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          XSession::set_flash('error', 'Attachment tidak boleh lebih dari 2MB.');
           admin_redirect('finances/expenses');
         }
 
         $data['attachment'] = $uploader->storeRandom();
       }
     } elseif (getPost('add_expense')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('finances/expenses');
     }
     if ($this->form_validation->run() == true) {
       if (Expense::add($data)) {
-        $this->session->set_flashdata('message', lang('expense_added'));
+        XSession::set_flash('message', lang('expense_added'));
       } else {
-        $this->session->set_flashdata('error', lang('expense_add_failed'));
+        XSession::set_flash('error', lang('expense_add_failed'));
       }
       admin_redirect('finances/expenses');
     } else {
-      $this->data['error']      = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+      $this->data['error']      = (validation_errors() ? validation_errors() : XSession::get('error'));
       $this->data['billers']    = $this->site->getAllBillers();
       $this->data['categories'] = $this->site->getExpenseCategories();
       $this->data['banks']      = $this->site->getAllBanks();
@@ -904,17 +904,17 @@ class Finances extends MY_Controller
         'approved_by' => XSession::get('user_id')
       ];
       if ($data['status'] == 'need_approval') {
-        $this->session->set_flashdata('error', lang('status_not_changed'));
+        XSession::set_flash('error', lang('status_not_changed'));
         $this->sma->md();
       }
       if ($this->site->updateExpense($expense_id, $data)) {
-        $this->session->set_flashdata('message', lang('payment_approval_success'));
+        XSession::set_flash('message', lang('payment_approval_success'));
       } else {
-        $this->session->set_flashdata('error', lang('payment_approval_failed'));
+        XSession::set_flash('error', lang('payment_approval_failed'));
       }
       admin_redirect('finances/expenses');
     } else if (getPost('update')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('finances/expenses');
     }
 
@@ -971,7 +971,7 @@ class Finances extends MY_Controller
 
       if ($uploader->has('userfile')) {
         if ($uploader->getSize('mb') > 2) {
-          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          XSession::set_flash('error', 'Attachment tidak boleh lebih dari 2MB.');
           admin_redirect('finances/expenses');
         }
 
@@ -979,10 +979,10 @@ class Finances extends MY_Controller
       }
 
       if (Expense::update((int)$id, $data)) {
-        XSession::set('message', 'Expense berhasil di update.');
+        XSession::set_flash('message', 'Expense berhasil di update.');
         admin_redirect('finances/expenses');
       } else {
-        XSession::set('error', 'Gagal update expense.');
+        XSession::set_flash('error', 'Gagal update expense.');
         admin_redirect('finances/expenses');
       }
     } else {
@@ -1218,7 +1218,7 @@ class Finances extends MY_Controller
     $bank->balance = $bank->amount;
 
     if (!$this->form_validation->run() && getPost('update')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('finances/expenses');
     }
 
@@ -1226,18 +1226,18 @@ class Finances extends MY_Controller
       $status  = getPost('status');
       $note    = getPost('note');
       /* if (floatval($bank->balance) < floatval($expense->amount)) {
-        $this->session->set_flashdata('warning', lang('insufficient_funds'));
+        XSession::set_flash('warning', lang('insufficient_funds'));
         admin_redirect('finances/expenses');
       } */
       if ($status == 'pending') {
-        $this->session->set_flashdata('error', lang('status_not_changed'));
+        XSession::set_flash('error', lang('status_not_changed'));
         $this->sma->md();
       }
 
       if ($this->site->addExpensePayment($expense_id, $status, $note)) {
-        $this->session->set_flashdata('message', lang('expense_paid_success'));
+        XSession::set_flash('message', lang('expense_paid_success'));
       } else {
-        $this->session->set_flashdata('error', lang('expense_paid_failed'));
+        XSession::set_flash('error', lang('expense_paid_failed'));
       }
       admin_redirect('finances/expenses');
     } else {
@@ -1273,7 +1273,7 @@ class Finances extends MY_Controller
   private function incomes_index()
   {
     $this->sma->checkPermissions('index', NULL, 'incomes');
-    $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+    $this->data['error'] = (validation_errors()) ? validation_errors() : XSession::get('error');
     $bc                  = [
       ['link' => base_url(), 'page' => lang('home')],
       ['link' => '#', 'page' => lang('finances')],
@@ -1317,27 +1317,27 @@ class Finances extends MY_Controller
 
       if ($uploader->has('userfile')) {
         if ($uploader->getSize('mb') > 2) {
-          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          XSession::set_flash('error', 'Attachment tidak boleh lebih dari 2MB.');
           admin_redirect('finances/incomes');
         }
 
         $incomeData['attachment'] = $uploader->storeRandom();
       }
     } elseif (getPost('add_income')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('finances/incomes');
     }
 
     if ($this->form_validation->run() == true) {
       if (Income::add($incomeData)) {
-        $this->session->set_flashdata('message', lang('income_added'));
+        XSession::set_flash('message', lang('income_added'));
       } else {
-        $this->session->set_flashdata('error', 'Failed to add income.');
+        XSession::set_flash('error', 'Failed to add income.');
       }
       admin_redirect('finances/incomes');
     } else {
       $banks = Bank::get(['active' => 1]);
-      $this->data['error']      = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+      $this->data['error']      = (validation_errors() ? validation_errors() : XSession::get('error'));
       $this->data['exnumber']   = ''; //$this->site->getReference('ex');
       $this->data['billers']    = $this->site->getAllBillers();
       $this->data['categories'] = $this->site->getIncomeCategories();
@@ -1392,24 +1392,24 @@ class Finances extends MY_Controller
 
       if ($uploader->has('userfile')) {
         if ($uploader->getSize('mb') > 2) {
-          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          XSession::set_flash('error', 'Attachment tidak boleh lebih dari 2MB.');
           admin_redirect('finances/incomes');
         }
 
         $incomeData['attachment'] = $uploader->storeRandom();
       }
     } elseif (getPost('edit_income')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('finances/incomes');
     }
 
     if ($this->form_validation->run()) {
       if (Income::update((int)$income_id, $incomeData)) {
-        $this->session->set_flashdata('message', lang('income_updated'));
+        XSession::set_flash('message', lang('income_updated'));
       }
       admin_redirect('finances/incomes');
     } else {
-      $this->data['error']      = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+      $this->data['error']      = (validation_errors() ? validation_errors() : XSession::get('error'));
       $this->data['banks']      = $this->site->getAllBanks();
       $this->data['income']     = $this->site->getIncomeByID($income_id);
       $this->data['billers']    = $this->site->getAllbillers();
@@ -1520,16 +1520,16 @@ class Finances extends MY_Controller
     if ($action == 'delete') { // mutations
       foreach ($vals as $val) {
         if (!$this->site->deleteBankMutation($val)) {
-          $this->session->set_flashdata('error', 'Failed to delete mutation');
+          XSession::set_flash('error', 'Failed to delete mutation');
           $error = TRUE;
           break;
         }
       }
       if (!$error) {
-        $this->session->set_flashdata('message', 'bank_mutation_deleted');
+        XSession::set_flash('message', 'bank_mutation_deleted');
       }
     } else if ($action == 'export_excel') {
-      $this->session->set_flashdata('warning', lang('function_underdevelopment'));
+      XSession::set_flash('warning', lang('function_underdevelopment'));
     }
     admin_redirect('finances/mutations');
   }
@@ -1546,62 +1546,51 @@ class Finances extends MY_Controller
       $date = getPost('date');
       $data = [
         'date'            => $date,
-        'bankfrom'        => Bank::getRow(['id' => getPost('from_bank_id')])->code,
-        'bankto'          => Bank::getRow(['id' => getPost('to_bank_id')])->code,
-        'from_bank_id'    => getPost('from_bank_id'),
-        'from_bank_name'  => Bank::getRow(['id' => getPost('from_bank_id')])->name,
-        'to_bank_id'      => getPost('to_bank_id'),
-        'to_bank_name'    => Bank::getRow(['id' => getPost('to_bank_id')])->name,
+        'bankfrom_id'     => getPost('from_bank_id'),
+        'bankto_id'       => getPost('to_bank_id'),
         'note'            => getPost('note'),
         'amount'          => round(filterDecimal(getPost('amount'))),
         'created_by'      => XSession::get('user_id'),
         'paid_by'         => getPost('paid_by'),
-        'biller'          => Biller::getRow(['id' => getPost('biller')])->code,
         'biller_id'       => getPost('biller')
       ];
 
       $skipPaymentValidation = (getPost('skip_pv') == 1 ? TRUE : FALSE);
-      // $bank_from_balance = $this->site->getBankBalanceByID($data['from_bank_id']);
-      /*
-      if ($bank_from_balance < $data['amount']) {
-        $this->session->set_flashdata('warning', lang('insufficient_funds'));
-        admin_redirect('finances/mutations');
-      }*/
-      // Payment validations in addBankMutation() since it must be created first before make payment validation.
 
+      // Payment validations in addBankMutation() since it must be created first before make payment validation.
       $useValidation = (!$skipPaymentValidation ? TRUE : FALSE);
+
+      DB::transStart();
 
       $uploader = new FileUpload();
 
       if ($uploader->has('userfile')) {
         if ($uploader->getSize('mb') > 2) {
-          XSession::set('error', 'Ukuran attachment tidak boleh lebih dari 2MB.');
+          XSession::set_flash('error', 'Ukuran attachment tidak boleh lebih dari 2MB.');
           admin_redirect('finances/mutations');
         }
 
         $data['attachment'] = $uploader->storeRandom();
       }
 
-      DB::transStart();
-
       $insertID = BankMutation::add($data, $useValidation);
 
       if (!$insertID) {
-        XSession::set('error', getLastError());
+        XSession::set_flash('error', getLastError());
         admin_redirect('finances/mutations');
       }
 
       DB::transComplete();
 
       if (DB::transStatus()) {
-        $this->session->set_flashdata('message', lang('bank_mutation_added'));
+        XSession::set_flash('message', lang('bank_mutation_added'));
         admin_redirect('finances/mutations');
       } else {
-        $this->session->set_flashdata('error', lang('bank_mutation_add_fail'));
+        XSession::set_flash('error', lang('bank_mutation_add_fail'));
         admin_redirect('finances/mutations');
       }
     } elseif (getPost('add_bank_mutation')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('finances/mutations');
     }
 
@@ -1647,35 +1636,18 @@ class Finances extends MY_Controller
 
     $mutation = $this->site->getBankMutationById($mutation_id);
 
+    $bankFrom = Bank::getRow(['id' => $mutation->bankfrom_id]);
+    $bankTo   = Bank::getRow(['id' => $mutation->bankto_id]);
+
     if ($this->form_validation->run() == TRUE) {
       $date = getPost('date');
 
-      // $data = [
-      //   'date' => $date,
-      //   'reference'       => getPost('reference'),
-      //   'from_bank_id'    => getPost('from_bank_id'),
-      //   'from_bank_name'  => Bank::getRow(['id' => getPost('from_bank_id')])->name,
-      //   'to_bank_id'      => getPost('to_bank_id'),
-      //   'to_bank_name'    => Bank::getRow(['id' => getPost('to_bank_id')])->name,
-      //   'bankfrom'        => Bank::getRow(['id' => getPost('to_bank_id')])->code,
-      //   'bankto'          => Bank::getRow(['id' => getPost('to_bank_id')])->code,
-      //   'note'            => getPost('note'),
-      //   'amount'          => round(filterDecimal(getPost('new_amount'))),
-      //   'updated_by'      => XSession::get('user_id'),
-      //   'biller_id'       => getPost('biller')
-      // ];
-
       $data = [
         'date'            => $date,
-        'bankfrom'        => Bank::getRow(['id' => getPost('from_bank_id')])->code,
-        'bankto'          => Bank::getRow(['id' => getPost('to_bank_id')])->code,
-        'from_bank_id'    => getPost('from_bank_id'),
-        'from_bank_name'  => Bank::getRow(['id' => getPost('from_bank_id')])->name,
-        'to_bank_id'      => getPost('to_bank_id'),
-        'to_bank_name'    => Bank::getRow(['id' => getPost('to_bank_id')])->name,
+        'bankfrom_id'    => getPost('from_bank_id'),
+        'bankto_id'      => getPost('to_bank_id'),
         'note'            => getPost('note'),
         'amount'          => round(filterDecimal(getPost('new_amount'))),
-        'biller'          => Biller::getRow(['id' => getPost('biller')])->code,
         'biller_id'       => getPost('biller'),
         'updated_by'      => XSession::get('user_id'),
       ];
@@ -1684,39 +1656,33 @@ class Finances extends MY_Controller
 
       if ($uploader->has('userfile')) {
         if ($uploader->getSize('mb') > 2) {
-          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          XSession::set_flash('error', 'Attachment tidak boleh lebih dari 2MB.');
           admin_redirect('finances/mutations');
         }
 
         $data['attachment'] = $uploader->storeRandom();
       }
 
-      $bank_from = $this->site->getBankByID($data['from_bank_id']);
-      $bank_to   = $this->site->getBankByID($data['to_bank_id']);
-
-      if (($bank_from->amount + $data['old_amount']) < $data['new_amount']) { // Check if balance sufficient.
-        // $this->session->set_flashdata('warning', lang('insufficient_funds'));
+      if (($bankFrom->amount + $data['old_amount']) < $data['new_amount']) { // Check if balance sufficient.
+        // XSession::set_flash('warning', lang('insufficient_funds'));
         // admin_redirect('finances/mutations');
       }
       if (BankMutation::update((int)$mutation_id, $data)) { // Edit Bank Mutation.
-        $this->session->set_flashdata('message', lang('bank_mutation_edited'));
+        XSession::set_flash('message', lang('bank_mutation_edited'));
         admin_redirect('finances/mutations');
       } else {
-        $this->session->set_flashdata('error', lang('bank_mutation_failed'));
+        XSession::set_flash('error', lang('bank_mutation_failed'));
         admin_redirect('finances/mutations');
       }
     } elseif (getPost('edit_bank_mutation')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('finances/mutations');
     }
 
-    $bank_from = $this->site->getBankByID($mutation->from_bank_id);
-    $bank_to   = $this->site->getBankByID($mutation->to_bank_id);
-
     $this->data['banks']        = $this->site->getAllBanks();
     $this->data['mutation']     = $mutation;
-    $this->data['balance_from'] = $bank_from->amount;
-    $this->data['balance_to']   = $bank_to->amount;
+    $this->data['balance_from'] = $bankFrom->amount;
+    $this->data['balance_to']   = $bankTo->amount;
     $this->data['billers']      = $this->site->getAllBillers();
     $this->load->view($this->theme . 'finances/mutations/edit', $this->data);
   }
@@ -1763,17 +1729,21 @@ class Finances extends MY_Controller
 
     $this->load->library('datatables');
     $this->datatables
-      ->select("bank_mutations.id as id, date, reference, from_bank_name, to_bank_name, note, amount,
-        users.fullname as creator, paid_by,
-        billers.name as biller_name, status, (
+      ->select("bank_mutations.id as id, bank_mutations.date, bank_mutations.reference,
+        bankfrom.name AS bankfrom_name, bankto.name AS bankto_name,
+        bank_mutations.note, bank_mutations.amount, users.fullname as creator,
+        bank_mutations.paid_by,
+        billers.name as biller_name, bank_mutations.status, (
           CASE
             WHEN bank_mutations.attachment_id IS NOT NULL THEN bank_mutations.attachment_id
             WHEN bank_mutations.attachment IS NOT NULL THEN bank_mutations.attachment
           END
         ) AS attachment")
       ->from('bank_mutations')
-      ->join('users', 'users.id=bank_mutations.created_by', 'left')
-      ->join('billers', 'billers.id=bank_mutations.biller_id', 'left');
+      ->join('banks bankfrom', 'bankfrom.id = bank_mutations.bankfrom_id', 'left')
+      ->join('banks bankto', 'bankto.id = bank_mutations.bankto_id', 'left')
+      ->join('users', 'users.id = bank_mutations.created_by', 'left')
+      ->join('billers', 'billers.id = bank_mutations.biller_id', 'left');
     if ($ref) {
       $this->datatables->like('bank_mutations.reference', $ref, 'both');
     }
@@ -1985,14 +1955,14 @@ class Finances extends MY_Controller
         'amount'        => round(filterDecimal(getPost('amount')))
       ];
       if ($this->site->addPaymentValidation($data)) {
-        $this->session->set_flashdata('message', lang('payment_validation_added'));
+        XSession::set_flash('message', lang('payment_validation_added'));
         admin_redirect('finances/validations');
       } else {
-        $this->session->set_flashdata('error', lang('payment_validation_add_fail'));
+        XSession::set_flash('error', lang('payment_validation_add_fail'));
         admin_redirect('finances/validations');
       }
     } elseif (getPost('add_payment_validation')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('finances/validations');
     }
     $biller_id = (XSession::get('biller_id') ?? $biller_id);
@@ -2003,24 +1973,24 @@ class Finances extends MY_Controller
   {
     $this->sma->checkPermissions('cancel', TRUE, 'validations');
     if (!$id) {
-      $this->session->set_flashdata('error', lang('no_payment_validation'));
+      XSession::set_flash('error', lang('no_payment_validation'));
       $this->sma->md();
     }
     $payment_validation = $this->site->getPaymentValidationByID($id);
     if ($payment_validation->status == 'verified') {
-      $this->session->set_flashdata('error', lang('payment_already_verified'));
+      XSession::set_flash('error', lang('payment_already_verified'));
       $this->sma->md();
     }
     if ($payment_validation->status == 'expired') {
-      $this->session->set_flashdata('error', lang('validation_already_expired'));
+      XSession::set_flash('error', lang('validation_already_expired'));
       $this->sma->md();
     }
     if ($this->site->deletePaymentValidation($id)) {
       $this->site->updateSale($payment_validation->sale_id, ['payment_status' => 'pending']);
-      $this->session->set_flashdata('message', lang('validation_cancel_success'));
+      XSession::set_flash('message', lang('validation_cancel_success'));
       $this->sma->md();
     } else {
-      $this->session->set_flashdata('error', lang('validation_cancel_failed'));
+      XSession::set_flash('error', lang('validation_cancel_failed'));
       $this->sma->md();
     }
   }
@@ -2171,6 +2141,9 @@ class Finances extends MY_Controller
       if (!$this->Owner && !$this->Admin && XSession::get('biller_id')) {
         $this->datatables->where('billers.id', XSession::get('biller_id'));
       }
+
+      $this->datatables->group_by('payment_validations.id');
+
       $this->datatables->add_column('Actions', $action, 'id');
       echo $this->datatables->generate();
     } else if ($xls == 1) { // Export Excel
@@ -2308,7 +2281,7 @@ class Finances extends MY_Controller
   private function validations_manual($id = NULL)
   { // Manual Validation
     if (!$id) {
-      $this->session->set_flashdata('error', lang('no_payment_validation'));
+      XSession::set_flash('error', lang('no_payment_validation'));
       $this->sma->md();
     }
 
@@ -2316,12 +2289,12 @@ class Finances extends MY_Controller
     $this->form_validation->set_rules('amount', lang('lang'), 'required');
 
     if (!$paymentValidation) {
-      $this->session->set_flashdata('error', lang('no_payment_validation'));
+      XSession::set_flash('error', lang('no_payment_validation'));
       $this->sma->md();
     }
 
     if ($paymentValidation->status == 'verified') {
-      $this->session->set_flashdata('error', lang('payment_already_verified'));
+      XSession::set_flash('error', lang('payment_already_verified'));
       $this->sma->md();
     }
 
@@ -2329,7 +2302,7 @@ class Finances extends MY_Controller
       $validate_manual = (getPost('manual_validation') ? TRUE : FALSE);
 
       if (!$validate_manual) {
-        $this->session->set_flashdata('error', lang('agree_validate_manually'));
+        XSession::set_flash('error', lang('agree_validate_manually'));
         admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
       }
 
@@ -2361,25 +2334,25 @@ class Finances extends MY_Controller
 
       if ($uploader->has('userfile')) {
         if ($uploader->getSize('mb') > 2) {
-          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          XSession::set_flash('error', 'Attachment tidak boleh lebih dari 2MB.');
           admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
         }
 
         $validationOptions['attachment'] = $uploader->storeRandom();
       } else {
-        XSession::set('error', 'Attachment dibutuhkan.');
+        XSession::set_flash('error', 'Attachment dibutuhkan.');
         admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
       }
       // dbgprint($data, $validationOptions); die;
       if (PaymentValidation::validate($data, $validationOptions)) { // Validate manually.
-        XSession::set('message', 'Pembayaran telah tervalidasi.');
+        XSession::set_flash('message', 'Pembayaran telah tervalidasi.');
         admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
       } else {
-        XSession::set('error', 'Pembayaran gagal tervalidasi.');
+        XSession::set_flash('error', 'Pembayaran gagal tervalidasi.');
         admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
       }
     } elseif (getPost('manual_validation')) {
-      XSession::set('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect($_SERVER['HTTP_REFERER'] ?? 'finances/validations');
     }
     $biller_id = $paymentValidation->biller_id;
@@ -2393,8 +2366,6 @@ class Finances extends MY_Controller
     $pv = PaymentValidation::getRow(['id' => $pvId]);
 
     if (!$pv) $this->response(404, ['message' => 'Payment validation tidak ditemukan.']);
-
-    if ($pv->status != 'expired') $this->response(400, ['message' => 'Payment validation tidak expired.']);
 
     $pvWT = PaymentValidation::select('*')->where('status', 'waiting_transfer')->get();
     $uniqueCode = generateUniquePaymentCode();
@@ -2418,7 +2389,10 @@ class Finances extends MY_Controller
       'expired_date'  => $expiredAt,
       'expired_at'    => $expiredAt,
       'status'        => 'pending',
-      'unique_code'   => $uniqueCode
+      'unique_code'   => $uniqueCode,
+      'unique'        => $uniqueCode,
+      'description'   => '',
+      'note'          => ''
     ]);
 
     if ($pv->sale_id) {

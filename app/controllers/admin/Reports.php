@@ -2387,7 +2387,7 @@ class Reports extends MY_Controller
         $filename = 'warehouse_stock_alert';
         $excel->export($filename);
       }
-      $this->session->set_flashdata('error', lang('nothing_found'));
+      XSession::set_flash('error', lang('nothing_found'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
@@ -2868,7 +2868,7 @@ class Reports extends MY_Controller
         $filename = 'PrintERP-Sales_Status-' . date('Ymd_His') . $file_group_by . "-($name)";
         $excel->export($filename);
       }
-      $this->session->set_flashdata('error', lang('nothing_found'));
+      XSession::set_flash('error', lang('nothing_found'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
@@ -2959,7 +2959,7 @@ class Reports extends MY_Controller
     // $this->sma->checkUserPermissions('reports-daily_performance');
     checkPermission('reports-daily_performance');
 
-    $this->data['error']      = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+    $this->data['error']      = (validation_errors() ? validation_errors() : XSession::get('error'));
     $this->data['categories'] = $this->site->getParentCategories();
     $this->data['warehouses'] = Warehouse::get(['active' => '1']);
 
@@ -2994,7 +2994,7 @@ class Reports extends MY_Controller
     $this->sma->checkUserPermissions('reports-income_statement');
     // checkPermission('reports-income_statement');
 
-    $this->data['error']      = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+    $this->data['error']      = (validation_errors() ? validation_errors() : XSession::get('error'));
     $this->data['categories'] = $this->site->getParentCategories();
     $this->data['warehouses'] = $this->site->getAllWarehouses();
 
@@ -3027,7 +3027,7 @@ class Reports extends MY_Controller
   {
     $this->sma->checkUserPermissions('reports-inventory_balance');
 
-    $this->data['error']      = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+    $this->data['error']      = (validation_errors() ? validation_errors() : XSession::get('error'));
     $this->data['categories'] = $this->site->getParentCategories();
     $this->data['warehouses'] = $this->site->getAllWarehouses();
 
@@ -3059,7 +3059,7 @@ class Reports extends MY_Controller
   public function payments()
   {
     $this->sma->checkPermissions('payments');
-    $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+    $this->data['error'] = (validation_errors()) ? validation_errors() : XSession::get('error');
     $bc   = [['link' => base_url(), 'page' => lang('home')], ['link' => admin_url('reports'), 'page' => lang('reports')], ['link' => '#', 'page' => lang('payments_report')]];
     $meta = ['page_title' => lang('payments_report'), 'bc' => $bc];
     $this->data = array_merge($this->data, $meta);
@@ -3204,7 +3204,7 @@ class Reports extends MY_Controller
 
         foreach ($assets as $asset) { // Filter items first.
           if ($asset->active == 0) continue;
-          if ($asset->warehouses != $wh->name) continue;
+          if (strcasecmp($asset->warehouses, $wh->name) !== 0) continue;
 
           $items[] = $asset;
         }
@@ -3261,6 +3261,7 @@ class Reports extends MY_Controller
       $overTime = 0;
 
       foreach ($assets as $asset) {
+        if ($asset->active != 1) continue;
         if (strcasecmp($user->fullname, $asset->pic_name) != 0) continue;
 
         if (empty($asset->assigned_at)) {
@@ -3411,7 +3412,7 @@ class Reports extends MY_Controller
   {
     $this->sma->checkPermissions('sales');
     $this->data['product_categories'] = $this->site->getCategories();
-    $this->data['error']              = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+    $this->data['error']              = (validation_errors()) ? validation_errors() : XSession::get('error');
     $this->data['warehouses']         = $this->site->getAllWarehouses();
     $this->data['billers']            = $this->site->getAllBillers();
     $bc                               = [

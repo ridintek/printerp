@@ -26,8 +26,8 @@ class Auth extends MY_Controller
     $this->load->helper('string');
     $key   = random_string('alnum', 8);
     $value = random_string('alnum', 20);
-    $this->session->set_flashdata('csrfkey', $key);
-    $this->session->set_flashdata('csrfvalue', $value);
+    XSession::set_flash('csrfkey', $key);
+    XSession::set_flash('csrfvalue', $value);
 
     return [$key => $value];
   }
@@ -63,14 +63,14 @@ class Auth extends MY_Controller
     }
 
     if ($activation) {
-      $this->session->set_flashdata('message', $this->ion_auth->messages());
+      XSession::set_flash('message', $this->ion_auth->messages());
       if ($this->Owner || $this->Admin) {
         redirect_to($_SERVER['HTTP_REFERER']);
       } else {
         admin_redirect('auth/login');
       }
     } else {
-      $this->session->set_flashdata('error', $this->ion_auth->errors());
+      XSession::set_flash('error', $this->ion_auth->errors());
       admin_redirect('forgot_password');
     }
   }
@@ -100,7 +100,7 @@ class Auth extends MY_Controller
     $user = $this->ion_auth->user()->row();
 
     if ($this->form_validation->run() == false) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('auth/profile/' . $user->id . '/#cpassword');
     } else {
       // $change = $this->ion_auth->change_password($identity, getPost('old_password'), getPost('new_password'));
@@ -108,10 +108,10 @@ class Auth extends MY_Controller
       $change = User::update((int)XSession::get('user_id'), ['password' => getPost('new_password_confirm')]);
 
       if ($change) {
-        $this->session->set_flashdata('message', 'Password success changed.');
+        XSession::set_flash('message', 'Password success changed.');
         $this->logout();
       } else {
-        $this->session->set_flashdata('error', 'Failed to set password.');
+        XSession::set_flash('error', 'Failed to set password.');
         admin_redirect('auth/profile/' . $user->id . '/#cpassword');
       }
     }
@@ -120,7 +120,7 @@ class Auth extends MY_Controller
   public function create_user()
   {
     if (!$this->Owner && !$this->Admin) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
 
@@ -165,7 +165,7 @@ class Auth extends MY_Controller
     }
 
     if ($this->form_validation->run() == true && User::add($userData)) {
-      $this->session->set_flashdata('message', $this->ion_auth->messages());
+      XSession::set_flash('message', $this->ion_auth->messages());
       admin_redirect('auth/users');
     } else {
       $this->data['error']      = (validation_errors() ? validation_errors() : ($this->ion_auth->errors() ? $this->ion_auth->errors() : $this->session->flashdata('error')));
@@ -189,7 +189,7 @@ class Auth extends MY_Controller
 
     if ($this->form_validation->run() == false) {
       if (getPost('deactivate')) {
-        $this->session->set_flashdata('error', validation_errors());
+        XSession::set_flash('error', validation_errors());
         redirect_to($_SERVER['HTTP_REFERER']);
       } else {
         $this->data['csrf']     = $this->_get_csrf_nonce();
@@ -204,7 +204,7 @@ class Auth extends MY_Controller
 
         if ($this->ion_auth->logged_in() && ($this->Owner || $this->Admin)) {
           $this->ion_auth->deactivate($id);
-          $this->session->set_flashdata('message', $this->ion_auth->messages());
+          XSession::set_flash('message', $this->ion_auth->messages());
         }
       }
 
@@ -227,7 +227,7 @@ class Auth extends MY_Controller
   public function delete_avatar($id = null, $avatar = null)
   {
     if (!$this->ion_auth->logged_in() || (!$this->Owner && !$this->Admin) && $id != XSession::get('user_id')) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       die("<script type='text/javascript'>setTimeout(function(){ window.top.location.href = '" . $_SERVER['HTTP_REFERER'] . "'; }, 0);</script>");
       redirect_to($_SERVER['HTTP_REFERER']);
     } else {
@@ -237,7 +237,7 @@ class Auth extends MY_Controller
         $this->session->unset_userdata('avatar');
       }
       $this->db->update('user', ['avatar' => null], ['id' => $id]);
-      $this->session->set_flashdata('message', lang('avatar_deleted'));
+      XSession::set_flash('message', lang('avatar_deleted'));
       die("<script type='text/javascript'>setTimeout(function(){ window.top.location.href = '" . $_SERVER['HTTP_REFERER'] . "'; }, 0);</script>");
       redirect_to($_SERVER['HTTP_REFERER']);
     }
@@ -251,7 +251,7 @@ class Auth extends MY_Controller
     $this->data['title'] = lang('edit_user');
 
     if (!$this->loggedIn || (!$this->isAdmin) && $id != XSession::get('user_id')) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
 
@@ -327,14 +327,14 @@ class Auth extends MY_Controller
 
     if ($this->form_validation->run() === true) {
       if ($this->ion_auth->update($user->id, $data)) {
-        $this->session->set_flashdata('message', lang('user_updated'));
+        XSession::set_flash('message', lang('user_updated'));
         redirect_to(admin_url('users'));
       } else {
-        $this->session->set_flashdata('error', validation_errors());
+        XSession::set_flash('error', validation_errors());
         redirect_to($_SERVER['HTTP_REFERER']);
       }
     } else {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
@@ -345,23 +345,23 @@ class Auth extends MY_Controller
 
     if ($this->form_validation->run() == false) {
       $error = validation_errors() ? validation_errors() : $this->session->flashdata('error');
-      $this->session->set_flashdata('error', $error);
+      XSession::set_flash('error', $error);
       admin_redirect('login#forgot_password');
     } else {
       $identity = $this->ion_auth->where('email', strtolower(getPost('forgot_email')))->users()->row();
       if (empty($identity)) {
         $this->ion_auth->set_message('forgot_password_email_not_found');
-        $this->session->set_flashdata('error', $this->ion_auth->messages());
+        XSession::set_flash('error', $this->ion_auth->messages());
         admin_redirect('login#forgot_password');
       }
 
       $forgotten = $this->ion_auth->forgotten_password($identity->email);
 
       if ($forgotten) {
-        $this->session->set_flashdata('message', $this->ion_auth->messages());
+        XSession::set_flash('message', $this->ion_auth->messages());
         admin_redirect('login#forgot_password');
       } else {
-        $this->session->set_flashdata('error', $this->ion_auth->errors());
+        XSession::set_flash('error', $this->ion_auth->errors());
         admin_redirect('login#forgot_password');
       }
     }
@@ -370,7 +370,7 @@ class Auth extends MY_Controller
   public function getUserLogins($id = null)
   {
     // if (!$this->ion_auth->in_group(['owner', 'admin'])) {
-    //   $this->session->set_flashdata('warning', lang('access_denied'));
+    //   XSession::set_flash('warning', lang('access_denied'));
     //   admin_redirect('welcome');
     // }
     // $this->load->library('datatables');
@@ -385,7 +385,7 @@ class Auth extends MY_Controller
   public function getUsers()
   {
     if (!$this->Owner && !$this->Admin && !getPermission('users-edit')) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       $this->sma->md();
     }
 
@@ -432,7 +432,7 @@ class Auth extends MY_Controller
 
         if (!$this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('users');
         }
 
@@ -457,7 +457,7 @@ class Auth extends MY_Controller
           'gender', 'group', 'warehouse', 'biller', 'view_right', 'edit_right', 'active', 'note'
         ];
         if ($header_id[0] != 'USRACN') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('users');
         }
         foreach ($arrResult as $csv_data) {
@@ -504,20 +504,20 @@ class Auth extends MY_Controller
         $usr = $this->site->getUserByUsername($user['username']);
         if ($usr && $user) {
           if (!$this->ion_auth->update($usr->id, $user['data'])) {
-            $this->session->set_flashdata('error', $this->ion_auth->errors());
+            XSession::set_flash('error', $this->ion_auth->errors());
             admin_redirect('users');
           }
           $update_count++;
         } else {
           if (!$this->ion_auth->register($user['username'], $user['password'], $user['email'], $user['data'], $user['active'], $user['notify'])) {
-            $this->session->set_flashdata('error', $this->ion_auth->errors());
+            XSession::set_flash('error', $this->ion_auth->errors());
             admin_redirect('users');
           }
           $add_count++;
         }
       }
 
-      $this->session->set_flashdata('message', sprintf(lang('csv_users_imported'), $add_count, $update_count));
+      XSession::set_flash('message', sprintf(lang('csv_users_imported'), $add_count, $update_count));
       admin_redirect('users');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -571,7 +571,7 @@ class Auth extends MY_Controller
   public function login_old()
   {
     if ($this->loggedIn) {
-      $this->session->set_flashdata('error', $this->session->flashdata('error'));
+      XSession::set_flash('error', $this->session->flashdata('error'));
       admin_redirect('welcome');
     }
     $this->data['title'] = lang('login');
@@ -580,10 +580,10 @@ class Auth extends MY_Controller
       $remember = getPost('remember');
 
       // if ($this->auth_model->login(getPost('identity'), getPost('password'), $remember)) {
-      //   $this->session->set_flashdata('message', $this->ion_auth->messages());
+      //   XSession::set_flash('message', $this->ion_auth->messages());
       //   admin_redirect($_SERVER['HTTP_REFERER']);
       // } else {
-      //   $this->session->set_flashdata('error', $this->ion_auth->errors());
+      //   XSession::set_flash('error', $this->ion_auth->errors());
       //   admin_redirect($_SERVER['HTTP_REFERER']);
       // }
       admin_redirect();
@@ -625,7 +625,7 @@ class Auth extends MY_Controller
   public function profile($id = null)
   {
     if (!Authentication::isLoggedIn() || (!$this->isAdmin) && $id != XSession::get('user_id')) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin');
     }
     if (!$id || empty($id)) {
@@ -698,7 +698,7 @@ class Auth extends MY_Controller
   {
     $this->data['title'] = 'Register';
     if (!$this->allow_reg) {
-      $this->session->set_flashdata('error', lang('registration_is_disabled'));
+      XSession::set_flash('error', lang('registration_is_disabled'));
       admin_redirect('login');
     }
 
@@ -722,7 +722,7 @@ class Auth extends MY_Controller
       ];
     }
     if ($this->form_validation->run() == true && $this->ion_auth->register($username, $password, $additional_data)) {
-      $this->session->set_flashdata('message', $this->ion_auth->messages());
+      XSession::set_flash('message', $this->ion_auth->messages());
       admin_redirect('login');
     } else {
       $this->data['error']  = (validation_errors() ? validation_errors() : ($this->ion_auth->errors() ? $this->ion_auth->errors() : $this->session->flashdata('error')));
@@ -874,18 +874,18 @@ class Auth extends MY_Controller
 
           if ($change) {
             //if the password was successfully changed
-            $this->session->set_flashdata('message', $this->ion_auth->messages());
+            XSession::set_flash('message', $this->ion_auth->messages());
             //$this->logout();
             admin_redirect('login');
           } else {
-            $this->session->set_flashdata('error', $this->ion_auth->errors());
+            XSession::set_flash('error', $this->ion_auth->errors());
             admin_redirect('auth/reset_password/' . $code);
           }
         }
       }
     } else {
       //if the code is invalid then send them back to the forgot password page
-      $this->session->set_flashdata('error', $this->ion_auth->errors());
+      XSession::set_flash('error', $this->ion_auth->errors());
       admin_redirect('login#forgot_password');
     }
   }
@@ -919,7 +919,7 @@ class Auth extends MY_Controller
     }
 
     if (!$this->ion_auth->logged_in() || (!$this->Owner && !$this->Admin) && $id != XSession::get('user_id')) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
 
@@ -943,7 +943,7 @@ class Auth extends MY_Controller
 
         if (!$this->upload->do_upload('avatar')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           redirect_to($_SERVER['HTTP_REFERER']);
         }
 
@@ -975,10 +975,10 @@ class Auth extends MY_Controller
       unlink('assets/uploads/avatars/' . $user->avatar);
       unlink('assets/uploads/avatars/thumbs/' . $user->avatar);
       $this->session->set_userdata('avatar', $photo);
-      $this->session->set_flashdata('message', lang('avatar_updated'));
+      XSession::set_flash('message', lang('avatar_updated'));
       admin_redirect('users');
     } else {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('auth/profile/' . $id);
     }
   }
@@ -986,7 +986,7 @@ class Auth extends MY_Controller
   public function user_actions()
   {
     if (!$this->Owner && !$this->Admin) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
 
@@ -996,23 +996,23 @@ class Auth extends MY_Controller
       if (!empty($_POST['val'])) {
         if (getPost('form_action') == 'delete') {
           if (!$this->Owner && !$this->Admin) {
-            $this->session->set_flashdata('warning', lang('access_denied'));
+            XSession::set_flash('warning', lang('access_denied'));
           } else {
             foreach ($_POST['val'] as $id) {
               if ($id != XSession::get('user_id')) {
                 User::delete(['id' => $id]);
               }
             }
-            $this->session->set_flashdata('message', lang('users_deleted'));
+            XSession::set_flash('message', lang('users_deleted'));
           }
           redirect_to($_SERVER['HTTP_REFERER']);
         }
       } else {
-        $this->session->set_flashdata('error', lang('no_user_selected'));
+        XSession::set_flash('error', lang('no_user_selected'));
         redirect_to($_SERVER['HTTP_REFERER']);
       }
     } else {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       redirect_to($_SERVER['HTTP_REFERER']);
     }
   }

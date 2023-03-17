@@ -456,6 +456,7 @@ class Sales extends MY_Controller
       $skip_payment_validation = (getPost('skip_payment_validation') == 'true' ? TRUE : FALSE);
       $user                    = $this->site->getUserByID($created_by);
       $customer                = $this->site->getCustomerByID($sale->customer_id);
+      $note                    = getPost('note');
 
       $bank = $this->site->getBankByID($bank_id); // NULL if Transfer and Present if skip validation.
 
@@ -486,7 +487,7 @@ class Sales extends MY_Controller
         'amount'     => roundDecimal(getPost('amount')),
         'bank_id'    => $bank_id,
         'method'     => $payment_method, // Cash / EDC / Transfer
-        'note'       => htmlEncode(getPost('note')),
+        'note'       => $note,
         'created_by' => (!empty($created_by) ? $created_by : XSession::get('user_id')),
         'type'       => 'received' // Always received.
       ];
@@ -519,7 +520,8 @@ class Sales extends MY_Controller
           'amount'        => $payment['amount'],
           'created_by'    => $payment['created_by'],
           'biller_id'     => (isset($bank) ? $bank->biller_id : $sale->biller_id), // Do not change.
-          'unique_code'   => (!empty(getPost('use_unique_code')) ? getPost('unique_code') : NULL)
+          'unique_code'   => (!empty(getPost('use_unique_code')) ? getPost('unique_code') : NULL),
+          'note'          => $note
         ];
 
         if (isset($payment['attachment'])) $pvData['attachment'] = $payment['attachment'];
@@ -563,6 +565,7 @@ class Sales extends MY_Controller
               sendJSON(['error' => 1, 'msg' => 'Manual payment validation has been failed to add.']);
             }
           }
+
           sendJSON(['error' => 0, 'msg' => 'Payment Validation berhasil ditambahkan.']);
         } else {
           sendJSON(['error' => 1, 'msg' => 'Payment Validation gagal ditambahkan']);
@@ -1373,8 +1376,8 @@ class Sales extends MY_Controller
         ->join("(
             SELECT id, sale_id FROM payment_validations
             WHERE status LIKE 'pending' OR status LIKE 'expired'
-            ORDER BY date DESC
-            ) pv", 'pv.sale_id=sales.id', 'left')
+            ORDER BY id DESC
+            ) pv", 'pv.sale_id = sales.id', 'left')
         ->join('warehouses', 'warehouses.id=sales.warehouse_id', 'left');
 
       if ($reference) {

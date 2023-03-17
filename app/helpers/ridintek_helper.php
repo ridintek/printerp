@@ -76,11 +76,11 @@ function addSaleDueDate($sale_id)
       $estCompleteDate = getWorkingDateTime(getLongestDateTime($dates));
 
       if ($dates && $ci->site->updateSale($sale->id, ['est_complete_date' => $estCompleteDate])) {
-        return TRUE;
+        return true;
       }
     }
   }
-  return FALSE;
+  return false;
 }
 
 /**
@@ -96,11 +96,11 @@ function arrayCombine(array $keys, array $values)
     return array_combine($keys, $values);
   } else if ($key_length > $val_length) {
     $min = $key_length - $val_length;
-    $rest = array_fill($key_length, $min, NULL);
+    $rest = array_fill($key_length, $min, null);
     $merged = array_merge($values, $rest);
     return array_combine($keys, $merged);
   }
-  return NULL;
+  return null;
 }
 
 function baseToUnitCost($cost, $unit)
@@ -179,20 +179,20 @@ function billerToWarehouse($billerId)
       }
     }
   }
-  return NULL;
+  return null;
 }
 
 /**
  * Check path existence, create directory if not exist.
  * @param string $path Path to check.
- * @return bool Always return TRUE.
+ * @return bool Always return true.
  */
 function checkPath(string $path): bool
 {
   if (!file_exists($path)) {
-    mkdir($path, 0755, TRUE);
+    mkdir($path, 0755, true);
   }
-  return TRUE;
+  return true;
 }
 
 /**
@@ -218,7 +218,7 @@ function checkPermission($perms)
     }
   }
 
-  return TRUE;
+  return true;
 }
 
 /**
@@ -234,7 +234,7 @@ function dbgprint($data)
   $args = func_get_args();
 
   foreach ($args as $arg) {
-    $str = print_r($arg, TRUE);
+    $str = print_r($arg, true);
     echo ('<pre>');
     echo ($str);
     echo ('</pre>');
@@ -251,7 +251,7 @@ function dd($data)
   die();
 }
 
-function dispatchW2PSale($saleId = NULL)
+function dispatchW2PSale($saleId = null)
 {
   $curl = curl_init('https://admin.indoprinting.co.id/api/v1/printerp-sales');
   $key = 'g4Jlk3cILfITrbN74kwFHD1p9R3v15lmuLU_l3N9k4psUd4hD3rltAL03';
@@ -265,7 +265,7 @@ function dispatchW2PSale($saleId = NULL)
 
     if ($saleJS->source != 'W2P') {
       setLastError('Sale ID is not from Web2Print.');
-      return FALSE;
+      return false;
     }
 
     $sale_items = $ci->site->getSaleItemsBySaleID($sale->id);
@@ -328,7 +328,7 @@ function dispatchW2PSale($saleId = NULL)
 
         foreach ($sale_items as $sale_item) {
           $saleItemJS   = json_decode($sale_item->json_data);
-          $operator     = $ci->site->getUserByID($saleItemJS->operator_id ?? NULL);
+          $operator     = $ci->site->getUserByID($saleItemJS->operator_id ?? null);
           $operatorName = ($operator ? $operator->fullname : '');
 
           $response['data']['sale_items'][] = [
@@ -364,10 +364,10 @@ function dispatchW2PSale($saleId = NULL)
 
     $body = json_encode($response);
 
-    curl_setopt($curl, CURLOPT_HEADER, FALSE);
-    curl_setopt($curl, CURLOPT_POST, TRUE);
+    curl_setopt($curl, CURLOPT_HEADER, false);
+    curl_setopt($curl, CURLOPT_POST, true);
     curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 
     $res = curl_exec($curl);
 
@@ -416,7 +416,7 @@ function completeSaleItem($product_id, $data = [])
   if ($product = $ci->site->getProductByID($product_id)) {
     $productJS = getJSON($product->json_data);
   }
-  return FALSE;
+  return false;
 }
 
 /**
@@ -464,12 +464,12 @@ function csrf_token_name()
  * Export PDF to file or stream (download).
  * @param string $html HTML string data.
  * @param string $filename Filename to export.
- * @param boolean $isDownload Will download PDF by browser if TRUE, export to file otherwhise.
+ * @param boolean $isDownload Will download PDF by browser if true, export to file otherwhise.
  */
-function exportPDF($html, $filename = 'document.pdf', $isDownload = FALSE)
+function exportPDF($html, $filename = 'document.pdf', $isDownload = false)
 {
   $dompdf = new Dompdf([
-    'isHtml5ParserEnabled' => TRUE
+    'isHtml5ParserEnabled' => true
   ]);
 
   $dompdf->loadHtml($html);
@@ -479,7 +479,7 @@ function exportPDF($html, $filename = 'document.pdf', $isDownload = FALSE)
   if ($isDownload) {
     $dompdf->stream($filename);
   } else {
-    return (file_put_contents(FCPATH . '/assets/uploads/' . $filename, $dompdf->output()) !== FALSE);
+    return (file_put_contents(FCPATH . '/assets/uploads/' . $filename, $dompdf->output()) !== false);
   }
 }
 
@@ -490,10 +490,10 @@ function exportPDF($html, $filename = 'document.pdf', $isDownload = FALSE)
  */
 function filterDateTime($date)
 {
-  if (!$date) return NULL; // If false, always return NULL DO NOT EMPTY STRING !!!
+  if (!$date) return null; // If false, always return null DO NOT EMPTY STRING !!!
 
   $obj = explode(' ', $date);
-  $result = NULL;
+  $result = null;
 
   if ($obj && count($obj) > 1) {
     $date = $obj[0];
@@ -767,10 +767,10 @@ function getAdjustedQty($current_qty, $adjustment_qty): array
 
 /**
  * Get Attachment paths.
- * @param string $pathName Path name to get. Default NULL.
+ * @param string $pathName Path name to get. Default null.
  * @return array|mixed Return array if pathName is not specified or string otherwise.
  */
-function getAttachmentPaths($pathName = NULL)
+function getAttachmentPaths($pathName = null)
 {
   $dir = FCPATH . 'files/';
   $paths = [
@@ -794,7 +794,7 @@ function getAttachmentPaths($pathName = NULL)
     'trackingpod'        => "{$dir}trackingpod/attachments/"
   ];
   if ($pathName) {
-    return ($paths[$pathName] ?? NULL);
+    return ($paths[$pathName] ?? null);
   } else {
     foreach ($paths as $name => $path) {
       $data[] = $path;
@@ -893,7 +893,7 @@ function getDailyPerformanceReport($opt)
         $dt       = prependZero($a);
         $dtDaily  = new DateTime("{$ymPeriod}-{$dt}");
 
-        $overTime = ($currentDate->diff($dtDaily)->format('%R') == '+' ? TRUE : FALSE);
+        $overTime = ($currentDate->diff($dtDaily)->format('%R') == '+' ? true : false);
 
         if (!$overTime) {
           $dailyRevenue = round(DB::table('product_transfer')
@@ -943,7 +943,7 @@ function getDailyPerformanceReport($opt)
         $dt = prependZero($a);
         $dtDaily = new DateTime("{$ymPeriod}-{$dt}");
 
-        $overTime = ($currentDate->diff($dtDaily)->format('%R') == '+' ? TRUE : FALSE);
+        $overTime = ($currentDate->diff($dtDaily)->format('%R') == '+' ? true : false);
 
         if (!$overTime) {
           $dailyRevenue = round(DB::table('sales')
@@ -1010,7 +1010,7 @@ function getDailyPerformanceReport($opt)
  */
 function getDayName(int $index): string
 {
-  if ($index == 0) return NULL;
+  if ($index == 0) return null;
 
   $days = ['minggu', 'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
   $x = filterDecimal($index);
@@ -1066,7 +1066,7 @@ function getExcerpt($text, $length = 20)
  */
 function getGet($name)
 {
-  return (isset($_GET[$name]) ? $_GET[$name] : NULL);
+  return (isset($_GET[$name]) ? $_GET[$name] : null);
 }
 
 /**
@@ -1104,7 +1104,7 @@ function getIncomeStatementReport($opt)
   // Outlet gunakan harga mark-on.
 
   $ci = &get_instance();
-  $lucretaiMode = FALSE;
+  $lucretaiMode = false;
 
   // BEGIN COLLECT DATA.
   $expenses     = $ci->site->getExpenses($opt);
@@ -1119,10 +1119,10 @@ function getIncomeStatementReport($opt)
   $billerLucretai = $ci->site->getBillerByName('Lucretia Enterprise');
 
   if (gettype($opt['biller_id']) !== 'array' && $opt['biller_id'] == $billerLucretai->id) {
-    $lucretaiMode = TRUE;
+    $lucretaiMode = true;
   } else if (is_array($opt['biller_id'])) {
     foreach ($opt['biller_id'] as $biller_id) {
-      if ($biller_id == $billerLucretai->id) $lucretaiMode = TRUE;
+      if ($biller_id == $billerLucretai->id) $lucretaiMode = true;
     }
   }
 
@@ -1192,7 +1192,7 @@ function getIncomeStatementReport($opt)
       continue;
     }
 
-    if (array_search($exgroup->name, $invCost) !== FALSE) { // Biaya Investasi.
+    if (array_search($exgroup->name, $invCost) !== false) { // Biaya Investasi.
       $invCostAmount += $amount;
 
       $invCostData[] = [
@@ -1358,10 +1358,10 @@ function getIncomeStatementReport($opt)
 /**
  * Get and parse JSON string.
  * @param string $jsonStr JSON string.
- * @param bool $assoc Return as associative array. Default FALSE.
+ * @param bool $assoc Return as associative array. Default false.
  * @return object Return JSON object.
  */
-function getJSON($jsonStr, $assoc = FALSE)
+function getJSON($jsonStr, $assoc = false)
 {
   $json = json_decode($jsonStr, $assoc);
   $json = (!$json && !$assoc ? (object)[] : (!$json && $assoc ? [] : $json));
@@ -1371,11 +1371,11 @@ function getJSON($jsonStr, $assoc = FALSE)
 /**
  * Get last error.
  *
- * @return string|null Return last error message or NULL if no last error.
+ * @return string|null Return last error message or null if no last error.
  */
 function getLastError()
 {
-  return ($_SESSION['lastErrorMsg'] ?? NULL);
+  return ($_SESSION['lastErrorMsg'] ?? null);
 }
 
 /**
@@ -1424,7 +1424,7 @@ function getMarkonPrice($cost, $markon)
 function getMonthName($index)
 {
   $months = [
-    NULL, 'januari', 'februari', 'maret', 'april', 'mei', 'juni',
+    null, 'januari', 'februari', 'maret', 'april', 'mei', 'juni',
     'juli', 'agustus', 'september', 'oktober', 'november', 'desember'
   ];
   $x = filterDecimal($index);
@@ -1435,12 +1435,12 @@ function getMonthName($index)
  * Get longest date and time from datetime array.
  * @param array $dateTimes Array of datetime string.
  * @example 1 getLongestDateTime(['2021-05-21 10:00:00', '2021-05-22 06:00:00']);
- * @return string|null Return '2021-05-22 06:00:00' or NULL if error.
+ * @return string|null Return '2021-05-22 06:00:00' or null if error.
  */
 function getLongestDateTime($dateTimes)
 {
   if ($dateTimes && is_array($dateTimes)) {
-    $longestDateTime = NULL;
+    $longestDateTime = null;
 
     foreach ($dateTimes as $dateTime) {
       if (!$longestDateTime) {
@@ -1453,7 +1453,7 @@ function getLongestDateTime($dateTimes)
     }
     return $longestDateTime;
   }
-  return NULL;
+  return null;
 }
 
 /**
@@ -1512,11 +1512,11 @@ function getPastMonthPeriod($month)
  * @param int $user_id (Optional) Specify user id. Default logged in user id.
  * @return bool
  */
-function getPermission($permission_name, $user_id = NULL)
+function getPermission($permission_name, $user_id = null)
 {
   $ci = &get_instance();
 
-  // If user_id = NULL then use user_id session.
+  // If user_id = null then use user_id session.
   if (!$user_id) {
     $user_id = XSession::get('user_id');
   }
@@ -1526,12 +1526,12 @@ function getPermission($permission_name, $user_id = NULL)
 
   // Always grant for OWNER or ADMIN group.
   if (strcasecmp($userGroup->name, 'Owner') == 0 || strcasecmp($userGroup->name, 'Admin') == 0) {
-    return TRUE;
+    return true;
   }
 
   if ($user) {
     $jsdata = json_decode($user->json_data);
-    $user_perms = (!empty($jsdata->{'permissions'}) ? $jsdata->permissions : NULL);
+    $user_perms = (!empty($jsdata->{'permissions'}) ? $jsdata->permissions : null);
 
     if (!empty($user_perms->{$permission_name})) {
       $perms = $user_perms; // Get permission by individual user.
@@ -1541,9 +1541,9 @@ function getPermission($permission_name, $user_id = NULL)
       $perms = $ci->site->getGroupPermissions($user->group_id); // Get permission by group.
     }
 
-    return (empty($perms->{$permission_name}) ? FALSE : TRUE);
+    return (empty($perms->{$permission_name}) ? false : true);
   }
-  return FALSE;
+  return false;
 }
 
 /**
@@ -1552,7 +1552,7 @@ function getPermission($permission_name, $user_id = NULL)
  */
 function getPost($name)
 {
-  return (isset($_POST[$name]) ? $_POST[$name] : NULL);
+  return (isset($_POST[$name]) ? $_POST[$name] : null);
 }
 
 /**
@@ -1571,7 +1571,7 @@ function getProductPriceByQty($productData)
 
   if ($products) {
     $price_group = $ci->site->getProductGroupPrice($products->id, $productData['price_group_id']);
-    $price_ranges = json_decode($products->price_ranges_value, TRUE);
+    $price_ranges = json_decode($products->price_ranges_value, true);
 
 
     if ($price_group && $price_ranges) {
@@ -1589,7 +1589,7 @@ function getProductPriceByQty($productData)
       return $price;
     }
   }
-  return NULL;
+  return null;
 }
 
 /**
@@ -1651,24 +1651,24 @@ function getPurchaseQty($qty, $qty_alert, $unit)
 /**
  * Get product stock value data.
  * @param array $clause [ product_id, warehouse_id, category_id, product_name,
- *  is_asset:FALSE, start_date, end_date ]
+ *  is_asset:false, start_date, end_date ]
  * @return array [[ product_code, product_name, unit, beginning, increase, decrease, balance, cost, value ]]
  */
 function getProductStockValue($clause = [])
 {
   $ci = &get_instance();
 
-  $categoryId  = ($clause['category_id'] ?? NULL);
-  $productName = ($clause['product_name'] ?? NULL);
-  $warehouseId = ($clause['warehouse_id'] ?? NULL);
-  $startDate   = ($clause['start_date'] ?? NULL);
-  $endDate     = ($clause['end_date'] ?? NULL);
+  $categoryId  = ($clause['category_id'] ?? null);
+  $productName = ($clause['product_name'] ?? null);
+  $warehouseId = ($clause['warehouse_id'] ?? null);
+  $startDate   = ($clause['start_date'] ?? null);
+  $endDate     = ($clause['end_date'] ?? null);
 
   $beginClause = '';
   $currentClause = '';
 
-  $isAsset = ($clause['is_asset'] ?? FALSE);
-  $lucretaiMode = FALSE;
+  $isAsset = ($clause['is_asset'] ?? false);
+  $lucretaiMode = false;
 
   if ($startDate) {
     $endDate = ($endDate ?? date('Y-m-d'));
@@ -1685,7 +1685,7 @@ function getProductStockValue($clause = [])
       foreach ($warehouseId as $whId) {
         $warehouse = $ci->site->getWarehouseByID($whId);
 
-        if ($warehouse->code == 'LUC') $lucretaiMode = TRUE;
+        if ($warehouse->code == 'LUC') $lucretaiMode = true;
       }
 
       $wh = implode(',', $warehouseId);
@@ -1695,7 +1695,7 @@ function getProductStockValue($clause = [])
     } else {
       $warehouse = $ci->site->getWarehouseByID($warehouseId);
 
-      if ($warehouse && $warehouse->code == 'LUC') $lucretaiMode = TRUE;
+      if ($warehouse && $warehouse->code == 'LUC') $lucretaiMode = true;
 
       $beginClause   .= " AND warehouse_id = {$warehouseId}";
       $currentClause .= " AND warehouse_id = {$warehouseId}";
@@ -1819,11 +1819,11 @@ function getQueueDateTime($dateTime)
   $dt = new DateTime($dateTime);
   $hour   = $dt->format('H');
   $day    = $dt->format('D');
-  $holiday = FALSE;
+  $holiday = false;
   $h = 0;
 
   if (strcasecmp($day, 'Sun') === 0 || strcasecmp($day, 'Sat') === 0) {
-    $holiday = TRUE;
+    $holiday = true;
   }
 
   if ($hour >= 23 || $hour < 7) {
@@ -1861,7 +1861,7 @@ function getSafetyStock($daily_qty, $required_days, $ratio)
  */
 function getSaleItemSubTotal($price, $quantity)
 {
-  // $isReachThreshold = (($price * $quantity) >= $price ? TRUE : FALSE);
+  // $isReachThreshold = (($price * $quantity) >= $price ? true : false);
   // return roundDecimal($quantity < 0.5 && !$isReachThreshold ? $price : $price * $quantity);
   return round($price * $quantity);
 }
@@ -1956,7 +1956,7 @@ function getWarehouseStockValue(int $warehouseId, array $opt = [])
 
   if (!$warehouse) {
     setLastError("getWarehouseStockValue(): Cannot find warehouse [id:{$warehouseId}]");
-    return NULL;
+    return null;
   }
 
   // If end date is more than current date then 0.
@@ -2061,7 +2061,7 @@ function getUriFilter64($filter64)
     foreach ($filters as $f) {
       $fil = explode('=', $f); // warehouses[]=1
 
-      if (strpos($fil[0], '[]') !== FALSE) { // As Array
+      if (strpos($fil[0], '[]') !== false) { // As Array
         $name = str_replace('[]', '', $fil[0]); // Remove '[]'
         $result[$name][] = $fil[1];
       } else {
@@ -2081,7 +2081,7 @@ function getURLRating($warehouseId)
 
   if (!$warehouse) {
     setLastError('Warehouse id is invalid.');
-    return NULL;
+    return null;
   }
 
   switch ($warehouse->code) {
@@ -2125,7 +2125,7 @@ function getUser($clause = [])
     return $rows[0];
   }
 
-  return NULL;
+  return null;
 }
 
 /**
@@ -2133,7 +2133,7 @@ function getUser($clause = [])
  * @param int $user_id User ID (optional).
  * @return int Return User ID.
  */
-function getUserCreator($user_id = NULL)
+function getUserCreator($user_id = null)
 {
   $ci = &get_instance();
 
@@ -2148,7 +2148,7 @@ function getWarehouse($clause = [])
     return $rows[0];
   }
 
-  return NULL;
+  return null;
 }
 
 /**
@@ -2203,11 +2203,11 @@ function isAJAX()
 {
   foreach (getallheaders() as $name => $value) {
     if (strcasecmp($name, 'X-Requested-With') === 0 && strcasecmp($value, 'XMLHttpRequest') === 0) {
-      return TRUE;
+      return true;
     }
   }
 
-  return FALSE;
+  return false;
 }
 
 /**
@@ -2225,17 +2225,17 @@ function isCLI()
 function isCompleted($status)
 {
   return ($status == 'completed' || $status == 'completed_partial' ||
-    $status == 'delivered' || $status == 'finished' ? TRUE : FALSE);
+    $status == 'delivered' || $status == 'finished' ? true : false);
 }
 
 /**
  * Check if due date has happened.
  * @param string $due_date Due date
- * @example 1 isDueDate('2020-01-20 20:40:11'); // Return FALSE if current time less then due date.
+ * @example 1 isDueDate('2020-01-20 20:40:11'); // Return false if current time less then due date.
  */
 function isDueDate($due_date)
 {
-  return (strtotime($due_date) > time() ? FALSE : TRUE);
+  return (strtotime($due_date) > time() ? false : true);
 }
 
 /**
@@ -2244,7 +2244,7 @@ function isDueDate($due_date)
  */
 function isNumberFloated($num)
 {
-  return (strpos(floatval($num), '.') !== FALSE ? TRUE : FALSE);
+  return (strpos(floatval($num), '.') !== false ? true : false);
 }
 
 /**
@@ -2252,7 +2252,7 @@ function isNumberFloated($num)
  */
 function isOSLinux()
 {
-  return (strcasecmp(PHP_OS, 'linux') === 0 ? TRUE : FALSE);
+  return (strcasecmp(PHP_OS, 'linux') === 0 ? true : false);
 }
 
 /**
@@ -2260,54 +2260,54 @@ function isOSLinux()
  */
 function isOSWindows()
 {
-  return (strcasecmp(PHP_OS, 'winnt') === 0 ? TRUE : FALSE);
+  return (strcasecmp(PHP_OS, 'winnt') === 0 ? true : false);
 }
 
 function isOverTime($time)
 {
-  if (!$time) return FALSE;
+  if (!$time) return false;
 
   $t = explode(':', $time);
   if (count($t) == 3 && intval($t[0]) == 0 && intval($t[1]) == 0 && intval($t[2]) == 0) {
-    return FALSE;
+    return false;
   }
-  return TRUE;
+  return true;
 }
 
 /**
  * Check assigned product warehouse by warehouse name.
  * @param string $product_warehouse Assigned product warehouse name.
- * Ex. "Durian, Tembalang" or "-Tlogosari, -Ngesrep".
+ * Ex. "Durian, Tembalang" or "-Tlogosari, -Ungaran".
  * @param string $warehouse_name Warehouse name to check assign.
  * Ex. "Durian", "Ngesrep", ...
  */
-function isProductWarehouses($product_warehouse, $warehouse_name)
+function isProductWarehouses($productWarehouse, $warehouseName)
 {
-  if (!empty($product_warehouse)) {
-    $negated = FALSE;
-    $pwhs = explode(',', trim($product_warehouse));
+  if (!empty($productWarehouse)) {
+    $negated = false;
+    $pwhs = explode(',', trim($productWarehouse));
 
-    if (substr($pwhs[0], 0, 1) == '-') $negated = TRUE;
+    if (substr($pwhs[0], 0, 1) == '-') $negated = true;
 
     foreach ($pwhs as $pwh) {
       $pwh = trim($pwh);
 
       if ($negated) {
-        if (strcasecmp(substr($pwh, 1), $warehouse_name) === 0) {
-          return FALSE;
+        if (strcasecmp(substr($pwh, 1), $warehouseName) === 0) {
+          return false;
         }
       } else {
-        if (strcasecmp($pwh, $warehouse_name) === 0) {
-          return TRUE;
+        if (strcasecmp($pwh, $warehouseName) === 0) {
+          return true;
         }
       }
     }
 
     if (!$negated) {
-      return FALSE;
+      return false;
     }
   }
-  return TRUE;
+  return true;
 }
 
 /**
@@ -2320,9 +2320,9 @@ function isSpecialCustomer($customerId)
   $custGroup = $ci->site->getCustomerGroupByCustomerID($customerId);
 
   if ($custGroup) {
-    return (strtolower($custGroup->name) == 'privilege' || strtolower($custGroup->name) == 'top' ? TRUE : FALSE);
+    return (strtolower($custGroup->name) == 'privilege' || strtolower($custGroup->name) == 'top' ? true : false);
   }
-  return FALSE;
+  return false;
 }
 
 function isTBSale(int $billerId, int $warehouseId)
@@ -2330,7 +2330,7 @@ function isTBSale(int $billerId, int $warehouseId)
   return (strcasecmp(Biller::getRow(['id' => $billerId])->name, Warehouse::getRow(['id' => $warehouseId])->name) != 0);
 }
 
-function isTodayHoliday($checkDate = NULL)
+function isTodayHoliday($checkDate = null)
 {
   $ci = &get_instance();
 
@@ -2342,13 +2342,13 @@ function isTodayHoliday($checkDate = NULL)
       $from = strtotime($day[0] . ' 00:00:00');
       $to = strtotime($day[1] . ' 23:59:59');
 
-      if ($current >= $from && $current <= $to) return TRUE;
+      if ($current >= $from && $current <= $to) return true;
     } else if (date('Y-m-d', $current) == date('Y-m-d', strtotime($day))) {
-      return TRUE;
+      return true;
     }
   }
 
-  return FALSE;
+  return false;
 }
 
 function isW2PUser($user_id)
@@ -2357,9 +2357,9 @@ function isW2PUser($user_id)
   $user = $ci->site->getUserByID($user_id);
 
   if ($user) {
-    return ($user->username == 'w2p' ? TRUE : FALSE);
+    return ($user->username == 'w2p' ? true : false);
   }
-  return FALSE;
+  return false;
 }
 
 function isWeb2Print($sale_id)
@@ -2369,9 +2369,9 @@ function isWeb2Print($sale_id)
   if ($sale) {
     $saleJS = getJSON($sale->json_data);
 
-    return (($saleJS->source ?? NULL) == 'W2P' ? TRUE : FALSE);
+    return (($saleJS->source ?? null) == 'W2P' ? true : false);
   }
-  return FALSE;
+  return false;
 }
 
 /**
@@ -2383,9 +2383,9 @@ function dbglog($type, $msg = '')
 {
   $filename = FCPATH . 'logs/log-' . date('Y-m-d') . ".log";
   $hFile  = fopen($filename, 'a'); // Appending and write
-  if (!$hFile) return FALSE;
+  if (!$hFile) return false;
   $dt     = date('Y-m-d H:i:s');
-  $tx     = print_r($msg, TRUE);
+  $tx     = print_r($msg, true);
   $ty     = strtoupper($type);
   $data   = "{$dt} [{$ty}]: {$tx}\r\n";
   fwrite($hFile, $data);
@@ -2425,7 +2425,7 @@ function loginPage()
   $ci->data['title'] = 'Login';
   $ci->data['url'] = $ci->input->get('url');
   $ci->data['warehouses'] = $ci->site->getAllWarehouses();
-  echo $ci->load->view($ci->theme . 'auth/login', $ci->data, TRUE);
+  echo $ci->load->view($ci->theme . 'auth/login', $ci->data, true);
 
   die();
 }
@@ -2435,7 +2435,7 @@ function loginPage()
  * @param string $name Mutex name.
  * @param bool $wait Waiting for mutex to finish.
  */
-function mutexCreate($name = NULL, $wait = FALSE)
+function mutexCreate($name = null, $wait = false)
 {
   $name = ($name ?? 'default');
 
@@ -2448,7 +2448,7 @@ function mutexCreate($name = NULL, $wait = FALSE)
   if ($hMutex && flock($hMutex, $param)) {
     return $hMutex;
   }
-  return FALSE;
+  return false;
 }
 
 /**
@@ -2466,10 +2466,10 @@ function mutexRelease($hMutex)
 
     if (file_exists($filename)) {
       @unlink($filename);
-      return TRUE;
+      return true;
     }
   }
-  return FALSE;
+  return false;
 }
 
 /**
@@ -2489,7 +2489,7 @@ function ocr($image)
 
   if ($retval != 0) {
     setLastError("Tesseract is not found.");
-    return FALSE;
+    return false;
   }
 
   if (is_file($image)) {
@@ -2497,7 +2497,7 @@ function ocr($image)
     exec("$exe $image stdout", $output);
   } else {
     setLastError('Image file is not found.');
-    return FALSE;
+    return false;
   }
 
   return $output;
@@ -2528,7 +2528,7 @@ function phpBinary()
     $phpbin = str_replace('sbin', 'bin', $phppath) . DIRECTORY_SEPARATOR . 'php';
     return $phpbin;
   }
-  return NULL;
+  return null;
 }
 
 /**
@@ -2560,7 +2560,7 @@ function qmsStatus($status)
     case '6':
       return 'skipped';
   }
-  return NULL;
+  return null;
 }
 
 function rating2star(int $rating)
@@ -2601,13 +2601,13 @@ function renderStatus(string $status, $elm = 'td')
     'waiting_production', 'waiting_transfer'
   ];
 
-  if (array_search($st, $danger) !== FALSE) {
+  if (array_search($st, $danger) !== false) {
     $label = 'danger';
-  } elseif (array_search($st, $info) !== FALSE) {
+  } elseif (array_search($st, $info) !== false) {
     $label = 'info';
-  } elseif (array_search($st, $success) !== FALSE) {
+  } elseif (array_search($st, $success) !== false) {
     $label = 'success';
-  } elseif (array_search($st, $warning) !== FALSE) {
+  } elseif (array_search($st, $warning) !== false) {
     $label = 'warning';
   }
 
@@ -2654,10 +2654,10 @@ function sendWA($phone, $text, $opt = [])
 
   curl_setopt_array($curl, [
     CURLOPT_URL             => $url,
-    CURLOPT_HEADER          => FALSE,
-    CURLOPT_POST            => TRUE,
+    CURLOPT_HEADER          => false,
+    CURLOPT_POST            => true,
     CURLOPT_POSTFIELDS      => http_build_query($query),
-    CURLOPT_RETURNTRANSFER  => TRUE,
+    CURLOPT_RETURNTRANSFER  => true,
   ]);
 
   $res = curl_exec($curl);
@@ -2690,7 +2690,7 @@ function setCreatedBy($data)
  *
  * @param string $msg Error message. Reset last error message if omitted.
  */
-function setLastError(string $msg = NULL)
+function setLastError(string $msg = null)
 {
   if ($msg && strlen($msg)) {
     log_message('error', $msg);
@@ -2700,10 +2700,10 @@ function setLastError(string $msg = NULL)
   }
 
   if (XSession::has('lastErrorMsg')) {
-    return TRUE;
+    return true;
   }
 
-  return FALSE;
+  return false;
 }
 
 /**
@@ -2764,7 +2764,7 @@ function setUpdatedBy($data)
  */
 function toSN(string $code, string $reference)
 {
-  if (empty($code) || strlen($code) < 4) return NULL;
+  if (empty($code) || strlen($code) < 4) return null;
 
   if (strpos($reference, '-')) {
     $poDate = explode('-', $reference)[1];
@@ -2772,7 +2772,7 @@ function toSN(string $code, string $reference)
     return substr($code, 0, 4) . str_replace('/', '', $poDate);
   }
 
-  return NULL;
+  return null;
 }
 
 /**
@@ -2808,7 +2808,7 @@ function warehouseToBiller($warehouseId)
         return $biller->id;
       }
     }
-    return NULL;
+    return null;
   }
 }
 
@@ -2832,7 +2832,7 @@ function XTime($time)
  * @param	bool $return Whether to return the file output
  * @return object|string
  */
-function view(string $view, $vars = [], $return = FALSE)
+function view(string $view, $vars = [], $return = false)
 {
   $ci = &get_instance();
   return $ci->load->view($view, $vars, $return);
@@ -2847,12 +2847,12 @@ if (!function_exists('rd_debug')) {
     $hFile = fopen($filename, 'a'); // Appending and write
     $args = func_get_args();
     $type = array_shift($args);
-    $type = (gettype($type) == 'string' ? strtoupper($type) : print_r($type, TRUE));
+    $type = (gettype($type) == 'string' ? strtoupper($type) : print_r($type, true));
 
     $data = date('Y-m-d H:i:s') . " [{$type}]:";
 
     foreach ($args as $arg) {
-      $str = print_r($arg, TRUE);
+      $str = print_r($arg, true);
       fwrite($hFile, $data . $str . "\r\n");
     }
     fclose($hFile);
@@ -2860,7 +2860,7 @@ if (!function_exists('rd_debug')) {
 }
 
 if (!function_exists('rd_error')) {
-  function rd_error($reason, $return = FALSE)
+  function rd_error($reason, $return = false)
   {
     $ex = new \Exception($reason);
     rd_debug('error', $ex->getMessage(), $ex->getTrace());
@@ -2929,7 +2929,7 @@ function sendMail($data = [])
     $mail->SMTPDebug = SMTP::DEBUG_LOWLEVEL;
     $mail->isSMTP();
     $mail->Host = 'smtppro.zoho.com';
-    $mail->SMTPAuth = TRUE;
+    $mail->SMTPAuth = true;
     $mail->Username = 'buyer@indostoreku.com';
     $mail->Password = 'Dur14n100$';
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
@@ -2941,14 +2941,14 @@ function sendMail($data = [])
     $mail->setFrom($data['from'], $data['from_name']);
     $mail->addAddress($data['to']);
 
-    $mail->isHTML(TRUE);
+    $mail->isHTML(true);
     $mail->Subject = $data['subject'];
     $mail->Body = $data['body'];
     if ($mail->send()) {
-      return TRUE;
+      return true;
     }
     // setLastError($mail->ErrorInfo);
-    return FALSE;
+    return false;
   } catch (Exception $e) {
     echo "Error could not be sent. Mailer Error: {$mail->ErrorInfo}";
   }

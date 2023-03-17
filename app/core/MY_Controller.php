@@ -345,25 +345,14 @@ class MY_Controller extends CI_Controller
       $this->upload_digital_type            = "{$this->upload_image_type}|{$this->upload_csv_type}|{$this->upload_document_type}";
     } else { // If not logged in.
       define('SHOP', 0);
-      //$this->session->set_flashdata('redirect_page', $this->uri->uri_string());
     }
   }
 
   protected function page_construct($page, $data = [])
   {
-    $data['message'] = isset($data['message']) ? $data['message'] : $this->session->flashdata('message');
-    $data['error']   = isset($data['error'])   ? $data['error']   : $this->session->flashdata('error');
-    $data['warning'] = isset($data['warning']) ? $data['warning'] : $this->session->flashdata('warning');
-
-    if ($this->session->flashdata('message')) {
-      unset($_SESSION['message']);
-    }
-    if ($this->session->flashdata('error')) {
-      unset($_SESSION['error']);
-    }
-    if ($this->session->flashdata('warning')) {
-      unset($_SESSION['warning']);
-    }
+    $data['message'] = isset($data['message']) ? $data['message'] : XSession::get('message');
+    $data['error']   = isset($data['error'])   ? $data['error']   : XSession::get('error');
+    $data['warning'] = isset($data['warning']) ? $data['warning'] : XSession::get('warning');
 
     $data['isLocal']             = $this->isLocal;
     $data['res_hash']            = $this->res_hash;
@@ -385,10 +374,6 @@ class MY_Controller extends CI_Controller
     $data['shop_sale_alerts']    = SHOP ? $this->site->get_shop_sale_alerts() : 0;
     $data['shop_payment_alerts'] = SHOP ? $this->site->get_shop_payment_alerts() : 0;
 
-    // $this->load->view('admin/header', $meta);
-    // $this->load->view('admin/' . $page, $data);
-    // $this->load->view('admin/footer');
-
     $htmlContent = '';
 
     if (isset($this->cache)) {
@@ -400,8 +385,6 @@ class MY_Controller extends CI_Controller
       } else {
         $htmlContent = $cached;
       }
-    } else {
-      // $htmlContent = $this->load->view('admin/' . $page, $data, TRUE);
     }
 
     $htmlContent = $this->load->view('admin/' . $page, $data, TRUE);

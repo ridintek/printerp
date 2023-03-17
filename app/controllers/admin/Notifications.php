@@ -13,7 +13,7 @@ class Notifications extends MY_Controller
     }
 
     if (!$this->Owner && !$this->Admin && !getPermission('notify-index')) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
     $this->lang->admin_load('notifications', $this->Settings->user_language);
@@ -66,7 +66,7 @@ class Notifications extends MY_Controller
   public function add()
   {
     if (!$this->Owner && !$this->Admin && !getPermission('notify-add')) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
 
@@ -81,12 +81,12 @@ class Notifications extends MY_Controller
         'type'      => getPost('type')
       ];
     } elseif (getPost('submit')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('notifications');
     }
 
     if ($this->form_validation->run() == true && $this->cmt_model->addNotification($data)) {
-      $this->session->set_flashdata('message', lang('notification_added'));
+      XSession::set_flash('message', lang('notification_added'));
       admin_redirect('notifications');
     } else {
       $this->data['comment'] = [
@@ -106,7 +106,7 @@ class Notifications extends MY_Controller
   public function delete($id = null)
   {
     if (!$this->Owner && !$this->Admin && !getPermission('notify-delete')) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
 
@@ -118,7 +118,7 @@ class Notifications extends MY_Controller
   public function edit($id = null)
   {
     if (!$this->Owner && !$this->Admin && getPermission('notify-edit')) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
 
@@ -138,14 +138,14 @@ class Notifications extends MY_Controller
         'type'      => getPost('type')
       ];
     } elseif (getPost('submit')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('notifications');
     }
 
     if ($this->form_validation->run() == true) {
       if ($this->cmt_model->updateNotification($id, $data)) {
         $this->session->unset_userdata('hidden' . $id);
-        $this->session->set_flashdata('message', lang('notification_updated'));
+        XSession::set_flash('message', lang('notification_updated'));
       }
       admin_redirect('notifications');
     } else {
@@ -182,7 +182,7 @@ class Notifications extends MY_Controller
   public function index()
   {
     if (!$this->Owner && !$this->Admin && !getPermission('notify-index')) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
 

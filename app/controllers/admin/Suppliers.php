@@ -14,7 +14,7 @@ class Suppliers extends MY_Controller
       loginPage();
     }
     if ($this->Customer || $this->Supplier) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
     $this->lang->admin_load('suppliers', $this->Settings->user_language);
@@ -69,12 +69,12 @@ class Suppliers extends MY_Controller
         ])
       ];
     } elseif (getPost('add_supplier')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('suppliers');
     }
 
     if ($this->form_validation->run() == true && $sid = $this->site->addSupplier($data)) {
-      $this->session->set_flashdata('message', $this->lang->line('supplier_added'));
+      XSession::set_flash('message', $this->lang->line('supplier_added'));
       $ref = isset($_SERVER['HTTP_REFERER']) ? explode('?', $_SERVER['HTTP_REFERER']) : null;
       admin_redirect($ref[0] . '?supplier=' . $sid);
     } else {
@@ -112,12 +112,12 @@ class Suppliers extends MY_Controller
       ];
       $this->load->library('ion_auth');
     } elseif (getPost('add_user')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('suppliers');
     }
 
     if ($this->form_validation->run() == true && $this->ion_auth->register($username, $password, $email, $additional_data, $active, $notify)) {
-      $this->session->set_flashdata('message', $this->lang->line('user_added'));
+      XSession::set_flash('message', $this->lang->line('user_added'));
       admin_redirect('suppliers');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -195,7 +195,7 @@ class Suppliers extends MY_Controller
         ])
       ];
     } elseif (getPost('edit_supplier')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       redirect_to($_SERVER['HTTP_REFERER']);
     }
 
@@ -214,9 +214,9 @@ class Suppliers extends MY_Controller
             }
           }
         }
-        $this->session->set_flashdata('message', $this->lang->line('supplier_updated'));
+        XSession::set_flash('message', $this->lang->line('supplier_updated'));
       } else {
-        $this->session->set_flashdata('error', 'Failed to update supplier.');
+        XSession::set_flash('error', 'Failed to update supplier.');
       }
       redirect_to($_SERVER['HTTP_REFERER']);
     } else {
@@ -267,7 +267,7 @@ class Suppliers extends MY_Controller
 
         if (!$this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('suppliers');
         }
 
@@ -287,7 +287,7 @@ class Suppliers extends MY_Controller
         $updated = '';
         $data    = [];
         if ($header_id[0] != 'SUPPL') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('suppliers');
         }
         $keys = [
@@ -333,7 +333,7 @@ class Suppliers extends MY_Controller
           ];
 
           if (empty($supplier['company']) || empty($supplier['name']) || empty($supplier['phone'])) {
-            $this->session->set_flashdata('error', lang('company') . ', ' . lang('name') . ', ' . lang('phone') . ', ' .
+            XSession::set_flash('error', lang('company') . ', ' . lang('name') . ', ' . lang('phone') . ', ' .
               lang('are_required') . ' (' . lang('line_no') . ' ' . $rw . ')');
             admin_redirect('suppliers');
           } else {
@@ -350,7 +350,7 @@ class Suppliers extends MY_Controller
         }
       }
     } elseif (getPost('import')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('suppliers');
     }
 
@@ -360,15 +360,15 @@ class Suppliers extends MY_Controller
         foreach ($data as $new_supplier) {
           $added .= '<p>' . lang('supplier_added') . ' (' . $new_supplier['company'] . ')</p>';
         }
-        $this->session->set_flashdata('message', $added . $updated);
+        XSession::set_flash('message', $added . $updated);
         admin_redirect('suppliers');
       }
     } else {
       if (isset($data) && empty($data)) {
         if ($updated) {
-          $this->session->set_flashdata('message', $updated);
+          XSession::set_flash('message', $updated);
         } else {
-          $this->session->set_flashdata('warning', lang('data_x_suppliers'));
+          XSession::set_flash('warning', lang('data_x_suppliers'));
         }
         admin_redirect('suppliers');
       }
@@ -408,7 +408,7 @@ class Suppliers extends MY_Controller
   public function supplier_actions()
   {
     if (!$this->Owner && !$this->GP['bulk_actions']) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
 
@@ -425,9 +425,9 @@ class Suppliers extends MY_Controller
             }
           }
           if ($error) {
-            $this->session->set_flashdata('warning', lang('suppliers_x_deleted_have_purchases'));
+            XSession::set_flash('warning', lang('suppliers_x_deleted_have_purchases'));
           } else {
-            $this->session->set_flashdata('message', $this->lang->line('suppliers_deleted'));
+            XSession::set_flash('message', $this->lang->line('suppliers_deleted'));
           }
           redirect_to($_SERVER['HTTP_REFERER']);
         }
@@ -469,11 +469,11 @@ class Suppliers extends MY_Controller
           $this->excel->export($filename);
         }
       } else {
-        $this->session->set_flashdata('error', $this->lang->line('no_supplier_selected'));
+        XSession::set_flash('error', $this->lang->line('no_supplier_selected'));
         redirect_to($_SERVER['HTTP_REFERER']);
       }
     } else {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       redirect_to($_SERVER['HTTP_REFERER']);
     }
   }

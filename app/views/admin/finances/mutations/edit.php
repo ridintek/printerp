@@ -70,7 +70,7 @@
                   }
                 }
                 ?>
-                <?= form_dropdown('from_bank_id', $bk, $mutation->from_bank_id, 'class="form-control select2 tip" id="from_bank_id" data-placeholder="Select Account From" required="required" style="width:100%;"'); ?>
+                <?= form_dropdown('from_bank_id', $bk, $mutation->bankfrom_id, 'class="form-control select2 tip" id="from_bank_id" data-placeholder="Select Account From" required="required" style="width:100%;"'); ?>
               </div>
               <div class="col-md-6">
                 <?= lang('current_balance', 'balance_from'); ?>
@@ -91,7 +91,7 @@
                   }
                 }
                 ?>
-                <?= form_dropdown('to_bank_id', $bk, $mutation->to_bank_id, 'class="form-control select2 tip" id="to_bank_id" data-placeholder="Select Account To" required="required" style="width:100%;"'); ?>
+                <?= form_dropdown('to_bank_id', $bk, $mutation->bankto_id, 'class="form-control select2 tip" id="to_bank_id" data-placeholder="Select Account To" required="required" style="width:100%;"'); ?>
               </div>
               <div class="col-md-6">
                 <?= lang('current_balance', 'balance_to'); ?>

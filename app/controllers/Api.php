@@ -1008,8 +1008,8 @@ class Api extends MY_Controller
 
           if (empty($item->quantity)) sendJSON(['error' => 1, 'message' => 'Quantity is required.']);
 
-          $item->width  = ($item->width  ?? 0);
-          $item->length = ($item->length ?? 0);
+          $item->width  = floatval(!empty($item->width) ? $item->width : 1);
+          $item->length = floatval(!empty($item->length) ? $item->length : 1);
           $item->note   = getExcerpt(strip_tags($item->note ?? ''), 50);
 
           // Price calculation based on quantity.

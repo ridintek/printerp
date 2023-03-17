@@ -680,7 +680,7 @@ class Machines extends MY_Controller
         $this->response(402, ['message' => lang('access_denied')]);
       }
 
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       die('<script>
         $("#myModal").modal("hide");
         $("#myModal2").modal("hide");

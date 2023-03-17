@@ -13,7 +13,7 @@ class Billers extends MY_Controller
     }
 
     if (!$this->Owner) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
     $this->lang->admin_load('billers', $this->Settings->user_language);
@@ -41,12 +41,12 @@ class Billers extends MY_Controller
         ])
       ];
     } elseif (getPost('add_biller')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('billers');
     }
 
     if ($this->form_validation->run() == true && $this->site->addBiller($data)) {
-      $this->session->set_flashdata('message', $this->lang->line('biller_added'));
+      XSession::set_flash('message', $this->lang->line('biller_added'));
       admin_redirect('billers');
     } else {
       $this->data['logos']    = $this->getLogoList();
@@ -58,7 +58,7 @@ class Billers extends MY_Controller
   public function biller_actions ()
   {
     if (!$this->Owner && !$this->GP['bulk_actions']) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
 
@@ -75,18 +75,18 @@ class Billers extends MY_Controller
             }
           }
           if ($error) {
-            $this->session->set_flashdata('warning', lang('billers_x_deleted_have_sales'));
+            XSession::set_flash('warning', lang('billers_x_deleted_have_sales'));
           } else {
-            $this->session->set_flashdata('message', $this->lang->line('billers_deleted'));
+            XSession::set_flash('message', $this->lang->line('billers_deleted'));
           }
           redirect_to($_SERVER['HTTP_REFERER']);
         }
       } else {
-        $this->session->set_flashdata('error', $this->lang->line('no_biller_selected'));
+        XSession::set_flash('error', $this->lang->line('no_biller_selected'));
         redirect_to($_SERVER['HTTP_REFERER']);
       }
     } else {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
@@ -134,16 +134,16 @@ class Billers extends MY_Controller
         ])
       ];
     } elseif (getPost('edit_biller')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('billers');
     }
 
     if ($this->form_validation->run() == true && $this->site->updateBiller($id, $data)) {
-      $this->session->set_flashdata('message', $this->lang->line('biller_updated'));
+      XSession::set_flash('message', $this->lang->line('biller_updated'));
       admin_redirect('billers');
     } else {
       if (getPost('edit_biller')) {
-        $this->session->set_flashdata('error', 'Failed to save');
+        XSession::set_flash('error', 'Failed to save');
         admin_redirect('billers');
       }
       $this->data['biller']   = $biller;
@@ -212,7 +212,7 @@ class Billers extends MY_Controller
 
         if ( ! $this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('billers');
         }
 
@@ -237,7 +237,7 @@ class Billers extends MY_Controller
         ];
 
         if ($header_id[0] != 'BILR') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('billers');
         }
         foreach ($arrResult as $csv_data) {
@@ -264,7 +264,7 @@ class Billers extends MY_Controller
         } // foreach
       }
     } else if (getPost('import')) {
-      $this->session->set_flashdata('error', 'E1: ' . validation_errors());
+      XSession::set_flash('error', 'E1: ' . validation_errors());
       admin_redirect('billers');
     }
 
@@ -283,11 +283,11 @@ class Billers extends MY_Controller
         }
       }
 
-      $this->session->set_flashdata('message', sprintf(lang('csv_billers_imported'), $added, $updated));
+      XSession::set_flash('message', sprintf(lang('csv_billers_imported'), $added, $updated));
       admin_redirect('billers');
     } else {
       if (getPost('import')) {
-        $this->session->set_flashdata('error', 'E2: ' . validation_errors());
+        XSession::set_flash('error', 'E2: ' . validation_errors());
         admin_redirect('billers');
       }
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));

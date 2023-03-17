@@ -50,21 +50,21 @@ class Customers extends MY_Controller
         ])
       ];
       if (!$this->Owner && !$this->Admin && stripos($data['company'], 'INDOPRINTING') !== FALSE) {
-        $this->session->set_flashdata('error', "Forbidden. You cannot use 'INDOPRINTING' as company.");;
+        XSession::set_flash('error', "Forbidden. You cannot use 'INDOPRINTING' as company.");;
         redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/customers');
       }
       $cust = $this->site->getCustomerByPhone($data['phone']);
       if ($cust) {
-        $this->session->set_flashdata('error', "Phone number {$data['phone']} sudah terdaftar sebelumnya.");;
+        XSession::set_flash('error', "Phone number {$data['phone']} sudah terdaftar sebelumnya.");;
         redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/customers');
       }
     } elseif (getPost('add_customer')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/customers');
     }
 
     if ($this->form_validation->run() == true && $cid = Customer::add($data)) {
-      $this->session->set_flashdata('message', lang('customer_added'));
+      XSession::set_flash('message', lang('customer_added'));
       $ref = isset($_SERVER['HTTP_REFERER']) ? explode('?', $_SERVER['HTTP_REFERER']) : null;
       admin_redirect($ref[0] . '?customer=' . $cid);
     } else {
@@ -98,12 +98,12 @@ class Customers extends MY_Controller
         'customer_id' => $customer->id,
       ];
     } elseif (getPost('add_address')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('customers');
     }
 
     if ($this->form_validation->run() == true && $this->site->addAddress($data)) {
-      $this->session->set_flashdata('message', lang('address_added'));
+      XSession::set_flash('message', lang('address_added'));
       admin_redirect('customers');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -145,12 +145,12 @@ class Customers extends MY_Controller
         'deposit_amount' => ($customer->deposit_amount + getPost('amount')),
       ];
     } elseif (getPost('add_deposit')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('customers');
     }
 
     if ($this->form_validation->run() == true && $this->site->addCustomerDeposit($data, $cdata)) {
-      $this->session->set_flashdata('message', lang('deposit_added'));
+      XSession::set_flash('message', lang('deposit_added'));
       admin_redirect('customers');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -189,12 +189,12 @@ class Customers extends MY_Controller
       ];
       $this->load->library('ion_auth');
     } elseif (getPost('add_user')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('customers');
     }
 
     if ($this->form_validation->run() == true && $this->ion_auth->register($username, $password, $email, $additional_data, $active, $notify)) {
-      $this->session->set_flashdata('message', lang('user_added'));
+      XSession::set_flash('message', lang('user_added'));
       admin_redirect('customers');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -214,7 +214,7 @@ class Customers extends MY_Controller
   public function customer_actions()
   {
     if (!$this->Owner && !$this->GP['bulk_actions']) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
+      XSession::set_flash('warning', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
 
@@ -231,9 +231,9 @@ class Customers extends MY_Controller
             }
           }
           if ($error) {
-            $this->session->set_flashdata('warning', lang('customers_x_deleted_have_sales'));
+            XSession::set_flash('warning', lang('customers_x_deleted_have_sales'));
           } else {
-            $this->session->set_flashdata('message', lang('customers_deleted'));
+            XSession::set_flash('message', lang('customers_deleted'));
           }
           redirect_to($_SERVER['HTTP_REFERER']);
         }
@@ -277,11 +277,11 @@ class Customers extends MY_Controller
           $this->excel->export($filename);
         }
       } else {
-        $this->session->set_flashdata('error', lang('no_customer_selected'));
+        XSession::set_flash('error', lang('no_customer_selected'));
         redirect_to($_SERVER['HTTP_REFERER']);
       }
     } else {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
@@ -330,7 +330,7 @@ class Customers extends MY_Controller
     $this->sma->checkPermissions('delete', true);
 
     if ($this->site->deleteAddress($id)) {
-      $this->session->set_flashdata('message', lang('address_deleted'));
+      XSession::set_flash('message', lang('address_deleted'));
       admin_redirect('customers');
     }
   }
@@ -410,12 +410,12 @@ class Customers extends MY_Controller
         ])
       ];
     } elseif (getPost('edit_customer')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     if ($this->form_validation->run() == true && $this->site->updateCustomer($id, $data)) {
-      $this->session->set_flashdata('message', lang('customer_updated'));
+      XSession::set_flash('message', lang('customer_updated'));
       redirect_to($_SERVER['HTTP_REFERER']);
     } else {
       $jsdata = json_decode($customer->json_data);
@@ -451,12 +451,12 @@ class Customers extends MY_Controller
         'updated_at'  => date('Y-m-d H:i:s'),
       ];
     } elseif (getPost('edit_address')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('customers');
     }
 
     if ($this->form_validation->run() == true && $this->site->updateCustomerAddress($id, $data)) {
-      $this->session->set_flashdata('message', lang('address_updated'));
+      XSession::set_flash('message', lang('address_updated'));
       admin_redirect('customers');
     } else {
       $this->data['address']  = $this->site->getAddressByID($id);
@@ -499,12 +499,12 @@ class Customers extends MY_Controller
         'deposit_amount' => (($customer->deposit_amount - $deposit->amount) + getPost('amount')),
       ];
     } elseif (getPost('edit_deposit')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('customers');
     }
 
     if ($this->form_validation->run() == true && $this->site->updateCustomerDeposit($id, $data, $cdata)) {
-      $this->session->set_flashdata('message', lang('deposit_updated'));
+      XSession::set_flash('message', lang('deposit_updated'));
       admin_redirect('customers');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -551,12 +551,12 @@ class Customers extends MY_Controller
         ])
       ];
     } elseif (getPost('edit_customer')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     if ($this->form_validation->run() == true && $this->site->updateCustomer($id, $data)) {
-      $this->session->set_flashdata('message', lang('customer_updated'));
+      XSession::set_flash('message', lang('customer_updated'));
       redirect_to($_SERVER['HTTP_REFERER']);
     } else {
       $jsdata = json_decode($customer->json_data);
@@ -657,7 +657,7 @@ class Customers extends MY_Controller
 
         if (!$this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('customers');
         }
 
@@ -682,7 +682,7 @@ class Customers extends MY_Controller
         ];
 
         if ($header_id[0] != 'ID' || $header_id[1] != 'CUSTOMER') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('customers');
         }
         foreach ($arrResult as $value) {
@@ -714,14 +714,14 @@ class Customers extends MY_Controller
           ];
 
           if (empty($customer['company']) || empty($customer['name']) || empty($customer['phone'])) {
-            $this->session->set_flashdata('error', lang('company') . ', ' . lang('name') . ', ' . lang('phone') . ' ' . lang('are_required') . ' (' . lang('line_no') . ' ' . $rw . ')');
+            XSession::set_flash('error', lang('company') . ', ' . lang('name') . ', ' . lang('phone') . ' ' . lang('are_required') . ' (' . lang('line_no') . ' ' . $rw . ')');
             admin_redirect('customers');
           } else {
             if ($customer_details = $this->site->getCustomerByPhone($customer['phone'])) { // Get customer by phone
               if ($customer_details->group_id == 3) { // If customer
                 $updated .= '<p>' . lang('customer_updated') . ' (' . $customer['name'] . ') as ' . $customer['price_group_name'] . '</p>';
                 if (!$this->site->updateCustomer($customer_details->id, $customer)) {
-                  $this->session->set_flashdata('error', 'Failed to update');
+                  XSession::set_flash('error', 'Failed to update');
                   admin_redirect('customers');
                 }
               }
@@ -733,21 +733,21 @@ class Customers extends MY_Controller
         }
       }
     } elseif (getPost('import')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('customers');
     }
 
     if ($this->form_validation->run() == true && !empty($data)) {
       if ($this->site->addCustomers($data)) {
-        $this->session->set_flashdata('message', lang('customers_added') . $updated);
+        XSession::set_flash('message', lang('customers_added') . $updated);
         admin_redirect('customers');
       }
     } else {
       if (isset($data) && empty($data)) {
         if ($updated) {
-          $this->session->set_flashdata('message', $updated);
+          XSession::set_flash('message', $updated);
         } else {
-          $this->session->set_flashdata('warning', lang('data_x_customers'));
+          XSession::set_flash('warning', lang('data_x_customers'));
         }
         admin_redirect('customers');
       }
@@ -777,7 +777,7 @@ class Customers extends MY_Controller
 
         if (!$this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('customers');
         }
 
@@ -799,7 +799,7 @@ class Customers extends MY_Controller
         $customer_group = $this->site->getCustomerGroupByID($this->Settings->customer_group);
         $price_group    = $this->site->getPriceGroupByID($this->Settings->price_group);
         if ($header_id[0] != 'ID' || $header_id[1] != 'CUSTOMER') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('customers');
         }
         foreach ($arrResult as $key => $value) {
@@ -821,7 +821,7 @@ class Customers extends MY_Controller
             'price_group_name'    => (!empty($price_group)) ? $price_group->name : null,
           ];
           if (empty($customer['company']) || empty($customer['name']) || empty($customer['email'])) {
-            $this->session->set_flashdata('error', lang('company') . ', ' . lang('name') . ', ' . lang('email') . ' ' . lang('are_required') . ' (' . lang('line_no') . ' ' . $rw . ')');
+            XSession::set_flash('error', lang('company') . ', ' . lang('name') . ', ' . lang('email') . ' ' . lang('are_required') . ' (' . lang('line_no') . ' ' . $rw . ')');
             admin_redirect('customers');
           } else {
             if ($customer_details = $this->site->getCustomerByEmail($customer['email'])) {
@@ -839,21 +839,21 @@ class Customers extends MY_Controller
         // $this->sma->print_arrays($data, $updated);
       }
     } elseif (getPost('import')) {
-      $this->session->set_flashdata('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect('customers');
     }
 
     if ($this->form_validation->run() == true && !empty($data)) {
       if ($this->site->addCustomers($data)) {
-        $this->session->set_flashdata('message', lang('customers_added') . $updated);
+        XSession::set_flash('message', lang('customers_added') . $updated);
         admin_redirect('customers');
       }
     } else {
       if (isset($data) && empty($data)) {
         if ($updated) {
-          $this->session->set_flashdata('message', $updated);
+          XSession::set_flash('message', $updated);
         } else {
-          $this->session->set_flashdata('warning', lang('data_x_customers'));
+          XSession::set_flash('warning', lang('data_x_customers'));
         }
         admin_redirect('customers');
       }

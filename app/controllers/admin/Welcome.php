@@ -32,7 +32,7 @@ class Welcome extends MY_Controller
       force_download('./files/' . $file, null);
       exit();
     }
-    $this->session->set_flashdata('error', lang('file_x_exist'));
+    XSession::set_flash('error', lang('file_x_exist'));
     redirect_to($_SERVER['HTTP_REFERER']);
   }
 

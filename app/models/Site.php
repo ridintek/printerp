@@ -455,21 +455,7 @@ class Site extends MY_Model
     }
     return FALSE;
   }
-
-  /**
-   * Add new job.
-   * @param array $data [ controller, method, param ]
-   */
-  public function addJob($data)
-  {
-    DB::table('jobs')->insert($data);
-
-    if (DB::affectedRows()) {
-      return DB::insertID();
-    }
-    return FALSE;
-  }
-
+  
   public function addMaintenanceLog($data)
   {
     $data = setCreatedBy($data);
@@ -7598,7 +7584,7 @@ class Site extends MY_Model
   {
     $sales = [];
     die('Change to Sale::sync');
-return false;
+    return false;
     // $this->syncPaymentValidations(); // Cause memory crash (looping).
 
     if (!empty($clause['sale_id'])) {
@@ -7865,8 +7851,6 @@ return false;
           $receivedValue += round($item->quantity * $cost);
           $grandTotal += round($item->purchased_qty * $cost);
         }
-      } else {
-        die('WHY NO PURCHASE ITEMS?');
       }
 
       if ($payments) {

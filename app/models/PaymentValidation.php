@@ -337,7 +337,6 @@ class PaymentValidation
   {
     $createdAt = date('Y-m-d H:i:s');
 
-    $paymentValidated = false;
     self::sync(); // Change pending payment to expired if any.
     $sale_id     = ($options['sale_id'] ?? null);
     $mutation_id = ($options['mutation_id'] ?? null);
@@ -420,7 +419,8 @@ class PaymentValidation
                   'bank_id'         => $bank->id,
                   'created_at'      => $createdAt,
                   'created_by'      => $pv->created_by,
-                  'type'            => 'received'
+                  'type'            => 'received',
+                  'note'            => $pv->note
                 ];
 
                 if (isset($options['attachment'])) $payment['attachment'] = $options['attachment'];
@@ -441,9 +441,8 @@ class PaymentValidation
                 $mutation = BankMutation::getRow(['id' => $pv->mutation_id]);
                 $payment_from = [
                   'created_at'      => date('Y-m-d H:i:s'),
-                  'reference_date'  => $mutation->date,
                   'mutation_id'     => $mutation->id,
-                  'bank_id'         => $mutation->from_bank_id,
+                  'bank_id'         => $mutation->bankfrom_id,
                   'method'          => 'Transfer',
                   'amount'          => $mutation->amount + $pv->unique_code,
                   'created_by'      => $mutation->created_by,
@@ -456,9 +455,8 @@ class PaymentValidation
                 if (Payment::add($payment_from)) {
                   $payment_to = [
                     'created_at'  => date('Y-m-d H:i:s'),
-                    'date'        => $mutation->date,
                     'mutation_id' => $mutation->id,
-                    'bank_id'     => $mutation->to_bank_id,
+                    'bank_id'     => $mutation->bankto_id,
                     'method'      => 'Transfer',
                     'amount'      => $mutation->amount + $pv->unique_code,
                     'created_by'  => $mutation->created_by,
@@ -472,20 +470,17 @@ class PaymentValidation
                     BankMutation::update((int)$mutation->id, [
                       'status' => 'paid'
                     ]);
+
+                    $validatedCount++;
                   }
                 }
-
-                $validatedCount++;
               }
-
-              $paymentValidated = true;
             }
           }
         }
       }
-
-      if ($paymentValidated) return $validatedCount;
     }
-    return false;
+
+    return $validatedCount;
   }
 }

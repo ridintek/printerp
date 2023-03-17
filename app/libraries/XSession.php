@@ -31,6 +31,12 @@ class XSession
 
   public static function get(string $name)
   {
+    if (isset($_SESSION['fd_' . $name])) {
+      $data = $_SESSION['fd_' . $name];
+      unset($_SESSION['fd_' . $name]);
+      return $data;
+    }
+
     return ($_SESSION[$name] ?? NULL);
   }
 
@@ -45,6 +51,23 @@ class XSession
       }
     } else {
       $_SESSION[$name] = $value;
+      $c++;
+    }
+
+    return $c;
+  }
+
+  public static function set_flash($name, string $value = '')
+  {
+    $c = 0;
+
+    if (is_array($name)) {
+      foreach ($name as $n => $v) {
+        $_SESSION['fd_' . $n] = $v;
+        $c++;
+      }
+    } else {
+      $_SESSION['fd_' . $name] = $value;
       $c++;
     }
 
