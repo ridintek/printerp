@@ -535,6 +535,8 @@ class Reports extends MY_Controller
     }
 
     if (is_cli()) {
+      echo "Creating sales report...\r\n";
+
       if ($args = func_get_args()) {
         $a = array_search('start_date', $args);
         $b = array_search('end_date', $args);

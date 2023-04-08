@@ -56,15 +56,21 @@ class SaleItem
       //   setLastError("Item {$saleItem->product_code} doesn't have due date.");
       //   return false;
       // }
+      if ($completedQty == $saleItem->finished_qty) {
+        $saleItem->finished_qty = 0;
+      }
 
       if (($completedQty + $saleItem->finished_qty) < $saleItem->quantity) { // If completed partial.
         $status = 'completed_partial';
       } else if (($completedQty + $saleItem->finished_qty) == $saleItem->quantity) { // If fully completed.
         $status = 'completed';
       } else {
-        setLastError("<b>completeSaleItem()</b>: Something wrong! Maybe you complete more quantity than requested. " .
-          "Completed: {$completedQty}, Finished: {$saleItem->finished_qty}, Quantity: {$saleItem->quantity}");
-        return FALSE;
+        $completedQty = $saleItem->quantity;
+
+        $status = 'completed';
+        // setLastError("<b>completeSaleItem()</b>: Something wrong! Maybe you complete more quantity than requested. " .
+        //   "Completed: {$completedQty}, Finished: {$saleItem->finished_qty}, Quantity: {$saleItem->quantity}");
+        // return FALSE;
       }
 
       // Set Completed date and Operator who completed it.
@@ -82,6 +88,7 @@ class SaleItem
 
       $saleItemData = [
         'finished_qty'  => ($saleItem->finished_qty + $completedQty),
+        'status'        => $status,
         'json'          => json_encode($saleItemJS),
         'json_data'     => json_encode($saleItemJS)
       ];
@@ -110,6 +117,7 @@ class SaleItem
                 }
 
                 Stock::decrease([
+                  'date'          => $data['created_at'],
                   'sale_id'       => $sale->id,
                   'saleitem_id'   => $saleItem->id,
                   'product_id'    => $rawItem->id,
@@ -131,6 +139,7 @@ class SaleItem
                 }
 
                 Stock::increase([
+                  'date'          => $data['created_at'],
                   'sale_id'       => $sale->id,
                   'saleitem_id'   => $saleItem->id,
                   'product_id'    => $rawItem->id,
@@ -161,6 +170,7 @@ class SaleItem
           }
 
           Stock::increase([
+            'date'          => $data['created_at'],
             'sale_id'       => $sale->id,
             'saleitem_id'   => $saleItem->id,
             'product_id'    => $saleItem->product_id,
@@ -179,6 +189,7 @@ class SaleItem
           }
 
           Stock::decrease([
+            'date'          => $data['created_at'],
             'sale_id'       => $sale->id,
             'saleitem_id'   => $saleItem->id,
             'product_id'    => $saleItem->product_id,

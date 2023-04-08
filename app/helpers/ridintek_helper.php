@@ -48,13 +48,13 @@ function addSaleDueDate($sale_id)
 
   if ($sale) {
     $dates = [];
-    $saleItems = $ci->site->getSaleItems(['sale_id' => $sale->id]);
+    $saleItems = SaleItem::get(['sale_id' => $sale->id]);
 
     if ($saleItems) {
       foreach ($saleItems as $saleItem) {
         // Default +32 hours. 1 day 8 hours.
         $dueDateItem   = date('Y-m-d H:i:s', strtotime('+32 hours', strtotime($paymentDate)));
-        $product       = $ci->site->getProductByID($saleItem->product_id);
+        $product       = Product::getRow(['id' => $saleItem->product_id]);
         $productJS     = json_decode($product->json_data);
 
         if ($productJS) {
@@ -201,12 +201,10 @@ function checkPath(string $path): bool
  */
 function checkPermission($perms)
 {
-  $ci = &get_instance();
-
   if (!getPermission($perms)) {
-    $ci->session->set_flashdata('error', lang('access_denied'));
+    XSession::set_flash('error', lang('access_denied'));
 
-    if ($ci->input->is_ajax_request()) {
+    if (isAJAX()) {
       echo ("<script>location.reload()</script>");
       die();
     } else {
@@ -259,7 +257,7 @@ function dispatchW2PSale($saleId = null)
 
   $ci = &get_instance();
 
-  if ($sale = $ci->site->getSaleByID($saleId)) {
+  if ($sale = Sale::getRow(['id' => $saleId])) {
     $saleJS = getJSON($sale->json_data);
     $response = [];
 
@@ -269,7 +267,7 @@ function dispatchW2PSale($saleId = null)
     }
 
     $sale_items = $ci->site->getSaleItemsBySaleID($sale->id);
-    $pic = $ci->site->getUserByID($sale->created_by);
+    $pic = User::getRow(['id' => $sale->created_by]);
 
     if ($sale && $sale_items) {
       $customer = $ci->site->getCustomerByID($sale->customer_id);

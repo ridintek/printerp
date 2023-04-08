@@ -4835,11 +4835,11 @@ class Products extends MY_Controller
       });
 
     if ($startDate) {
-      $this->datatable->where("created_at >= '{$startDate} 00:00:00'");
+      $this->datatable->where("product_transfer.date >= '{$startDate} 00:00:00'");
     }
 
     if ($endDate) {
-      $this->datatable->where("created_at <= '{$endDate} 23:59:59'");
+      $this->datatable->where("product_transfer.date <= '{$endDate} 23:59:59'");
     }
 
     if ($warehousesFrom) {

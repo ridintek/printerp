@@ -58,6 +58,17 @@ class Sale
     // Get payment term.
     $payment_term = filterDecimal($data['payment_term'] ?? 1);
     $payment_term = ($payment_term > 0 ? $payment_term : 1);
+    $defaultDueDate = date('Y-m-d H:i:s', strtotime('+7 day'));
+
+    $dueDate = ($data['due_date'] ?? $data['est_complete_date'] ?? $defaultDueDate);
+
+    $saleJS = json_encode([
+      'approved'          => ($data['approved'] ?? 0),
+      'cashier_by'        => ($data['cashier_by'] ?? ''),
+      'source'            => ($data['source'] ?? ''),
+      'est_complete_date' => $dueDate,
+      'payment_due_date'  => ($data['payment_due_date'] ?? getWorkingDateTime(date('Y-m-d H:i:s', strtotime('+1 days'))))
+    ]);
 
     $saleData = [
       'date'            => $date,
@@ -78,6 +89,7 @@ class Sale
       'status'          => ($data['status'] ?? 'need_payment'),
       'payment_status'  => ($data['payment_status'] ?? 'pending'),
       'payment_term'    => $payment_term,
+      'due_date'        => $dueDate,
       'created_by'      => ($data['created_by'] ?? XSession::get('user_id')),
       'total_items'     => $total_items,
       'paid'            => filterDecimal($data['paid'] ?? 0),
@@ -85,20 +97,8 @@ class Sale
       'attachment'      => ($data['attachment'] ?? NULL),
       'payment_method'  => ($data['payment_method'] ?? NULL),
       'use_tb'          => $useTB,
-      'json'            => json_encode([
-        'approved'          => ($data['approved'] ?? 0),
-        'cashier_by'        => ($data['cashier_by'] ?? ''),
-        'source'            => ($data['source'] ?? ''),
-        'est_complete_date' => ($data['est_complete_date'] ?? ''),
-        'payment_due_date'  => ($data['payment_due_date'] ?? getWorkingDateTime(date('Y-m-d H:i:s', strtotime('+1 days'))))
-      ]),
-      'json_data'       => json_encode([
-        'approved'          => ($data['approved'] ?? 0),
-        'cashier_by'        => ($data['cashier_by'] ?? ''),
-        'source'            => ($data['source'] ?? ''),
-        'est_complete_date' => ($data['est_complete_date'] ?? ''),
-        'payment_due_date'  => ($data['payment_due_date'] ?? getWorkingDateTime(date('Y-m-d H:i:s', strtotime('+1 days'))))
-      ])
+      'json'            => $saleJS,
+      'json_data'       => $saleJS,
     ];
 
     DB::startTransaction();
@@ -122,6 +122,18 @@ class Sale
           $item['length'] = 0;
         }
 
+        $saleItemJS = json_encode([
+          'w'             => $item['width'],
+          'l'             => $item['length'],
+          'area'          => $area,
+          'sqty'          => $item['quantity'],
+          'spec'          => ($item['spec'] ?? ''),
+          'status'        => $data['status'],
+          'operator_id'   => ($item['operator_id'] ?? ''),
+          'due_date'      => ($item['due_date'] ?? ''),
+          'completed_at'  => ($item['completed_at'] ?? '')
+        ]);
+
         SaleItem::add([
           'sale'          => $sale->reference,
           'sale_id'       => $insertId,
@@ -132,29 +144,10 @@ class Sale
           'product_type'  => $product->type,
           'price'         => $item['price'],
           'quantity'      => $quantity,
+          'status'        => $data['status'],
           'subtotal'      => ($item['price'] * $quantity),
-          'json'          => json_encode([
-            'w'             => $item['width'],
-            'l'             => $item['length'],
-            'area'          => $area,
-            'sqty'          => $item['quantity'],
-            'spec'          => ($item['spec'] ?? ''),
-            'status'        => $data['status'],
-            'operator_id'   => ($item['operator_id'] ?? ''),
-            'due_date'      => ($item['due_date'] ?? ''),
-            'completed_at'  => ($item['completed_at'] ?? '')
-          ]),
-          'json_data'     => json_encode([
-            'w'             => $item['width'],
-            'l'             => $item['length'],
-            'area'          => $area,
-            'sqty'          => $item['quantity'],
-            'spec'          => ($item['spec'] ?? ''),
-            'status'        => $data['status'],
-            'operator_id'   => ($item['operator_id'] ?? ''),
-            'due_date'      => ($item['due_date'] ?? ''),
-            'completed_at'  => ($item['completed_at'] ?? '')
-          ])
+          'json'          => $saleItemJS,
+          'json_data'     => $saleItemJS
         ]);
       }
 
@@ -198,12 +191,13 @@ class Sale
 
     if ($sale && Payment::add($data)) {
       // Update sale payment
+
       $saleData = [
         'payment_method' => $data['method']
       ];
 
-      if (!empty($data['attachment_id'])) $saleData['attachment_id'] = $data['attachment_id'];
-      if (!empty($data['attachment'])) $saleData['attachment'] = $data['attachment'];
+      if (!empty($data['attachment_id'])) $saleData['attachment_id']  = $data['attachment_id'];
+      if (!empty($data['attachment']))    $saleData['attachment']     = $data['attachment'];
 
       $saleJS = getJSON($sale->json_data);
 
@@ -430,6 +424,7 @@ class Sale
         $saleItemJS->status = $saleItemStatus;
 
         SaleItem::update((int)$saleItem->id, [
+          'status'    => $saleItemStatus,
           'json'      => json_encode($saleItemJS),
           'json_data' => json_encode($saleItemJS)
         ]);

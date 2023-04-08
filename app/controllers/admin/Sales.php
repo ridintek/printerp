@@ -11,14 +11,14 @@ class Sales extends MY_Controller
     parent::__construct();
 
     if (!$this->loggedIn) {
-      // XSession::set('requested_page', $this->uri->uri_string());
+      // XSession::set_flash('requested_page', $this->uri->uri_string());
       // $this->sma->md('login');
 
       loginPage();
     }
 
     if (isset($this->Supplier) && $this->Supplier) {
-      XSession::set('danger', lang('access_denied'));
+      XSession::set_flash('danger', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER']);
     }
 
@@ -159,7 +159,7 @@ class Sales extends MY_Controller
   public function add()
   {
     if (!$this->Owner && !$this->Admin && !getPermission('sales-add')) {
-      XSession::set('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
     }
 
@@ -200,13 +200,13 @@ class Sales extends MY_Controller
 
       // If no customer registered. Then cancel add sale.
       if (empty($customer)) {
-        XSession::set('error', 'Customer is not registered.');
+        XSession::set_flash('error', 'Customer is not registered.');
         redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
       }
 
       // Overdate Protection.
       if (strtotime($date) > now()) {
-        XSession::set('error', 'Do not try to cheating.');
+        XSession::set_flash('error', 'Do not try to cheating.');
         redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
       }
 
@@ -215,7 +215,7 @@ class Sales extends MY_Controller
       if ($last_sale) {
         $time_difference = now() - strtotime($last_sale->date);
         if ($time_difference < 30) { // If time difference between last sale and this sale is less than 30s then canceled.
-          XSession::set('error', 'Anda punya invoice 30 detik yang lalu. Tunggu 30 detik lagi untuk buat nota baru.');
+          XSession::set_flash('error', 'Anda punya invoice 30 detik yang lalu. Tunggu 30 detik lagi untuk buat nota baru.');
           redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
         }
       }
@@ -243,7 +243,7 @@ class Sales extends MY_Controller
         $item_status      = $status;
 
         if (empty($item_operator)) {
-          XSession::set('error', 'Mohon masukkan Operator!');
+          XSession::set_flash('error', 'Mohon masukkan Operator!');
           redirect_to($_SERVER['HTTP_REFERER']);
         }
 
@@ -298,18 +298,18 @@ class Sales extends MY_Controller
 
       if ($uploader->has('document')) {
         if ($uploader->getSize('mb') > 2) {
-          XSession::set('error', 'Besar attachment tidak boleh lebih dari 2MB.');
+          XSession::set_flash('error', 'Besar attachment tidak boleh lebih dari 2MB.');
           redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
         }
 
         $saleData['attachment'] = $uploader->storeRandom();
       } else if (!getPermission('sales-no_attachment')) {
         if ($customerGroup->name == 'TOP') { // Prevent CS create sale without attachment for Customer TOP.
-          XSession::set('error', lang('top_no_attachment'));
+          XSession::set_flash('error', lang('top_no_attachment'));
           redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
         } else if (XSession::get('group_name') == 'tl' && $saleOptions !== 'noattachment') {
           // If TL add sale not from counter. must include attachment.
-          XSession::set('error', lang('attachment_required'));
+          XSession::set_flash('error', lang('attachment_required'));
           redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
         }
       }
@@ -350,15 +350,15 @@ class Sales extends MY_Controller
 
         DB::transComplete();
 
-        XSession::set('remove_slls', 1);
+        XSession::set_flash('remove_slls', 1);
 
         if ($draft_type) {
-          XSession::set('message', lang('draft_sale_saved'));
+          XSession::set_flash('message', lang('draft_sale_saved'));
         } else {
-          XSession::set('message', lang('sale_added'));
+          XSession::set_flash('message', lang('sale_added'));
         }
       } else {
-        XSession::set('error', 'Failed to add sale.');
+        XSession::set_flash('error', 'Failed to add sale.');
         redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
       }
 
@@ -434,17 +434,17 @@ class Sales extends MY_Controller
       $sale_id = getGET('sale_id');
     }
 
-    Sale::sync(['sale_id' => $sale_id]);
+    Sale::sync(['id' => $sale_id]);
 
     $sale = $this->site->getSaleByID($sale_id);
 
     if ($sale->payment_status == 'paid' && $sale->grand_total == $sale->paid) {
-      XSession::set('error', lang('sale_already_paid'));
+      XSession::set_flash('error', lang('sale_already_paid'));
       $this->sma->md();
     }
 
     if ($sale->status == 'draft') {
-      XSession::set('error', 'Sale is in Draft mode. Please save it as final format!');
+      XSession::set_flash('error', 'Sale is in Draft mode. Please save it as final format!');
       $this->sma->md();
     }
 
@@ -500,7 +500,7 @@ class Sales extends MY_Controller
 
       if ($uploader->has('userfile')) {
         if ($uploader->getSize('mb') > 2) {
-          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          XSession::set_flash('error', 'Attachment tidak boleh lebih dari 2MB.');
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
@@ -639,7 +639,7 @@ class Sales extends MY_Controller
       if (isAJAX()) {
         sendJSON(['success' => 1, 'message' => lang('sale_deleted')]);
       }
-      XSession::set('message', lang('sale_deleted'));
+      XSession::set_flash('message', lang('sale_deleted'));
       redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
     }
   }
@@ -647,7 +647,7 @@ class Sales extends MY_Controller
   public function delete_payment($id = null)
   {
     if (!$this->Owner && !$this->Admin && !getPermission('sales-delete')) {
-      XSession::set('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
     }
 
@@ -656,10 +656,10 @@ class Sales extends MY_Controller
     }
 
     if ($this->site->deletePayment($id)) {
-      XSession::set('message', lang('payment_deleted'));
+      XSession::set_flash('message', lang('payment_deleted'));
       redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
     } else {
-      XSession::set('error', lang('payment_not_deleted'));
+      XSession::set_flash('error', lang('payment_not_deleted'));
       redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
     }
   }
@@ -789,7 +789,7 @@ class Sales extends MY_Controller
         $this->editMode == 'operator' && !getPermission('sales-edit_operator')
       ) {
         if ($sale->status != 'draft' || $sale->created_by != XSession::get('user_id')) {
-          XSession::set('error', lang('access_denied'));
+          XSession::set_flash('error', lang('access_denied'));
           redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
         }
       }
@@ -821,7 +821,7 @@ class Sales extends MY_Controller
 
       // Overdate Protection.
       if (strtotime($date) > now()) {
-        // XSession::set('error', 'DO NOT TRY TO CHEATING.');
+        // XSession::set_flash('error', 'DO NOT TRY TO CHEATING.');
         // redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
       }
 
@@ -851,7 +851,7 @@ class Sales extends MY_Controller
         $item_completed_at  = $_POST['completed_at'][$r];
 
         if (empty($item_due_date) && !empty($saleJS->est_complete_date)) {
-          XSession::set('error', 'Mohon masukkan Due Date!');
+          XSession::set_flash('error', 'Mohon masukkan Due Date!');
           redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
         }
 
@@ -865,7 +865,7 @@ class Sales extends MY_Controller
         }
 
         if (!$this->Owner && !$this->Admin && empty($item_operator)) {
-          XSession::set('error', 'Mohon masukkan Operator!');
+          XSession::set_flash('error', 'Mohon masukkan Operator!');
           redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
         }
 
@@ -938,7 +938,7 @@ class Sales extends MY_Controller
 
       if ($uploader->has('document')) {
         if ($uploader->getSize('mb') > 2) {
-          XSession::set('error', 'Besar attachment tidak boleh lebih dari 2MB.');
+          XSession::set_flash('error', 'Besar attachment tidak boleh lebih dari 2MB.');
           redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
         }
 
@@ -946,7 +946,7 @@ class Sales extends MY_Controller
       } else if (!$this->Owner && !$this->Admin) {
         // Prevent CS create sale without attachment for Customer TOP.
         if ($customer_group_name == 'top' && !$sale->attachment) {
-          XSession::set('error', lang('top_no_attachment'));
+          XSession::set_flash('error', lang('top_no_attachment'));
           redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
         }
       }
@@ -956,11 +956,11 @@ class Sales extends MY_Controller
         Sale::sync(['sale_id' => $id]);
         mutexRelease($hMutex);
 
-        XSession::set('remove_slls', 1);
+        XSession::set_flash('remove_slls', 1);
         if ($draft_type) {
-          XSession::set('message', lang('draft_sale_saved'));
+          XSession::set_flash('message', lang('draft_sale_saved'));
         } else {
-          XSession::set('message', lang('sale_edited'));
+          XSession::set_flash('message', lang('sale_edited'));
         }
       }
 
@@ -977,7 +977,7 @@ class Sales extends MY_Controller
 
       if ($this->Settings->disable_editing) {
         if ($this->data['inv']->date <= date('Y-m-d', strtotime('-' . $this->Settings->disable_editing . ' days'))) {
-          XSession::set('error', sprintf(lang('sale_x_edited_older_than_x_days'), $this->Settings->disable_editing));
+          XSession::set_flash('error', sprintf(lang('sale_x_edited_older_than_x_days'), $this->Settings->disable_editing));
           redirect_to($_SERVER['HTTP_REFERER']);
         }
       }
@@ -1102,7 +1102,7 @@ class Sales extends MY_Controller
     $user = $this->site->getUserByID($sale->created_by);
 
     if (!$this->Owner && !$this->Admin && $user->username != 'w2p') {
-      XSession::set('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
     }
 
@@ -1181,7 +1181,7 @@ class Sales extends MY_Controller
 
       if ($uploader->has('userfile')) {
         if ($uploader->getSize('mb') > 2) {
-          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          XSession::set_flash('error', 'Attachment tidak boleh lebih dari 2MB.');
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
@@ -2039,6 +2039,10 @@ class Sales extends MY_Controller
     if ($sale_id) {
       $sale = Sale::getRow(['id' => $sale_id]);
 
+      if (!$sale) {
+        sendJSON(['error' => 1, 'msg' => 'Invoice is not found.']);
+      }
+
       $firstMonthDate = strtotime(date('Y-m-') . '01 00:00:00');
       $invDate = strtotime($sale->date);
 
@@ -2371,12 +2375,12 @@ class Sales extends MY_Controller
       $status = getPost('status');
       $note   = $this->sma->clear_tags(getPost('note'));
     } elseif (getPost('update')) {
-      XSession::set('error', validation_errors());
+      XSession::set_flash('error', validation_errors());
       admin_redirect($_SERVER['HTTP_REFERER'] ?? 'sales');
     }
 
     if ($this->requestMethod == 'POST' && $this->site->updateSaleStatus($id, $status, $note)) {
-      XSession::set('message', lang('status_updated'));
+      XSession::set_flash('message', lang('status_updated'));
       admin_redirect($_SERVER['HTTP_REFERER'] ?? 'sales');
     } else {
       $inv                      = $this->site->getSaleByID($id);

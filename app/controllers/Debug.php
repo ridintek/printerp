@@ -16,6 +16,56 @@ class Debug extends MY_Controller
     echo "Index";
   }
 
+  /**
+   * Restore complete after edit sale where status is waiting_production.
+   */
+  public function fix_complete_20230329()
+  {
+    $sales = DB::table('sales')->whereIn('status', ['waiting_production'])->get();
+
+    $success = 0;
+
+    DB::transStart();
+
+    foreach ($sales as $sale) {
+      // if ($sale->id != 43055) continue;
+
+      // dbgprint($sale); die;
+
+      $saleItems = SaleItem::get(['sale_id' => $sale->id]);
+
+      foreach ($saleItems as $saleItem) {
+        $saleItemJS = getJSON($saleItem->json_data);
+
+        // dbgprint($saleItem, $saleItemJS); die;
+
+        if (!empty($saleItemJS->completed_at)) {
+          try {
+            $completeDate = new DateTime($saleItemJS->completed_at);
+
+            $res = SaleItem::complete((int)$saleItem->id, [
+              'quantity'    => $saleItem->quantity,
+              'created_at'  => $completeDate->format('Y-m-d H:i:s'),
+              'created_by'  => $saleItemJS->operator_id
+            ]);
+
+            if (!$res) {
+              die(getLastError());
+            }
+
+            $success++;
+          } catch (Exception $e) {
+            die($e->getMessage());
+          }
+        }
+      }
+    }
+
+    DB::transComplete();
+
+    dbgprint("Success: {$success}");
+  }
+
   public function dbtrans()
   {
     DB::transStart();

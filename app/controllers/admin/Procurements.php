@@ -425,6 +425,8 @@ class Procurements extends MY_Controller
         $row->machine_id      = ($item->machine_id ?? NULL);
         $row->ucr             = ($item->ucr ?? '');
         $row->unique_code     = ($item->unique_code ?? '');
+        // 2023-03-27 14:55:47, Fixing bugs item missing, reported by Ireng.
+        $row->json            = getJSON($row->json);
 
         $units    = $this->site->getUnitsByBUID($row->unit);
 

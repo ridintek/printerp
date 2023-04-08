@@ -358,16 +358,8 @@ class MY_Controller extends CI_Controller
     $data['res_hash']            = $this->res_hash;
     $data['info']                = $this->site->getNotifications();
     $data['ip_address']          = $this->input->ip_address();
-    $data['Owner']               = $data['Owner'];
-    $data['Admin']               = $data['Admin'];
-    $data['Supplier']            = $data['Supplier'];
-    $data['Customer']            = $data['Customer'];
-    $data['Settings']            = $data['Settings'];
     $data['Settings_JSON']       = getJSON($data['Settings']->settings_json); // Remove soon.
     $data['SettingsJS']          = getJSON($data['Settings']->settings_json);
-    $data['dateFormats']         = $data['dateFormats'];
-    $data['assets']              = $data['assets'];
-    $data['GP']                  = $data['GP']; // Group Permissions.
     $data['qty_alert_num']       = $this->site->get_total_qty_alerts();
     $data['wh_stock_alert_num']  = $this->site->get_total_wh_stock_alerts();
     $data['exp_alert_num']       = $this->site->get_expiring_qty_alerts();

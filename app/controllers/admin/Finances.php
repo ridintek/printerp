@@ -1352,7 +1352,7 @@ class Finances extends MY_Controller
     $this->sma->checkPermissions('delete', TRUE, 'incomes');
     $income = $this->site->getIncomeByID($id);
     if ($this->site->deleteIncome($id)) {
-      if ($income->attachment) {
+      if ($income->attachment && is_file($this->upload_incomes_path . $income->attachment)) {
         unlink($this->upload_incomes_path . $income->attachment);
       }
       sendJSON(['error' => 0, 'msg' => lang('income_deleted')]);
@@ -1972,11 +1972,14 @@ class Finances extends MY_Controller
   private function validations_cancel($id = NULL)
   {
     $this->sma->checkPermissions('cancel', TRUE, 'validations');
+
     if (!$id) {
       XSession::set_flash('error', lang('no_payment_validation'));
       $this->sma->md();
     }
+
     $payment_validation = $this->site->getPaymentValidationByID($id);
+
     if ($payment_validation->status == 'verified') {
       XSession::set_flash('error', lang('payment_already_verified'));
       $this->sma->md();

@@ -10,7 +10,7 @@
     </button>
     <div class="row" style="margin-bottom:10px">
       <div class="col-xs-12 text-right">
-        <h2><?= ($Owner ? $inv->id . ' ': ''); ?>SURAT JALAN</h2>
+        <h2><?= ($Owner ? $inv->id . ' ' : ''); ?>SURAT JALAN</h2>
       </div>
     </div>
     <hr>
@@ -50,7 +50,6 @@
           </p>
         </div>
         <div class="col-xs-2 text-right order_barcodes">
-          <!--<img src="<?= admin_url('misc/barcode/' . $this->sma->base64url_encode($inv->reference) . '/code128/74/0/1'); ?>" alt="<?= $inv->reference; ?>" class="bcimg" />-->
           <div style="font-size: 11px; padding-right: 5px">Scan to Track Order</div>
           <?= $this->ridintek->qrcode("https://indoprinting.co.id/trackorder?inv={$inv->reference}&phone={$customer->phone}&submit=1"); ?><br>
           <div>
@@ -204,14 +203,15 @@
                       </tr>
                     </tbody>
                   </table>
-                </td><td class="td-own" colspan="3" style="text-align:right; font-weight:bold;"><?= lang('discount'); ?>
+                </td>
+                <td class="td-own" colspan="3" style="text-align:right; font-weight:bold;"><?= lang('discount'); ?>
                   (<?= $default_currency->code; ?>)
                 </td>
                 <td style="text-align:right; font-weight:bold;"></td>
-                <!-- <td style="text-align:right; font-weight:bold;"><?= ($inv->discount > 0 ? '-' . formatCurrency($inv->discount): formatCurrency(0)); ?></td> -->
+                <!-- <td style="text-align:right; font-weight:bold;"><?= ($inv->discount > 0 ? '-' . formatCurrency($inv->discount) : formatCurrency(0)); ?></td> -->
               </tr>
               <tr>
-              <td class="td-own" colspan="3" style="text-align:right; font-weight:bold;"><?= lang('grand_total'); ?>
+                <td class="td-own" colspan="3" style="text-align:right; font-weight:bold;"><?= lang('grand_total'); ?>
                   (<?= $default_currency->code; ?>)
                 </td>
                 <td style="text-align:right; font-weight:bold;"></td>

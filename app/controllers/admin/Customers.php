@@ -631,7 +631,6 @@ class Customers extends MY_Controller
     $this->datatables
       ->select('id, company, name, email, phone, price_group_name, customer_group_name, deposit_amount, award_points')
       ->from('customers')
-      ->where('group_name', 'customer')
       ->add_column('Actions', $action, 'id');
     //->unset_column('id');
     echo $this->datatables->generate();
