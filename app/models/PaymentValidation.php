@@ -324,8 +324,7 @@ class PaymentValidation
 
       if ($validated) {
         DB::table('mutasibank')->update([
-          'status' => 'validated',
-          'validated' => $validated
+          'status' => 'validated'
         ], ['id' => $mutasiBank->id]);
       }
     }
@@ -337,7 +336,7 @@ class PaymentValidation
   {
     $createdAt = date('Y-m-d H:i:s');
 
-    self::sync(); // Change pending payment to expired if any.
+    // self::sync(); // Change pending payment to expired if any.
     $sale_id     = ($options['sale_id'] ?? null);
     $mutation_id = ($options['mutation_id'] ?? null);
 
@@ -375,15 +374,12 @@ class PaymentValidation
             }
 
             foreach ($mutasibanks as $mb) {
-              $mbData = getJSON($mb->data);
+              $dmb = getJSON($mb->data);
 
-              foreach ($mbData->data_mutasi as $dmb) {
-                if ($dmb->amount == $dm->amount) {
-                  DB::table('mutasibank')->update([
-                    'status'    => 'validated',
-                    'validated' => intval($mb->validated) + 1
-                  ], ['id' => $mb->id]);
-                }
+              if ($dmb->amount == $dm->amount) {
+                DB::table('mutasibank')->update([
+                  'status'    => 'validated'
+                ], ['id' => $mb->id]);
               }
             }
 

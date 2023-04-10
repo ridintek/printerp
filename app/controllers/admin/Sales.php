@@ -436,16 +436,14 @@ class Sales extends MY_Controller
 
     Sale::sync(['id' => $sale_id]);
 
-    $sale = $this->site->getSaleByID($sale_id);
+    $sale = Sale::getRow(['id' => $sale_id]);
 
     if ($sale->payment_status == 'paid' && $sale->grand_total == $sale->paid) {
-      XSession::set_flash('error', lang('sale_already_paid'));
-      $this->sma->md();
+      sendJSON(['error' => 1, 'msg' => lang('sale_already_paid')]);
     }
 
     if ($sale->status == 'draft') {
-      XSession::set_flash('error', 'Sale is in Draft mode. Please save it as final format!');
-      $this->sma->md();
+      sendJSON(['error' => 1, 'msg' => 'Sale is in Draft mode. Please save it as final format!']);
     }
 
     if ($this->requestMethod == 'POST') {
@@ -458,7 +456,7 @@ class Sales extends MY_Controller
       $customer                = $this->site->getCustomerByID($sale->customer_id);
       $note                    = getPost('note');
 
-      $bank = $this->site->getBankByID($bank_id); // NULL if Transfer and Present if skip validation.
+      $bank = Bank::getRow(['id' => $bank_id]); // NULL if Transfer and Present if skip validation.
 
       if (!$user) { // Check if user present.
         sendJSON(['error' => 1, 'msg' => 'User not found.']);
@@ -500,8 +498,7 @@ class Sales extends MY_Controller
 
       if ($uploader->has('userfile')) {
         if ($uploader->getSize('mb') > 2) {
-          XSession::set_flash('error', 'Attachment tidak boleh lebih dari 2MB.');
-          admin_redirect($_SERVER['HTTP_REFERER']);
+          sendJSON(['error' => 1, 'msg' => 'Attachment tidak boleh lebih dari 2MB.']);
         }
 
         $payment['attachment'] = $uploader->storeRandom();
@@ -1375,7 +1372,7 @@ class Sales extends MY_Controller
         ->join('customers', 'customers.id=sales.customer_id', 'left')
         ->join("(
             SELECT id, sale_id FROM payment_validations
-            WHERE status LIKE 'pending' OR status LIKE 'expired'
+            WHERE status LIKE 'pending'
             ORDER BY id DESC
             ) pv", 'pv.sale_id = sales.id', 'left')
         ->join('warehouses', 'warehouses.id=sales.warehouse_id', 'left');

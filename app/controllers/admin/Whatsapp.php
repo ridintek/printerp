@@ -216,7 +216,7 @@ class Whatsapp extends MY_Controller
 
     $this->datatable
       ->select("wa_job.id AS id, wa_job.id AS pid, wa_engine, wa_job.phone AS phone, message,
-        send_date, wa_job.status AS status, reason, creator.first_name AS creator_name")
+        send_date, wa_job.status AS status, reason, creator.fullname AS creator_name")
       ->from('wa_job')
       ->join('users creator', 'creator.id = wa_job.created_by', 'left')
       ->editColumn('pid', function ($data) {

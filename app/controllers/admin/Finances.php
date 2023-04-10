@@ -1663,10 +1663,6 @@ class Finances extends MY_Controller
         $data['attachment'] = $uploader->storeRandom();
       }
 
-      if (($bankFrom->amount + $data['old_amount']) < $data['new_amount']) { // Check if balance sufficient.
-        // XSession::set_flash('warning', lang('insufficient_funds'));
-        // admin_redirect('finances/mutations');
-      }
       if (BankMutation::update((int)$mutation_id, $data)) { // Edit Bank Mutation.
         XSession::set_flash('message', lang('bank_mutation_edited'));
         admin_redirect('finances/mutations');
