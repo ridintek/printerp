@@ -686,9 +686,29 @@ function generateInternalUseUniqueCode(string $category)
  * Generate payment code for payment validation.
  * @return int Return payment code.
  */
-function generateUniquePaymentCode()
+function generateUniquePaymentCode(int $amount)
 {
-  return mt_rand(1, 100);
+  $pvs = PaymentValidation::get(['status' => 'pending']);
+
+    if ($pvs) {
+      $amounts = [];
+
+      foreach ($pvs as $pv) {
+        $amounts[] = $pv->amount + $pv->unique;
+      }
+
+      while (1) {
+        $uq = mt_rand(1, 100);
+
+        if (!in_array($uq + $amount, $amounts)) {
+          break;
+        }
+      }
+    } else {
+      $uq = mt_rand(1, 100);
+    }
+
+    return $uq;
 }
 
 function uuid()

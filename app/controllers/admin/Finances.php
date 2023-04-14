@@ -2367,7 +2367,7 @@ class Finances extends MY_Controller
     if (!$pv) $this->response(404, ['message' => 'Payment validation tidak ditemukan.']);
 
     $pvWT = PaymentValidation::select('*')->where('status', 'waiting_transfer')->get();
-    $uniqueCode = generateUniquePaymentCode();
+    $uniqueCode = generateUniquePaymentCode((int)$pv->amount);
     $reservedCode = [];
 
     foreach ($pvWT as $pva) {
@@ -2378,7 +2378,7 @@ class Finances extends MY_Controller
       if (array_search($uniqueCode, $reservedCode) === FALSE) {
         break;
       } else {
-        $uniqueCode = generateUniquePaymentCode();
+        $uniqueCode = generateUniquePaymentCode((int)$pv->amount);
       }
     }
 

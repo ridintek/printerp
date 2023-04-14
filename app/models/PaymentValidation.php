@@ -26,7 +26,7 @@ class PaymentValidation
     }
 
     if (!$uniqueCode) {
-      $uniqueCode = generateUniquePaymentCode();
+      $uniqueCode = generateUniquePaymentCode((int)$data['amount']);
 
       $pvPendings = DB::table('payment_validations')->where(['status' => 'pending'])->get();
 
@@ -41,7 +41,7 @@ class PaymentValidation
           if (array_search($uniqueCode, $uqcodes) === false) {
             break;
           } else {
-            $uniqueCode = generateUniquePaymentCode();
+            $uniqueCode = generateUniquePaymentCode((int)$data['amount']);
           }
         }
       }
