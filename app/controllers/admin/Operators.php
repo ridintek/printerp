@@ -199,7 +199,7 @@ class Operators extends MY_Controller
       ->join('users', 'users.id = JSON_UNQUOTE(JSON_EXTRACT(sale_items.json_data, "$.operator_id"))', 'left');
 
     $this->datatables
-      ->where("JSON_UNQUOTE(JSON_EXTRACT(sale_items.json_data, \"$.status\")) IN ('waiting_production', 'completed_partial')");
+      ->where("JSON_UNQUOTE(JSON_EXTRACT(sale_items.json_data, \"$.status\")) IN ('waiting_production', 'completed', 'completed_partial')");
     // DO NOT USE BELOW. DECREASING PERFORMANCE. USE ABOVE INSTEAD.
     // $this->datatables
     //   ->group_start()
