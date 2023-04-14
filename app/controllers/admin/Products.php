@@ -1285,10 +1285,11 @@ class Products extends MY_Controller
         <i class="fad fa-fw fa-edit"></i> ' . lang('edit_product') . '</a>
       </li>';
 
-    // if ($this->isAdmin || getPermission('products-history')) {
-    // History Product
-    $action .= "<li>{$history_link}</li>";
-    // }
+    // Update 2023-04-14 16:39:40 biar hanya admin yang bisa lihat history.
+    if ($this->isAdmin || getPermission('products-history')) {
+      // History Product
+      $action .= "<li>{$history_link}</li>";
+    }
 
     $action .= '<li class="divider"></li>';
     // Delete Product
