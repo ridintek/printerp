@@ -7292,7 +7292,6 @@ class Site extends MY_Model
    */
   public function syncProductReports($productId = NULL)
   {
-    $success = 0;
     $products = [];
 
     if ($productId) {
@@ -7330,15 +7329,11 @@ class Site extends MY_Model
           'updated_at' => $report->created_at
         ]]);
 
-        if (!$success) $success = 1;
+        return true;
       }
-
-      unset($reports);
     }
 
-    unset($products);
-
-    return ($success ? TRUE : FALSE);
+    return false;
   }
 
   /**
@@ -7642,8 +7637,8 @@ class Site extends MY_Model
         $saleItemStatus = $saleItemJS->status;
         $totalSaleItems++;
         $grandTotal += round($saleItem->price * $saleItem->quantity);
-        $isItemFinished = ($saleItem->quantity == $saleItem->finished_qty ? TRUE : FALSE);
-        $isItemFinishedPartial = ($saleItem->finished_qty > 0 && $saleItem->quantity > $saleItem->finished_qty ? TRUE : FALSE);
+        $isItemFinished = ($saleItem->quantity == $saleItem->finished_qty);
+        $isItemFinishedPartial = ($saleItem->finished_qty > 0 && $saleItem->quantity > $saleItem->finished_qty);
 
         if ($saleItemStatus == 'delivered') {
           $completedItems++;
@@ -7680,10 +7675,10 @@ class Site extends MY_Model
 
       $saleData['grand_total'] = $grandTotal;
 
-      $isSaleCompleted        = ($completedItems == $totalSaleItems ? TRUE : FALSE);
-      $isSaleCompletedPartial = (($completedItems > 0 && $completedItems < $totalSaleItems) || $hasPartial ? TRUE : FALSE);
-      $isSaleDelivered        = ($deliveredItems == $totalSaleItems ? TRUE : FALSE);
-      $isSaleFinished         = ($finishedItems == $totalSaleItems ? TRUE : FALSE);
+      $isSaleCompleted        = ($completedItems == $totalSaleItems);
+      $isSaleCompletedPartial = (($completedItems > 0 && $completedItems < $totalSaleItems) || $hasPartial);
+      $isSaleDelivered        = ($deliveredItems == $totalSaleItems);
+      $isSaleFinished         = ($finishedItems == $totalSaleItems);
 
       if ($isSaleCompleted) {
         if ($isSaleDelivered) {
@@ -7722,8 +7717,8 @@ class Site extends MY_Model
 
         $balance = ($grandTotal - $totalPaid);
 
-        $isPaid        = ($balance == 0 ? TRUE : FALSE);
-        $isPaidPartial = ($balance > 0  ? TRUE : FALSE);
+        $isPaid        = ($balance == 0);
+        $isPaidPartial = ($balance > 0);
 
         if ($isPaid) {
           $paymentStatus = 'paid';
@@ -7739,9 +7734,8 @@ class Site extends MY_Model
       }
 
       if ($paymentValidation) { // If any transfer.
-        $isPVPending  = ($paymentValidation->status == 'pending'  ? TRUE : FALSE);
-        $isPVExpired  = ($paymentValidation->status == 'expired'  ? TRUE : FALSE);
-        // $isPVVerified = ($paymentValidation->status == 'verified' ? TRUE : FALSE);
+        $isPVPending  = ($paymentValidation->status == 'pending');
+        $isPVExpired  = ($paymentValidation->status == 'expired');
 
         if ($isPaid) {
           $paymentStatus = 'paid';
@@ -9770,7 +9764,7 @@ class Site extends MY_Model
         $dataMutasi = $response->data_mutasi;
 
         foreach ($dataMutasi as $dm) { // DM = Data Mutasi.
-          $amount_match = ((floatval($pv->amount) + floatval($pv->unique_code)) == floatval($dm->amount) ? TRUE : FALSE);
+          $amount_match = ((floatval($pv->amount) + floatval($pv->unique_code)) == floatval($dm->amount));
           // If amount same as unique_code + amount OR sale_id same OR mutation_id same
           // Executed by CRON or Manually.
           // CR(mutasibank) = Masuk ke rekening.
