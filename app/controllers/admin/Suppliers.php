@@ -14,8 +14,8 @@ class Suppliers extends MY_Controller
       loginPage();
     }
     if ($this->Customer || $this->Supplier) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('warning', lang('access_denied'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     $this->lang->admin_load('suppliers', $this->Settings->user_language);
     $this->load->library('form_validation');
@@ -38,43 +38,43 @@ class Suppliers extends MY_Controller
 
     if ($this->form_validation->run('suppliers/add') == true) {
       $data = [
-        'name'              => getPOST('name'),
-        'email'             => getPOST('email'),
-        'company'           => getPOST('company'),
-        'address'           => getPOST('address'),
-        'city'              => getPOST('city'),
-        'postal_code'       => getPOST('postal_code'),
-        'country'           => getPOST('country'),
-        'phone'             => preg_replace('/[^0-9]/', '', getPOST('phone')),
-        'payment_term'      => getPOST('payment_term'),
+        'name'              => getPost('name'),
+        'email'             => getPost('email'),
+        'company'           => getPost('company'),
+        'address'           => getPost('address'),
+        'city'              => getPost('city'),
+        'postal_code'       => getPost('postal_code'),
+        'country'           => getPost('country'),
+        'phone'             => preg_replace('/[^0-9]/', '', getPost('phone')),
+        'payment_term'      => getPost('payment_term'),
         'json'              => json_encode([
-          'acc_holder'     => getPOST('acc_holder'),
-          'acc_no'         => preg_replace('/[^0-9]/', '', getPOST('acc_no')),
-          'acc_name'       => getPOST('acc_name'),
-          'acc_bic'        => getPOST('acc_bic'),
-          'cycle_purchase' => getPOST('cycle_purchase'),
-          'delivery_time'  => getPOST('delivery_time'),
-          'visit_days'     => getPOST('visit_days'),
-          'visit_weeks'    => getPOST('visit_weeks'),
+          'acc_holder'     => getPost('acc_holder'),
+          'acc_no'         => preg_replace('/[^0-9]/', '', getPost('acc_no')),
+          'acc_name'       => getPost('acc_name'),
+          'acc_bic'        => getPost('acc_bic'),
+          'cycle_purchase' => getPost('cycle_purchase'),
+          'delivery_time'  => getPost('delivery_time'),
+          'visit_days'     => getPost('visit_days'),
+          'visit_weeks'    => getPost('visit_weeks'),
         ]),
         'json_data'         => json_encode([
-          'acc_holder'     => getPOST('acc_holder'),
-          'acc_no'         => preg_replace('/[^0-9]/', '', getPOST('acc_no')),
-          'acc_name'       => getPOST('acc_name'),
-          'acc_bic'        => getPOST('acc_bic'),
-          'cycle_purchase' => getPOST('cycle_purchase'),
-          'delivery_time'  => getPOST('delivery_time'),
-          'visit_days'     => getPOST('visit_days'),
-          'visit_weeks'    => getPOST('visit_weeks'),
+          'acc_holder'     => getPost('acc_holder'),
+          'acc_no'         => preg_replace('/[^0-9]/', '', getPost('acc_no')),
+          'acc_name'       => getPost('acc_name'),
+          'acc_bic'        => getPost('acc_bic'),
+          'cycle_purchase' => getPost('cycle_purchase'),
+          'delivery_time'  => getPost('delivery_time'),
+          'visit_days'     => getPost('visit_days'),
+          'visit_weeks'    => getPost('visit_weeks'),
         ])
       ];
-    } elseif (getPOST('add_supplier')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('add_supplier')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('suppliers');
     }
 
     if ($this->form_validation->run() == true && $sid = $this->site->addSupplier($data)) {
-      $this->session->set_flashdata('message', $this->lang->line('supplier_added'));
+      XSession::set_flash('message', $this->lang->line('supplier_added'));
       $ref = isset($_SERVER['HTTP_REFERER']) ? explode('?', $_SERVER['HTTP_REFERER']) : null;
       admin_redirect($ref[0] . '?supplier=' . $sid);
     } else {
@@ -97,27 +97,27 @@ class Suppliers extends MY_Controller
     $this->form_validation->set_rules('password_confirm', $this->lang->line('confirm_password'), 'required');
 
     if ($this->form_validation->run('suppliers/add_user') == true) {
-      $active                  = getPOST('status');
-      $notify                  = getPOST('notify');
-      list($username, $domain) = explode('@', getPOST('email'));
-      $email                   = strtolower(getPOST('email'));
-      $password                = getPOST('password');
+      $active                  = getPost('status');
+      $notify                  = getPost('notify');
+      list($username, $domain) = explode('@', getPost('email'));
+      $email                   = strtolower(getPost('email'));
+      $password                = getPost('password');
       $additional_data         = [
-        'first_name' => getPOST('first_name'),
-        'last_name'  => getPOST('last_name'),
-        'phone'      => preg_replace('/[^0-9]/', '', getPOST('phone')),
-        'gender'     => getPOST('gender'),
+        'first_name' => getPost('first_name'),
+        'last_name'  => getPost('last_name'),
+        'phone'      => preg_replace('/[^0-9]/', '', getPost('phone')),
+        'gender'     => getPost('gender'),
         'supplier_id' => $supplier->id,
         'company'    => $supplier->company
       ];
       $this->load->library('ion_auth');
-    } elseif (getPOST('add_user')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('add_user')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('suppliers');
     }
 
     if ($this->form_validation->run() == true && $this->ion_auth->register($username, $password, $email, $additional_data, $active, $notify)) {
-      $this->session->set_flashdata('message', $this->lang->line('user_added'));
+      XSession::set_flash('message', $this->lang->line('user_added'));
       admin_redirect('suppliers');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -150,7 +150,7 @@ class Suppliers extends MY_Controller
     }
 
     $supplier = $this->site->getSupplierByID($supplier_id);
-    $update_ss = getPOST('update_ss'); // Update safety stock.
+    $update_ss = getPost('update_ss'); // Update safety stock.
     $this->form_validation->set_rules('name',         lang('name'), 'required');
     $this->form_validation->set_rules('company',      lang('company'), 'required');
     $this->form_validation->set_rules('phone',        lang('phone'), 'required');
@@ -164,39 +164,39 @@ class Suppliers extends MY_Controller
 
     if ($this->form_validation->run('suppliers/add') == true) {
       $data = [
-        'name'              => getPOST('name'),
-        'email'             => getPOST('email'),
-        'company'           => getPOST('company'),
-        'address'           => getPOST('address'),
-        'city'              => getPOST('city'),
-        'postal_code'       => getPOST('postal_code'),
-        'country'           => getPOST('country'),
-        'phone'             => preg_replace('/[^0-9]/', '', getPOST('phone')),
-        'payment_term'      => getPOST('payment_term'),
+        'name'              => getPost('name'),
+        'email'             => getPost('email'),
+        'company'           => getPost('company'),
+        'address'           => getPost('address'),
+        'city'              => getPost('city'),
+        'postal_code'       => getPost('postal_code'),
+        'country'           => getPost('country'),
+        'phone'             => preg_replace('/[^0-9]/', '', getPost('phone')),
+        'payment_term'      => getPost('payment_term'),
         'json'              => json_encode([
-          'acc_holder'     => getPOST('acc_holder'),
-          'acc_no'         => preg_replace('/[^0-9]/', '', getPOST('acc_no')),
-          'acc_name'       => getPOST('acc_name'),
-          'acc_bic'        => getPOST('acc_bic'),
-          'cycle_purchase' => getPOST('cycle_purchase'),
-          'delivery_time'  => getPOST('delivery_time'),
-          'visit_days'     => getPOST('visit_days'),
-          'visit_weeks'    => getPOST('visit_weeks'),
+          'acc_holder'     => getPost('acc_holder'),
+          'acc_no'         => preg_replace('/[^0-9]/', '', getPost('acc_no')),
+          'acc_name'       => getPost('acc_name'),
+          'acc_bic'        => getPost('acc_bic'),
+          'cycle_purchase' => getPost('cycle_purchase'),
+          'delivery_time'  => getPost('delivery_time'),
+          'visit_days'     => getPost('visit_days'),
+          'visit_weeks'    => getPost('visit_weeks'),
         ]),
         'json_data'         => json_encode([
-          'acc_holder'     => getPOST('acc_holder'),
-          'acc_no'         => preg_replace('/[^0-9]/', '', getPOST('acc_no')),
-          'acc_name'       => getPOST('acc_name'),
-          'acc_bic'        => getPOST('acc_bic'),
-          'cycle_purchase' => getPOST('cycle_purchase'),
-          'delivery_time'  => getPOST('delivery_time'),
-          'visit_days'     => getPOST('visit_days'),
-          'visit_weeks'    => getPOST('visit_weeks'),
+          'acc_holder'     => getPost('acc_holder'),
+          'acc_no'         => preg_replace('/[^0-9]/', '', getPost('acc_no')),
+          'acc_name'       => getPost('acc_name'),
+          'acc_bic'        => getPost('acc_bic'),
+          'cycle_purchase' => getPost('cycle_purchase'),
+          'delivery_time'  => getPost('delivery_time'),
+          'visit_days'     => getPost('visit_days'),
+          'visit_weeks'    => getPost('visit_weeks'),
         ])
       ];
-    } elseif (getPOST('edit_supplier')) {
-      $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+    } elseif (getPost('edit_supplier')) {
+      XSession::set_flash('error', validation_errors());
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     if ($this->form_validation->run()) {
@@ -214,11 +214,11 @@ class Suppliers extends MY_Controller
             }
           }
         }
-        $this->session->set_flashdata('message', $this->lang->line('supplier_updated'));
+        XSession::set_flash('message', $this->lang->line('supplier_updated'));
       } else {
-        $this->session->set_flashdata('error', 'Failed to update supplier.');
+        XSession::set_flash('error', 'Failed to update supplier.');
       }
-      redirect($_SERVER['HTTP_REFERER']);
+      redirect_to($_SERVER['HTTP_REFERER']);
     } else {
       $this->data['supplier']   = $supplier;
       $this->data['json_data']  = json_decode($supplier->json_data);
@@ -267,7 +267,7 @@ class Suppliers extends MY_Controller
 
         if (!$this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('suppliers');
         }
 
@@ -287,7 +287,7 @@ class Suppliers extends MY_Controller
         $updated = '';
         $data    = [];
         if ($header_id[0] != 'SUPPL') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('suppliers');
         }
         $keys = [
@@ -333,7 +333,7 @@ class Suppliers extends MY_Controller
           ];
 
           if (empty($supplier['company']) || empty($supplier['name']) || empty($supplier['phone'])) {
-            $this->session->set_flashdata('error', lang('company') . ', ' . lang('name') . ', ' . lang('phone') . ', ' .
+            XSession::set_flash('error', lang('company') . ', ' . lang('name') . ', ' . lang('phone') . ', ' .
               lang('are_required') . ' (' . lang('line_no') . ' ' . $rw . ')');
             admin_redirect('suppliers');
           } else {
@@ -349,8 +349,8 @@ class Suppliers extends MY_Controller
           }
         }
       }
-    } elseif (getPOST('import')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('import')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('suppliers');
     }
 
@@ -360,15 +360,15 @@ class Suppliers extends MY_Controller
         foreach ($data as $new_supplier) {
           $added .= '<p>' . lang('supplier_added') . ' (' . $new_supplier['company'] . ')</p>';
         }
-        $this->session->set_flashdata('message', $added . $updated);
+        XSession::set_flash('message', $added . $updated);
         admin_redirect('suppliers');
       }
     } else {
       if (isset($data) && empty($data)) {
         if ($updated) {
-          $this->session->set_flashdata('message', $updated);
+          XSession::set_flash('message', $updated);
         } else {
-          $this->session->set_flashdata('warning', lang('data_x_suppliers'));
+          XSession::set_flash('warning', lang('data_x_suppliers'));
         }
         admin_redirect('suppliers');
       }
@@ -408,15 +408,15 @@ class Suppliers extends MY_Controller
   public function supplier_actions()
   {
     if (!$this->Owner && !$this->GP['bulk_actions']) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('warning', lang('access_denied'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     $this->form_validation->set_rules('form_action', lang('form_action'), 'required');
 
     if ($this->form_validation->run() == true) {
       if (!empty($_POST['val'])) {
-        if (getPOST('form_action') == 'delete') {
+        if (getPost('form_action') == 'delete') {
           $this->sma->checkPermissions('delete');
           $error = false;
           foreach ($_POST['val'] as $id) {
@@ -425,14 +425,14 @@ class Suppliers extends MY_Controller
             }
           }
           if ($error) {
-            $this->session->set_flashdata('warning', lang('suppliers_x_deleted_have_purchases'));
+            XSession::set_flash('warning', lang('suppliers_x_deleted_have_purchases'));
           } else {
-            $this->session->set_flashdata('message', $this->lang->line('suppliers_deleted'));
+            XSession::set_flash('message', $this->lang->line('suppliers_deleted'));
           }
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
 
-        if (getPOST('form_action') == 'export_excel') {
+        if (getPost('form_action') == 'export_excel') {
           $this->load->library('excel');
           $this->excel->setActiveSheetIndex(0);
           $this->excel->getActiveSheet()->setTitle(lang('customer'));
@@ -469,12 +469,12 @@ class Suppliers extends MY_Controller
           $this->excel->export($filename);
         }
       } else {
-        $this->session->set_flashdata('error', $this->lang->line('no_supplier_selected'));
-        redirect($_SERVER['HTTP_REFERER']);
+        XSession::set_flash('error', $this->lang->line('no_supplier_selected'));
+        redirect_to($_SERVER['HTTP_REFERER']);
       }
     } else {
-      $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('error', validation_errors());
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
 

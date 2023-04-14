@@ -1,26 +1,26 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <?php
 $q = '?';
-if (getPOST('reference')) {
-  $q .= '&reference=' . getPOST('reference');
+if (getPost('reference')) {
+  $q .= '&reference=' . getPost('reference');
 }
-if (getPOST('transfer_ref')) {
-  $q .= '&transfer_ref=' . getPOST('transfer_ref');
+if (getPost('transfer_ref')) {
+  $q .= '&transfer_ref=' . getPost('transfer_ref');
 }
-if (getPOST('acc_from')) {
-  $q .= '&acc_from=' . getPOST('acc_from');
+if (getPost('acc_from')) {
+  $q .= '&acc_from=' . getPost('acc_from');
 }
-if (getPOST('acc_to')) {
-  $q .= '&acc_to=' . getPOST('acc_to');
+if (getPost('acc_to')) {
+  $q .= '&acc_to=' . getPost('acc_to');
 }
-if (getPOST('created_by')) {
-  $q .= '&created_by=' . getPOST('created_by');
+if (getPost('created_by')) {
+  $q .= '&created_by=' . getPost('created_by');
 }
-if (getPOST('from_date')) {
-  $q .= '&from_date=' . getPOST('from_date');
+if (getPost('from_date')) {
+  $q .= '&from_date=' . getPost('from_date');
 }
-if (getPOST('to_date')) {
-  $q .= '&to_date=' . getPOST('to_date');
+if (getPost('to_date')) {
+  $q .= '&to_date=' . getPost('to_date');
 }
 ?>
 <script>
@@ -150,19 +150,19 @@ if (getPOST('to_date')) {
             <div class="col-sm-4">
               <div class="form-group">
                 <label><?= lang('ref_no'); ?></label>
-                <input type="text" class="form-control" name="reference" value="<?= (getPOST('reference') ?? '') ?>" />
+                <input type="text" class="form-control" name="reference" value="<?= (getPost('reference') ?? '') ?>" />
               </div>
             </div>
             <div class="col-sm-4">
               <div class="form-group">
                 <label><?= lang('transfer_reference'); ?></label>
-                <input type="text" class="form-control" name="transfer_ref" value="<?= (getPOST('transfer_ref') ?? '') ?>" />
+                <input type="text" class="form-control" name="transfer_ref" value="<?= (getPost('transfer_ref') ?? '') ?>" />
               </div>
             </div>
             <div class="col-sm-4">
               <div class="form-group">
                 <label><?= lang('created_by'); ?></label>
-                <input name="created_by" class="form-control" type="text" value="<?= (getPOST('created_by') ?? ''); ?>">
+                <input name="created_by" class="form-control" type="text" value="<?= (getPost('created_by') ?? ''); ?>">
               </div>
             </div>
           </div>
@@ -179,7 +179,7 @@ if (getPOST('to_date')) {
                       $bk[$bank->name] = $bank->name;
                   }
                 }
-                echo form_dropdown('acc_from', $bk, (getPOST('acc_from') ?? ''), 'class="form-control select2"'); ?>
+                echo form_dropdown('acc_from', $bk, (getPost('acc_from') ?? ''), 'class="form-control select2"'); ?>
               </div>
             </div>
             <div class="col-sm-4">
@@ -194,7 +194,7 @@ if (getPOST('to_date')) {
                       $bk[$bank->name] = $bank->name;
                   }
                 }
-                echo form_dropdown('acc_to', $bk, (getPOST('acc_to') ?? ''), 'class="form-control select2"'); ?>
+                echo form_dropdown('acc_to', $bk, (getPost('acc_to') ?? ''), 'class="form-control select2"'); ?>
               </div>
             </div>
           </div>
@@ -202,13 +202,13 @@ if (getPOST('to_date')) {
             <div class="col-sm-6">
               <div class="form-group">
                 <label><?= lang('from_date'); ?></label>
-                <input type="text" class="form-control date" name="from_date" value="<?= (getPOST('from_date') ?? '') ?>" />
+                <input type="text" class="form-control date" name="from_date" value="<?= (getPost('from_date') ?? '') ?>" />
               </div>
             </div>
             <div class="col-sm-6">
               <div class="form-group">
                 <label><?= lang('to_date'); ?></label>
-                <input type="text" class="form-control date" name="to_date" value="<?= (getPOST('to_date') ?? '') ?>" />
+                <input type="text" class="form-control date" name="to_date" value="<?= (getPost('to_date') ?? '') ?>" />
               </div>
             </div>
           </div>

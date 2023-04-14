@@ -15,15 +15,15 @@ class Schedule extends MY_Controller
   public function add()
   {
     if ($this->requestMethod == 'POST') {
-      $sun = getPOST('sun');
-      $mon = getPOST('mon');
-      $tue = getPOST('tue');
-      $wed = getPOST('wed');
-      $thu = getPOST('thu');
-      $fri = getPOST('fri');
-      $sat = getPOST('sat');
+      $sun = getPost('sun');
+      $mon = getPost('mon');
+      $tue = getPost('tue');
+      $wed = getPost('wed');
+      $thu = getPost('thu');
+      $fri = getPost('fri');
+      $sat = getPost('sat');
 
-      $billers = implode(',', (getPOST('biller') ?? []));
+      $billers = implode(',', (getPost('biller') ?? []));
 
       $scheduleData = [
         'billers'  => $billers,
@@ -48,7 +48,7 @@ class Schedule extends MY_Controller
 
   public function delete($scheduleId = NULL)
   {
-    $scheduleIds = getPOST('val');
+    $scheduleIds = getPost('val');
 
     if (!getPermission('schedule-delete')) {
       sendJSON(['success' => 0, 'message' => lang('access_denied')]);
@@ -71,15 +71,15 @@ class Schedule extends MY_Controller
   public function edit($scheduleId = NULL)
   {
     if ($this->requestMethod == 'POST') {
-      $sun = getPOST('sun');
-      $mon = getPOST('mon');
-      $tue = getPOST('tue');
-      $wed = getPOST('wed');
-      $thu = getPOST('thu');
-      $fri = getPOST('fri');
-      $sat = getPOST('sat');
+      $sun = getPost('sun');
+      $mon = getPost('mon');
+      $tue = getPost('tue');
+      $wed = getPost('wed');
+      $thu = getPost('thu');
+      $fri = getPost('fri');
+      $sat = getPost('sat');
 
-      $billers = implode(',', (getPOST('biller') ?? []));
+      $billers = implode(',', (getPost('biller') ?? []));
 
       $scheduleData = [
         'billers'  => $billers,
@@ -238,13 +238,13 @@ class Schedule extends MY_Controller
   public function holiday_add()
   {
     if ($this->requestMethod == 'POST') {
-      $billers = implode(',', (getPOST('biller') ?? []));
-      $holiday = getPOST('holiday');
-      $working = getPOST('working');
+      $billers = implode(',', (getPost('biller') ?? []));
+      $holiday = getPost('holiday');
+      $working = getPost('working');
 
       $holidayData = [
         'billers'     => $billers,
-        'description' => htmlEncode(getPOST('description')),
+        'description' => htmlEncode(getPost('description')),
         'start_date'  => (!empty($holiday[0]) ? $holiday[0] : NULL),
         'end_date'    => (!empty($holiday[1]) ? $holiday[1] : NULL),
         'start_work'  => (!empty($working[0]) ? $working[0] : NULL),
@@ -263,7 +263,7 @@ class Schedule extends MY_Controller
 
   public function holiday_delete($holidayId = NULL)
   {
-    $holidayIds = getPOST('val');
+    $holidayIds = getPost('val');
 
     if (!$this->isAdmin && !getPermission('holiday-delete')) {
       sendJSON(['success' => 0, 'message' => lang('access_denied')]);
@@ -286,13 +286,13 @@ class Schedule extends MY_Controller
   public function holiday_edit($holidayId = NULL)
   {
     if ($this->requestMethod == 'POST') {
-      $billers = implode(',', (getPOST('biller') ?? []));
-      $holiday = getPOST('holiday');
-      $working = getPOST('working');
+      $billers = implode(',', (getPost('biller') ?? []));
+      $holiday = getPost('holiday');
+      $working = getPost('working');
 
       $holidayData = [
         'billers'     => $billers,
-        'description' => htmlEncode(getPOST('description')),
+        'description' => htmlEncode(getPost('description')),
         'start_date'  => (!empty($holiday[0]) ? $holiday[0] : NULL),
         'end_date'    => (!empty($holiday[1]) ? $holiday[1] : NULL),
         'start_work'  => (!empty($working[0]) ? $working[0] : NULL),

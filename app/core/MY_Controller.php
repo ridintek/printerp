@@ -84,6 +84,9 @@ class MY_Controller extends CI_Controller
       die('Error: ' . getLastError());
     }
 
+    // Reset last Error.
+    setLastError();
+
     $this->SettingsJSON = $this->site->getSettingsJSON();
 
     if (!is_cli()) {
@@ -184,7 +187,7 @@ class MY_Controller extends CI_Controller
       // }
 
       // if (($this->maintenance || $this->maintenance_by_time) && !$this->Owner && $this->uri->segment(1) !== 'maintenance') {
-      //   redirect('/maintenance');
+      //   redirect_to('/maintenance');
       // }
 
       if ($sd = $this->site->getDateFormat($this->Settings->dateformat)) { // Always use this.
@@ -342,49 +345,26 @@ class MY_Controller extends CI_Controller
       $this->upload_digital_type            = "{$this->upload_image_type}|{$this->upload_csv_type}|{$this->upload_document_type}";
     } else { // If not logged in.
       define('SHOP', 0);
-      //$this->session->set_flashdata('redirect_page', $this->uri->uri_string());
     }
   }
 
   protected function page_construct($page, $data = [])
   {
-    $data['message'] = isset($data['message']) ? $data['message'] : $this->session->flashdata('message');
-    $data['error']   = isset($data['error'])   ? $data['error']   : $this->session->flashdata('error');
-    $data['warning'] = isset($data['warning']) ? $data['warning'] : $this->session->flashdata('warning');
-
-    if ($this->session->flashdata('message')) {
-      unset($_SESSION['message']);
-    }
-    if ($this->session->flashdata('error')) {
-      unset($_SESSION['error']);
-    }
-    if ($this->session->flashdata('warning')) {
-      unset($_SESSION['warning']);
-    }
+    $data['message'] = isset($data['message']) ? $data['message'] : XSession::get('message');
+    $data['error']   = isset($data['error'])   ? $data['error']   : XSession::get('error');
+    $data['warning'] = isset($data['warning']) ? $data['warning'] : XSession::get('warning');
 
     $data['isLocal']             = $this->isLocal;
     $data['res_hash']            = $this->res_hash;
     $data['info']                = $this->site->getNotifications();
     $data['ip_address']          = $this->input->ip_address();
-    $data['Owner']               = $data['Owner'];
-    $data['Admin']               = $data['Admin'];
-    $data['Supplier']            = $data['Supplier'];
-    $data['Customer']            = $data['Customer'];
-    $data['Settings']            = $data['Settings'];
     $data['Settings_JSON']       = getJSON($data['Settings']->settings_json); // Remove soon.
     $data['SettingsJS']          = getJSON($data['Settings']->settings_json);
-    $data['dateFormats']         = $data['dateFormats'];
-    $data['assets']              = $data['assets'];
-    $data['GP']                  = $data['GP']; // Group Permissions.
     $data['qty_alert_num']       = $this->site->get_total_qty_alerts();
     $data['wh_stock_alert_num']  = $this->site->get_total_wh_stock_alerts();
     $data['exp_alert_num']       = $this->site->get_expiring_qty_alerts();
     $data['shop_sale_alerts']    = SHOP ? $this->site->get_shop_sale_alerts() : 0;
     $data['shop_payment_alerts'] = SHOP ? $this->site->get_shop_payment_alerts() : 0;
-
-    // $this->load->view('admin/header', $meta);
-    // $this->load->view('admin/' . $page, $data);
-    // $this->load->view('admin/footer');
 
     $htmlContent = '';
 
@@ -397,8 +377,6 @@ class MY_Controller extends CI_Controller
       } else {
         $htmlContent = $cached;
       }
-    } else {
-      // $htmlContent = $this->load->view('admin/' . $page, $data, TRUE);
     }
 
     $htmlContent = $this->load->view('admin/' . $page, $data, TRUE);

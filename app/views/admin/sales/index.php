@@ -87,7 +87,7 @@ if ($group_by = getGET('group_by')) {
         }, {
           "mRender": currencyFormat
         }, {
-          "mRender": pay_status
+          "mRender": renderPaymentStatus
         }, {
           "bSortable": false,
           "mRender": attachment

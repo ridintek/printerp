@@ -1,20 +1,20 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <?php
 $q = '?';
-if (getPOST('reference')) {
-  $q .= '&reference=' . getPOST('reference');
+if (getPost('reference')) {
+  $q .= '&reference=' . getPost('reference');
 }
-if (getPOST('category')) {
-  $q .= '&category=' . getPOST('category');
+if (getPost('category')) {
+  $q .= '&category=' . getPost('category');
 }
-if (getPOST('paid_by')) {
-  $q .= '&paid_by=' . getPOST('paid_by');
+if (getPost('paid_by')) {
+  $q .= '&paid_by=' . getPost('paid_by');
 }
-if (getPOST('from_date')) {
-  $q .= '&from_date=' . getPOST('from_date');
+if (getPost('from_date')) {
+  $q .= '&from_date=' . getPost('from_date');
 }
-if (getPOST('to_date')) {
-  $q .= '&to_date=' . getPOST('to_date');
+if (getPost('to_date')) {
+  $q .= '&to_date=' . getPost('to_date');
 }
 ?>
 <script>
@@ -136,7 +136,7 @@ if (getPOST('to_date')) {
             <div class="col-sm-4">
               <div class="form-group">
                 <label><?= lang('ref_no'); ?></label>
-                <input type="text" class="form-control" name="reference" value="<?= (getPOST('reference') ?? '') ?>" />
+                <input type="text" class="form-control" name="reference" value="<?= (getPost('reference') ?? '') ?>" />
               </div>
             </div>
             <div class="col-sm-4">
@@ -151,7 +151,7 @@ if (getPOST('to_date')) {
                     $cat[$category->id] = $category->name;
                   }
                 }
-                echo form_dropdown('category', $cat, (getPOST('category') ?? ''), 'class="form-control select2" id="category" style="width:100%;"'); ?>
+                echo form_dropdown('category', $cat, (getPost('category') ?? ''), 'class="form-control select2" id="category" style="width:100%;"'); ?>
               </div>
             </div>
             <div class="col-sm-4">
@@ -173,7 +173,7 @@ if (getPOST('to_date')) {
                     }
                   }
                 }
-                echo form_dropdown('paid_by', $bk, (getPOST('paid_by') ?? ''), 'class="form-control select2" id="paid_by" style="width:100%;"'); ?>
+                echo form_dropdown('paid_by', $bk, (getPost('paid_by') ?? ''), 'class="form-control select2" id="paid_by" style="width:100%;"'); ?>
               </div>
             </div>
           </div>
@@ -181,13 +181,13 @@ if (getPOST('to_date')) {
             <div class="col-sm-2">
               <div class="form-group">
                 <label><?= lang('from_date'); ?></label>
-                <input name="from_date" class="form-control" type="date" value="<?= (getPOST('from_date') ?? ''); ?>">
+                <input name="from_date" class="form-control" type="date" value="<?= (getPost('from_date') ?? ''); ?>">
               </div>
             </div>
             <div class="col-sm-2">
               <div class="form-group">
                 <label><?= lang('to_date'); ?></label>
-                <input name="to_date" class="form-control" type="date" value="<?= (getPOST('to_date') ?? ''); ?>">
+                <input name="to_date" class="form-control" type="date" value="<?= (getPost('to_date') ?? ''); ?>">
               </div>
             </div>
           </div>

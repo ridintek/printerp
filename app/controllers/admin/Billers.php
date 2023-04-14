@@ -13,8 +13,8 @@ class Billers extends MY_Controller
     }
 
     if (!$this->Owner) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('warning', lang('access_denied'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     $this->lang->admin_load('billers', $this->Settings->user_language);
     $this->load->library('form_validation');
@@ -28,25 +28,25 @@ class Billers extends MY_Controller
 
     if ($this->form_validation->run('billers/add') == true) {
       $data = [
-        'name'      => getPOST('name'),
-        'email'     => getPOST('email'),
-        'company'   => getPOST('company'),
-        'address'   => getPOST('address'),
-        'city'      => getPOST('city'),
-        'phone'     => getPOST('phone'),
-        'logo'      => getPOST('logo'),
+        'name'      => getPost('name'),
+        'email'     => getPost('email'),
+        'company'   => getPost('company'),
+        'address'   => getPost('address'),
+        'city'      => getPost('city'),
+        'phone'     => getPost('phone'),
+        'logo'      => getPost('logo'),
         'json_data' => json_encode([
-          'target'    => filterDecimal(getPOST('target')),
-          'whatsapp'  => getPOST('whatsapp')
+          'target'    => filterDecimal(getPost('target')),
+          'whatsapp'  => getPost('whatsapp')
         ])
       ];
-    } elseif (getPOST('add_biller')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('add_biller')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('billers');
     }
 
     if ($this->form_validation->run() == true && $this->site->addBiller($data)) {
-      $this->session->set_flashdata('message', $this->lang->line('biller_added'));
+      XSession::set_flash('message', $this->lang->line('biller_added'));
       admin_redirect('billers');
     } else {
       $this->data['logos']    = $this->getLogoList();
@@ -58,15 +58,15 @@ class Billers extends MY_Controller
   public function biller_actions ()
   {
     if (!$this->Owner && !$this->GP['bulk_actions']) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('warning', lang('access_denied'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     $this->form_validation->set_rules('form_action', lang('form_action'), 'required');
 
     if ($this->form_validation->run() == true) {
       if (!empty($_POST['val'])) {
-        if (getPOST('form_action') == 'delete') {
+        if (getPost('form_action') == 'delete') {
           $this->sma->checkPermissions('delete');
           $error = false;
           foreach ($_POST['val'] as $id) {
@@ -75,19 +75,19 @@ class Billers extends MY_Controller
             }
           }
           if ($error) {
-            $this->session->set_flashdata('warning', lang('billers_x_deleted_have_sales'));
+            XSession::set_flash('warning', lang('billers_x_deleted_have_sales'));
           } else {
-            $this->session->set_flashdata('message', $this->lang->line('billers_deleted'));
+            XSession::set_flash('message', $this->lang->line('billers_deleted'));
           }
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
       } else {
-        $this->session->set_flashdata('error', $this->lang->line('no_biller_selected'));
-        redirect($_SERVER['HTTP_REFERER']);
+        XSession::set_flash('error', $this->lang->line('no_biller_selected'));
+        redirect_to($_SERVER['HTTP_REFERER']);
       }
     } else {
-      $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('error', validation_errors());
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
 
@@ -115,35 +115,35 @@ class Billers extends MY_Controller
     }
 
     $biller = $this->site->getBillerByID($id);
-    if (getPOST('email') != $biller->email) {
+    if (getPost('email') != $biller->email) {
       $this->form_validation->set_rules('code', lang('email_address'), 'is_unique[billers.email]');
     }
 
     if ($this->form_validation->run('billers/add') == true) {
       $data = [
-        'name'      => getPOST('name'),
-        'email'     => getPOST('email'),
-        'company'   => getPOST('company'),
-        'address'   => getPOST('address'),
-        'city'      => getPOST('city'),
-        'phone'     => getPOST('phone'),
-        'logo'      => getPOST('logo'),
+        'name'      => getPost('name'),
+        'email'     => getPost('email'),
+        'company'   => getPost('company'),
+        'address'   => getPost('address'),
+        'city'      => getPost('city'),
+        'phone'     => getPost('phone'),
+        'logo'      => getPost('logo'),
         'json_data' => json_encode([
-          'target'    => filterDecimal(getPOST('target')),
-          'whatsapp'  => getPOST('whatsapp')
+          'target'    => filterDecimal(getPost('target')),
+          'whatsapp'  => getPost('whatsapp')
         ])
       ];
-    } elseif (getPOST('edit_biller')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('edit_biller')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('billers');
     }
 
     if ($this->form_validation->run() == true && $this->site->updateBiller($id, $data)) {
-      $this->session->set_flashdata('message', $this->lang->line('biller_updated'));
+      XSession::set_flash('message', $this->lang->line('biller_updated'));
       admin_redirect('billers');
     } else {
-      if (getPOST('edit_biller')) {
-        $this->session->set_flashdata('error', 'Failed to save');
+      if (getPost('edit_biller')) {
+        XSession::set_flash('error', 'Failed to save');
         admin_redirect('billers');
       }
       $this->data['biller']   = $biller;
@@ -212,7 +212,7 @@ class Billers extends MY_Controller
 
         if ( ! $this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('billers');
         }
 
@@ -237,7 +237,7 @@ class Billers extends MY_Controller
         ];
 
         if ($header_id[0] != 'BILR') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('billers');
         }
         foreach ($arrResult as $csv_data) {
@@ -263,8 +263,8 @@ class Billers extends MY_Controller
           }
         } // foreach
       }
-    } else if (getPOST('import')) {
-      $this->session->set_flashdata('error', 'E1: ' . validation_errors());
+    } else if (getPost('import')) {
+      XSession::set_flash('error', 'E1: ' . validation_errors());
       admin_redirect('billers');
     }
 
@@ -283,11 +283,11 @@ class Billers extends MY_Controller
         }
       }
 
-      $this->session->set_flashdata('message', sprintf(lang('csv_billers_imported'), $added, $updated));
+      XSession::set_flash('message', sprintf(lang('csv_billers_imported'), $added, $updated));
       admin_redirect('billers');
     } else {
-      if (getPOST('import')) {
-        $this->session->set_flashdata('error', 'E2: ' . validation_errors());
+      if (getPost('import')) {
+        XSession::set_flash('error', 'E2: ' . validation_errors());
         admin_redirect('billers');
       }
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));

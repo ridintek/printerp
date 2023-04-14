@@ -9,7 +9,7 @@ class Main extends MY_Controller // From MY_Shop_Controller
     parent::__construct();
 
     if ($this->Settings->mmode && $this->v != 'login') {
-      redirect('notify/offline');
+      redirect_to('notify/offline');
     }
 
     $this->load->library('ion_auth');
@@ -20,16 +20,16 @@ class Main extends MY_Controller // From MY_Shop_Controller
   public function activate($id, $code)
   {
     if ( ! defined(SHOP)) {
-      redirect('admin/auth/activate/' . $id . '/' . $code);
+      redirect_to('admin/auth/activate/' . $id . '/' . $code);
     }
     if ($code) {
       if ($activation = $this->ion_auth->activate($id, $code)) {
         $this->session->set_flashdata('message', $this->ion_auth->messages());
-        redirect('login');
+        redirect_to('login');
       }
     } else {
       $this->session->set_flashdata('error', $this->ion_auth->errors());
-      redirect('login');
+      redirect_to('login');
     }
   }
 
@@ -54,26 +54,26 @@ class Main extends MY_Controller // From MY_Shop_Controller
   public function cookie($val)
   {
     set_cookie('shop_use_cookie', $val, 31536000);
-    redirect($_SERVER['HTTP_REFERER']);
+    redirect_to($_SERVER['HTTP_REFERER']);
   }
 
   public function currency($currency)
   {
     set_cookie('shop_currency', $currency, 31536000);
-    redirect($_SERVER['HTTP_REFERER']);
+    redirect_to($_SERVER['HTTP_REFERER']);
   }
 
   public function forgot_password()
   {
     if ( ! defined(SHOP)) {
-      redirect('admin/auth/forgot_password');
+      redirect_to('admin/auth/forgot_password');
     }
     $this->form_validation->set_rules('email', lang('email_address'), 'required|valid_email');
 
     if ($this->form_validation->run() == false) {
       sendJSON(validation_errors());
     } else {
-      $identity = $this->ion_auth->where('email', strtolower(getPOST('email')))->users()->row();
+      $identity = $this->ion_auth->where('email', strtolower(getPost('email')))->users()->row();
       if (empty($identity)) {
         sendJSON(lang('forgot_password_email_not_found'));
       }
@@ -96,10 +96,10 @@ class Main extends MY_Controller // From MY_Shop_Controller
   public function index()
   {
     if ( ! defined(SHOP)) {
-      redirect('admin');
+      redirect_to('admin');
     }
     if ($this->shop_settings->private && !$this->loggedIn) {
-      redirect('/login');
+      redirect_to('/login');
     }
     $this->data['featured_products'] = $this->shop_model->getFeaturedProducts();
     $this->data['slider']            = json_decode($this->shop_settings->slider);
@@ -115,17 +115,17 @@ class Main extends MY_Controller // From MY_Shop_Controller
     if (in_array($lang, $languagefiles)) {
       set_cookie('shop_language', $lang, 31536000);
     }
-    redirect($_SERVER['HTTP_REFERER']);
+    redirect_to($_SERVER['HTTP_REFERER']);
   }
 
   public function login($m = null)
   {
     if ( ! defined(SHOP) || $this->Settings->mmode) {
-      redirect('admin/login');
+      redirect_to('admin/login');
     }
     if ($this->loggedIn) {
       $this->session->set_flashdata('error', $this->session->flashdata('error'));
-      redirect('/');
+      redirect_to('/');
     }
 
     if ($this->Settings->captcha) {
@@ -133,22 +133,22 @@ class Main extends MY_Controller // From MY_Shop_Controller
     }
 
     if ($this->form_validation->run('auth/login') == true) {
-      $remember = (bool)getPOST('remember_me');
+      $remember = (bool)getPost('remember_me');
 
-      if ($this->ion_auth->login(getPOST('identity'), getPOST('password'), $remember)) {
+      if ($this->ion_auth->login(getPost('identity'), getPost('password'), $remember)) {
         if ($this->Settings->mmode) {
           if (!$this->ion_auth->in_group('owner')) {
             $this->session->set_flashdata('error', lang('site_is_offline_plz_try_later'));
-            redirect('logout');
+            redirect_to('logout');
           }
         }
 
         $this->session->set_flashdata('message', $this->ion_auth->messages());
         $referrer = (XSession::get('requested_page') && XSession::get('requested_page') != 'admin') ? XSession::get('requested_page') : '/';
-        redirect($referrer);
+        redirect_to($referrer);
       } else {
         $this->session->set_flashdata('error', $this->ion_auth->errors());
-        redirect('login');
+        redirect_to('login');
       }
     } else {
       if ($this->Settings->captcha) {
@@ -200,12 +200,12 @@ class Main extends MY_Controller // From MY_Shop_Controller
   public function logout($m = null)
   {
     if ( ! defined(SHOP)) {
-      redirect('admin/logout');
+      redirect_to('admin/logout');
     }
     $logout   = $this->ion_auth->logout();
     $referrer = (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '/');
     $this->session->set_flashdata('message', $this->ion_auth->messages());
-    redirect($m ? 'login/m' : $referrer);
+    redirect_to($m ? 'login/m' : $referrer);
   }
 
   public function permissions()
@@ -228,16 +228,16 @@ class Main extends MY_Controller // From MY_Shop_Controller
       sendJSON(['error' => 1, 'msg' => 'Unknown command.']);
     }
 
-    redirect('/');
+    redirect_to('/');
   }
 
   public function profile($act = null)
   {
     if (!$this->loggedIn) {
-      redirect('/');
+      redirect_to('/');
     }
     if ( ! defined(SHOP) || $this->Staff) {
-      redirect('admin/users/profile/' . XSession::get('user_id'));
+      redirect_to('admin/users/profile/' . XSession::get('user_id'));
     }
     $user = $this->ion_auth->user()->row();
     if ($act == 'user') {
@@ -252,40 +252,40 @@ class Main extends MY_Controller // From MY_Shop_Controller
       $this->form_validation->set_rules('state', lang('state'), 'required');
       $this->form_validation->set_rules('postal_code', lang('postal_code'), 'required');
       $this->form_validation->set_rules('country', lang('country'), 'required');
-      if ($user->email != getPOST('email')) {
+      if ($user->email != getPost('email')) {
         $this->form_validation->set_rules('email', lang('email'), 'trim|is_unique[users.email]');
       }
 
       if ($this->form_validation->run() === true) {
         $bdata = [
-          'name'        => getPOST('first_name') . ' ' . getPOST('last_name'),
-          'phone'       => getPOST('phone'),
-          'email'       => getPOST('email'),
-          'company'     => getPOST('company'),
-          'vat_no'      => getPOST('vat_no'),
-          'address'     => getPOST('address'),
-          'city'        => getPOST('city'),
-          'state'       => getPOST('state'),
-          'postal_code' => getPOST('postal_code'),
-          'country'     => getPOST('country'),
+          'name'        => getPost('first_name') . ' ' . getPost('last_name'),
+          'phone'       => getPost('phone'),
+          'email'       => getPost('email'),
+          'company'     => getPost('company'),
+          'vat_no'      => getPost('vat_no'),
+          'address'     => getPost('address'),
+          'city'        => getPost('city'),
+          'state'       => getPost('state'),
+          'postal_code' => getPost('postal_code'),
+          'country'     => getPost('country'),
         ];
 
         $udata = [
-          'first_name' => getPOST('first_name'),
-          'last_name'  => getPOST('last_name'),
-          'company'    => getPOST('company'),
-          'phone'      => getPOST('phone'),
-          'email'      => getPOST('email'),
+          'first_name' => getPost('first_name'),
+          'last_name'  => getPost('last_name'),
+          'company'    => getPost('company'),
+          'phone'      => getPost('phone'),
+          'email'      => getPost('email'),
         ];
 
         if ($this->ion_auth->update($user->id, $udata) && $this->shop_model->updateCompany($user->company_id, $bdata)) {
           $this->session->set_flashdata('message', lang('user_updated'));
           $this->session->set_flashdata('message', lang('billing_data_updated'));
-          redirect('profile');
+          redirect_to('profile');
         }
       } else {
         $this->session->set_flashdata('error', validation_errors());
-        redirect($_SERVER['HTTP_REFERER']);
+        redirect_to($_SERVER['HTTP_REFERER']);
       }
     } elseif ($act == 'password') {
       $this->form_validation->set_rules('old_password', lang('old_password'), 'required');
@@ -294,17 +294,17 @@ class Main extends MY_Controller // From MY_Shop_Controller
 
       if ($this->form_validation->run() == false) {
         $this->session->set_flashdata('error', validation_errors());
-        redirect('profile');
+        redirect_to('profile');
       } else {
         $identity = XSession::get($this->config->item('identity', 'ion_auth'));
-        $change   = $this->ion_auth->change_password($identity, getPOST('old_password'), getPOST('new_password'));
+        $change   = $this->ion_auth->change_password($identity, getPost('old_password'), getPost('new_password'));
 
         if ($change) {
           $this->session->set_flashdata('message', $this->ion_auth->messages());
           $this->logout('m');
         } else {
           $this->session->set_flashdata('error', $this->ion_auth->errors());
-          redirect('profile');
+          redirect_to('profile');
         }
       }
     }
@@ -320,7 +320,7 @@ class Main extends MY_Controller // From MY_Shop_Controller
   public function register()
   {
     if ($this->shop_settings->private) {
-      redirect('/login');
+      redirect_to('/login');
     }
     $this->form_validation->set_rules('first_name', lang('first_name'), 'required');
     $this->form_validation->set_rules('last_name', lang('last_name'), 'required');
@@ -332,18 +332,18 @@ class Main extends MY_Controller // From MY_Shop_Controller
     $this->form_validation->set_rules('password_confirm', lang('confirm_password'), 'required');
 
     if ($this->form_validation->run('') == true) {
-      $email    = strtolower(getPOST('email'));
-      $username = strtolower(getPOST('username'));
-      $password = getPOST('password');
+      $email    = strtolower(getPost('email'));
+      $username = strtolower(getPost('username'));
+      $password = getPost('password');
 
       $customer_group = $this->shop_model->getCustomerGroup($this->Settings->customer_group);
       $price_group    = $this->shop_model->getPriceGroup($this->Settings->price_group);
 
       $company_data = [
-        'company'             => getPOST('company') ? getPOST('company') : '-',
-        'name'                => getPOST('first_name') . ' ' . getPOST('last_name'),
-        'email'               => getPOST('email'),
-        'phone'               => getPOST('phone'),
+        'company'             => getPost('company') ? getPost('company') : '-',
+        'name'                => getPost('first_name') . ' ' . getPost('last_name'),
+        'email'               => getPost('email'),
+        'phone'               => getPost('phone'),
         'group_id'            => 3,
         'group_name'          => 'customer',
         'customer_group_id'   => (!empty($customer_group)) ? $customer_group->id : null,
@@ -355,10 +355,10 @@ class Main extends MY_Controller // From MY_Shop_Controller
       $company_id = $this->shop_model->addCustomer($company_data);
 
       $additional_data = [
-        'first_name' => getPOST('first_name'),
-        'last_name'  => getPOST('last_name'),
-        'phone'      => getPOST('phone'),
-        'company'    => getPOST('company'),
+        'first_name' => getPost('first_name'),
+        'last_name'  => getPost('last_name'),
+        'phone'      => getPost('phone'),
+        'company'    => getPost('company'),
         'gender'     => 'male',
         'company_id' => $company_id,
         'group_id'   => 3,
@@ -368,21 +368,21 @@ class Main extends MY_Controller // From MY_Shop_Controller
 
     if ($this->form_validation->run() == true && $this->ion_auth->register($username, $password, $email, $additional_data)) {
       $this->session->set_flashdata('message', lang('account_created'));
-      redirect('login');
+      redirect_to('login');
     } else {
       $this->session->set_flashdata('error', validation_errors());
-      redirect('login#register');
+      redirect_to('login#register');
     }
   }
 
   public function reset_password($code = null)
   {
     if ( ! defined(SHOP)) {
-      redirect('admin/auth/reset_password/' . $code);
+      redirect_to('admin/auth/reset_password/' . $code);
     }
     if (!$code) {
       $this->session->set_flashdata('error', lang('page_not_found'));
-      redirect('/');
+      redirect_to('/');
     }
 
     $user = $this->ion_auth->forgotten_password_check($code);
@@ -429,28 +429,28 @@ class Main extends MY_Controller // From MY_Shop_Controller
         $this->page_construct('user/reset_password', $this->data);
       } else {
         // do we have a valid request?
-        if ($user->id != getPOST('user_id')) {
+        if ($user->id != getPost('user_id')) {
           $this->ion_auth->clear_forgotten_password_code($code);
-          redirect('notify/csrf');
+          redirect_to('notify/csrf');
         } else {
           // finally change the password
           $identity = $user->email;
 
-          $change = $this->ion_auth->reset_password($identity, getPOST('new'));
+          $change = $this->ion_auth->reset_password($identity, getPost('new'));
           if ($change) {
             //if the password was successfully changed
             $this->session->set_flashdata('message', $this->ion_auth->messages());
-            redirect('login');
+            redirect_to('login');
           } else {
             $this->session->set_flashdata('error', $this->ion_auth->errors());
-            redirect('reset_password/' . $code);
+            redirect_to('reset_password/' . $code);
           }
         }
       }
     } else {
       //if the code is invalid then send them back to the forgot password page
       $this->session->set_flashdata('error', $this->ion_auth->errors());
-      redirect('/');
+      redirect_to('/');
     }
   }
 }

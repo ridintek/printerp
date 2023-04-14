@@ -455,21 +455,7 @@ class Site extends MY_Model
     }
     return FALSE;
   }
-
-  /**
-   * Add new job.
-   * @param array $data [ controller, method, param ]
-   */
-  public function addJob($data)
-  {
-    DB::table('jobs')->insert($data);
-
-    if (DB::affectedRows()) {
-      return DB::insertID();
-    }
-    return FALSE;
-  }
-
+  
   public function addMaintenanceLog($data)
   {
     $data = setCreatedBy($data);
@@ -1131,8 +1117,8 @@ class Site extends MY_Model
         $finished_qty = (!empty($item['finished_qty']) ? filterDecimal($item['finished_qty']) : 0);
 
         // json_data
-        $item_w            = filterQuantity($item['width']  ?? 0);
-        $item_l            = filterQuantity($item['length'] ?? 0);
+        $item_w            = filterQuantity($item['width']  ?? 1);
+        $item_l            = filterQuantity($item['length'] ?? 1);
         $item_area         = filterQuantity($item_w * $item_l);
         $item_spec         = ($item['spec']        ?? '');
         $item_operator     = ($item['operator_id'] ?? '');
@@ -1331,7 +1317,7 @@ class Site extends MY_Model
       }
 
       $this->updateSale($sale->id, $sale_data);
-      $this->syncSales(['sale_id' => $sale->id]); // Update status.
+      Sale::sync(['sale_id' => $sale->id]); // Update status.
       return TRUE;
     }
     return FALSE;
@@ -2392,7 +2378,7 @@ class Site extends MY_Model
         }
 
         // Sync sale after operator complete the item.
-        $this->syncSales(['sale_id' => $sale->id]);
+        Sale::sync(['sale_id' => $sale->id]);
 
         return TRUE;
       }
@@ -3020,7 +3006,7 @@ class Site extends MY_Model
       if ($this->db->delete('payment_validations', ['id' => $pv_id])) {
         if ($opv->sale_id) {
           $this->updateSale($opv->sale_id, ['payment_status' => 'pending']);
-          $this->syncSales(['sale_id' => $opv->sale_id]);
+          Sale::sync(['sale_id' => $opv->sale_id]);
         } elseif ($opv->mutation_id) {
           $this->updateBankMutation($opv->mutation_id, ['status' => 'cancelled']);
         }
@@ -4674,38 +4660,19 @@ class Site extends MY_Model
 
   public function getMachineByID($id)
   {
-    return DB::table('products')->select("products.id AS id, products.code AS code, products.name AS name,
-      warehouses.id AS warehouse_id,
-      JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_qty')) AS maintenance_qty,
-      JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_cost')) AS maintenance_cost")
+    return DB::table('products')
+      ->select("products.id AS id, products.code AS code, products.name AS name,
+        warehouses.id AS warehouse_id,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_qty')) AS maintenance_qty,
+        JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_cost')) AS maintenance_cost")
       ->join('categories', 'categories.id = products.subcategory_id', 'left')
       ->join('warehouses', 'warehouses.name LIKE products.warehouses', 'left')
       ->where('products.id', $id)
       ->like('categories.code', 'MACFIN', 'none')
       ->orLike('categories.code', 'MACMER', 'none')
       ->orLike('categories.code', 'MACOUTIN', 'none')
-      ->orLike('categories.code', 'MACPOD', 'none');
-
-    // $this->db
-    //   ->select("products.id AS id, products.code AS code, products.name AS name,
-    //     warehouses.id AS warehouse_id,
-    //     JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_qty')) AS maintenance_qty,
-    //     JSON_UNQUOTE(JSON_EXTRACT(products.json_data, '$.maintenance_cost')) AS maintenance_cost")
-    //   ->join('categories', 'categories.id = products.subcategory_id', 'left')
-    //   ->join('warehouses', 'warehouses.name LIKE products.warehouses', 'left')
-    //   ->like('categories.code', 'MACFIN', 'none')
-    //   ->or_like('categories.code', 'MACMER', 'none')
-    //   ->or_like('categories.code', 'MACOUTIN', 'none')
-    //   ->or_like('categories.code', 'MACPOD', 'none');
-
-    // $this->db->where('products.id', $id);
-
-    // $q = $this->db->get('products');
-
-    // if ($q->num_rows() > 0) {
-    //   return $q->row();
-    // }
-    // return NULL;
+      ->orLike('categories.code', 'MACPOD', 'none')
+      ->getRow();
   }
 
   public function getMachineCategoryByCode($code)
@@ -7224,7 +7191,8 @@ class Site extends MY_Model
             $this->updateSale($pp->sale_id, [
               'payment_status' => 'expired'
             ]);
-            $this->syncSales(['sale_id' => $pp->sale_id]);
+
+            Sale::sync(['id' => $pp->sale_id]);
           }
           if ($pp->mutation_id) {
             $this->updateBankMutation($pp->mutation_id, [
@@ -7247,7 +7215,7 @@ class Site extends MY_Model
           $this->updateSale($wt->id, ['payment_status' => 'partial']);
         }
 
-        $this->syncSales(['sale_id' => $wt->id]);
+        Sale::sync(['sale_id' => $wt->id]);
       }
     }
 
@@ -7324,7 +7292,6 @@ class Site extends MY_Model
    */
   public function syncProductReports($productId = NULL)
   {
-    $success = 0;
     $products = [];
 
     if ($productId) {
@@ -7362,15 +7329,11 @@ class Site extends MY_Model
           'updated_at' => $report->created_at
         ]]);
 
-        if (!$success) $success = 1;
+        return true;
       }
-
-      unset($reports);
     }
 
-    unset($products);
-
-    return ($success ? TRUE : FALSE);
+    return false;
   }
 
   /**
@@ -7615,7 +7578,8 @@ class Site extends MY_Model
   public function syncSales($clause = [])
   {
     $sales = [];
-
+    die('Change to Sale::sync');
+    return false;
     // $this->syncPaymentValidations(); // Cause memory crash (looping).
 
     if (!empty($clause['sale_id'])) {
@@ -7673,8 +7637,8 @@ class Site extends MY_Model
         $saleItemStatus = $saleItemJS->status;
         $totalSaleItems++;
         $grandTotal += round($saleItem->price * $saleItem->quantity);
-        $isItemFinished = ($saleItem->quantity == $saleItem->finished_qty ? TRUE : FALSE);
-        $isItemFinishedPartial = ($saleItem->finished_qty > 0 && $saleItem->quantity > $saleItem->finished_qty ? TRUE : FALSE);
+        $isItemFinished = ($saleItem->quantity == $saleItem->finished_qty);
+        $isItemFinishedPartial = ($saleItem->finished_qty > 0 && $saleItem->quantity > $saleItem->finished_qty);
 
         if ($saleItemStatus == 'delivered') {
           $completedItems++;
@@ -7698,6 +7662,10 @@ class Site extends MY_Model
           $saleItemStatus = 'need_payment';
         }
 
+        if ($sale->status == 'inactive') {
+          $saleItemStatus = 'inactive';
+        }
+
         $saleItemData['status'] = $saleItemStatus;
 
         $this->updateSaleItem($saleItem->id, $saleItemData);
@@ -7707,10 +7675,10 @@ class Site extends MY_Model
 
       $saleData['grand_total'] = $grandTotal;
 
-      $isSaleCompleted        = ($completedItems == $totalSaleItems ? TRUE : FALSE);
-      $isSaleCompletedPartial = (($completedItems > 0 && $completedItems < $totalSaleItems) || $hasPartial ? TRUE : FALSE);
-      $isSaleDelivered        = ($deliveredItems == $totalSaleItems ? TRUE : FALSE);
-      $isSaleFinished         = ($finishedItems == $totalSaleItems ? TRUE : FALSE);
+      $isSaleCompleted        = ($completedItems == $totalSaleItems);
+      $isSaleCompletedPartial = (($completedItems > 0 && $completedItems < $totalSaleItems) || $hasPartial);
+      $isSaleDelivered        = ($deliveredItems == $totalSaleItems);
+      $isSaleFinished         = ($finishedItems == $totalSaleItems);
 
       if ($isSaleCompleted) {
         if ($isSaleDelivered) {
@@ -7749,8 +7717,8 @@ class Site extends MY_Model
 
         $balance = ($grandTotal - $totalPaid);
 
-        $isPaid        = ($balance == 0 ? TRUE : FALSE);
-        $isPaidPartial = ($balance > 0  ? TRUE : FALSE);
+        $isPaid        = ($balance == 0);
+        $isPaidPartial = ($balance > 0);
 
         if ($isPaid) {
           $paymentStatus = 'paid';
@@ -7766,9 +7734,8 @@ class Site extends MY_Model
       }
 
       if ($paymentValidation) { // If any transfer.
-        $isPVPending  = ($paymentValidation->status == 'pending'  ? TRUE : FALSE);
-        $isPVExpired  = ($paymentValidation->status == 'expired'  ? TRUE : FALSE);
-        // $isPVVerified = ($paymentValidation->status == 'verified' ? TRUE : FALSE);
+        $isPVPending  = ($paymentValidation->status == 'pending');
+        $isPVExpired  = ($paymentValidation->status == 'expired');
 
         if ($isPaid) {
           $paymentStatus = 'paid';
@@ -7781,6 +7748,10 @@ class Site extends MY_Model
 
       if ($saleStatus == 'waiting_production' && empty($saleJS->waiting_production_date)) {
         $saleData['waiting_production_date'] = date('Y-m-d H:i:s');
+      }
+
+      if ($sale->status == 'inactive') {
+        $saleStatus = 'inactive';
       }
 
       $saleData['paid']           = $totalPaid;
@@ -7874,8 +7845,6 @@ class Site extends MY_Model
           $receivedValue += round($item->quantity * $cost);
           $grandTotal += round($item->purchased_qty * $cost);
         }
-      } else {
-        die('WHY NO PURCHASE ITEMS?');
       }
 
       if ($payments) {
@@ -8815,51 +8784,52 @@ class Site extends MY_Model
    * @param array $data []
    * @param array $items []
    */
-  public function updateSale($sale_id, $data, $items = [])
+  public function updateSale($id, $data, $items = [])
   {
     if (!empty($data)) {
-      $sale_data = [];
+      $saleData = [];
 
-      $sale = $this->getSaleByID($sale_id);
+      $sale = $this->getSaleByID($id);
 
       if ($sale) {
-        if (!empty($data['date']))          $sale_data['date']            = $data['date'];
-        if (isset($data['reference']))      $sale_data['reference']       = $data['reference'];
-        if (isset($data['no_po']))          $sale_data['no_po']           = $data['no_po'];
-        if (isset($data['note']))           $sale_data['note']            = $data['note'];
-        if (isset($data['discount']))       $sale_data['discount']        = $data['discount'];
-        if (isset($data['shipping']))       $sale_data['shipping']        = $data['shipping'];
-        if (isset($data['total']))          $sale_data['total']           = $data['total'];
-        if (isset($data['grand_total']))    $sale_data['grand_total']     = $data['grand_total'];
-        if (isset($data['balance']))        $sale_data['balance']         = $data['balance'];
-        if (isset($data['status']))         $sale_data['status']          = $data['status'];
-        if (isset($data['payment_status'])) $sale_data['payment_status']  = $data['payment_status'];
-        if (isset($data['due_date']))       $sale_data['due_date']        = $data['due_date'];
+        if (!empty($data['date']))          $saleData['date']            = $data['date'];
+        if (isset($data['reference']))      $saleData['reference']       = $data['reference'];
+        if (isset($data['no_po']))          $saleData['no_po']           = $data['no_po'];
+        if (isset($data['note']))           $saleData['note']            = $data['note'];
+        if (isset($data['discount']))       $saleData['discount']        = $data['discount'];
+        if (isset($data['shipping']))       $saleData['shipping']        = $data['shipping'];
+        if (isset($data['tax']))            $saleData['tax']             = $data['tax'];
+        if (isset($data['total']))          $saleData['total']           = $data['total'];
+        if (isset($data['grand_total']))    $saleData['grand_total']     = $data['grand_total'];
+        if (isset($data['balance']))        $saleData['balance']         = $data['balance'];
+        if (isset($data['status']))         $saleData['status']          = $data['status'];
+        if (isset($data['payment_status'])) $saleData['payment_status']  = $data['payment_status'];
+        if (isset($data['due_date']))       $saleData['due_date']        = $data['due_date'];
 
-        if (isset($data['created_by']))     $sale_data['created_by']      = $data['created_by'];
-        if (isset($data['paid']))           $sale_data['paid']            = $data['paid'];
-        if (isset($data['attachment_id']))  $sale_data['attachment_id']   = $data['attachment_id'];
-        if (isset($data['payment_method'])) $sale_data['payment_method']  = $data['payment_method'];
+        if (isset($data['created_by']))     $saleData['created_by']      = $data['created_by'];
+        if (isset($data['paid']))           $saleData['paid']            = $data['paid'];
+        if (isset($data['attachment_id']))  $saleData['attachment_id']   = $data['attachment_id'];
+        if (isset($data['payment_method'])) $saleData['payment_method']  = $data['payment_method'];
 
-        if (!empty($data['updated_by'])) $sale_data['updated_by'] = $data['updated_by'];
-        if (!empty($data['updated_at'])) $sale_data['updated_at'] = $data['updated_at'];
+        if (!empty($data['updated_by'])) $saleData['updated_by'] = $data['updated_by'];
+        if (!empty($data['updated_at'])) $saleData['updated_at'] = $data['updated_at'];
 
         if (!empty($data['customer_id'])) {
           $customer = $this->getCustomerByID($data['customer_id']);
-          $sale_data['customer_id'] = $customer->id;
-          $sale_data['customer']    = $customer->phone;
+          $saleData['customer_id'] = $customer->id;
+          $saleData['customer']    = $customer->phone;
         }
 
         if (!empty($data['biller_id'])) {
           $biller = $this->getBillerByID($data['biller_id']);
-          $sale_data['biller_id'] = $biller->id;
-          $sale_data['biller']    = $biller->code;
+          $saleData['biller_id'] = $biller->id;
+          $saleData['biller']    = $biller->code;
         }
 
         if (!empty($data['warehouse_id'])) {
           $warehouse = $this->getWarehouseByID($data['warehouse_id']);
-          $sale_data['warehouse_id'] = $warehouse->id;
-          $sale_data['warehouse']    = $warehouse->code;
+          $saleData['warehouse_id'] = $warehouse->id;
+          $saleData['warehouse']    = $warehouse->code;
         }
 
         // Sale JSON
@@ -8872,21 +8842,22 @@ class Site extends MY_Model
         if (!empty($data['payment_due_date']))        $saleJS->payment_due_date        = $data['payment_due_date'];
         if (!empty($data['waiting_production_date'])) $saleJS->waiting_production_date = $data['waiting_production_date'];
 
-        $sale_data['json']      = json_encode($saleJS);
-        $sale_data['json_data'] = json_encode($saleJS);
+        $saleData['json']      = json_encode($saleJS);
+        $saleData['json_data'] = json_encode($saleJS);
 
         $this->db->trans_start();
-        $this->db->update('sales', $sale_data, ['id' => $sale_id]); // ORIGINAL UPDATE SALE #1.
+        $this->db->update('sales', $saleData, ['id' => $id]); // ORIGINAL UPDATE SALE #1.
         $this->db->trans_complete();
 
         if ($this->db->trans_status() !== FALSE) {
-          addEvent("Updated Sale [{$sale_id}: {$sale->reference}]", 'warning');
+          addEvent("Updated Sale [{$id}: {$sale->reference}]", 'warning');
 
           if ($items) { // Executed if items is present. Optional.
-            $sale_items = [];
-            $discount = filterDecimal($data['discount'] ?? 0);
-            $total_price = 0;
-            $total_qty = 0;
+            $saleItems    = [];
+            $discount     = filterDecimal($data['discount'] ?? 0);
+            $$totalPrice  = 0;
+            $totalQty     = 0;
+            $sale         = Sale::getRow(['id' => $id]);
 
             foreach ($items as $item) {
               if (isset($data['warehouse_id'])) {
@@ -8894,31 +8865,33 @@ class Site extends MY_Model
               }
 
               $item['date'] = $sale->date;
-              $item_w    = filterQuantity($item['width']  ?? 0);
-              $item_l    = filterQuantity($item['length'] ?? 0);
-              $item_area = ($item_w * $item_l);
-              $price     = filterDecimal($item['price']);
-              $quantity  = filterQuantity($item['quantity']);
+              $item_w       = filterQuantity($item['width']  ?? 0);
+              $item_l       = filterQuantity($item['length'] ?? 0);
+              $item_area    = ($item_w * $item_l);
+              $price        = filterDecimal($item['price']);
+              $quantity     = filterQuantity($item['quantity']);
 
               $qty = ($item_area > 0 ? $item_area * $quantity : $quantity);
 
-              $total_price  += round($price * $qty);
-              $total_qty    += $qty;
-              $sale_items[]  = $item;
+              $totalPrice  += round($price * $qty);
+              $totalQty    += $qty;
+              $saleItems[]  = $item;
 
               $_item = $this->getProductByID($item['product_id']);
               addEvent("Updated Sale Item [{$_item->name}], W:{$item_w}, L:{$item_l}, " .
                 "Price:{$price}, Qty:{$quantity}", 'warning');
             }
 
-            if ($sale_items) $this->updateSaleItems($sale_id, $sale_items);
+            if ($saleItems) $this->updateSaleItems($sale_id, $saleItems);
+
+            $grandTotal = ($totalPrice * 0.01 * $sale->tax) + $totalPrice - $discount;
 
             $this->db->update(
               'sales',
               [
-                'total' => roundDecimal($total_price),
-                'grand_total' => roundDecimal($total_price - $discount),
-                'total_items' => $total_qty
+                'total'       => roundDecimal($totalPrice),
+                'grand_total' => roundDecimal($grandTotal),
+                'total_items' => $totalQty
               ],
               ['id' => $sale_id]
             ); // ORIGINAL UPDATE SALE #2.
@@ -9120,7 +9093,7 @@ class Site extends MY_Model
         $this->updateSaleItem($saleItem->id, ['status' => $status]);
       }
 
-      $this->syncSales(['sale_id' => $sale->id]);
+      Sale::sync(['sale_id' => $sale->id]);
 
       return TRUE;
     }
@@ -9494,6 +9467,7 @@ class Site extends MY_Model
 
       if (!empty($item['id']))              $stock_data['id']              = $item['id'];
       if (!empty($item['date']))            $stock_data['date']            = $item['date'];
+      if (!empty($item['created_at']))      $stock_data['created_at']      = $item['created_at'];
       if (!empty($item['adjustment_id']))   $stock_data['adjustment_id']   = $item['adjustment_id'];
       if (!empty($item['internal_use_id'])) $stock_data['internal_use_id'] = $item['internal_use_id'];
       if (!empty($item['purchase_id']))     $stock_data['purchase_id']     = $item['purchase_id'];
@@ -9790,7 +9764,7 @@ class Site extends MY_Model
         $dataMutasi = $response->data_mutasi;
 
         foreach ($dataMutasi as $dm) { // DM = Data Mutasi.
-          $amount_match = ((floatval($pv->amount) + floatval($pv->unique_code)) == floatval($dm->amount) ? TRUE : FALSE);
+          $amount_match = ((floatval($pv->amount) + floatval($pv->unique_code)) == floatval($dm->amount));
           // If amount same as unique_code + amount OR sale_id same OR mutation_id same
           // Executed by CRON or Manually.
           // CR(mutasibank) = Masuk ke rekening.

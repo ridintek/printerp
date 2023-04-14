@@ -11,6 +11,7 @@ class BankMutation
   public static function add(array $data, bool $useValidation = true)
   {
     if (empty($data['date'])) $data['date'] = date('Y-m-d H:i:s');
+
     $data['reference'] = OrderRef::getReference('mutation');
 
     DB::table('bank_mutations')->insert($data);
@@ -32,15 +33,17 @@ class BankMutation
         ];
 
         if (PaymentValidation::add($pv_data)) { // Add Payment Validation.
-          DB::table('bank_mutations')->update(['status' => 'waiting_transfer'], ['id' => $insertID]);
-        } else {
-          return false;
+          if (!DB::table('bank_mutations')->update(['status' => 'waiting_transfer'], ['id' => $insertID])) {
+            return false;
+          }
+
+          return true;
         }
       } else {
         $paymentSent = [
           'date'         => $data['date'],
           'mutation_id'  => $insertID,
-          'bank_id'      => $data['from_bank_id'],
+          'bank_id'      => $data['bankfrom_id'],
           'method'       => 'Transfer',
           'amount'       => $data['amount'],
           'created_by'   => $data['created_by'],
@@ -48,12 +51,14 @@ class BankMutation
           'note'         => $data['note']
         ];
 
-        Payment::add($paymentSent);
+        if (!Payment::add($paymentSent)) {
+          return false;
+        }
         // Payment Received by To Bank ID
         $paymentRecv = [
           'date'         => $data['date'],
           'mutation_id'  => $insertID,
-          'bank_id'      => $data['to_bank_id'],
+          'bank_id'      => $data['bankto_id'],
           'method'       => 'Transfer',
           'amount'       => $data['amount'],
           'created_by'   => $data['created_by'],
@@ -61,12 +66,14 @@ class BankMutation
           'note'         => $data['note']
         ];
 
-        Payment::add($paymentRecv);
+        if (!Payment::add($paymentRecv)) {
+          return false;
+        }
 
-        DB::table('bank_mutations')->update(['status' => 'paid'], ['id' => $insertID]);
+        if (DB::table('bank_mutations')->update(['status' => 'paid'], ['id' => $insertID])) {
+          return true;
+        }
       }
-
-      return true;
     }
 
     return false;
@@ -121,21 +128,19 @@ class BankMutation
       if (isset($data['created_by'])) $paymentData['created_by']  = $data['created_by'];
       if (isset($data['updated_by'])) $paymentData['updated_by']  = $data['updated_by'];
 
-      if (isset($data['from_bank_id']) && $payment->type == 'sent') {
-        $bank = Bank::getRow(['id' => $data['from_bank_id']]);
+      if (isset($data['bankfrom_id']) && $payment->type == 'sent') {
+        $bank = Bank::getRow(['id' => $data['bankfrom_id']]);
 
         $paymentData['bank_id']   = $bank->id;
-        $paymentData['bank']  = $bank->code;
       }
 
-      if (isset($data['to_bank_id']) && $payment->type == 'received') {
-        $bank = Bank::getRow(['id' => $data['to_bank_id']]);
+      if (isset($data['bankto_id']) && $payment->type == 'received') {
+        $bank = Bank::getRow(['id' => $data['bankto_id']]);
 
         $paymentData['bank_id'] = $bank->id;
-        $paymentData['bank']  = $bank->code;
       }
 
-      Payment::update((int)$payment->id, []);
+      Payment::update((int)$payment->id, $paymentData);
     }
 
     DB::table('bank_mutations')->update($data, ['id' => $id]);

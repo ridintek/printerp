@@ -1191,6 +1191,15 @@ function renderNumber(qty) {
 }
 
 /**
+ * Rendering payment status as label. See ridintek_helper.php:renderStatus().
+ * @param {string} status Status name
+ */
+function renderPaymentStatus(status)
+{
+  return payment_status(status);
+}
+
+/**
  * Rendering status as label. See ridintek_helper.php:renderStatus().
  * @param {string} status Status name
  */
@@ -1213,7 +1222,7 @@ function renderStatus(status) {
     'served', 'success', 'validated', 'verified'
   ];
   let warning = [
-    'called', 'cancelled', 'checked', 'draft', 'packing', 'pending', 'slow', 'trouble',
+    'called', 'cancelled', 'checked', 'draft', 'inactive', 'packing', 'pending', 'slow', 'trouble',
     'waiting', 'waiting_production', 'waiting_transfer'
   ];
 

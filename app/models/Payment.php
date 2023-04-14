@@ -16,8 +16,6 @@ class Payment
   {
     $data = setCreatedBy($data);
 
-    $hMutex = mutexCreate('Payment_Add', TRUE);
-
     if (isset($data['expense_id'])) {
       $inv = Expense::getRow(['id' => $data['expense_id']]);
       $data['expense'] = $inv->reference;
@@ -42,14 +40,13 @@ class Payment
 
     if (!$bank) {
       setLastError('Bank is not valid.');
-      mutexRelease($hMutex);
       return FALSE;
     }
 
     // If type is not defined, sent or received depended on amount.
     $data['type'] = ($data['type'] ?? ($data['amount'] < 0 ? 'sent' : 'received'));
 
-    $data['reference_date'] = ($data['reference_date'] ?? $inv->created_at);
+    $data['reference_date'] = ($data['reference_date'] ?? $inv->date);
     $data['reference']      = $inv->reference;
     $data['biller_id']      = $bank->biller_id;
     $data['bank']   = $bank->code;
@@ -69,11 +66,11 @@ class Payment
         setLastError('Amount is zero.');
       }
 
-      mutexRelease($hMutex);
       return $insertId;
     }
 
-    mutexRelease($hMutex);
+    setLastError(DB::error()['message']);
+
     return FALSE;
   }
 

@@ -16,6 +16,79 @@ class Debug extends MY_Controller
     echo "Index";
   }
 
+  /**
+   * Restore complete after edit sale where status is waiting_production.
+   */
+  public function fix_complete_20230329()
+  {
+    $sales = DB::table('sales')->whereIn('status', ['waiting_production'])->get();
+
+    $success = 0;
+
+    DB::transStart();
+
+    foreach ($sales as $sale) {
+      // if ($sale->id != 43055) continue;
+
+      // dbgprint($sale); die;
+
+      $saleItems = SaleItem::get(['sale_id' => $sale->id]);
+
+      foreach ($saleItems as $saleItem) {
+        $saleItemJS = getJSON($saleItem->json_data);
+
+        // dbgprint($saleItem, $saleItemJS); die;
+
+        if (!empty($saleItemJS->completed_at)) {
+          try {
+            $completeDate = new DateTime($saleItemJS->completed_at);
+
+            $res = SaleItem::complete((int)$saleItem->id, [
+              'quantity'    => $saleItem->quantity,
+              'created_at'  => $completeDate->format('Y-m-d H:i:s'),
+              'created_by'  => $saleItemJS->operator_id
+            ]);
+
+            if (!$res) {
+              die(getLastError());
+            }
+
+            $success++;
+          } catch (Exception $e) {
+            die($e->getMessage());
+          }
+        }
+      }
+    }
+
+    DB::transComplete();
+
+    dbgprint("Success: {$success}");
+  }
+
+  public function dbtrans()
+  {
+    DB::transStart();
+
+    $res = DB::table('test1')->insert(['name' => 'HAMNAH']);
+
+    if (!$res) {
+      echo "Error 1: " . print_r(DB::error()['message'], true);
+    }
+
+    $res = DB::table('test2')->insert(['namex' => 'DONO']);
+
+    if (!$res) {
+      echo "Error 2: " . print_r(DB::error()['message'], true);
+    }
+
+    DB::transComplete();
+
+    if (DB::transStatus()) {
+      echo "Success";
+    }
+  }
+
   public function writesheet()
   {
     $res = setGoogleSheet('1arv83XA2ySRAos6aFvhqLWIm804CjgUyChj7DsxaBj0_', 'B1414', [['CODE1', 'NAME1'], ['CODE2', 'NAME2']]);
@@ -74,10 +147,11 @@ class Debug extends MY_Controller
 
   public function log()
   {
-    dbglog('debug', 'WHAT IS YOU?');
+    dbglog('warning', 'WHAT IS YOU?');
     dbglog('error', 'WHAT IS YOU?');
     dbglog('success', 'WHAT IS YOU?');
     dbglog('info', 'WHAT IS YOU?');
+    log_message('error', 'GO FUCK YOURSELF');
   }
 
   public function null_safe()
@@ -808,7 +882,7 @@ class Debug extends MY_Controller
     $failedCount = 0;
     $successCount = 0;
 
-    $this->db->like('date', '0000-00-00', 'after');
+    $this->db->like('created_at', '0000-00-00', 'after');
     $q = $this->db->get('stocks');
 
     if ($q && $q->num_rows()) {
@@ -819,7 +893,7 @@ class Debug extends MY_Controller
         $sale = $this->site->getSaleByID($stock->sale_id);
 
         if ($sale) {
-          $this->site->updateStockQuantity(['sale_id' => $sale->id], ['date' => $sale->date]);
+          $this->site->updateStockQuantity(['sale_id' => $sale->id], ['date' => $sale->date, 'created_at' => $sale->date]);
           $successCount++;
         } else {
           $this->site->deleteStockQuantity(['sale_id' => $stock->sale_id]);

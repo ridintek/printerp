@@ -26,7 +26,7 @@ class DB
    */
   public static function affectedRows()
   {
-    return (int)get_instance()->db->affected_rows();
+    return (int)self::$ciInstance->db->affected_rows();
   }
 
   /**
@@ -87,11 +87,11 @@ class DB
   }
 
   /**
-   * Return error DB message. ['errno', 'message']
+   * Return error DB message. ['code', 'message']
    */
   public static function error()
   {
-    return get_instance()->db->error();
+    return self::$ciInstance->db->error();
   }
 
   /**

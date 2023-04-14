@@ -715,7 +715,7 @@ if (!function_exists('row_status')) {
         }, {
           color: '#FF4040',
           type: 'column',
-          name: 'Balance',
+          name: 'Piutang',
           data: [<?php echo implode(', ', $mbalance); ?>]
         }, {
           type: 'pie',

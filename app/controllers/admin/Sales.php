@@ -11,15 +11,15 @@ class Sales extends MY_Controller
     parent::__construct();
 
     if (!$this->loggedIn) {
-      // $this->session->set_userdata('requested_page', $this->uri->uri_string());
+      // XSession::set_flash('requested_page', $this->uri->uri_string());
       // $this->sma->md('login');
 
       loginPage();
     }
 
     if (isset($this->Supplier) && $this->Supplier) {
-      $this->session->set_flashdata('danger', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('danger', lang('access_denied'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     $this->load->library('form_validation');
@@ -42,8 +42,8 @@ class Sales extends MY_Controller
       sendJSON(['error' => 1, 'msg' => lang('access_denied')]);
     }
 
-    $action = getGET('form_action') ?? getPOST('form_action');
-    $vals   = getGET('val') ?? getPOST('val');
+    $action = getGET('form_action') ?? getPost('form_action');
+    $vals   = getGET('val') ?? getPost('val');
 
     if ($action == 'delete' && $this->input->is_ajax_request()) {
       if (!empty($vals)) {
@@ -130,17 +130,37 @@ class Sales extends MY_Controller
         $excel->setColumnAutoWidth('L');
         $excel->setColumnAutoWidth('M');
         $excel->setColumnAutoWidth('N');
-        $filename = 'PrintERP - SalesList-' . date('Y_m_d_H_i_s');
+        $filename = 'PrintERP - SalesList-' . date('Ymd_His');
         $excel->export($filename);
       }
+    }
+  }
+
+  public function activate($id = null)
+  {
+    $sale = Sale::getRow(['id' => $id]);
+
+    if (!$sale) {
+      $this->response(404, ['message' => 'Sale is not found.']);
+    }
+
+    if ($sale->status != 'inactive') {
+      Sale::update((int)$sale->id, ['status' => 'inactive']);
+
+      $this->response(200, ['message' => 'Sale has been deactivated.']);
+    } else {
+      Sale::update((int)$sale->id, ['status' => 'need_payment']);
+      Sale::sync(['id' => $sale->id]);
+
+      $this->response(200, ['message' => 'Sale has been activated.']);
     }
   }
 
   public function add()
   {
     if (!$this->Owner && !$this->Admin && !getPermission('sales-add')) {
-      $this->session->set_flashdata('error', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+      XSession::set_flash('error', lang('access_denied'));
+      redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
     }
 
     $sale_id     = getGET('sale_id');
@@ -154,24 +174,24 @@ class Sales extends MY_Controller
     $this->form_validation->set_rules('warehouse', lang('warehouse'), 'required');
 
     if ($this->form_validation->run() == true) {
-      // $no_attachment    = getPOST('noattach');
-      $approved         = (getPOST('approved') == 1 ? 1 : 0);
-      $saleOptions      = getPOST('sale_options');
-      $draft_type       = getPOST('draft_type');
-      $no_po            = getPOST('no_po');
+      // $no_attachment    = getPost('noattach');
+      $approved         = (getPost('approved') == 1 ? 1 : 0);
+      $saleOptions      = getPost('sale_options');
+      $draft_type       = getPost('draft_type');
+      $no_po            = getPost('no_po');
       $date             = $this->serverDateTime; // Using server time.
-      $bank_transfer    = (getPOST('bank_transfer') == 1 ? TRUE : FALSE);
-      $created_by       = getPOST('created_by');
-      $cashier_by       = getPOST('cashier_by');
-      $warehouse_id     = getPOST('warehouse');
-      $customer_id      = getPOST('customer');
-      $biller_id        = getPOST('biller');
-      $status           = getPOST('status');
-      $payment_status   = getPOST('payment_status');
-      $payment_term     = getPOST('payment_term');
+      $bank_transfer    = (getPost('bank_transfer') == 1 ? TRUE : FALSE);
+      $created_by       = getPost('created_by');
+      $cashier_by       = getPost('cashier_by');
+      $warehouse_id     = getPost('warehouse');
+      $customer_id      = getPost('customer');
+      $biller_id        = getPost('biller');
+      $status           = getPost('status');
+      $payment_status   = getPost('payment_status');
+      $payment_term     = getPost('payment_term');
       $customer         = $this->site->getCustomerByID($customer_id);
-      $note             = htmlEncode(getPOST('note', FALSE));
-      $uriCallback      = getPOST('uri_callback');
+      $note             = htmlEncode(getPost('note', FALSE));
+      $uriCallback      = getPost('uri_callback');
       $total            = 0;
       $i                = isset($_POST['product_code']) ? count($_POST['product_code']) : 0; // Size of ITEM inserted.
 
@@ -180,14 +200,14 @@ class Sales extends MY_Controller
 
       // If no customer registered. Then cancel add sale.
       if (empty($customer)) {
-        $this->session->set_flashdata('error', 'Customer is not registered.');
-        redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
+        XSession::set_flash('error', 'Customer is not registered.');
+        redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
       }
 
       // Overdate Protection.
       if (strtotime($date) > now()) {
-        $this->session->set_flashdata('error', 'Do not try to cheating.');
-        redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+        XSession::set_flash('error', 'Do not try to cheating.');
+        redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
       }
 
       // Double Sale Protection.
@@ -195,8 +215,8 @@ class Sales extends MY_Controller
       if ($last_sale) {
         $time_difference = now() - strtotime($last_sale->date);
         if ($time_difference < 30) { // If time difference between last sale and this sale is less than 30s then canceled.
-          $this->session->set_flashdata('error', 'Anda punya invoice 30 detik yang lalu. Tunggu 30 detik lagi untuk buat nota baru.');
-          redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+          XSession::set_flash('error', 'Anda punya invoice 30 detik yang lalu. Tunggu 30 detik lagi untuk buat nota baru.');
+          redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
         }
       }
 
@@ -223,16 +243,16 @@ class Sales extends MY_Controller
         $item_status      = $status;
 
         if (empty($item_operator)) {
-          $this->session->set_flashdata('error', 'Mohon masukkan Operator!');
-          redirect($_SERVER['HTTP_REFERER']);
+          XSession::set_flash('error', 'Mohon masukkan Operator!');
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
 
         if ($item_category === 'DPI' && $item_type == 'combo') {
           $item_w = $_POST['w'][$r];
           $item_l = $_POST['l'][$r];
         } else {
-          $item_w = 0.0;
-          $item_l = 0.0;
+          $item_w = 1;
+          $item_l = 1;
         }
 
         if (isset($item_code) && isset($unit_price) && isset($item_subquantity)) {
@@ -272,23 +292,25 @@ class Sales extends MY_Controller
         'approved'       => $approved
       ];
 
+      DB::transStart();
+
       $uploader = new FileUpload();
 
       if ($uploader->has('document')) {
         if ($uploader->getSize('mb') > 2) {
-          $this->session->set_flashdata('error', 'Besar attachment tidak boleh lebih dari 2MB.');
-          redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
+          XSession::set_flash('error', 'Besar attachment tidak boleh lebih dari 2MB.');
+          redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
         }
 
         $saleData['attachment'] = $uploader->storeRandom();
       } else if (!getPermission('sales-no_attachment')) {
         if ($customerGroup->name == 'TOP') { // Prevent CS create sale without attachment for Customer TOP.
-          $this->session->set_flashdata('error', lang('top_no_attachment'));
-          redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+          XSession::set_flash('error', lang('top_no_attachment'));
+          redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
         } else if (XSession::get('group_name') == 'tl' && $saleOptions !== 'noattachment') {
           // If TL add sale not from counter. must include attachment.
-          $this->session->set_flashdata('error', lang('attachment_required'));
-          redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+          XSession::set_flash('error', lang('attachment_required'));
+          redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
         }
       }
     }
@@ -321,21 +343,26 @@ class Sales extends MY_Controller
             mutexRelease($hMutex);
           }
         }
+
         if (!empty($customer->email)) { // If customer has email, then send invoice mail.
           // $this->email_sale($sale_id);
         }
-        $this->session->set_userdata('remove_slls', 1);
+
+        DB::transComplete();
+
+        XSession::set_flash('remove_slls', 1);
+
         if ($draft_type) {
-          $this->session->set_flashdata('message', lang('draft_sale_saved'));
+          XSession::set_flash('message', lang('draft_sale_saved'));
         } else {
-          $this->session->set_flashdata('message', lang('sale_added'));
+          XSession::set_flash('message', lang('sale_added'));
         }
       } else {
-        $this->session->set_flashdata('error', 'Failed to add sale.');
-        redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
+        XSession::set_flash('error', 'Failed to add sale.');
+        redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
       }
 
-      redirect('admin/sales');
+      redirect_to('admin/sales');
     } else {
       if ($sale_id) {
         if ($sale_id) {
@@ -384,7 +411,7 @@ class Sales extends MY_Controller
         }
       }
 
-      $this->data['error']      = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+      $this->data['error']      = (validation_errors() ? validation_errors() : XSession::get('error'));
       $this->data['units']      = $this->site->getAllBaseUnits();
       $this->data['sale_options'] = $saleOptions;
       $this->data['slnumber']    = ''; //$this->site->getReference('so');
@@ -407,36 +434,29 @@ class Sales extends MY_Controller
       $sale_id = getGET('sale_id');
     }
 
-    $hMutex = mutexCreate('syncSales', TRUE);
-    $this->site->syncSales(['sale_id' => $sale_id]);
-    mutexRelease($hMutex);
+    Sale::sync(['id' => $sale_id]);
 
-    $sale = $this->site->getSaleByID($sale_id);
+    $sale = Sale::getRow(['id' => $sale_id]);
 
     if ($sale->payment_status == 'paid' && $sale->grand_total == $sale->paid) {
-      $this->session->set_flashdata('error', lang('sale_already_paid'));
-      $this->sma->md();
+      sendJSON(['error' => 1, 'msg' => lang('sale_already_paid')]);
     }
 
     if ($sale->status == 'draft') {
-      $this->session->set_flashdata('error', 'Sale is in Draft mode. Please save it as final format!');
-      $this->sma->md();
+      sendJSON(['error' => 1, 'msg' => 'Sale is in Draft mode. Please save it as final format!']);
     }
 
-    $this->form_validation->set_rules('amount', lang('amount'), 'required');
-    $this->form_validation->set_rules('payment_method', lang('payment_method'), 'required');
-    $this->form_validation->set_rules('userfile', lang('attachment'), 'xss_clean');
-
-    if ($this->form_validation->run() == true && $this->input->is_ajax_request()) {
-      $bank_id                 = getPOST('bank_id');
-      $created_by              = getPOST('created_by');
+    if ($this->requestMethod == 'POST') {
+      $bank_id                 = getPost('bank_id');
+      $created_by              = getPost('created_by');
       $date                    = $this->serverDateTime;
-      $payment_method          = getPOST('payment_method');
-      $skip_payment_validation = (getPOST('skip_payment_validation') == 'true' ? TRUE : FALSE);
+      $payment_method          = getPost('payment_method');
+      $skip_payment_validation = (getPost('skip_payment_validation') == 'true' ? TRUE : FALSE);
       $user                    = $this->site->getUserByID($created_by);
       $customer                = $this->site->getCustomerByID($sale->customer_id);
+      $note                    = getPost('note');
 
-      $bank = $this->site->getBankByID($bank_id); // NULL if Transfer and Present if skip validation.
+      $bank = Bank::getRow(['id' => $bank_id]); // NULL if Transfer and Present if skip validation.
 
       if (!$user) { // Check if user present.
         sendJSON(['error' => 1, 'msg' => 'User not found.']);
@@ -455,13 +475,17 @@ class Sales extends MY_Controller
         }
       }
 
+      if ($payment_method != 'Cash' && $payment_method != 'EDC' && $payment_method != 'Transfer') {
+        sendJSON(['error' => 1, 'msg' => 'Payment method is not valid: ' . $payment_method]);
+      }
+
       $payment = [
         'date'       => $date,
         'sale_id'    => $sale_id,
-        'amount'     => roundDecimal(getPOST('amount')),
+        'amount'     => roundDecimal(getPost('amount')),
         'bank_id'    => $bank_id,
         'method'     => $payment_method, // Cash / EDC / Transfer
-        'note'       => htmlEncode(getPOST('note')),
+        'note'       => $note,
         'created_by' => (!empty($created_by) ? $created_by : XSession::get('user_id')),
         'type'       => 'received' // Always received.
       ];
@@ -474,8 +498,7 @@ class Sales extends MY_Controller
 
       if ($uploader->has('userfile')) {
         if ($uploader->getSize('mb') > 2) {
-          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
-          admin_redirect($_SERVER['HTTP_REFERER']);
+          sendJSON(['error' => 1, 'msg' => 'Attachment tidak boleh lebih dari 2MB.']);
         }
 
         $payment['attachment'] = $uploader->storeRandom();
@@ -494,7 +517,8 @@ class Sales extends MY_Controller
           'amount'        => $payment['amount'],
           'created_by'    => $payment['created_by'],
           'biller_id'     => (isset($bank) ? $bank->biller_id : $sale->biller_id), // Do not change.
-          'unique_code'   => (!empty(getPOST('use_unique_code')) ? getPOST('unique_code') : NULL)
+          'unique_code'   => (!empty(getPost('use_unique_code')) ? getPost('unique_code') : NULL),
+          'note'          => $note
         ];
 
         if (isset($payment['attachment'])) $pvData['attachment'] = $payment['attachment'];
@@ -507,9 +531,7 @@ class Sales extends MY_Controller
             'attachment'     => ($payment['attachment'] ?? NULL)
           ]);
 
-          $hMutex = mutexCreate('syncSales', TRUE);
           Sale::sync(['sale_id' => $pvData['sale_id']]);
-          mutexRelease($hMutex);
 
           if ($skip_payment_validation) {
             $vpvData = (object)[
@@ -540,26 +562,23 @@ class Sales extends MY_Controller
               sendJSON(['error' => 1, 'msg' => 'Manual payment validation has been failed to add.']);
             }
           }
+
           sendJSON(['error' => 0, 'msg' => 'Payment Validation berhasil ditambahkan.']);
         } else {
           sendJSON(['error' => 1, 'msg' => 'Payment Validation gagal ditambahkan']);
         }
       }
-    } elseif (getPOST('add_payment')) {
-      sendJSON(['error' => 1, 'msg' => validation_errors()]);
-    }
 
-    if ($this->form_validation->run() == true) {
       if (Sale::addPayment($payment)) { // Add Sale payment.
         sendJSON(['error' => 0, 'msg' => lang('payment_added')]);
       } else {
         sendJSON(['error' => 1, 'msg' => 'Add Payment Failed']);
       }
     } else {
-      if (getPOST('add_payment')) {
-        sendJSON(['error' => 1, 'msg' => 'Add Payment Failed']);
-      }
-      $paymentValidation = PaymentValidation::getRow(['sale_id' => $sale->id]);
+      $paymentValidation = PaymentValidation::select('*')
+        ->where('sale_id', $sale->id)
+        ->orderBy('id', 'DESC')
+        ->getRow();
 
       $this->data['customer']           = Customer::getRow(['id' => $sale->customer_id]);
       $this->data['payment_validation'] = ($paymentValidation ?? NULL);
@@ -617,16 +636,16 @@ class Sales extends MY_Controller
       if (isAJAX()) {
         sendJSON(['success' => 1, 'message' => lang('sale_deleted')]);
       }
-      $this->session->set_flashdata('message', lang('sale_deleted'));
-      redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+      XSession::set_flash('message', lang('sale_deleted'));
+      redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
     }
   }
 
   public function delete_payment($id = null)
   {
     if (!$this->Owner && !$this->Admin && !getPermission('sales-delete')) {
-      $this->session->set_flashdata('error', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+      XSession::set_flash('error', lang('access_denied'));
+      redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
     }
 
     if (getGET('id')) {
@@ -634,24 +653,24 @@ class Sales extends MY_Controller
     }
 
     if ($this->site->deletePayment($id)) {
-      $this->session->set_flashdata('message', lang('payment_deleted'));
-      redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+      XSession::set_flash('message', lang('payment_deleted'));
+      redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
     } else {
-      $this->session->set_flashdata('error', lang('payment_not_deleted'));
-      redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+      XSession::set_flash('error', lang('payment_not_deleted'));
+      redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
     }
   }
 
   public function deletePayment()
   {
     if ($this->requestMethod == 'POST' && $this->input->is_ajax_request()) {
-      $paymentId = getPOST('id');
+      $paymentId = getPost('id');
 
       $sale = $this->site->getSaleByPaymentID($paymentId);
 
       if ($this->site->deletePayment($paymentId) && $sale) {
         $hMutex = mutexCreate('syncSales', TRUE);
-        $this->site->syncSales(['sale_id' => $sale->id]);
+        Sale::sync(['sale_id' => $sale->id]);
         mutexRelease($hMutex);
         sendJSON(['error' => 0, 'msg' => 'Payment has been deleted successfully.']);
       }
@@ -663,7 +682,7 @@ class Sales extends MY_Controller
   public function deleteSalesTBPayment()
   {
     if ($this->requestMethod == 'POST' && $this->input->is_ajax_request()) {
-      $salesTBId = getPOST('val');
+      $salesTBId = getPost('val');
 
       if ($salesTBId) {
         $success = 0;
@@ -700,9 +719,9 @@ class Sales extends MY_Controller
     checkPermission('sales-add_discount_payment');
 
     if ($this->requestMethod == 'POST') {
-      $vals = getPOST('val'); // val[]
-      $disc = getPOST('discount'); // 10
-      $bankId = getPOST('bank'); // bank_id
+      $vals = getPost('val'); // val[]
+      $disc = getPost('discount'); // 10
+      $bankId = getPost('bank'); // bank_id
 
       if ($vals && is_array($vals)) {
         $failed  = 0;
@@ -729,7 +748,7 @@ class Sales extends MY_Controller
               'type'       => 'received'
             ]);
             $hMutex = mutexCreate('syncSales', TRUE);
-            $this->site->syncSales(['sale_id' => $sale->id]);
+            Sale::sync(['sale_id' => $sale->id]);
             mutexRelease($hMutex);
             $success++;
           } else {
@@ -767,37 +786,30 @@ class Sales extends MY_Controller
         $this->editMode == 'operator' && !getPermission('sales-edit_operator')
       ) {
         if ($sale->status != 'draft' || $sale->created_by != XSession::get('user_id')) {
-          $this->session->set_flashdata('error', lang('access_denied'));
-          redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+          XSession::set_flash('error', lang('access_denied'));
+          redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
         }
       }
     }
 
-    $this->form_validation->set_message('is_natural_no_zero', lang('no_zero_required'));
-    $this->form_validation->set_rules('reference', lang('reference'), 'required');
-    $this->form_validation->set_rules('customer', lang('customer'), 'required');
-    $this->form_validation->set_rules('biller', lang('biller'), 'required');
-    $this->form_validation->set_rules('status', lang('status'), 'required');
-    $this->form_validation->set_rules('payment_status', lang('payment_status'), 'required');
-
-    if ($this->form_validation->run() == true) {
-      $approved         = (getPOST('approved') == 1 ? 1 : 0);
-      $draft_type       = (getPOST('draft_type') == 1 ? TRUE : FALSE);
-      $reference        = getPOST('reference');
-      $no_po            = getPOST('no_po');
-      $date             = filterDateTime(getPOST('date'));
-      $discount         = getPOST('discount');
-      $warehouse_id     = getPOST('warehouse');
-      $customer_id      = getPOST('customer');
-      $created_by       = getPOST('created_by');
-      $biller_id        = getPOST('biller');
-      $status           = getPOST('status');
-      $payment_status   = getPOST('payment_status');
-      $payment_term     = getPOST('payment_term');
+    if ($this->requestMethod == 'POST') {
+      $approved         = (getPost('approved') == 1 ? 1 : 0);
+      $draft_type       = (getPost('draft_type') == 1 ? TRUE : FALSE);
+      $reference        = getPost('reference');
+      $no_po            = getPost('no_po');
+      $date             = filterDateTime(getPost('date'));
+      $discount         = getPost('discount');
+      $warehouse_id     = getPost('warehouse');
+      $customer_id      = getPost('customer');
+      $created_by       = getPost('created_by');
+      $biller_id        = getPost('biller');
+      $status           = getPost('status');
+      $payment_status   = getPost('payment_status');
+      $payment_term     = getPost('payment_term');
       $payment_term     = (!empty($payment_term) ? $payment_term : 1); // Default to 1 if not set.
       $customer = $this->site->getCustomerByID($customer_id);
-      $note             = htmlEncode(getPOST('note', FALSE));
-      $uriCallback      = getPOST('uri_callback');
+      $note             = htmlEncode(getPost('note', FALSE));
+      $uriCallback      = getPost('uri_callback');
 
       $total            = 0;
       $i                = isset($_POST['product_code']) ? sizeof($_POST['product_code']) : 0;
@@ -806,8 +818,8 @@ class Sales extends MY_Controller
 
       // Overdate Protection.
       if (strtotime($date) > now()) {
-        // $this->session->set_flashdata('error', 'DO NOT TRY TO CHEATING.');
-        // redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+        // XSession::set_flash('error', 'DO NOT TRY TO CHEATING.');
+        // redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
       }
 
       // If draft sale.
@@ -818,7 +830,7 @@ class Sales extends MY_Controller
       }
 
       $dates = [];
-      $sale_items = [];
+      $saleItems = [];
 
       for ($r = 0; $r < $i; $r++) {
         $item_id            = $_POST['product_id'][$r];
@@ -836,8 +848,8 @@ class Sales extends MY_Controller
         $item_completed_at  = $_POST['completed_at'][$r];
 
         if (empty($item_due_date) && !empty($saleJS->est_complete_date)) {
-          $this->session->set_flashdata('error', 'Mohon masukkan Due Date!');
-          redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+          XSession::set_flash('error', 'Mohon masukkan Due Date!');
+          redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
         }
 
         // If current sale status == preparing and changed to waiting production, add due date.
@@ -850,8 +862,8 @@ class Sales extends MY_Controller
         }
 
         if (!$this->Owner && !$this->Admin && empty($item_operator)) {
-          $this->session->set_flashdata('error', 'Mohon masukkan Operator!');
-          redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+          XSession::set_flash('error', 'Mohon masukkan Operator!');
+          redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
         }
 
         // If category Design and type Service then always completed. Ex. JASA EDIT DESIGN
@@ -863,17 +875,16 @@ class Sales extends MY_Controller
           $item_w = $_POST['w'][$r];
           $item_l = $_POST['l'][$r];
         } else {
-          $item_w = 0.0;
-          $item_l = 0.0;
+          $item_w = 1;
+          $item_l = 1;
         }
 
         if (isset($item_code) && isset($unit_price) && isset($item_quantity)) {
-          $sale_item = [
+          $saleItem = [
             'product_id'   => $item_id,
             'price'        => $unit_price,
             'quantity'     => $item_subquantity,
             'finished_qty' => $item_finished_qty,
-            'warehouse_id' => $warehouse_id,
             'width'        => $item_w,
             'length'       => $item_l,
             'spec'         => $item_spec,
@@ -884,14 +895,10 @@ class Sales extends MY_Controller
           ];
 
           $dates[]      = $item_due_date;
-          $sale_items[] = $sale_item;
+          $saleItems[] = $saleItem;
 
           $total += roundDecimal($unit_price * $item_quantity);
         }
-      }
-
-      if (empty($sale_items)) {
-        $this->form_validation->set_rules('product', lang('order_items'), 'required');
       }
 
       $saleData = [
@@ -922,39 +929,43 @@ class Sales extends MY_Controller
         // die();
       }
 
+      DB::transStart();
+
       $uploader = new FileUpload();
 
       if ($uploader->has('document')) {
         if ($uploader->getSize('mb') > 2) {
-          $this->session->set_flashdata('error', 'Besar attachment tidak boleh lebih dari 2MB.');
-          redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
+          XSession::set_flash('error', 'Besar attachment tidak boleh lebih dari 2MB.');
+          redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
         }
 
         $saleData['attachment'] = $uploader->storeRandom();
       } else if (!$this->Owner && !$this->Admin) {
         // Prevent CS create sale without attachment for Customer TOP.
         if ($customer_group_name == 'top' && !$sale->attachment) {
-          $this->session->set_flashdata('error', lang('top_no_attachment'));
-          redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
+          XSession::set_flash('error', lang('top_no_attachment'));
+          redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales/add');
         }
       }
 
-      if ($this->site->updateSale($id, $saleData, $sale_items)) {
+      if (Sale::update((int)$id, $saleData, $saleItems)) {
         $hMutex = mutexCreate('syncSales', TRUE);
-        $this->site->syncSales(['sale_id' => $id]);
+        Sale::sync(['sale_id' => $id]);
         mutexRelease($hMutex);
 
-        $this->session->set_userdata('remove_slls', 1);
+        XSession::set_flash('remove_slls', 1);
         if ($draft_type) {
-          $this->session->set_flashdata('message', lang('draft_sale_saved'));
+          XSession::set_flash('message', lang('draft_sale_saved'));
         } else {
-          $this->session->set_flashdata('message', lang('sale_edited'));
+          XSession::set_flash('message', lang('sale_edited'));
         }
       }
 
-      redirect('admin/sales');
+      DB::transComplete();
+
+      redirect_to('admin/sales');
     } else {
-      $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+      $this->data['error'] = (validation_errors() ? validation_errors() : XSession::get('error'));
       $sale = $this->site->getSaleByID($id);
       $customer = Customer::getRow(['id' => $sale->customer_id]);
 
@@ -963,8 +974,8 @@ class Sales extends MY_Controller
 
       if ($this->Settings->disable_editing) {
         if ($this->data['inv']->date <= date('Y-m-d', strtotime('-' . $this->Settings->disable_editing . ' days'))) {
-          $this->session->set_flashdata('error', sprintf(lang('sale_x_edited_older_than_x_days'), $this->Settings->disable_editing));
-          redirect($_SERVER['HTTP_REFERER']);
+          XSession::set_flash('error', sprintf(lang('sale_x_edited_older_than_x_days'), $this->Settings->disable_editing));
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
       }
 
@@ -1088,8 +1099,8 @@ class Sales extends MY_Controller
     $user = $this->site->getUserByID($sale->created_by);
 
     if (!$this->Owner && !$this->Admin && $user->username != 'w2p') {
-      $this->session->set_flashdata('error', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
+      XSession::set_flash('error', lang('access_denied'));
+      redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
     }
 
     $this->editMode = 'operator';
@@ -1106,16 +1117,12 @@ class Sales extends MY_Controller
     $payment = $this->site->getPaymentByID($payment_id);
     $sale = $this->site->getSaleByPaymentID($payment_id);
 
-    $this->form_validation->set_rules('amount', lang('amount'), 'required');
-    $this->form_validation->set_rules('payment_method', lang('payment_method'), 'required');
-    $this->form_validation->set_rules('userfile', lang('attachment'), 'xss_clean');
-
-    if ($this->form_validation->run() == true && $this->input->is_ajax_request()) {
-      $bank_id                 = getPOST('bank_id');
-      $created_by              = getPOST('created_by');
-      $date                    = $this->sma->fld(getPOST('date'));
-      $payment_method          = getPOST('payment_method');
-      $skip_payment_validation = (getPOST('skip_payment_validation') ? TRUE : FALSE);
+    if ($this->requestMethod == 'POST' && isAJAX()) {
+      $bank_id                 = getPost('bank_id');
+      $created_by              = getPost('created_by');
+      $date                    = $this->sma->fld(getPost('date'));
+      $payment_method          = getPost('payment_method');
+      $skip_payment_validation = (getPost('skip_payment_validation') ? TRUE : FALSE);
       $user                    = $this->site->getUserByID($created_by);
       $customer                = $this->site->getCustomerByID($sale->customer_id);
 
@@ -1131,10 +1138,10 @@ class Sales extends MY_Controller
         'date'          => $date,
         'sale_id'       => $sale->id,
         'reference'     => $sale->reference,
-        'amount'        => roundDecimal(getPOST('amount')),
+        'amount'        => roundDecimal(getPost('amount')),
         'bank_id'       => $bank_id,
         'method'        => $payment_method, // Cash / EDC / Transfer
-        'note'          => $this->sma->clear_tags(getPOST('note')),
+        'note'          => $this->sma->clear_tags(getPost('note')),
         'created_by'    => ($created_by ?? XSession::get('user_id')),
         'type'          => 'received'
       ];
@@ -1159,7 +1166,7 @@ class Sales extends MY_Controller
             'payment_status' => 'waiting_transfer'
           ]);
           $hMutex = mutexCreate('syncSales', TRUE);
-          $this->site->syncSales(['sale_id' => $data['sale_id']]);
+          Sale::sync(['sale_id' => $data['sale_id']]);
           mutexRelease($hMutex);
           sendJSON(['error' => 0, 'msg' => lang('payment_validation_added')]);
         } else {
@@ -1171,27 +1178,27 @@ class Sales extends MY_Controller
 
       if ($uploader->has('userfile')) {
         if ($uploader->getSize('mb') > 2) {
-          XSession::set('error', 'Attachment tidak boleh lebih dari 2MB.');
+          XSession::set_flash('error', 'Attachment tidak boleh lebih dari 2MB.');
           admin_redirect($_SERVER['HTTP_REFERER']);
         }
 
         $payment['attachment'] = $uploader->storeRandom();
       }
-    } elseif (getPOST('edit_payment')) {
+    } elseif (getPost('edit_payment')) {
       sendJSON(['error' => 1, 'msg' => validation_errors()]);
     }
 
-    if ($this->form_validation->run() == true) {
+    if ($this->requestMethod == 'POST' && isAJAX()) {
       if ($this->site->updatePayment($payment_id, $data_payment)) { // Sales Add Payment.
         $hMutex = mutexCreate('syncSales', TRUE);
-        $this->site->syncSales(['sale_id' => $sale->id]);
+        Sale::sync(['sale_id' => $sale->id]);
         mutexRelease($hMutex);
         sendJSON(['error' => 0, 'msg' => lang('payment_edited')]);
       } else {
         sendJSON(['error' => 1, 'msg' => 'Failed to update payment']);
       }
     } else {
-      if (getPOST('edit_payment')) {
+      if (getPost('edit_payment')) {
         sendJSON(['error' => 1, 'msg' => 'Failed to update payment.']);
       }
       $payment_validation = $this->site->getPaymentValidationBySaleID($sale->id);
@@ -1205,101 +1212,6 @@ class Sales extends MY_Controller
 
       $this->load->view($this->theme . 'sales/edit_payment', $this->data);
     }
-  }
-
-  public function email($id = null)
-  {
-    $this->sma->checkPermissions(false, true);
-
-    if ($this->email_sale($id)) {
-      $this->session->set_flashdata('message', lang('email_sent'));
-      admin_redirect('sales');
-    }
-  }
-
-  public function email_payment($id = null)
-  {
-    $this->sma->checkPermissions('payments', true);
-    $payment              = $this->site->getPaymentByID($id);
-    $inv                  = $this->site->getSaleByID($payment->sale_id);
-    $this->data['biller'] = $this->site->getBillerByID($inv->biller_id);
-    $customer             = $this->site->getCustomerByID($inv->customer_id);
-    if (!$customer->email) {
-      sendJSON(['msg' => lang('update_customer_email')]);
-    }
-    $this->data['inv']        = $inv;
-    $this->data['payment']    = $payment;
-    $this->data['customer']   = $customer;
-    $this->data['page_title'] = lang('payment_note');
-    $html                     = $this->load->view($this->theme . 'sales/payment_note', $this->data, true);
-
-    $html = str_replace(['<i class="fad fa-2x">&times;</i>', 'modal-', '<p>&nbsp;</p>', '<p style="border-bottom: 1px solid #666;">&nbsp;</p>', '<p>' . lang('stamp_sign') . '</p>'], '', $html);
-    $html = preg_replace("/<img[^>]+\>/i", '', $html);
-    // $html = '<div style="border:1px solid #DDD; padding:10px; margin:10px 0;">'.$html.'</div>';
-
-    $this->load->library('parser');
-    $parse_data = [
-      'stylesheet' => '<link href="' . $this->data['assets'] . 'styles/helpers/bootstrap.min.css" rel="stylesheet"/>',
-      'name'       => $customer->name,
-      'email'      => $customer->email,
-      'heading'    => lang('payment_note') . '<hr>',
-      'msg'        => $html,
-      'site_link'  => base_url(),
-      'site_name'  => $this->Settings->site_name,
-      'logo'       => '<img src="' . base_url('assets/uploads/logos/' . $this->Settings->logo) . '" alt="' . $this->Settings->site_name . '"/>',
-    ];
-    $msg     = file_get_contents('./themes/' . $this->Settings->theme . '/admin/views/email_templates/email_con.html');
-    $message = $this->parser->parse_string($msg, $parse_data);
-    $subject = lang('payment_note') . ' - ' . $this->Settings->site_name;
-
-    if ($this->sma->send_email($customer->email, $subject, $message)) {
-      sendJSON(['msg' => lang('email_sent')]);
-    } else {
-      sendJSON(['msg' => lang('email_failed')]);
-    }
-  }
-
-  public function email_sale($id)
-  {
-    $sale = $this->site->getSaleByID($id);
-    $customer = $this->site->getCustomerByID($sale->customer_id);
-    if (empty($customer->email)) {
-      $this->session->set_flashdata('error', "Customer doesn't have an email.");
-      redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
-    }
-    $data_mail = [
-      'customer_name'   => $customer->name,
-      'trackorder_link' => 'https://indoprinting.co.id/trackorder?inv=' . $sale->reference . '&phone=' . $customer->phone . '&submit=1'
-    ];
-    if ($this->sma->sendMail('sale', [
-      'to' => $customer->email,
-      'subject' => 'Indoprinting Invoice ' . $sale->reference
-    ], $data_mail)) {
-      return TRUE;
-    }
-    redirect($_SERVER['HTTP_REFERER'] ?? 'admin/sales');
-  }
-
-  public function email_sale_status($id, $item_status)
-  {
-    $sale = $this->site->getSaleByID($id);
-    $customer = $this->site->getCustomerByID($sale->customer_id);
-    if (!$customer->email) {
-      return FALSE;
-    }
-    $data_mail = [
-      'customer_name'   => $customer->name,
-      'invoice_no'      => $sale->reference,
-      'item_status'     => $item_status,
-      'trackorder_link' => 'https://indoprinting.co.id/trackorder?inv=' . $sale->reference . '&phone=' . $customer->phone . '&submit=1'
-    ];
-    if ($this->sma->sendMail('sale_status', [
-      'to' => $customer->email,
-      'subject' => 'Indoprinting Invoice ' . $sale->reference . ' [' . $item_status . ']'
-    ], $data_mail)) {
-      return TRUE;
-    }
-    return FALSE;
   }
 
   public function getSales() // warehouse_id
@@ -1318,6 +1230,16 @@ class Sales extends MY_Controller
     $end_date       = getGET('end_date');
     $group_by       = getGET('group_by')   ?? 'sale';
     $xls            = (getGET('xls') == 1 ? TRUE : FALSE);
+
+    $startDate  = getGET('start_date');
+    $endDate    = getGET('end_date');
+
+    if (!$startDate && !$endDate) {
+      $period = getLastMonthPeriod();
+
+      $startDate  = $period['start_date'];
+      $endDate    = $period['end_date'];
+    }
 
     if (!$this->Owner && !$this->Admin && XSession::get('biller_id')) {
       $user = $this->site->getUserByID(XSession::get('user_id'));
@@ -1366,6 +1288,12 @@ class Sales extends MY_Controller
       . lang('actions') . ' <span class="caret"></span></button>
     <ul class="dropdown-menu dropdown-menu-right" role="menu">
       <li>' . $add_payment_link . '</li>';
+
+    if ($this->Owner || $this->Admin) {
+      $action .= '<li><a href="' . admin_url('sales/activate/$1') . '" data-action="confirm"
+        data-message="Nonaktifkan / Aktifkan Sale?" data-title="Activate / Deactivate Sale">
+        <i class="fad fa-fw fa-check"></i> Activate/Deactivate</a></li>';
+    }
 
     if ($this->isAdmin || getPermission('sales-add')) {
       $action .= '<li>' . $approve_link . '</li>';
@@ -1444,9 +1372,9 @@ class Sales extends MY_Controller
         ->join('customers', 'customers.id=sales.customer_id', 'left')
         ->join("(
             SELECT id, sale_id FROM payment_validations
-            WHERE status LIKE 'pending' OR status LIKE 'expired'
-            ORDER BY date DESC
-            ) pv", 'pv.sale_id=sales.id', 'left')
+            WHERE status LIKE 'pending'
+            ORDER BY id DESC
+            ) pv", 'pv.sale_id = sales.id', 'left')
         ->join('warehouses', 'warehouses.id=sales.warehouse_id', 'left');
 
       if ($reference) {
@@ -1483,15 +1411,11 @@ class Sales extends MY_Controller
       }
 
       if ($start_date) {
-        $start_date = $start_date . ' 00:00:00';
-        $end_date   = $end_date . ' 23:59:59';
-        $this->datatables->where("sales.date BETWEEN '{$start_date}' AND '{$end_date}'");
+        $this->datatables->where("sales.date BETWEEN '{$start_date} 00:00:00' AND '{$end_date} 23:59:59'");
       } else { // For optimizing Query.
         // $period = getCurrentMonthPeriod();
         $period = getLastMonthPeriod();
-        $start_date = $period['start_date'] . ' 00:00:00';
-        $end_date   = $period['end_date'] . ' 23:59:59';
-        $this->datatables->where("sales.date BETWEEN '{$start_date}' AND '{$end_date}'");
+        $this->datatables->where("sales.date BETWEEN '{$period['start_date']} 00:00:00' AND '{$period['end_date']} 23:59:59'");
       }
 
       if (getGET('attachment') == 'yes') {
@@ -1896,7 +1820,7 @@ class Sales extends MY_Controller
   {
     $this->sma->checkPermissions('index', NULL, 'sales');
 
-    $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+    $this->data['error'] = (validation_errors()) ? validation_errors() : XSession::get('error');
 
     $biller_id    = getGET('biller');
     $warehouse_id = getGET('warehouse');
@@ -1931,7 +1855,7 @@ class Sales extends MY_Controller
   {
     $this->sma->checkPermissions('index');
 
-    $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+    $this->data['error'] = (validation_errors()) ? validation_errors() : XSession::get('error');
     if ($this->Owner || $this->Admin || !XSession::get('warehouse_id')) {
       $this->data['warehouses']   = $this->site->getAllWarehouses();
       $this->data['warehouse_id'] = $warehouse_id;
@@ -1958,7 +1882,7 @@ class Sales extends MY_Controller
     if (getGET('id')) {
       $id = getGET('id');
     }
-    $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+    $this->data['error'] = (validation_errors()) ? validation_errors() : XSession::get('error');
     $sale_item           = $this->site->getSaleItemByID($id);
     $inv                 = $this->site->getSaleByID($sale_item->sale_id);
     if (!XSession::get('view_right')) {
@@ -1987,16 +1911,14 @@ class Sales extends MY_Controller
       $sale_id = getGET('id');
     }
 
-    $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+    $this->data['error'] = (validation_errors()) ? validation_errors() : XSession::get('error');
     $inv = $this->site->getSaleByID($sale_id);
 
     if (!XSession::get('view_right')) {
       $this->sma->view_rights($inv->created_by, true);
     }
 
-    $hMutex = mutexCreate('syncSales', TRUE);
-    $this->site->syncSales(['sale_id' => $sale_id]);
-    mutexRelease($hMutex);
+    Sale::sync(['id' => $sale_id]);
 
     $this->data['payments']    = $this->site->getPaymentsBySaleID($sale_id);
     $this->data['customer']    = $this->site->getCustomerByID($inv->customer_id);
@@ -2075,7 +1997,7 @@ class Sales extends MY_Controller
   public function processSalesTBPayment()
   {
     if ($this->requestMethod == 'POST' && $this->input->is_ajax_request()) {
-      $salesTBId = getPOST('val');
+      $salesTBId = getPost('val');
 
       if ($salesTBId) {
         $success = 0;
@@ -2105,7 +2027,7 @@ class Sales extends MY_Controller
    */
   public function revertSaleStatus()
   {
-    $sale_id = getPOST('sale');
+    $sale_id = getPost('sale');
 
     if (!$this->Owner && !$this->Admin) {
       sendJSON(['error' => 1, 'msg' => 'You do not have permissions.']);
@@ -2113,6 +2035,10 @@ class Sales extends MY_Controller
 
     if ($sale_id) {
       $sale = Sale::getRow(['id' => $sale_id]);
+
+      if (!$sale) {
+        sendJSON(['error' => 1, 'msg' => 'Invoice is not found.']);
+      }
 
       $firstMonthDate = strtotime(date('Y-m-') . '01 00:00:00');
       $invDate = strtotime($sale->date);
@@ -2142,7 +2068,7 @@ class Sales extends MY_Controller
           }
 
           $hMutex = mutexCreate('syncSales', TRUE);
-          $this->site->syncSales(['sale_id' => $sale_id]);
+          Sale::sync(['sale_id' => $sale_id]);
           mutexRelease($hMutex);
 
           sendJSON(['error' => 0, 'msg' => "Sale '{$sale->reference}' has been reverted successfully."]);
@@ -2302,7 +2228,7 @@ class Sales extends MY_Controller
     if (getGET('id')) {
       $id = getGET('id');
     }
-    $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+    $this->data['error'] = (validation_errors()) ? validation_errors() : XSession::get('error');
     $inv                 = $this->site->getSaleByID($id);
     if (!XSession::get('view_right')) {
       $this->sma->view_rights($inv->created_by, true);
@@ -2330,7 +2256,7 @@ class Sales extends MY_Controller
       $sale = $this->site->getSaleByID($sale_id);
 
       $hMutex = mutexCreate('syncSales', TRUE);
-      $this->site->syncSales(['sale_id' => $sale->id]);
+      Sale::sync(['sale_id' => $sale->id]);
       mutexRelease($hMutex);
       sendJSON(['error' => 0, 'msg' => 'Sync sale success.']);
     } else {
@@ -2339,7 +2265,7 @@ class Sales extends MY_Controller
       $hMutex = mutexCreate('syncSales', TRUE);
 
       foreach ($sales as $sale) {
-        $this->site->syncSales(['sale_id' => $sale->id]);
+        Sale::sync(['sale_id' => $sale->id]);
       }
 
       mutexRelease($hMutex);
@@ -2439,19 +2365,19 @@ class Sales extends MY_Controller
     $this->form_validation->set_rules('status', lang('status'), 'required');
 
     $hMutex = mutexCreate('syncSales', TRUE);
-    $this->site->syncSales(['sale_id' => $id]); // New added to sync sales.
+    Sale::sync(['sale_id' => $id]); // New added to sync sales.
     mutexRelease($hMutex);
 
     if ($this->requestMethod == 'POST') {
-      $status = getPOST('status');
-      $note   = $this->sma->clear_tags(getPOST('note'));
-    } elseif (getPOST('update')) {
-      $this->session->set_flashdata('error', validation_errors());
+      $status = getPost('status');
+      $note   = $this->sma->clear_tags(getPost('note'));
+    } elseif (getPost('update')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect($_SERVER['HTTP_REFERER'] ?? 'sales');
     }
 
     if ($this->requestMethod == 'POST' && $this->site->updateSaleStatus($id, $status, $note)) {
-      $this->session->set_flashdata('message', lang('status_updated'));
+      XSession::set_flash('message', lang('status_updated'));
       admin_redirect($_SERVER['HTTP_REFERER'] ?? 'sales');
     } else {
       $inv                      = $this->site->getSaleByID($id);
@@ -2470,7 +2396,7 @@ class Sales extends MY_Controller
     if (getGET('id')) {
       $id = getGET('id');
     }
-    $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
+    $this->data['error'] = (validation_errors()) ? validation_errors() : XSession::get('error');
     $inv                 = $this->site->getSaleByID($id);
     if (!XSession::get('view_right')) {
       $this->sma->view_rights($inv->created_by);

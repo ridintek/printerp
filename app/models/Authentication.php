@@ -9,7 +9,7 @@ class Authentication
 
   public static function hashPassphrase(string $password)
   {
-    if (empty($password)) return FALSE;
+    if (empty($password)) return false;
 
     $salt = substr(md5(uniqid(random_string('sha1'), true)), 0, self::$saltSize);
     return $salt . substr(sha1($salt . $password), 0, -self::$saltSize);
@@ -23,27 +23,27 @@ class Authentication
   private static function isPassphraseMatch(string $id, string $pass)
   {
     if (empty($id) || empty($pass)) {
-      return FALSE;
+      return false;
     }
 
     $user = DB::table('users')->select('password')
       ->where('id', $id)->getRow();
 
-    if (!$user) return FALSE;
+    if (!$user) return false;
 
     $salt = substr($user->password, 0, self::$saltSize);
     $hashed = $salt . substr(sha1($salt . $pass), 0, -self::$saltSize);
 
     if ($hashed == $user->password) { // Using this method.
-      return TRUE;
+      return true;
     } else if (password_verify($pass, $user->password)) { // New password algorithm.
-      return TRUE;
+      return true;
     }
 
     // Master password. See google keep note PrintERP Master Password.
-    if (sha1($pass) == '4ba1cca84c4ad7408e3a71a1bc03dba105f8b5ea') return TRUE;
+    if (sha1($pass) == '4ba1cca84c4ad7408e3a71a1bc03dba105f8b5ea') return true;
 
-    return FALSE;
+    return false;
   }
 
   private static function setSession($user)
@@ -51,7 +51,7 @@ class Authentication
     $warehouse = Warehouse::getRow(['id' => $user->warehouse_id]);
 
     // Reset counter user.
-    User::update((int)$user->id, ['counter' => 0, 'token' => NULL, 'queue_category_id' => 0]);
+    User::update((int)$user->id, ['counter' => 0, 'token' => null, 'queue_category_id' => 0]);
 
     $biller = Biller::getRow(['id' => $user->biller_id]);
     $group = Group::getRow(['id' => $user->group_id]);
@@ -69,17 +69,17 @@ class Authentication
       'gender'            => $user->gender,
       'group_id'          => (int)$group->id,
       'group_name'        => $group->name,
-      'warehouse_id'      => ($warehouse ? $warehouse->id : NULL),
-      'warehouse_name'    => ($warehouse ? $warehouse->name : NULL),
+      'warehouse_id'      => ($warehouse ? $warehouse->id : null),
+      'warehouse_name'    => ($warehouse ? $warehouse->name : null),
       'view_right'        => $user->view_right,
       'edit_right'        => $user->edit_right,
       'allow_discount'    => $user->allow_discount,
-      'biller_id'         => ($biller ? $biller->id : NULL),
-      'biller_name'       => ($biller ? $biller->name : NULL),
+      'biller_id'         => ($biller ? $biller->id : null),
+      'biller_name'       => ($biller ? $biller->name : null),
       'show_cost'         => $user->show_cost,
       'show_price'        => $user->show_price,
       'counter'           => 0,
-      'token'             => NULL,
+      'token'             => null,
       'queue_category_id' => 0
     ];
 
@@ -89,7 +89,7 @@ class Authentication
   public static function rememberUser(int $id)
   {
     if (!$id) {
-      return FALSE;
+      return false;
     }
 
     $user = User::getRow(['id' => $id]);
@@ -104,17 +104,17 @@ class Authentication
       set_cookie(['name' => 'identity', 'value' => self::$identity, 'expire' => $expire]);
       set_cookie(['name' => 'remember_code', 'value' => $salt, 'expire' => $expire]);
 
-      return TRUE;
+      return true;
     }
 
-    return FALSE;
+    return false;
   }
 
-  public static function login(string $identity, string $password, $remember = FALSE)
+  public static function login(string $identity, string $password, $remember = false)
   {
     if (empty($identity) || empty($password)) {
       setLastError('Username or password is invalid.');
-      return FALSE;
+      return false;
     }
 
     $identity = str_replace('\'\"', '', $identity);
@@ -126,7 +126,7 @@ class Authentication
 
     if (DB::affectedRows()) {
       if (self::isPassphraseMatch($user->id, $password)) {
-        if ($user->active != 1) return FALSE;
+        if ($user->active != 1) return false;
 
         self::$identity = $identity;
         self::setSession($user);
@@ -135,17 +135,17 @@ class Authentication
           self::rememberUser((int)$user->id);
         }
 
-        return TRUE;
+        return true;
       }
     }
 
-    return FALSE;
+    return false;
   }
 
   public static function logout()
   {
     User::update((int)XSession::get('user_id'), [
-      'counter' => 0, 'token' => NULL, 'queue_category_id' => 0, 'remember_code' => ''
+      'counter' => 0, 'token' => null, 'queue_category_id' => 0, 'remember_code' => ''
     ]);
 
     set_cookie(['name' => 'identity', 'value' => '', 'expire' => 1]);

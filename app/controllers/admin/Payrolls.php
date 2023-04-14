@@ -46,9 +46,9 @@ class Payrolls extends MY_Controller
   private function categories_add()
   {
     if ($this->requestMethod == 'POST') {
-      $code = getPOST('code');
-      $name = getPOST('name');
-      $type = getPOST('type');
+      $code = getPost('code');
+      $name = getPost('name');
+      $type = getPost('type');
 
       $category_data = [
         'code' => $code,
@@ -67,7 +67,7 @@ class Payrolls extends MY_Controller
 
   private function categories_delete()
   {
-    $id = getPOST('id');
+    $id = getPost('id');
 
     if ($this->site->deletePayrollCategory($id)) {
       sendJSON(['error' => 0, 'msg' => 'Payroll Category has been deleted successfully.']);
@@ -78,10 +78,10 @@ class Payrolls extends MY_Controller
   private function categories_edit()
   {
     if ($this->requestMethod == 'POST') {
-      $id   = getPOST('id');
-      $code = getPOST('code');
-      $name = getPOST('name');
-      $type = getPOST('type');
+      $id   = getPost('id');
+      $code = getPost('code');
+      $name = getPost('name');
+      $type = getPost('type');
 
       $category_data = [
         'code' => $code,

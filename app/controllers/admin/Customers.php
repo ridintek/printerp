@@ -25,46 +25,46 @@ class Customers extends MY_Controller
     $this->form_validation->set_rules('email', lang('email'), 'required|trim|valid_email');
 
     if ($this->form_validation->run() == true) {
-      $cg   = $this->site->getCustomerGroupByID(getPOST('customer_group'));
-      $pg   = $this->site->getPriceGroupByID(getPOST('price_group'));
+      $cg   = $this->site->getCustomerGroupByID(getPost('customer_group'));
+      $pg   = $this->site->getPriceGroupByID(getPost('price_group'));
       $data = [
-        'name'                => getPOST('name'),
-        'email'               => getPOST('email'),
+        'name'                => getPost('name'),
+        'email'               => getPost('email'),
         'group_id'            => '3',
         'group_name'          => 'customer',
-        'customer_group_id'   => getPOST('customer_group'),
+        'customer_group_id'   => getPost('customer_group'),
         'customer_group_name' => $cg->name,
-        'price_group_id'      => getPOST('price_group') ? getPOST('price_group') : null,
-        'price_group_name'    => getPOST('price_group') ? $pg->name : null,
-        'company'             => getPOST('company'),
-        'address'             => getPOST('address'),
-        'city'                => getPOST('city'),
-        'state'               => getPOST('state'),
-        'postal_code'         => getPOST('postal_code'),
-        'country'             => getPOST('country'),
-        'phone'               => getPOST('phone'),
-        'payment_term'        => (!empty(getPOST('payment_term')) ? getPOST('payment_term') : 1),
+        'price_group_id'      => getPost('price_group') ? getPost('price_group') : null,
+        'price_group_name'    => getPost('price_group') ? $pg->name : null,
+        'company'             => getPost('company'),
+        'address'             => getPost('address'),
+        'city'                => getPost('city'),
+        'state'               => getPost('state'),
+        'postal_code'         => getPost('postal_code'),
+        'country'             => getPost('country'),
+        'phone'               => getPost('phone'),
+        'payment_term'        => (!empty(getPost('payment_term')) ? getPost('payment_term') : 1),
         'json_data' => json_encode([
-          'notify_wa' => getPOST('notify_wa'),
-          'shipaddr' => getPOST('shipaddr')
+          'notify_wa' => getPost('notify_wa'),
+          'shipaddr' => getPost('shipaddr')
         ])
       ];
       if (!$this->Owner && !$this->Admin && stripos($data['company'], 'INDOPRINTING') !== FALSE) {
-        $this->session->set_flashdata('error', "Forbidden. You cannot use 'INDOPRINTING' as company.");;
-        redirect($_SERVER['HTTP_REFERER'] ?? 'admin/customers');
+        XSession::set_flash('error', "Forbidden. You cannot use 'INDOPRINTING' as company.");;
+        redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/customers');
       }
       $cust = $this->site->getCustomerByPhone($data['phone']);
       if ($cust) {
-        $this->session->set_flashdata('error', "Phone number {$data['phone']} sudah terdaftar sebelumnya.");;
-        redirect($_SERVER['HTTP_REFERER'] ?? 'admin/customers');
+        XSession::set_flash('error', "Phone number {$data['phone']} sudah terdaftar sebelumnya.");;
+        redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/customers');
       }
-    } elseif (getPOST('add_customer')) {
-      $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER'] ?? 'admin/customers');
+    } elseif (getPost('add_customer')) {
+      XSession::set_flash('error', validation_errors());
+      redirect_to($_SERVER['HTTP_REFERER'] ?? 'admin/customers');
     }
 
     if ($this->form_validation->run() == true && $cid = Customer::add($data)) {
-      $this->session->set_flashdata('message', lang('customer_added'));
+      XSession::set_flash('message', lang('customer_added'));
       $ref = isset($_SERVER['HTTP_REFERER']) ? explode('?', $_SERVER['HTTP_REFERER']) : null;
       admin_redirect($ref[0] . '?customer=' . $cid);
     } else {
@@ -88,22 +88,22 @@ class Customers extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'line1'       => getPOST('line1'),
-        'line2'       => getPOST('line2'),
-        'city'        => getPOST('city'),
-        'postal_code' => getPOST('postal_code'),
-        'state'       => getPOST('state'),
-        'country'     => getPOST('country'),
-        'phone'       => getPOST('phone'),
+        'line1'       => getPost('line1'),
+        'line2'       => getPost('line2'),
+        'city'        => getPost('city'),
+        'postal_code' => getPost('postal_code'),
+        'state'       => getPost('state'),
+        'country'     => getPost('country'),
+        'phone'       => getPost('phone'),
         'customer_id' => $customer->id,
       ];
-    } elseif (getPOST('add_address')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('add_address')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('customers');
     }
 
     if ($this->form_validation->run() == true && $this->site->addAddress($data)) {
-      $this->session->set_flashdata('message', lang('address_added'));
+      XSession::set_flash('message', lang('address_added'));
       admin_redirect('customers');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -128,29 +128,29 @@ class Customers extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       if ($this->Owner || $this->Admin) {
-        $date = $this->sma->fld(trim(getPOST('date')));
+        $date = $this->sma->fld(trim(getPost('date')));
       } else {
         $date = date('Y-m-d H:i:s');
       }
       $data = [
         'date'        => $date,
-        'amount'      => getPOST('amount'),
-        'paid_by'     => getPOST('paid_by'),
-        'note'        => getPOST('note'),
+        'amount'      => getPost('amount'),
+        'paid_by'     => getPost('paid_by'),
+        'note'        => getPost('note'),
         'customer_id' => $customer->id,
         'created_by'  => XSession::get('user_id'),
       ];
 
       $cdata = [
-        'deposit_amount' => ($customer->deposit_amount + getPOST('amount')),
+        'deposit_amount' => ($customer->deposit_amount + getPost('amount')),
       ];
-    } elseif (getPOST('add_deposit')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('add_deposit')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('customers');
     }
 
     if ($this->form_validation->run() == true && $this->site->addCustomerDeposit($data, $cdata)) {
-      $this->session->set_flashdata('message', lang('deposit_added'));
+      XSession::set_flash('message', lang('deposit_added'));
       admin_redirect('customers');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -173,28 +173,28 @@ class Customers extends MY_Controller
     $this->form_validation->set_rules('password_confirm', lang('confirm_password'), 'required');
 
     if ($this->form_validation->run('customers/add_user') == true) {
-      $active                  = getPOST('status');
-      $notify                  = getPOST('notify');
-      list($username, $domain) = explode('@', getPOST('email'));
-      $email                   = strtolower(getPOST('email'));
-      $password                = getPOST('password');
+      $active                  = getPost('status');
+      $notify                  = getPost('notify');
+      list($username, $domain) = explode('@', getPost('email'));
+      $email                   = strtolower(getPost('email'));
+      $password                = getPost('password');
       $additional_data         = [
-        'first_name'  => getPOST('first_name'),
-        'last_name'   => getPOST('last_name'),
-        'phone'       => getPOST('phone'),
-        'gender'      => getPOST('gender'),
+        'first_name'  => getPost('first_name'),
+        'last_name'   => getPost('last_name'),
+        'phone'       => getPost('phone'),
+        'gender'      => getPost('gender'),
         'customer_id' => $customer->id,
         'company'     => $customer->company,
         'group_id'    => 3,
       ];
       $this->load->library('ion_auth');
-    } elseif (getPOST('add_user')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('add_user')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('customers');
     }
 
     if ($this->form_validation->run() == true && $this->ion_auth->register($username, $password, $email, $additional_data, $active, $notify)) {
-      $this->session->set_flashdata('message', lang('user_added'));
+      XSession::set_flash('message', lang('user_added'));
       admin_redirect('customers');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -214,15 +214,15 @@ class Customers extends MY_Controller
   public function customer_actions()
   {
     if (!$this->Owner && !$this->GP['bulk_actions']) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('warning', lang('access_denied'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     $this->form_validation->set_rules('form_action', lang('form_action'), 'required');
 
     if ($this->form_validation->run() == true) {
       if (!empty($_POST['val'])) {
-        if (getPOST('form_action') == 'delete') {
+        if (getPost('form_action') == 'delete') {
           $this->sma->checkPermissions('delete', NULL, NULL, TRUE);
           $error = false;
           foreach ($_POST['val'] as $id) {
@@ -231,14 +231,14 @@ class Customers extends MY_Controller
             }
           }
           if ($error) {
-            $this->session->set_flashdata('warning', lang('customers_x_deleted_have_sales'));
+            XSession::set_flash('warning', lang('customers_x_deleted_have_sales'));
           } else {
-            $this->session->set_flashdata('message', lang('customers_deleted'));
+            XSession::set_flash('message', lang('customers_deleted'));
           }
-          redirect($_SERVER['HTTP_REFERER']);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
 
-        if (getPOST('form_action') == 'export_excel') {
+        if (getPost('form_action') == 'export_excel') {
           $this->load->library('excel');
           $this->excel->setActiveSheetIndex(0);
           $this->excel->getActiveSheet()->setTitle(lang('customer'));
@@ -277,12 +277,12 @@ class Customers extends MY_Controller
           $this->excel->export($filename);
         }
       } else {
-        $this->session->set_flashdata('error', lang('no_customer_selected'));
-        redirect($_SERVER['HTTP_REFERER']);
+        XSession::set_flash('error', lang('no_customer_selected'));
+        redirect_to($_SERVER['HTTP_REFERER']);
       }
     } else {
-      $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('error', validation_errors());
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
   }
 
@@ -291,7 +291,7 @@ class Customers extends MY_Controller
     checkPermission('customer-delete');
 
     if ($this->requestMethod == 'POST') {
-      $vals = getPOST('val'); // Array val[]
+      $vals = getPost('val'); // Array val[]
 
       if (!empty($vals) && is_array($vals)) {
         $success = 0;
@@ -330,7 +330,7 @@ class Customers extends MY_Controller
     $this->sma->checkPermissions('delete', true);
 
     if ($this->site->deleteAddress($id)) {
-      $this->session->set_flashdata('message', lang('address_deleted'));
+      XSession::set_flash('message', lang('address_deleted'));
       admin_redirect('customers');
     }
   }
@@ -379,44 +379,44 @@ class Customers extends MY_Controller
     }
 
     $customer = $this->site->getCustomerByID($id);
-    if (getPOST('email') != $customer->email) {
+    if (getPost('email') != $customer->email) {
       $this->form_validation->set_rules('code', lang('email_address'), 'is_unique[customers.email]');
     }
 
     if ($this->form_validation->run() == true) {
-      $cg   = $this->site->getCustomerGroupByID(getPOST('customer_group'));
-      $pg   = $this->site->getPriceGroupByID(getPOST('price_group'));
+      $cg   = $this->site->getCustomerGroupByID(getPost('customer_group'));
+      $pg   = $this->site->getPriceGroupByID(getPost('price_group'));
       $data = [
-        'name'                => getPOST('name'),
-        'email'               => getPOST('email'),
+        'name'                => getPost('name'),
+        'email'               => getPost('email'),
         'group_id'            => '3',
         'group_name'          => 'customer',
-        'customer_group_id'   => getPOST('customer_group'),
+        'customer_group_id'   => getPost('customer_group'),
         'customer_group_name' => $cg->name,
-        'price_group_id'      => getPOST('price_group') ? getPOST('price_group') : null,
-        'price_group_name'    => getPOST('price_group') ? $pg->name : null,
-        'company'             => getPOST('company'),
-        'address'             => getPOST('address'),
-        'city'                => getPOST('city'),
-        'state'               => getPOST('state'),
-        'postal_code'         => getPOST('postal_code'),
-        'country'             => getPOST('country'),
-        'phone'               => getPOST('phone'),
-        'payment_term'        => (!empty(getPOST('payment_term')) ? getPOST('payment_term') : 1),
-        'award_points'        => getPOST('award_points'),
+        'price_group_id'      => getPost('price_group') ? getPost('price_group') : null,
+        'price_group_name'    => getPost('price_group') ? $pg->name : null,
+        'company'             => getPost('company'),
+        'address'             => getPost('address'),
+        'city'                => getPost('city'),
+        'state'               => getPost('state'),
+        'postal_code'         => getPost('postal_code'),
+        'country'             => getPost('country'),
+        'phone'               => getPost('phone'),
+        'payment_term'        => (!empty(getPost('payment_term')) ? getPost('payment_term') : 1),
+        'award_points'        => getPost('award_points'),
         'json_data' => json_encode([
-          'notify_wa' => getPOST('notify_wa'),
-          'shipaddr' => getPOST('ship_address')
+          'notify_wa' => getPost('notify_wa'),
+          'shipaddr' => getPost('ship_address')
         ])
       ];
-    } elseif (getPOST('edit_customer')) {
-      $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+    } elseif (getPost('edit_customer')) {
+      XSession::set_flash('error', validation_errors());
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     if ($this->form_validation->run() == true && $this->site->updateCustomer($id, $data)) {
-      $this->session->set_flashdata('message', lang('customer_updated'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('message', lang('customer_updated'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     } else {
       $jsdata = json_decode($customer->json_data);
       $customer->ship_address = (!empty($jsdata->shipaddr) ? $jsdata->shipaddr : NULL);
@@ -441,22 +441,22 @@ class Customers extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'line1'       => getPOST('line1'),
-        'line2'       => getPOST('line2'),
-        'city'        => getPOST('city'),
-        'postal_code' => getPOST('postal_code'),
-        'state'       => getPOST('state'),
-        'country'     => getPOST('country'),
-        'phone'       => getPOST('phone'),
+        'line1'       => getPost('line1'),
+        'line2'       => getPost('line2'),
+        'city'        => getPost('city'),
+        'postal_code' => getPost('postal_code'),
+        'state'       => getPost('state'),
+        'country'     => getPost('country'),
+        'phone'       => getPost('phone'),
         'updated_at'  => date('Y-m-d H:i:s'),
       ];
-    } elseif (getPOST('edit_address')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('edit_address')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('customers');
     }
 
     if ($this->form_validation->run() == true && $this->site->updateCustomerAddress($id, $data)) {
-      $this->session->set_flashdata('message', lang('address_updated'));
+      XSession::set_flash('message', lang('address_updated'));
       admin_redirect('customers');
     } else {
       $this->data['address']  = $this->site->getAddressByID($id);
@@ -481,30 +481,30 @@ class Customers extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       if ($this->Owner || $this->Admin) {
-        $date = $this->sma->fld(trim(getPOST('date')));
+        $date = $this->sma->fld(trim(getPost('date')));
       } else {
         $date = $deposit->date;
       }
       $data = [
         'date'       => $date,
-        'amount'     => getPOST('amount'),
-        'paid_by'    => getPOST('paid_by'),
-        'note'       => getPOST('note'),
+        'amount'     => getPost('amount'),
+        'paid_by'    => getPost('paid_by'),
+        'note'       => getPost('note'),
         'customer_id' => $deposit->customer_id,
         'updated_by' => XSession::get('user_id'),
         'updated_at' => $date = date('Y-m-d H:i:s'),
       ];
 
       $cdata = [
-        'deposit_amount' => (($customer->deposit_amount - $deposit->amount) + getPOST('amount')),
+        'deposit_amount' => (($customer->deposit_amount - $deposit->amount) + getPost('amount')),
       ];
-    } elseif (getPOST('edit_deposit')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('edit_deposit')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('customers');
     }
 
     if ($this->form_validation->run() == true && $this->site->updateCustomerDeposit($id, $data, $cdata)) {
-      $this->session->set_flashdata('message', lang('deposit_updated'));
+      XSession::set_flash('message', lang('deposit_updated'));
       admin_redirect('customers');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -521,43 +521,43 @@ class Customers extends MY_Controller
     }
 
     $customer = $this->site->getCustomerByID($id);
-    if (getPOST('email') != $customer->email) {
+    if (getPost('email') != $customer->email) {
       $this->form_validation->set_rules('code', lang('email_address'), 'is_unique[customers.email]');
     }
 
     if ($this->form_validation->run('customers/add') == true) {
-      $cg   = $this->site->getCustomerGroupByID(getPOST('customer_group'));
-      $pg   = $this->site->getPriceGroupByID(getPOST('price_group'));
+      $cg   = $this->site->getCustomerGroupByID(getPost('customer_group'));
+      $pg   = $this->site->getPriceGroupByID(getPost('price_group'));
       $data = [
-        'name'           => getPOST('name'),
-        'email'               => getPOST('email'),
+        'name'           => getPost('name'),
+        'email'               => getPost('email'),
         'group_id'            => '3',
         'group_name'          => 'customer',
-        'customer_group_id'   => getPOST('customer_group'),
+        'customer_group_id'   => getPost('customer_group'),
         'customer_group_name' => $cg->name,
-        'price_group_id'      => getPOST('price_group') ? getPOST('price_group') : null,
-        'price_group_name'    => getPOST('price_group') ? $pg->name : null,
-        'company'             => getPOST('company'),
-        'address'             => getPOST('address'),
-        'city'                => getPOST('city'),
-        'state'               => getPOST('state'),
-        'postal_code'         => getPOST('postal_code'),
-        'country'             => getPOST('country'),
-        'phone'               => getPOST('phone'),
-        'payment_term'        => getPOST('payment_term'),
-        'award_points'        => getPOST('award_points'),
+        'price_group_id'      => getPost('price_group') ? getPost('price_group') : null,
+        'price_group_name'    => getPost('price_group') ? $pg->name : null,
+        'company'             => getPost('company'),
+        'address'             => getPost('address'),
+        'city'                => getPost('city'),
+        'state'               => getPost('state'),
+        'postal_code'         => getPost('postal_code'),
+        'country'             => getPost('country'),
+        'phone'               => getPost('phone'),
+        'payment_term'        => getPost('payment_term'),
+        'award_points'        => getPost('award_points'),
         'json_data' => json_encode([
-          'shipaddr' => getPOST('ship_address')
+          'shipaddr' => getPost('ship_address')
         ])
       ];
-    } elseif (getPOST('edit_customer')) {
-      $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+    } elseif (getPost('edit_customer')) {
+      XSession::set_flash('error', validation_errors());
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     if ($this->form_validation->run() == true && $this->site->updateCustomer($id, $data)) {
-      $this->session->set_flashdata('message', lang('customer_updated'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('message', lang('customer_updated'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     } else {
       $jsdata = json_decode($customer->json_data);
       $customer->ship_address = (isset($jsdata->shipaddr) ? $jsdata->shipaddr : NULL);
@@ -631,7 +631,6 @@ class Customers extends MY_Controller
     $this->datatables
       ->select('id, company, name, email, phone, price_group_name, customer_group_name, deposit_amount, award_points')
       ->from('customers')
-      ->where('group_name', 'customer')
       ->add_column('Actions', $action, 'id');
     //->unset_column('id');
     echo $this->datatables->generate();
@@ -657,7 +656,7 @@ class Customers extends MY_Controller
 
         if (!$this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('customers');
         }
 
@@ -682,7 +681,7 @@ class Customers extends MY_Controller
         ];
 
         if ($header_id[0] != 'ID' || $header_id[1] != 'CUSTOMER') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('customers');
         }
         foreach ($arrResult as $value) {
@@ -714,14 +713,14 @@ class Customers extends MY_Controller
           ];
 
           if (empty($customer['company']) || empty($customer['name']) || empty($customer['phone'])) {
-            $this->session->set_flashdata('error', lang('company') . ', ' . lang('name') . ', ' . lang('phone') . ' ' . lang('are_required') . ' (' . lang('line_no') . ' ' . $rw . ')');
+            XSession::set_flash('error', lang('company') . ', ' . lang('name') . ', ' . lang('phone') . ' ' . lang('are_required') . ' (' . lang('line_no') . ' ' . $rw . ')');
             admin_redirect('customers');
           } else {
             if ($customer_details = $this->site->getCustomerByPhone($customer['phone'])) { // Get customer by phone
               if ($customer_details->group_id == 3) { // If customer
                 $updated .= '<p>' . lang('customer_updated') . ' (' . $customer['name'] . ') as ' . $customer['price_group_name'] . '</p>';
                 if (!$this->site->updateCustomer($customer_details->id, $customer)) {
-                  $this->session->set_flashdata('error', 'Failed to update');
+                  XSession::set_flash('error', 'Failed to update');
                   admin_redirect('customers');
                 }
               }
@@ -732,22 +731,22 @@ class Customers extends MY_Controller
           }
         }
       }
-    } elseif (getPOST('import')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('import')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('customers');
     }
 
     if ($this->form_validation->run() == true && !empty($data)) {
       if ($this->site->addCustomers($data)) {
-        $this->session->set_flashdata('message', lang('customers_added') . $updated);
+        XSession::set_flash('message', lang('customers_added') . $updated);
         admin_redirect('customers');
       }
     } else {
       if (isset($data) && empty($data)) {
         if ($updated) {
-          $this->session->set_flashdata('message', $updated);
+          XSession::set_flash('message', $updated);
         } else {
-          $this->session->set_flashdata('warning', lang('data_x_customers'));
+          XSession::set_flash('warning', lang('data_x_customers'));
         }
         admin_redirect('customers');
       }
@@ -777,7 +776,7 @@ class Customers extends MY_Controller
 
         if (!$this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('customers');
         }
 
@@ -799,7 +798,7 @@ class Customers extends MY_Controller
         $customer_group = $this->site->getCustomerGroupByID($this->Settings->customer_group);
         $price_group    = $this->site->getPriceGroupByID($this->Settings->price_group);
         if ($header_id[0] != 'ID' || $header_id[1] != 'CUSTOMER') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('customers');
         }
         foreach ($arrResult as $key => $value) {
@@ -821,7 +820,7 @@ class Customers extends MY_Controller
             'price_group_name'    => (!empty($price_group)) ? $price_group->name : null,
           ];
           if (empty($customer['company']) || empty($customer['name']) || empty($customer['email'])) {
-            $this->session->set_flashdata('error', lang('company') . ', ' . lang('name') . ', ' . lang('email') . ' ' . lang('are_required') . ' (' . lang('line_no') . ' ' . $rw . ')');
+            XSession::set_flash('error', lang('company') . ', ' . lang('name') . ', ' . lang('email') . ' ' . lang('are_required') . ' (' . lang('line_no') . ' ' . $rw . ')');
             admin_redirect('customers');
           } else {
             if ($customer_details = $this->site->getCustomerByEmail($customer['email'])) {
@@ -838,22 +837,22 @@ class Customers extends MY_Controller
 
         // $this->sma->print_arrays($data, $updated);
       }
-    } elseif (getPOST('import')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('import')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('customers');
     }
 
     if ($this->form_validation->run() == true && !empty($data)) {
       if ($this->site->addCustomers($data)) {
-        $this->session->set_flashdata('message', lang('customers_added') . $updated);
+        XSession::set_flash('message', lang('customers_added') . $updated);
         admin_redirect('customers');
       }
     } else {
       if (isset($data) && empty($data)) {
         if ($updated) {
-          $this->session->set_flashdata('message', $updated);
+          XSession::set_flash('message', $updated);
         } else {
-          $this->session->set_flashdata('warning', lang('data_x_customers'));
+          XSession::set_flash('warning', lang('data_x_customers'));
         }
         admin_redirect('customers');
       }

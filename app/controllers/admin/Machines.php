@@ -153,7 +153,7 @@ class Machines extends MY_Controller
     $this->data['warehouse'] = $warehouse;
 
     if ($this->requestMethod == 'POST') {
-      $groups = getPOST('group'); // Each group or Each warehouse.
+      $groups = getPost('group'); // Each group or Each warehouse.
       $g = [];
 
       // $group => [category: "ELEC", pic: 21, auto_assign: 1]
@@ -342,13 +342,13 @@ class Machines extends MY_Controller
     $this->data['creator'] = $this->site->getUserByID(XSession::get('user_id'));
 
     if ($this->requestMethod == 'POST') {
-      $createdBy    = getPOST('created_by');
-      $createdAt    = ($this->isAdmin ? dtPHP(getPOST('created_at')) : $this->serverDateTime);
-      $condition    = getPOST('condition');
-      $note         = getPOST('note');
-      $picNote      = getPOST('pic_note');
-      $picId        = getPOST('pic');
-      $warehouseId  = getPOST('warehouse');
+      $createdBy    = getPost('created_by');
+      $createdAt    = ($this->isAdmin ? dtPHP(getPost('created_at')) : $this->serverDateTime);
+      $condition    = getPost('condition');
+      $note         = getPost('note');
+      $picNote      = getPost('pic_note');
+      $picId        = getPost('pic');
+      $warehouseId  = getPost('warehouse');
 
       if (empty($picId)) $picId = NULL;
 
@@ -577,7 +577,7 @@ class Machines extends MY_Controller
     $this->data['product'] = $product;
 
     if ($this->requestMethod == 'POST') {
-      $picId = getPOST('pic');
+      $picId = getPost('pic');
 
       $productData = [
         'product_id'  => $product->id,
@@ -605,7 +605,7 @@ class Machines extends MY_Controller
   protected function report_batch()
   {
     if ($this->requestMethod == 'POST') {
-      $itemIds = getPOST('val');
+      $itemIds = getPost('val');
 
       if (empty($itemIds)) {
         $this->response(400, ['message' => "Harap pilih salah satu item."]);
@@ -680,7 +680,7 @@ class Machines extends MY_Controller
         $this->response(402, ['message' => lang('access_denied')]);
       }
 
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       die('<script>
         $("#myModal").modal("hide");
         $("#myModal2").modal("hide");
@@ -698,13 +698,13 @@ class Machines extends MY_Controller
     }
 
     if ($this->requestMethod == 'POST') {
-      $createdBy    = getPOST('created_by');
-      $createdAt    = dtPHP(getPOST('created_at'));
-      $condition    = getPOST('condition');
-      $note         = getPOST('note');
-      $picNote      = getPOST('pic_note');
-      $warehouse_id = getPOST('warehouse');
-      $picId        = getPOST('pic');
+      $createdBy    = getPost('created_by');
+      $createdAt    = dtPHP(getPost('created_at'));
+      $condition    = getPost('condition');
+      $note         = getPost('note');
+      $picNote      = getPost('pic_note');
+      $warehouse_id = getPost('warehouse');
+      $picId        = getPost('pic');
 
       if (empty($condition)) $this->response(400, ['message' => 'Condition must be set.']);
 
@@ -834,12 +834,12 @@ class Machines extends MY_Controller
     $this->data['creator'] = $this->site->getUserByID(XSession::get('user_id'));
 
     if ($this->requestMethod == 'POST') {
-      $createdBy    = getPOST('created_by');
-      $createdAt    = ($this->isAdmin ? dtPHP(getPOST('created_at')) : $this->serverDateTime);
-      $note         = getPOST('note');
-      $picId        = getPOST('pic');
-      $rating       = getPOST('rating');
-      $warehouseId  = getPOST('warehouse');
+      $createdBy    = getPost('created_by');
+      $createdAt    = ($this->isAdmin ? dtPHP(getPost('created_at')) : $this->serverDateTime);
+      $note         = getPost('note');
+      $picId        = getPost('pic');
+      $rating       = getPost('rating');
+      $warehouseId  = getPost('warehouse');
 
       if (!$rating) $this->response(400, ['message' => 'Rating bintang harus diberikan']);
 
@@ -902,12 +902,12 @@ class Machines extends MY_Controller
       ->orderBy('id', 'desc')->getRow();
 
     if ($this->requestMethod == 'POST') {
-      $createdAt    = ($this->isAdmin ? dtPHP(getPOST('created_at')) : $this->serverDateTime);
-      $createdBy    = getPOST('created_by');
-      $note         = getPOST('note');
-      $picId        = getPOST('pic');
-      $rating       = getPOST('rating');
-      $warehouseId  = getPOST('warehouse');
+      $createdAt    = ($this->isAdmin ? dtPHP(getPost('created_at')) : $this->serverDateTime);
+      $createdBy    = getPost('created_by');
+      $note         = getPost('note');
+      $picId        = getPost('pic');
+      $rating       = getPost('rating');
+      $warehouseId  = getPost('warehouse');
 
       if (!$rating) $this->response(400, ['message' => 'Rating bintang harus diberikan']);
 

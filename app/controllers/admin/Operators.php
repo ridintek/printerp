@@ -44,7 +44,7 @@ class Operators extends MY_Controller
 
   public function deliverySales()
   {
-    $vals = getPOST('val');
+    $vals = getPost('val');
 
     if (!empty($vals) && is_array($vals)) {
       $success = 0;
@@ -77,7 +77,7 @@ class Operators extends MY_Controller
 
   public function finishSales()
   {
-    $vals = getPOST('val');
+    $vals = getPost('val');
 
     if (!empty($vals) && is_array($vals)) {
       $success = 0;
@@ -113,7 +113,7 @@ class Operators extends MY_Controller
     $this->sma->checkPermissions('orders', NULL, 'operators', true);
     $this->form_validation->set_rules('product_ids', 'Product IDs', 'required');
 
-    $product_ids = json_decode(getPOST('product_ids'), true); // as array
+    $product_ids = json_decode(getPost('product_ids'), true); // as array
 
     if ($this->form_validation->run() && !empty($product_ids)) {
       $data_items = [];
@@ -190,7 +190,7 @@ class Operators extends MY_Controller
         ) as customer,
         sale_items.product_code as product_code,
         sale_items.product_name as product_name,
-        JSON_UNQUOTE(JSON_EXTRACT(sale_items.json_data, '$.status')) as item_status"
+        sale_items.status"
       )
       ->from('sale_items')
       ->join('sales', 'sale_items.sale_id = sales.id', 'left')
@@ -199,7 +199,7 @@ class Operators extends MY_Controller
       ->join('users', 'users.id = JSON_UNQUOTE(JSON_EXTRACT(sale_items.json_data, "$.operator_id"))', 'left');
 
     $this->datatables
-      ->where("JSON_UNQUOTE(JSON_EXTRACT(sale_items.json_data, \"$.status\")) IN ('waiting_production', 'completed', 'completed_partial', 'finished')");
+      ->where("sale_items.status IN ('waiting_production', 'completed', 'completed_partial')");
     // DO NOT USE BELOW. DECREASING PERFORMANCE. USE ABOVE INSTEAD.
     // $this->datatables
     //   ->group_start()
@@ -251,10 +251,10 @@ class Operators extends MY_Controller
   public function completeSaleItems()
   { // Complete sale items.
     if ($this->requestMethod == 'POST') {
-      $items      = getJSON(getPOST('items'));
-      $created_by = getPOST('created_by');
-      $date       = getPOST('date');
-      $_pg        = getPOST('_pg');
+      $items      = getJSON(getPost('items'));
+      $created_by = getPost('created_by');
+      $date       = getPost('date');
+      $_pg        = getPost('_pg');
 
       $error = 0;
       $errorCount = 0;
@@ -311,7 +311,7 @@ class Operators extends MY_Controller
 
       sendJSON(['error' => 1, 'msg' => $responseMsg]);
     } else {
-      if (getPOST('update')) {
+      if (getPost('update')) {
         sendJSON(['error' => 1, 'msg' => validation_errors()]);
       }
 

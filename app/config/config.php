@@ -362,6 +362,7 @@ $config['encryption_key'] = 'xiIMNzeaLrmgG8ybtDU9OP3JZHX1F5fKdhRc6';
 |
 */
 $config['sess_driver']             = 'files';
+// $config['sess_driver']             = 'redis';
 $config['sess_cookie_name']        = 'sess';
 $config['sess_expiration']         = 7200;
 $config['sess_save_path']          = FCPATH . 'sess/';
@@ -439,6 +440,7 @@ $config['csrf_expire']       = 7200;
 $config['csrf_regenerate']   = false;
 $config['csrf_exclude_uris'] = [
     'api/v1/[0-9A-Za-z\/\_\&\;]+',
+    'api/v2/[0-9A-Za-z\/\_\&\;]+',
     'debug/callback',
     'debug/upload_file'
 ];

@@ -1,9 +1,6 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-/* Change this version as you need. */
-const API_VERSION = 'v1';
-
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\PHPMailer;
@@ -241,10 +238,10 @@ class Api extends MY_Controller
         }
       }
     } else if ($this->requestMethod == 'POST') {
-      $phone = getPOST('phone');
-      $name  = getPOST('name');
-      $company = getPOST('company');
-      $email   = getPOST('email');
+      $phone = getPost('phone');
+      $name  = getPost('name');
+      $company = getPost('company');
+      $email   = getPost('email');
 
       $customer_data = [
         'customer_group_id' => 1,
@@ -264,10 +261,10 @@ class Api extends MY_Controller
 
   private function customers_edit()
   {
-    $phone   = getPOST('phone');
-    $name    = getPOST('name');
-    $company = getPOST('company');
-    $email = getPOST('email');
+    $phone   = getPost('phone');
+    $name    = getPost('name');
+    $company = getPost('company');
+    $email = getPost('email');
 
     $customer = $this->site->getCustomerByPhone($phone);
 
@@ -287,9 +284,9 @@ class Api extends MY_Controller
 
   private function geolocation_v1()
   {
-    $cmd = getPOST('cmd');
-    $lat = getPOST('lat');
-    $lon = getPOST('lon');
+    $cmd = getPost('cmd');
+    $lat = getPost('lat');
+    $lon = getPost('lon');
 
     $user = $this->site->getUserByID(XSession::get('user_id'));
     if ($user) {
@@ -333,6 +330,43 @@ class Api extends MY_Controller
    *
    * https://github.com/daffigusti/mutasi_api_sample/blob/master/callback.php
    */
+  private function mutasibank_v2($mode = NULL) // Callback untuk mutasibank.co.id
+  {
+    if ($mode == 'accounts') {
+      $this->mutasibank_accounts();
+      die();
+    }
+
+    if ($mode == 'accountStatements') {
+      $this->mutasibank_accountStatements();
+      die();
+    }
+
+    if ($mode == 'manualValidation') {
+      $this->mutasibank_manualValidation();
+      die();
+    }
+
+    // WE GET VALIDATION DATA FROM mutasibank TABLE.
+    // $response = json_decode(file_get_contents('php://input'));
+
+    // if (empty($response)) {
+    //   $this->response(400, ['message' => 'Data is empty.']);
+    // }
+
+    if ($total = PaymentValidation::validate2()) { // Segala pengecekan dan validasi data di sini.
+      $this->response(200, ['message' => sprintf('V2: Success validate %d payment validations.', $total)]);
+    } else {
+      $this->response(404, ['message' => 'V2: ' . getLastError()]);
+    }
+  }
+
+  /**
+   * Ketika ada transaksi debet/kredit di salah satu akun, server mutasibank.co.id akan
+   * mengirimkan data ke method ini melalui link: https://printerp.indoprinting.co.id/api/v1/mutasibank
+   *
+   * https://github.com/daffigusti/mutasi_api_sample/blob/master/callback.php
+   */
   private function mutasibank_v1($mode = NULL) // Callback untuk mutasibank.co.id
   {
     if ($mode == 'accounts') {
@@ -350,13 +384,13 @@ class Api extends MY_Controller
       die();
     }
 
-    $mb_response = json_decode(file_get_contents('php://input'));
+    $response = json_decode(file_get_contents('php://input'));
 
-    if (empty($mb_response)) {
+    if (empty($response)) {
       $this->response(400, ['message' => 'Data is empty.']);
     }
 
-    if ($total = PaymentValidation::validate($mb_response)) { // Segala pengecekan dan validasi data di sini.
+    if ($total = PaymentValidation::validate($response)) { // Segala pengecekan dan validasi data di sini.
       $this->response(200, ['message' => sprintf('Success validate %d payment validations.', $total)]);
     } else {
       $this->response(404, ['message' => 'No validated payment validations']);
@@ -396,11 +430,11 @@ class Api extends MY_Controller
 
   private function mutasibank_manualValidation()
   {
-    $amount    = getPOST('amount');
-    $accountNo = getPOST('account_no');
-    $invoice   = getPOST('invoice');
-    $note      = getPOST('note');
-    $trDate    = getPOST('transaction_date');
+    $amount    = getPost('amount');
+    $accountNo = getPost('account_no');
+    $invoice   = getPost('invoice');
+    $note      = getPost('note');
+    $trDate    = getPost('transaction_date');
 
     $sale = $this->site->getSaleByReference($invoice);
 
@@ -447,7 +481,7 @@ class Api extends MY_Controller
   private function paymentValidation_v1()
   {
     if ($this->requestMethod == 'POST') {
-      $amount = getPOST('amount');
+      $amount = getPost('amount');
 
       if (empty($amount)) $this->response(400, ['message' => 'Amount is not specified.']);
 
@@ -539,10 +573,10 @@ class Api extends MY_Controller
 
   private function qms_v1()
   {
-    $name          = getPOST('name'); // Mbahmu Waras
-    $phone         = getPOST('phone'); // 0823....
-    $categoryCode  = getPOST('category'); // siap_cetak (default), edit_design
-    $warehouseCode = getPOST('warehouse'); // DUR, TEM
+    $name          = getPost('name'); // Mbahmu Waras
+    $phone         = getPost('phone'); // 0823....
+    $categoryCode  = getPost('category'); // siap_cetak (default), edit_design
+    $warehouseCode = getPost('warehouse'); // DUR, TEM
 
     if ($this->requestMethod == 'POST') {
       if (!$warehouse = $this->site->getWarehouseByCode($warehouseCode)) {
@@ -571,7 +605,7 @@ class Api extends MY_Controller
     echo $this->ridintek->qrcode('https://indoprinting.co.id/trackorder?inv=INV-2020/08/9883&phone=085641258879&submit=1');
   }
 
-  private function redirect()
+  private function redirect_to()
   {
     admin_redirect('./'); // For security reason. DO NOT ERASE !!! Comment it for debugging purpose.
   }
@@ -610,8 +644,8 @@ class Api extends MY_Controller
    */
   private function sales_add_transfer()
   {
-    $inv   = getPOST('invoice');
-    $phone = getPOST('phone');
+    $inv   = getPost('invoice');
+    $phone = getPost('phone');
 
     $customer = $this->site->getCustomerByPhone($phone);
     $sale     = $this->site->getSaleByReference($inv);
@@ -648,8 +682,8 @@ class Api extends MY_Controller
 
   private function sales_cancel_transfer()
   {
-    $inv   = getPOST('invoice');
-    $phone = getPOST('phone');
+    $inv   = getPost('invoice');
+    $phone = getPost('phone');
 
     $customer = $this->site->getCustomerByPhone($phone);
     $sale     = $this->site->getSaleByReference($inv);
@@ -674,8 +708,8 @@ class Api extends MY_Controller
 
   private function sales_delete()
   {
-    $inv   = getPOST('invoice');
-    $phone = getPOST('phone');
+    $inv   = getPost('invoice');
+    $phone = getPost('phone');
     $sale = $this->site->getSaleByReference($inv);
 
     if ($sale && $phone) {
@@ -697,13 +731,13 @@ class Api extends MY_Controller
 
   private function sales_edit()
   {
-    $approved = getPOST('approved');
-    $inv = getPOST('invoice');
-    $note = getPOST('note');
-    $bl_code = getPOST('biller');
-    $wh_code = getPOST('warehouse');
-    $PICId = getPOST('pic_id');
-    $estCompleteDate = getPOST('est_complete_date');
+    $approved = getPost('approved');
+    $inv = getPost('invoice');
+    $note = getPost('note');
+    $bl_code = getPost('biller');
+    $wh_code = getPost('warehouse');
+    $PICId = getPost('pic_id');
+    $estCompleteDate = getPost('est_complete_date');
 
     $saleData = [];
     $warehouse = NULL;
@@ -737,7 +771,7 @@ class Api extends MY_Controller
 
     if ($sale = $this->site->getSaleByReference($inv)) {
       if ($this->site->updateSale($sale->id, $saleData)) {
-        $this->site->syncSales(['sale_id' => $sale->id]);
+        Sale::sync(['sale_id' => $sale->id]);
         sendJSON(['error' => 0, 'msg' => "Sale {$inv} has been updated successfully."]);
       }
       sendJSON(['error' => 1, 'msg' => "Failed to update sale {$inv}"]);
@@ -747,9 +781,9 @@ class Api extends MY_Controller
 
   private function sales_status()
   {
-    $inv    = getPOST('invoice');
-    $status = getPOST('status');
-    $note   = getPOST('note');
+    $inv    = getPost('invoice');
+    $status = getPost('status');
+    $note   = getPost('note');
 
     if ($status != 'finished' && $status != 'delivered') {
       sendJSON(['error' => 1, 'message' => 'Status is not allowed.']);
@@ -974,8 +1008,8 @@ class Api extends MY_Controller
 
           if (empty($item->quantity)) sendJSON(['error' => 1, 'message' => 'Quantity is required.']);
 
-          $item->width  = ($item->width  ?? 0);
-          $item->length = ($item->length ?? 0);
+          $item->width  = floatval(!empty($item->width) ? $item->width : 1);
+          $item->length = floatval(!empty($item->length) ? $item->length : 1);
           $item->note   = getExcerpt(strip_tags($item->note ?? ''), 50);
 
           // Price calculation based on quantity.
@@ -1033,20 +1067,20 @@ class Api extends MY_Controller
             if ($voucherCode) {
               $voucher = Voucher::getRow(['code' => $voucherCode]);
 
-              if (!$voucher) {
+              if ($voucher) {
+                if (strtotime($voucher->valid_from) > time()) {
+                  $notice = 'Voucher is too early to be used.';
+                }
+
+                if (strtotime($voucher->valid_to) < time()) {
+                  $notice = 'Voucher has been expired.';
+                }
+
+                if (intval($voucher->quota) == 0) {
+                  $notice = 'Voucher quota has been exceeded';
+                }
+              } else {
                 $notice = 'Voucher is not found.';
-              }
-
-              if (strtotime($voucher->valid_from) > time()) {
-                $notice = 'Voucher is too early to be used.';
-              }
-
-              if (strtotime($voucher->valid_to) < time()) {
-                $notice = 'Voucher has been expired.';
-              }
-
-              if (intval($voucher->quota) == 0) {
-                $notice = 'Voucher quota has been exceeded';
               }
 
               if (!$notice) {
@@ -1147,10 +1181,10 @@ class Api extends MY_Controller
   private function sendwa_v1()
   {
     if ($this->requestMethod == 'POST') {
-      $api_key  = getPOST('api_key');
-      $phone    = getPOST('phone');
-      $message  = getPOST('message');
-      $sendDate = getPOST('send_date');
+      $api_key  = getPost('api_key');
+      $phone    = getPost('phone');
+      $message  = getPost('message');
+      $sendDate = getPost('send_date');
 
       if ($this->site->addWAJob([
         'api_key' => $api_key,
@@ -1262,9 +1296,9 @@ class Api extends MY_Controller
 
   private function validateQRIS_v1()
   {
-    $accountNo = getPOST('account_no');
-    $amount    = getPOST('amount');
-    $invoice   = getPOST('invoice');
+    $accountNo = getPost('account_no');
+    $amount    = getPost('amount');
+    $invoice   = getPost('invoice');
 
     if ($amount <= 0) sendJSON(['error' => 1, 'message' => 'Amount must be greater than zero.']);
 
@@ -1300,10 +1334,10 @@ class Api extends MY_Controller
       $this->load->model('viewer_model');
 
       $geoData = [
-        'referral' => getPOST('ref'),
+        'referral' => getPost('ref'),
         'user_agent' => $_SERVER['HTTP_USER_AGENT'],
-        'lat' => getPOST('lat'),
-        'lon' => getPOST('lon')
+        'lat' => getPost('lat'),
+        'lon' => getPost('lon')
       ];
 
       if ($this->viewer_model->addGeolocator($geoData)) {
@@ -1354,9 +1388,23 @@ class Api extends MY_Controller
   public function v1($module = NULL)
   {
     $args = func_get_args();
-    if (method_exists($this, $module . '_' . API_VERSION)) {
+    if (method_exists($this, $module . '_' . __FUNCTION__)) {
       array_shift($args); // Important to remove $module from args.
-      call_user_func_array(array($this, $module . '_' . API_VERSION), $args);
+      call_user_func_array(array($this, $module . '_' . __FUNCTION__), $args);
+    } else {
+      $this->redirect();
+    }
+  }
+
+  /**
+   * API Version 2
+   */
+  public function v2($module = NULL)
+  {
+    $args = func_get_args();
+    if (method_exists($this, $module . '_' . __FUNCTION__)) {
+      array_shift($args); // Important to remove $module from args.
+      call_user_func_array(array($this, $module . '_' . __FUNCTION__), $args);
     } else {
       $this->redirect();
     }

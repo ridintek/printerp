@@ -13,8 +13,8 @@ class Notifications extends MY_Controller
     }
 
     if (!$this->Owner && !$this->Admin && !getPermission('notify-index')) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('warning', lang('access_denied'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     $this->lang->admin_load('notifications', $this->Settings->user_language);
     $this->load->library('form_validation');
@@ -25,7 +25,7 @@ class Notifications extends MY_Controller
   {
     $this->form_validation->set_rules('confirm', lang('confirm'), 'required');
 
-    $confirmed = (getPOST('confirm') == 1 ? TRUE : FALSE);
+    $confirmed = (getPost('confirm') == 1 ? TRUE : FALSE);
 
     if ($this->form_validation->run() == TRUE && $confirmed) {
       if ($this->site->notificationActivate($id)) {
@@ -33,7 +33,7 @@ class Notifications extends MY_Controller
       } else {
         sendJSON(['error' => 1, 'msg' => lang('bank_activate_failed')]);
       }
-    } else if (getPOST('activate')) {
+    } else if (getPost('activate')) {
       sendJSON(['error' => 1, 'msg' => validation_errors()]);
     }
 
@@ -46,7 +46,7 @@ class Notifications extends MY_Controller
   {
     $this->form_validation->set_rules('confirm', lang('confirm'), 'required');
 
-    $confirmed = (getPOST('confirm') == 1 ? TRUE : FALSE);
+    $confirmed = (getPost('confirm') == 1 ? TRUE : FALSE);
 
     if ($this->form_validation->run() == TRUE && $confirmed) {
       if ($this->site->notificationDeactivate($id)) {
@@ -54,7 +54,7 @@ class Notifications extends MY_Controller
       } else {
         sendJSON(['error' => 1, 'msg' => lang('bank_deactivate_failed')]);
       }
-    } else if (getPOST('activate')) {
+    } else if (getPost('activate')) {
       sendJSON(['error' => 1, 'msg' => validation_errors()]);
     }
 
@@ -66,27 +66,27 @@ class Notifications extends MY_Controller
   public function add()
   {
     if (!$this->Owner && !$this->Admin && !getPermission('notify-add')) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('warning', lang('access_denied'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     $this->form_validation->set_rules('comment', lang('comment'), 'required|min_length[3]');
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'comment'   => getPOST('comment'),
-        'from_date' => getPOST('from_date') ? $this->sma->fld(getPOST('from_date')) : null,
-        'till_date' => getPOST('to_date') ? $this->sma->fld(getPOST('to_date')) : null,
-        'scope'     => getPOST('scope'),
-        'type'      => getPOST('type')
+        'comment'   => getPost('comment'),
+        'from_date' => getPost('from_date') ? $this->sma->fld(getPost('from_date')) : null,
+        'till_date' => getPost('to_date') ? $this->sma->fld(getPost('to_date')) : null,
+        'scope'     => getPost('scope'),
+        'type'      => getPost('type')
       ];
-    } elseif (getPOST('submit')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('submit')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('notifications');
     }
 
     if ($this->form_validation->run() == true && $this->cmt_model->addNotification($data)) {
-      $this->session->set_flashdata('message', lang('notification_added'));
+      XSession::set_flash('message', lang('notification_added'));
       admin_redirect('notifications');
     } else {
       $this->data['comment'] = [
@@ -106,8 +106,8 @@ class Notifications extends MY_Controller
   public function delete($id = null)
   {
     if (!$this->Owner && !$this->Admin && !getPermission('notify-delete')) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('warning', lang('access_denied'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     if ($this->cmt_model->deleteComment($id)) {
@@ -118,12 +118,12 @@ class Notifications extends MY_Controller
   public function edit($id = null)
   {
     if (!$this->Owner && !$this->Admin && getPermission('notify-edit')) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('warning', lang('access_denied'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
-    if (getPOST('id')) {
-      $id = getPOST('id');
+    if (getPost('id')) {
+      $id = getPost('id');
     }
 
     $this->form_validation->set_rules('comment', lang('notifications'), 'required|min_length[3]');
@@ -131,21 +131,21 @@ class Notifications extends MY_Controller
     if ($this->form_validation->run() == true) {
       $data = [
         'date'      => date('Y-m-d H:i:s'),
-        'comment'   => getPOST('comment'),
-        'from_date' => getPOST('from_date') ? $this->sma->fld(getPOST('from_date')) : null,
-        'till_date' => getPOST('to_date') ? $this->sma->fld(getPOST('to_date')) : null,
-        'scope'     => getPOST('scope'),
-        'type'      => getPOST('type')
+        'comment'   => getPost('comment'),
+        'from_date' => getPost('from_date') ? $this->sma->fld(getPost('from_date')) : null,
+        'till_date' => getPost('to_date') ? $this->sma->fld(getPost('to_date')) : null,
+        'scope'     => getPost('scope'),
+        'type'      => getPost('type')
       ];
-    } elseif (getPOST('submit')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('submit')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('notifications');
     }
 
     if ($this->form_validation->run() == true) {
       if ($this->cmt_model->updateNotification($id, $data)) {
         $this->session->unset_userdata('hidden' . $id);
-        $this->session->set_flashdata('message', lang('notification_updated'));
+        XSession::set_flash('message', lang('notification_updated'));
       }
       admin_redirect('notifications');
     } else {
@@ -182,8 +182,8 @@ class Notifications extends MY_Controller
   public function index()
   {
     if (!$this->Owner && !$this->Admin && !getPermission('notify-index')) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('warning', lang('access_denied'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
 
     $this->data['error'] = validation_errors() ? validation_errors() : $this->session->flashdata('error');

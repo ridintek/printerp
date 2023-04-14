@@ -14,8 +14,8 @@ class system_settings extends MY_Controller
     }
 
     if (!$this->Owner && !$this->Admin && !getPermission('edit-system')) {
-      $this->session->set_flashdata('warning', lang('access_denied'));
-      redirect('admin');
+      XSession::set_flash('warning', lang('access_denied'));
+      redirect_to('admin');
     }
 
     $this->lang->admin_load('settings', $this->Settings->user_language);
@@ -37,10 +37,10 @@ class system_settings extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'name'        => getPOST('name'),
-        'code'        => getPOST('code'),
-        'slug'        => getPOST('slug'),
-        'description' => getPOST('description'),
+        'name'        => getPost('name'),
+        'code'        => getPost('code'),
+        'slug'        => getPost('slug'),
+        'description' => getPost('description'),
       ];
 
       if ($_FILES['userfile']['size'] > 0) {
@@ -56,8 +56,8 @@ class system_settings extends MY_Controller
         $this->upload->initialize($config);
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+          XSession::set_flash('error', $error);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
         $photo         = $this->upload->file_name;
         $data['image'] = $photo;
@@ -75,13 +75,13 @@ class system_settings extends MY_Controller
         }
         $this->image_lib->clear();
       }
-    } elseif (getPOST('add_brand')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('add_brand')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/brands');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addBrand($data)) {
-      $this->session->set_flashdata('message', lang('brand_added'));
+      XSession::set_flash('message', lang('brand_added'));
       admin_redirect('system_settings/brands');
     } else {
       $this->data['error']    = validation_errors() ? validation_errors() : $this->session->flashdata('error');
@@ -100,11 +100,11 @@ class system_settings extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'name'        => getPOST('name'),
-        'code'        => getPOST('code'),
-        'slug'        => getPOST('slug'),
-        'description' => getPOST('description'),
-        'parent_id'   => getPOST('parent'),
+        'name'        => getPost('name'),
+        'code'        => getPost('code'),
+        'slug'        => getPost('slug'),
+        'description' => getPost('description'),
+        'parent_id'   => getPost('parent'),
       ];
 
       if ($_FILES['userfile']['size'] > 0) {
@@ -120,8 +120,8 @@ class system_settings extends MY_Controller
         $this->upload->initialize($config);
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+          XSession::set_flash('error', $error);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
         $photo         = $this->upload->file_name;
         $data['image'] = $photo;
@@ -156,13 +156,13 @@ class system_settings extends MY_Controller
         $this->image_lib->clear();
         $config = null;
       }
-    } elseif (getPOST('add_category')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('add_category')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/categories');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addCategory($data)) {
-      $this->session->set_flashdata('message', lang('category_added'));
+      XSession::set_flash('message', lang('category_added'));
       admin_redirect('system_settings/categories');
     } else {
       $this->data['error']      = validation_errors() ? validation_errors() : $this->session->flashdata('error');
@@ -179,19 +179,19 @@ class system_settings extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'code'   => getPOST('code'),
-        'name'        => getPOST('name'),
-        'rate'        => getPOST('rate'),
-        'symbol'      => getPOST('symbol'),
-        'auto_update' => getPOST('auto_update') ? getPOST('auto_update') : 0,
+        'code'   => getPost('code'),
+        'name'        => getPost('name'),
+        'rate'        => getPost('rate'),
+        'symbol'      => getPost('symbol'),
+        'auto_update' => getPost('auto_update') ? getPost('auto_update') : 0,
       ];
-    } elseif (getPOST('add_currency')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('add_currency')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/currencies');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addCurrency($data)) { //check to see if we are creating the customer
-      $this->session->set_flashdata('message', lang('currency_added'));
+      XSession::set_flash('message', lang('currency_added'));
       admin_redirect('system_settings/currencies');
     } else {
       $this->data['error']      = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -207,16 +207,16 @@ class system_settings extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'name' => getPOST('name'),
-        'percent'   => getPOST('percent'),
+        'name' => getPost('name'),
+        'percent'   => getPost('percent'),
       ];
-    } elseif (getPOST('add_customer_group')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('add_customer_group')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/customer_groups');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addCustomerGroup($data)) {
-      $this->session->set_flashdata('message', lang('customer_group_added'));
+      XSession::set_flash('message', lang('customer_group_added'));
       admin_redirect('system_settings/customer_groups');
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -232,16 +232,16 @@ class system_settings extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'name' => getPOST('name'),
-        'code' => getPOST('code'),
+        'name' => getPost('name'),
+        'code' => getPost('code'),
       ];
-    } elseif (getPOST('add_expense_category')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('add_expense_category')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/expense_categories');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addExpenseCategory($data)) {
-      $this->session->set_flashdata('message', lang('expense_category_added'));
+      XSession::set_flash('message', lang('expense_category_added'));
       admin_redirect('system_settings/expense_categories');
     } else {
       $this->data['error']    = validation_errors() ? validation_errors() : $this->session->flashdata('error');
@@ -256,16 +256,16 @@ class system_settings extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'name' => getPOST('name'),
-        'code' => getPOST('code'),
+        'name' => getPost('name'),
+        'code' => getPost('code'),
       ];
-    } elseif (getPOST('add_income_category')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('add_income_category')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/income_categories');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addIncomeCategory($data)) {
-      $this->session->set_flashdata('message', lang('income_category_added'));
+      XSession::set_flash('message', lang('income_category_added'));
       admin_redirect('system_settings/income_categories');
     } else {
       $this->data['error']    = validation_errors() ? validation_errors() : $this->session->flashdata('error');
@@ -278,14 +278,14 @@ class system_settings extends MY_Controller
     $this->form_validation->set_rules('name', lang('group_name'), 'trim|is_unique[price_groups.name]|required|alpha_numeric_spaces');
 
     if ($this->form_validation->run() == true) {
-      $data = ['name' => getPOST('name')];
-    } elseif (getPOST('add_price_group')) {
-      $this->session->set_flashdata('error', validation_errors());
+      $data = ['name' => getPost('name')];
+    } elseif (getPost('add_price_group')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/price_groups');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addPriceGroup($data)) {
-      $this->session->set_flashdata('message', lang('price_group_added'));
+      XSession::set_flash('message', lang('price_group_added'));
       admin_redirect('system_settings/price_groups');
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -299,14 +299,14 @@ class system_settings extends MY_Controller
     $this->form_validation->set_rules('name', lang('Range Name'), 'trim|is_unique[price_ranges.name]|required|alpha_numeric_spaces');
 
     if ($this->form_validation->run() == true) {
-      $data = ['name' => getPOST('name')];
-    } elseif (getPOST('add_price_range')) {
-      $this->session->set_flashdata('error', validation_errors());
+      $data = ['name' => getPost('name')];
+    } elseif (getPost('add_price_range')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/price_ranges');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addPriceRange($data)) {
-      $this->session->set_flashdata('message', lang('Price range added successfully.'));
+      XSession::set_flash('message', lang('Price range added successfully.'));
       admin_redirect('system_settings/price_ranges');
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -323,18 +323,18 @@ class system_settings extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'name' => getPOST('name'),
-        'code'      => getPOST('code'),
-        'type'      => getPOST('type'),
-        'rate'      => getPOST('rate'),
+        'name' => getPost('name'),
+        'code'      => getPost('code'),
+        'type'      => getPost('type'),
+        'rate'      => getPost('rate'),
       ];
-    } elseif (getPOST('add_tax_rate')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('add_tax_rate')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/tax_rates');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addTaxRate($data)) {
-      $this->session->set_flashdata('message', lang('tax_rate_added'));
+      XSession::set_flash('message', lang('tax_rate_added'));
       admin_redirect('system_settings/tax_rates');
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -347,29 +347,29 @@ class system_settings extends MY_Controller
   {
     $this->form_validation->set_rules('code', lang('unit_code'), 'trim|is_unique[units.code]|required');
     $this->form_validation->set_rules('name', lang('unit_name'), 'trim|required');
-    if (getPOST('base_unit')) {
+    if (getPost('base_unit')) {
       $this->form_validation->set_rules('operator', lang('operator'), 'required');
       $this->form_validation->set_rules('operation_value', lang('operation_value'), 'trim|required');
     }
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'name'            => getPOST('name'),
-        'code'            => getPOST('code'),
-        'base_unit'       => getPOST('base_unit') ?? NULL,
-        'operator'        => getPOST('base_unit') ?? NULL,
-        'operation_value' => getPOST('operation_value') ?? NULL,
+        'name'            => getPost('name'),
+        'code'            => getPost('code'),
+        'base_unit'       => getPost('base_unit') ?? NULL,
+        'operator'        => getPost('base_unit') ?? NULL,
+        'operation_value' => getPost('operation_value') ?? NULL,
       ];
-    } elseif (getPOST('add_unit')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('add_unit')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/units');
     }
 
     if ($this->form_validation->run()) {
       if ($this->settings_model->addUnit($data)) {
-        $this->session->set_flashdata('message', lang('unit_added'));
+        XSession::set_flash('message', lang('unit_added'));
       } else {
-        $this->session->set_flashdata('error', 'Unit failed to add.');
+        XSession::set_flash('error', 'Unit failed to add.');
       }
       admin_redirect('system_settings/units');
     } else {
@@ -384,14 +384,14 @@ class system_settings extends MY_Controller
     $this->form_validation->set_rules('name', lang('name'), 'trim|is_unique[variants.name]|required');
 
     if ($this->form_validation->run() == true) {
-      $data = ['name' => getPOST('name')];
-    } elseif (getPOST('add_variant')) {
-      $this->session->set_flashdata('error', validation_errors());
+      $data = ['name' => getPost('name')];
+    } elseif (getPost('add_variant')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/variants');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addVariant($data)) {
-      $this->session->set_flashdata('message', lang('variant_added'));
+      XSession::set_flash('message', lang('variant_added'));
       admin_redirect('system_settings/variants');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -422,7 +422,7 @@ class system_settings extends MY_Controller
 
       //   if (!$this->upload->do_upload()) {
       //     $error = $this->upload->display_errors();
-      //     $this->session->set_flashdata('message', $error);
+      //     XSession::set_flash('message', $error);
       //     admin_redirect('system_settings/warehouses');
       //   }
 
@@ -447,30 +447,30 @@ class system_settings extends MY_Controller
       //   $map = null;
       // }
       $data = [
-        'code'           => getPOST('code'),
-        'name'           => getPOST('name'),
-        'phone'          => getPOST('phone'),
-        'email'          => getPOST('email'),
-        'address'        => getPOST('address'),
-        'geolocation'    => getPOST('geolocation'),
-        'price_group_id' => getPOST('price_group'),
+        'code'           => getPost('code'),
+        'name'           => getPost('name'),
+        'phone'          => getPost('phone'),
+        'email'          => getPost('email'),
+        'address'        => getPost('address'),
+        'geolocation'    => getPost('geolocation'),
+        'price_group_id' => getPost('price_group'),
         'json_data' => json_encode([
-          'cycle_transfer' => getPOST('cycle_transfer'),
-          'delivery_time'  => getPOST('delivery_time'),
-          'visit_days'     => getPOST('visit_days'),
-          'visit_weeks'    => getPOST('visit_weeks')
+          'cycle_transfer' => getPost('cycle_transfer'),
+          'delivery_time'  => getPost('delivery_time'),
+          'visit_days'     => getPost('visit_days'),
+          'visit_weeks'    => getPost('visit_weeks')
         ])
       ];
-    } elseif (getPOST('add_warehouse')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('add_warehouse')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/warehouses');
     }
 
     if ($this->form_validation->run()) {
       if ($this->site->addWarehouse($data)) {
-        $this->session->set_flashdata('message', lang('warehouse_added'));
+        XSession::set_flash('message', lang('warehouse_added'));
       } else {
-        $this->session->set_flashdata('error', 'Failed to add warehouse.');
+        XSession::set_flash('error', 'Failed to add warehouse.');
       }
       admin_redirect('system_settings/warehouses');
     } else {
@@ -483,11 +483,11 @@ class system_settings extends MY_Controller
   public function backup_database()
   {
     if (DEMO) {
-      $this->session->set_flashdata('warning', lang('disabled_in_demo'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('warning', lang('disabled_in_demo'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       admin_redirect('welcome');
     }
     $this->load->dbutil();
@@ -501,23 +501,23 @@ class system_settings extends MY_Controller
     $save    = './files/backups/' . $db_name;
     $this->load->helper('file');
     write_file($save, $backup);
-    $this->session->set_flashdata('messgae', lang('db_saved'));
+    XSession::set_flash('messgae', lang('db_saved'));
     admin_redirect('system_settings/backups');
   }
 
   public function backup_files()
   {
     if (DEMO) {
-      $this->session->set_flashdata('warning', lang('disabled_in_demo'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('warning', lang('disabled_in_demo'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       admin_redirect('welcome');
     }
     $name = 'file-backup-' . date('Y-m-d-H-i-s');
     $this->sma->zip('./', './files/backups/', $name);
-    $this->session->set_flashdata('messgae', lang('backup_saved'));
+    XSession::set_flash('messgae', lang('backup_saved'));
     admin_redirect('system_settings/backups');
     exit();
   }
@@ -539,7 +539,7 @@ class system_settings extends MY_Controller
   public function change_logo()
   {
     if (DEMO) {
-      $this->session->set_flashdata('warning', lang('disabled_in_demo'));
+      XSession::set_flash('warning', lang('disabled_in_demo'));
       $this->sma->md();
     }
     $this->load->helper('security');
@@ -560,8 +560,8 @@ class system_settings extends MY_Controller
         $this->upload->initialize($config);
         if (!$this->upload->do_upload('site_logo')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+          XSession::set_flash('error', $error);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
         $site_logo = $this->upload->file_name;
         $this->db->update('settings', ['logo' => $site_logo], ['setting_id' => 1]);
@@ -580,8 +580,8 @@ class system_settings extends MY_Controller
         $this->upload->initialize($config);
         if (!$this->upload->do_upload('login_logo')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+          XSession::set_flash('error', $error);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
         $login_logo = $this->upload->file_name;
         $this->db->update('settings', ['logo2' => $login_logo], ['setting_id' => 1]);
@@ -600,17 +600,17 @@ class system_settings extends MY_Controller
         $this->upload->initialize($config);
         if (!$this->upload->do_upload('biller_logo')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+          XSession::set_flash('error', $error);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
         $photo = $this->upload->file_name;
       }
 
-      $this->session->set_flashdata('message', lang('logo_uploaded'));
-      redirect($_SERVER['HTTP_REFERER']);
-    } elseif (getPOST('upload_logo')) {
-      $this->session->set_flashdata('error', validation_errors());
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('message', lang('logo_uploaded'));
+      redirect_to($_SERVER['HTTP_REFERER']);
+    } elseif (getPost('upload_logo')) {
+      XSession::set_flash('error', validation_errors());
+      redirect_to($_SERVER['HTTP_REFERER']);
     } else {
       $this->data['error']    = validation_errors() ? validation_errors() : $this->session->flashdata('error');
       $this->load->view($this->theme . 'settings/change_logo', $this->data);
@@ -622,14 +622,14 @@ class system_settings extends MY_Controller
     $this->form_validation->set_rules('group_name', lang('group_name'), 'required|alpha_dash|is_unique[groups.name]');
 
     if ($this->form_validation->run() == true) {
-      $data = ['name' => strtolower(getPOST('group_name')), 'description' => getPOST('description')];
-    } elseif (getPOST('create_group')) {
-      $this->session->set_flashdata('error', validation_errors());
+      $data = ['name' => strtolower(getPost('group_name')), 'description' => getPost('description')];
+    } elseif (getPost('create_group')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/user_groups');
     }
 
     if ($this->form_validation->run() == true && ($new_group_id = $this->settings_model->addGroup($data))) {
-      $this->session->set_flashdata('message', lang('group_added'));
+      XSession::set_flash('message', lang('group_added'));
       admin_redirect('system_settings/permissions/' . $new_group_id);
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -677,15 +677,15 @@ class system_settings extends MY_Controller
   public function delete_backup($zipfile)
   {
     if (DEMO) {
-      $this->session->set_flashdata('warning', lang('disabled_in_demo'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('warning', lang('disabled_in_demo'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       admin_redirect('welcome');
     }
     unlink('./files/backups/' . $zipfile . '.zip');
-    $this->session->set_flashdata('messgae', lang('backup_deleted'));
+    XSession::set_flash('messgae', lang('backup_deleted'));
     admin_redirect('system_settings/backups');
   }
 
@@ -728,15 +728,15 @@ class system_settings extends MY_Controller
   public function delete_database($dbfile)
   {
     if (DEMO) {
-      $this->session->set_flashdata('warning', lang('disabled_in_demo'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('warning', lang('disabled_in_demo'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       admin_redirect('welcome');
     }
     unlink('./files/backups/' . $dbfile . '.txt');
-    $this->session->set_flashdata('messgae', lang('db_deleted'));
+    XSession::set_flash('messgae', lang('db_deleted'));
     admin_redirect('system_settings/backups');
   }
 
@@ -776,12 +776,12 @@ class system_settings extends MY_Controller
   public function delete_group($id = null)
   {
     if ($this->settings_model->checkGroupUsers($id)) {
-      $this->session->set_flashdata('error', lang('group_x_b_deleted'));
+      XSession::set_flash('error', lang('group_x_b_deleted'));
       admin_redirect('system_settings/user_groups');
     }
 
     if ($this->settings_model->deleteGroup($id)) {
-      $this->session->set_flashdata('message', lang('group_deleted'));
+      XSession::set_flash('message', lang('group_deleted'));
       admin_redirect('system_settings/user_groups');
     }
   }
@@ -835,11 +835,11 @@ class system_settings extends MY_Controller
   public function download_backup($zipfile)
   {
     if (DEMO) {
-      $this->session->set_flashdata('warning', lang('disabled_in_demo'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('warning', lang('disabled_in_demo'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       admin_redirect('welcome');
     }
     $this->load->helper('download');
@@ -850,11 +850,11 @@ class system_settings extends MY_Controller
   public function download_database($dbfile)
   {
     if (DEMO) {
-      $this->session->set_flashdata('warning', lang('disabled_in_demo'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('warning', lang('disabled_in_demo'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       admin_redirect('welcome');
     }
     $this->load->library('zip');
@@ -868,21 +868,21 @@ class system_settings extends MY_Controller
   {
     $this->form_validation->set_rules('name', lang('brand_name'), 'trim|required|alpha_numeric_spaces');
     $brand_details = $this->site->getBrandByID($id);
-    if (getPOST('name') != $brand_details->name) {
+    if (getPost('name') != $brand_details->name) {
       $this->form_validation->set_rules('name', lang('brand_name'), 'required|is_unique[brands.name]');
     }
     $this->form_validation->set_rules('slug', lang('slug'), 'required|alpha_dash');
-    if (getPOST('slug') != $brand_details->slug) {
+    if (getPost('slug') != $brand_details->slug) {
       $this->form_validation->set_rules('slug', lang('slug'), 'required|alpha_dash|is_unique[brands.slug]');
     }
     $this->form_validation->set_rules('description', lang('description'), 'trim|required');
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'name'        => getPOST('name'),
-        'code'        => getPOST('code'),
-        'slug'        => getPOST('slug'),
-        'description' => getPOST('description'),
+        'name'        => getPost('name'),
+        'code'        => getPost('code'),
+        'slug'        => getPost('slug'),
+        'description' => getPost('description'),
       ];
 
       if ($_FILES['userfile']['size'] > 0) {
@@ -898,8 +898,8 @@ class system_settings extends MY_Controller
         $this->upload->initialize($config);
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+          XSession::set_flash('error', $error);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
         $photo         = $this->upload->file_name;
         $data['image'] = $photo;
@@ -917,13 +917,13 @@ class system_settings extends MY_Controller
         }
         $this->image_lib->clear();
       }
-    } elseif (getPOST('edit_brand')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('edit_brand')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/brands');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updateBrand($id, $data)) {
-      $this->session->set_flashdata('message', lang('brand_updated'));
+      XSession::set_flash('message', lang('brand_updated'));
       admin_redirect('system_settings/brands');
     } else {
       $this->data['error']    = validation_errors() ? validation_errors() : $this->session->flashdata('error');
@@ -937,11 +937,11 @@ class system_settings extends MY_Controller
     $this->load->helper('security');
     $this->form_validation->set_rules('code', lang('category_code'), 'trim|required');
     $pr_details = $this->settings_model->getCategoryByID($id);
-    if (getPOST('code') != $pr_details->code) {
+    if (getPost('code') != $pr_details->code) {
       $this->form_validation->set_rules('code', lang('category_code'), 'required|is_unique[categories.code]');
     }
     $this->form_validation->set_rules('slug', lang('slug'), 'required|alpha_dash');
-    if (getPOST('slug') != $pr_details->slug) {
+    if (getPost('slug') != $pr_details->slug) {
       $this->form_validation->set_rules('slug', lang('slug'), 'required|alpha_dash|is_unique[categories.slug]');
     }
     $this->form_validation->set_rules('name', lang('category_name'), 'required|min_length[3]');
@@ -950,11 +950,11 @@ class system_settings extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'name'        => getPOST('name'),
-        'code'        => getPOST('code'),
-        'slug'        => getPOST('slug'),
-        'description' => getPOST('description'),
-        'parent_id'   => getPOST('parent'),
+        'name'        => getPost('name'),
+        'code'        => getPost('code'),
+        'slug'        => getPost('slug'),
+        'description' => getPost('description'),
+        'parent_id'   => getPost('parent'),
       ];
 
       if ($_FILES['userfile']['size'] > 0) {
@@ -970,8 +970,8 @@ class system_settings extends MY_Controller
         $this->upload->initialize($config);
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
-          redirect($_SERVER['HTTP_REFERER']);
+          XSession::set_flash('error', $error);
+          redirect_to($_SERVER['HTTP_REFERER']);
         }
         $photo         = $this->upload->file_name;
         $data['image'] = $photo;
@@ -1006,13 +1006,13 @@ class system_settings extends MY_Controller
         $this->image_lib->clear();
         $config = null;
       }
-    } elseif (getPOST('edit_category')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('edit_category')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/categories');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updateCategory($id, $data)) {
-      $this->session->set_flashdata('message', lang('category_updated'));
+      XSession::set_flash('message', lang('category_updated'));
       admin_redirect('system_settings/categories');
     } else {
       $this->data['error']      = validation_errors() ? validation_errors() : $this->session->flashdata('error');
@@ -1026,7 +1026,7 @@ class system_settings extends MY_Controller
   {
     $this->form_validation->set_rules('code', lang('currency_code'), 'trim|required');
     $cur_details = $this->settings_model->getCurrencyByID($id);
-    if (getPOST('code') != $cur_details->code) {
+    if (getPost('code') != $cur_details->code) {
       $this->form_validation->set_rules('code', lang('currency_code'), 'required|is_unique[currencies.code]');
     }
     $this->form_validation->set_rules('name', lang('currency_name'), 'required');
@@ -1034,19 +1034,19 @@ class system_settings extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'code'   => getPOST('code'),
-        'name'        => getPOST('name'),
-        'rate'        => getPOST('rate'),
-        'symbol'      => getPOST('symbol'),
-        'auto_update' => getPOST('auto_update') ? getPOST('auto_update') : 0,
+        'code'   => getPost('code'),
+        'name'        => getPost('name'),
+        'rate'        => getPost('rate'),
+        'symbol'      => getPost('symbol'),
+        'auto_update' => getPost('auto_update') ? getPost('auto_update') : 0,
       ];
-    } elseif (getPOST('edit_currency')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('edit_currency')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/currencies');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updateCurrency($id, $data)) { //check to see if we are updateing the customer
-      $this->session->set_flashdata('message', lang('currency_updated'));
+      XSession::set_flash('message', lang('currency_updated'));
       admin_redirect('system_settings/currencies');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -1060,23 +1060,23 @@ class system_settings extends MY_Controller
   {
     $this->form_validation->set_rules('name', lang('group_name'), 'trim|required');
     $pg_details = $this->settings_model->getCustomerGroupByID($id);
-    if (getPOST('name') != $pg_details->name) {
+    if (getPost('name') != $pg_details->name) {
       $this->form_validation->set_rules('name', lang('group_name'), 'required|is_unique[tax_rates.name]');
     }
     $this->form_validation->set_rules('percent', lang('group_percentage'), 'required|numeric');
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'name' => getPOST('name'),
-        'percent'   => getPOST('percent'),
+        'name' => getPost('name'),
+        'percent'   => getPost('percent'),
       ];
-    } elseif (getPOST('edit_customer_group')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('edit_customer_group')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/customer_groups');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updateCustomerGroup($id, $data)) {
-      $this->session->set_flashdata('message', lang('customer_group_updated'));
+      XSession::set_flash('message', lang('customer_group_updated'));
       admin_redirect('system_settings/customer_groups');
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -1092,23 +1092,23 @@ class system_settings extends MY_Controller
   {
     $this->form_validation->set_rules('code', lang('category_code'), 'trim|required');
     $category = $this->settings_model->getExpenseCategoryByID($id);
-    if (getPOST('code') != $category->code) {
+    if (getPost('code') != $category->code) {
       $this->form_validation->set_rules('code', lang('category_code'), 'required|is_unique[expense_categories.code]');
     }
     $this->form_validation->set_rules('name', lang('category_name'), 'required|min_length[3]');
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'code' => getPOST('code'),
-        'name' => getPOST('name'),
+        'code' => getPost('code'),
+        'name' => getPost('name'),
       ];
-    } elseif (getPOST('edit_expense_category')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('edit_expense_category')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/expense_categories');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updateExpenseCategory($id, $data)) {
-      $this->session->set_flashdata('message', lang('expense_category_updated'));
+      XSession::set_flash('message', lang('expense_category_updated'));
       admin_redirect('system_settings/expense_categories');
     } else {
       $this->data['error']    = validation_errors() ? validation_errors() : $this->session->flashdata('error');
@@ -1128,13 +1128,13 @@ class system_settings extends MY_Controller
     $this->form_validation->set_rules('group_name', lang('group_name'), 'required|alpha_dash');
 
     if ($this->form_validation->run() === true) {
-      $data         = ['name' => strtolower(getPOST('group_name')), 'description' => getPOST('description')];
+      $data         = ['name' => strtolower(getPost('group_name')), 'description' => getPost('description')];
       $group_update = $this->settings_model->updateGroup($id, $data);
 
       if ($group_update) {
-        $this->session->set_flashdata('message', lang('group_udpated'));
+        XSession::set_flash('message', lang('group_udpated'));
       } else {
-        $this->session->set_flashdata('error', lang('attempt_failed'));
+        XSession::set_flash('error', lang('attempt_failed'));
       }
       admin_redirect('system_settings/user_groups');
     } else {
@@ -1164,19 +1164,19 @@ class system_settings extends MY_Controller
   {
     $this->form_validation->set_rules('name', lang('group_name'), 'trim|required|alpha_numeric_spaces');
     $pg_details = $this->settings_model->getPriceGroupByID($id);
-    if (getPOST('name') != $pg_details->name) {
+    if (getPost('name') != $pg_details->name) {
       $this->form_validation->set_rules('name', lang('group_name'), 'required|is_unique[price_groups.name]');
     }
 
     if ($this->form_validation->run() == true) {
-      $data = ['name' => getPOST('name')];
-    } elseif (getPOST('edit_price_group')) {
-      $this->session->set_flashdata('error', validation_errors());
+      $data = ['name' => getPost('name')];
+    } elseif (getPost('edit_price_group')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/price_groups');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updatePriceGroup($id, $data)) {
-      $this->session->set_flashdata('message', lang('price_group_updated'));
+      XSession::set_flash('message', lang('price_group_updated'));
       admin_redirect('system_settings/price_groups');
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -1192,19 +1192,19 @@ class system_settings extends MY_Controller
     $this->form_validation->set_rules('name', lang('Range Name'), 'trim|required|alpha_numeric_spaces');
 
     $pr_details = $this->settings_model->getPriceRangeByID($id);
-    if (getPOST('name') != $pr_details->name) {
+    if (getPost('name') != $pr_details->name) {
       $this->form_validation->set_rules('name', lang('Range Name'), 'required|is_unique[price_ranges.name]');
     }
 
     if ($this->form_validation->run() == true) {
-      $data = ['name' => getPOST('name')];
-    } elseif (getPOST('edit_price_range')) {
-      $this->session->set_flashdata('error', validation_errors());
+      $data = ['name' => getPost('name')];
+    } elseif (getPost('edit_price_range')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/price_ranges');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updatePriceRange($id, $data)) {
-      $this->session->set_flashdata('message', lang('Price Range updated successfully.'));
+      XSession::set_flash('message', lang('Price Range updated successfully.'));
       admin_redirect('system_settings/price_ranges');
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -1219,7 +1219,7 @@ class system_settings extends MY_Controller
   {
     $this->form_validation->set_rules('name', lang('name'), 'trim|required');
     $tax_details = $this->settings_model->getTaxRateByID($id);
-    if (getPOST('name') != $tax_details->name) {
+    if (getPost('name') != $tax_details->name) {
       $this->form_validation->set_rules('name', lang('name'), 'required|is_unique[tax_rates.name]');
     }
     $this->form_validation->set_rules('type', lang('type'), 'required');
@@ -1227,18 +1227,18 @@ class system_settings extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'name' => getPOST('name'),
-        'code'      => getPOST('code'),
-        'type'      => getPOST('type'),
-        'rate'      => getPOST('rate'),
+        'name' => getPost('name'),
+        'code'      => getPost('code'),
+        'type'      => getPost('type'),
+        'rate'      => getPost('rate'),
       ];
-    } elseif (getPOST('edit_tax_rate')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('edit_tax_rate')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/tax_rates');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updateTaxRate($id, $data)) { //check to see if we are updateing the customer
-      $this->session->set_flashdata('message', lang('tax_rate_updated'));
+      XSession::set_flash('message', lang('tax_rate_updated'));
       admin_redirect('system_settings/tax_rates');
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -1254,33 +1254,33 @@ class system_settings extends MY_Controller
   {
     $this->form_validation->set_rules('code', lang('code'), 'trim|required');
     $unit_details = $this->site->getUnitByID($id);
-    if (getPOST('code') != $unit_details->code) {
+    if (getPost('code') != $unit_details->code) {
       $this->form_validation->set_rules('code', lang('code'), 'required|is_unique[units.code]');
     }
     $this->form_validation->set_rules('name', lang('name'), 'trim|required');
-    if (getPOST('base_unit')) {
+    if (getPost('base_unit')) {
       $this->form_validation->set_rules('operator', lang('operator'), 'required');
       $this->form_validation->set_rules('operation_value', lang('operation_value'), 'trim|required');
     }
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'name'            => getPOST('name'),
-        'code'            => getPOST('code'),
-        'base_unit'       => getPOST('base_unit'),
-        'operator'        => getPOST('operator'),
-        'operation_value' => getPOST('operation_value')
+        'name'            => getPost('name'),
+        'code'            => getPost('code'),
+        'base_unit'       => getPost('base_unit'),
+        'operator'        => getPost('operator'),
+        'operation_value' => getPost('operation_value')
       ];
-    } elseif (getPOST('edit_unit')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('edit_unit')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/units');
     }
 
     if ($this->form_validation->run()) {
       if ($this->settings_model->updateUnit($id, $data)) {
-        $this->session->set_flashdata('message', lang('unit_updated'));
+        XSession::set_flash('message', lang('unit_updated'));
       } else {
-        $this->session->set_flashdata('error', 'Failed to update unit.');
+        XSession::set_flash('error', 'Failed to update unit.');
       }
       admin_redirect('system_settings/units');
     } else {
@@ -1295,19 +1295,19 @@ class system_settings extends MY_Controller
   {
     $this->form_validation->set_rules('name', lang('name'), 'trim|required');
     $tax_details = $this->settings_model->getVariantByID($id);
-    if (getPOST('name') != $tax_details->name) {
+    if (getPost('name') != $tax_details->name) {
       $this->form_validation->set_rules('name', lang('name'), 'required|is_unique[variants.name]');
     }
 
     if ($this->form_validation->run() == true) {
-      $data = ['name' => getPOST('name')];
-    } elseif (getPOST('edit_variant')) {
-      $this->session->set_flashdata('error', validation_errors());
+      $data = ['name' => getPost('name')];
+    } elseif (getPost('edit_variant')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/variants');
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updateVariant($id, $data)) {
-      $this->session->set_flashdata('message', lang('variant_updated'));
+      XSession::set_flash('message', lang('variant_updated'));
       admin_redirect('system_settings/variants');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -1321,7 +1321,7 @@ class system_settings extends MY_Controller
     $this->load->helper('security');
     $this->form_validation->set_rules('code', lang('code'), 'trim|required');
     $wh_details = $this->settings_model->getWarehouseByID($warehouse_id);
-    if (getPOST('code') != $wh_details->code) {
+    if (getPost('code') != $wh_details->code) {
       $this->form_validation->set_rules('code', lang('code'), 'required|is_unique[warehouses.code]');
     }
     $this->form_validation->set_rules('address', lang('address'), 'required');
@@ -1329,19 +1329,19 @@ class system_settings extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'code'           => getPOST('code'),
-        'name'           => getPOST('name'),
-        'phone'          => getPOST('phone'),
-        'email'          => getPOST('email'),
-        'address'        => getPOST('address'),
-        'geolocation'    => getPOST('geolocation'),
-        'price_group_id' => getPOST('price_group'),
-        'active'         => (getPOST('active') ?? 0),
+        'code'           => getPost('code'),
+        'name'           => getPost('name'),
+        'phone'          => getPost('phone'),
+        'email'          => getPost('email'),
+        'address'        => getPost('address'),
+        'geolocation'    => getPost('geolocation'),
+        'price_group_id' => getPost('price_group'),
+        'active'         => (getPost('active') ?? 0),
         'json_data' => json_encode([
-          'cycle_transfer' => getPOST('cycle_transfer'),
-          'delivery_time'  => getPOST('delivery_time'),
-          'visit_days'     => getPOST('visit_days'),
-          'visit_weeks'    => getPOST('visit_weeks')
+          'cycle_transfer' => getPost('cycle_transfer'),
+          'delivery_time'  => getPost('delivery_time'),
+          'visit_days'     => getPost('visit_days'),
+          'visit_weeks'    => getPost('visit_weeks')
         ])
       ];
 
@@ -1360,7 +1360,7 @@ class system_settings extends MY_Controller
 
       //   if (!$this->upload->do_upload()) {
       //     $error = $this->upload->display_errors();
-      //     $this->session->set_flashdata('message', $error);
+      //     XSession::set_flash('message', $error);
       //     admin_redirect('system_settings/warehouses');
       //   }
 
@@ -1382,14 +1382,14 @@ class system_settings extends MY_Controller
       //     echo $this->image_lib->display_errors();
       //   }
       // }
-    } elseif (getPOST('edit_warehouse')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('edit_warehouse')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/warehouses');
     }
 
     if ($this->form_validation->run()) {
       if ($this->site->updateWarehouse(['id' => $warehouse_id], $data)) { //check to see if we are updateing the customer
-        $update_ss = getPOST('update_ss');
+        $update_ss = getPost('update_ss');
 
         if ($update_ss == 1) {
           $all_items    = $this->site->getProducts(['type' => 'standard']);
@@ -1407,9 +1407,9 @@ class system_settings extends MY_Controller
           }
         }
 
-        $this->session->set_flashdata('message', lang('warehouse_updated'));
+        XSession::set_flash('message', lang('warehouse_updated'));
       } else {
-        $this->session->set_flashdata('error', 'Failed to update warehouse.');
+        XSession::set_flash('error', 'Failed to update warehouse.');
       }
       admin_redirect('system_settings/warehouses');
     } else {
@@ -1432,10 +1432,10 @@ class system_settings extends MY_Controller
     if ($this->form_validation->run() == true) {
       $data = $_POST['mail_body'];
       if (write_file('./themes/' . $this->theme . 'email_templates/' . $template . '.html', $data)) {
-        $this->session->set_flashdata('message', lang('message_successfully_saved'));
+        XSession::set_flash('message', lang('message_successfully_saved'));
         admin_redirect('system_settings/email_templates#' . $template);
       } else {
-        $this->session->set_flashdata('error', lang('failed_to_save_message'));
+        XSession::set_flash('error', lang('failed_to_save_message'));
         admin_redirect('system_settings/email_templates#' . $template);
       }
     } else {
@@ -1573,7 +1573,7 @@ class system_settings extends MY_Controller
   public function getProductPrices($group_id = null)
   {
     if (!$group_id) {
-      $this->session->set_flashdata('error', lang('no_price_group_selected'));
+      XSession::set_flash('error', lang('no_price_group_selected'));
       admin_redirect('system_settings/price_groups');
     }
 
@@ -1660,7 +1660,7 @@ class system_settings extends MY_Controller
   public function group_product_prices($group_id = null)
   {
     if (!$group_id) {
-      $this->session->set_flashdata('error', lang('no_price_group_selected'));
+      XSession::set_flash('error', lang('no_price_group_selected'));
       admin_redirect('system_settings/price_groups');
     }
 
@@ -1690,7 +1690,7 @@ class system_settings extends MY_Controller
 
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('system_settings/brands');
         }
 
@@ -1726,7 +1726,7 @@ class system_settings extends MY_Controller
     }
 
     if ($this->form_validation->run() == true && !empty($data) && $this->settings_model->addBrands($data)) {
-      $this->session->set_flashdata('message', lang('brands_added'));
+      XSession::set_flash('message', lang('brands_added'));
       admin_redirect('system_settings/brands');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -1755,7 +1755,7 @@ class system_settings extends MY_Controller
         $this->upload->initialize($config);
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('system_settings/categories');
         }
         $csv       = $this->upload->file_name;
@@ -1772,7 +1772,7 @@ class system_settings extends MY_Controller
         $updated    = '';
         $categories = $subcategories = [];
         if ($header_id[0] != 'ID' || $header_id[1] != 'PRODUCT CATEGORY') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('products/categories');
         }
         foreach ($arrResult as $key => $value) {
@@ -1807,14 +1807,14 @@ class system_settings extends MY_Controller
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addCategories($categories, $subcategories)) {
-      $this->session->set_flashdata('message', lang('categories_added') . $updated);
+      XSession::set_flash('message', lang('categories_added') . $updated);
       admin_redirect('system_settings/categories');
     } else {
       if ((isset($categories) && empty($categories)) || (isset($subcategories) && empty($subcategories))) {
         if ($updated) {
-          $this->session->set_flashdata('message', $updated);
+          XSession::set_flash('message', $updated);
         } else {
-          $this->session->set_flashdata('warning', lang('data_x_categories'));
+          XSession::set_flash('warning', lang('data_x_categories'));
         }
         admin_redirect('system_settings/categories');
       }
@@ -1847,7 +1847,7 @@ class system_settings extends MY_Controller
 
         if (!$this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('system_settings/expense_categories');
         }
 
@@ -1869,7 +1869,7 @@ class system_settings extends MY_Controller
         $updated = 0;
 
         if ($header_id[0] != 'EXCA') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('system_settings/expense_categories');
         }
         foreach ($arrResult as $key => $value) {
@@ -1894,11 +1894,11 @@ class system_settings extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       if ($this->settings_model->addExpenseCategories($data_expense)) {
-        $this->session->set_flashdata('message', lang('categories_added'));
+        XSession::set_flash('message', lang('categories_added'));
       } else if ($updated) {
-        $this->session->set_flashdata('message', lang('categories_added'));
+        XSession::set_flash('message', lang('categories_added'));
       } else {
-        $this->session->set_flashdata('error', 'Something error');
+        XSession::set_flash('error', 'Something error');
       }
       admin_redirect('system_settings/expense_categories');
     } else {
@@ -1923,7 +1923,7 @@ class system_settings extends MY_Controller
 
         if (!$this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('system_settings/income_categories');
         }
 
@@ -1945,7 +1945,7 @@ class system_settings extends MY_Controller
         $updated = 0;
 
         if ($header_id[0] != 'INCA') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('system_settings/income_categories');
         }
         foreach ($arrResult as $key => $value) {
@@ -1971,11 +1971,11 @@ class system_settings extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       if ($this->site->addIncomeCategories($data)) {
-        $this->session->set_flashdata('message', lang('categories_added'));
+        XSession::set_flash('message', lang('categories_added'));
       } else if ($updated) {
-        $this->session->set_flashdata('message', lang('categories_added'));
+        XSession::set_flash('message', lang('categories_added'));
       } else {
-        $this->session->set_flashdata('error', 'Something error.');
+        XSession::set_flash('error', 'Something error.');
       }
       admin_redirect('system_settings/income_categories');
     } else {
@@ -2006,7 +2006,7 @@ class system_settings extends MY_Controller
 
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('system_settings/categories');
         }
 
@@ -2038,7 +2038,7 @@ class system_settings extends MY_Controller
                 'category_id' => $parent_actegory->id,
               ];
             } else {
-              $this->session->set_flashdata('error', lang('check_category_code') . ' (' . $csv_ct['category_code'] . '). ' . lang('category_code_x_exist') . ' ' . lang('line_no') . ' ' . $rw);
+              XSession::set_flash('error', lang('check_category_code') . ' (' . $csv_ct['category_code'] . '). ' . lang('category_code_x_exist') . ' ' . lang('line_no') . ' ' . $rw);
               admin_redirect('system_settings/categories');
             }
           }
@@ -2048,7 +2048,7 @@ class system_settings extends MY_Controller
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->addSubCategories($data)) {
-      $this->session->set_flashdata('message', lang('subcategories_added'));
+      XSession::set_flash('message', lang('subcategories_added'));
       admin_redirect('system_settings/categories');
     } else {
       $this->data['error']    = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -2065,7 +2065,7 @@ class system_settings extends MY_Controller
   public function import_units()
   {
     $arrResult = [];
-    $command = getPOST('command');
+    $command = getPost('command');
 
     if ($command == 'syncGoogleSheet') {
       $gsheet = $this->ridintek->googlesheet();
@@ -2089,7 +2089,7 @@ class system_settings extends MY_Controller
 
           if (!$this->upload->do_upload('csv_file')) {
             $error = $this->upload->display_errors();
-            $this->session->set_flashdata('error', $error);
+            XSession::set_flash('error', $error);
             admin_redirect('system_settings/units');
           }
 
@@ -2105,8 +2105,8 @@ class system_settings extends MY_Controller
           unset($csv);
           $csvs = [];
         }
-      } else if (getPOST('import')) {
-        $this->session->set_flashdata('error', 'E1: ' . validation_errors());
+      } else if (getPost('import')) {
+        XSession::set_flash('error', 'E1: ' . validation_errors());
         admin_redirect('system_settings/units');
       }
     }
@@ -2123,7 +2123,7 @@ class system_settings extends MY_Controller
         if ($command == 'syncGoogleSheet') {
           sendJSON(['error' => 1, 'msg' => 'File format is invalid on Googlesheet.']);
         } else {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('system_settings/units');
         }
       }
@@ -2165,12 +2165,12 @@ class system_settings extends MY_Controller
       if ($command == 'syncGoogleSheet') {
         sendJSON(['error' => 0, 'msg' => sprintf(lang('csv_units_imported'), $added, $updated)]);
       } else {
-        $this->session->set_flashdata('message', sprintf(lang('csv_units_imported'), $added, $updated));
+        XSession::set_flash('message', sprintf(lang('csv_units_imported'), $added, $updated));
         admin_redirect('system_settings/units');
       }
     } else {
-      if (getPOST('import')) {
-        $this->session->set_flashdata('error', 'E2: ' . validation_errors());
+      if (getPost('import')) {
+        XSession::set_flash('error', 'E2: ' . validation_errors());
         admin_redirect('system_settings/units');
       }
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -2195,7 +2195,7 @@ class system_settings extends MY_Controller
 
         if (!$this->upload->do_upload('csv_file')) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('system_settings/warehouses');
         }
 
@@ -2221,7 +2221,7 @@ class system_settings extends MY_Controller
         ];
 
         if ($header_id[0] != 'WRHS') {
-          $this->session->set_flashdata('error', 'File format is invalid.');
+          XSession::set_flash('error', 'File format is invalid.');
           admin_redirect('system_settings/warehouses');
         }
 
@@ -2234,7 +2234,7 @@ class system_settings extends MY_Controller
           $price_group = $this->site->getPriceGroupByName($csv['price_group']);
 
           if (!$price_group) {
-            $this->session->set_flashdata('error', sprintf('Price Group [%s] is not found.', $csv['price_group']));
+            XSession::set_flash('error', sprintf('Price Group [%s] is not found.', $csv['price_group']));
             admin_redirect('system_settings/warehouses');
           }
 
@@ -2258,8 +2258,8 @@ class system_settings extends MY_Controller
           }
         } // foreach
       }
-    } else if (getPOST('import')) {
-      $this->session->set_flashdata('error', 'E1: ' . validation_errors());
+    } else if (getPost('import')) {
+      XSession::set_flash('error', 'E1: ' . validation_errors());
       admin_redirect('system_settings/warehouses');
     }
 
@@ -2279,11 +2279,11 @@ class system_settings extends MY_Controller
         }
       }
 
-      $this->session->set_flashdata('message', sprintf(lang('csv_warehouses_imported'), $added, $updated));
+      XSession::set_flash('message', sprintf(lang('csv_warehouses_imported'), $added, $updated));
       admin_redirect('system_settings/warehouses');
     } else {
-      if (getPOST('import')) {
-        $this->session->set_flashdata('error', 'E2: ' . validation_errors());
+      if (getPost('import')) {
+        XSession::set_flash('error', 'E2: ' . validation_errors());
         admin_redirect('system_settings/warehouses');
       }
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -2329,13 +2329,13 @@ class system_settings extends MY_Controller
     $this->form_validation->set_rules('product_discount', lang('product_discount'), 'trim|required');
     $this->form_validation->set_rules('bc_fix', lang('bc_fix'), 'trim|numeric|required');
     $this->form_validation->set_rules('protocol', lang('email_protocol'), 'trim|required');
-    if (getPOST('protocol') == 'smtp') {
+    if (getPost('protocol') == 'smtp') {
       $this->form_validation->set_rules('smtp_host', lang('smtp_host'), 'required');
       $this->form_validation->set_rules('smtp_user', lang('smtp_user'), 'required');
       $this->form_validation->set_rules('smtp_pass', lang('smtp_pass'), 'required');
       $this->form_validation->set_rules('smtp_port', lang('smtp_port'), 'required');
     }
-    if (getPOST('protocol') == 'sendmail') {
+    if (getPost('protocol') == 'sendmail') {
       $this->form_validation->set_rules('mailpath', lang('mailpath'), 'required');
     }
     $this->form_validation->set_rules('decimals', lang('decimals'), 'trim|required');
@@ -2343,122 +2343,122 @@ class system_settings extends MY_Controller
     $this->form_validation->set_rules('thousands_sep', lang('thousands_sep'), 'trim|required');
 
     if ($this->form_validation->run() == true) {
-      $language = getPOST('language');
+      $language = getPost('language');
 
       if ((file_exists(APPPATH . 'language' . DIRECTORY_SEPARATOR . $language . DIRECTORY_SEPARATOR . 'admin' . DIRECTORY_SEPARATOR . 'sma_lang.php') && is_dir(APPPATH . DIRECTORY_SEPARATOR . 'language' . DIRECTORY_SEPARATOR . $language)) || $language == 'english') {
         $lang = $language;
       } else {
-        $this->session->set_flashdata('error', lang('language_x_found'));
+        XSession::set_flash('error', lang('language_x_found'));
         admin_redirect('system_settings');
         $lang = 'english';
       }
 
-      $tax1 = (getPOST('tax_rate') != 0) ? 1 : 0;
-      $tax2 = (getPOST('tax_rate2') != 0) ? 1 : 0;
+      $tax1 = (getPost('tax_rate') != 0) ? 1 : 0;
+      $tax2 = (getPost('tax_rate2') != 0) ? 1 : 0;
 
       $data = [
-        'site_name' => DEMO ? 'Stock Manager Advance' : getPOST('site_name'),
-        'rows_per_page'  => getPOST('rows_per_page'),
-        'dateformat'     => getPOST('dateformat'),
-        'timezone'       => DEMO ? 'Asia/Kuala_Lumpur' : getPOST('timezone'),
-        'mmode'          => trim(getPOST('mmode')),
-        'iwidth'         => getPOST('iwidth'),
-        'iheight'        => getPOST('iheight'),
-        'twidth'         => getPOST('twidth'),
-        'theight'        => getPOST('theight'),
-        'watermark'      => getPOST('watermark'),
-        // 'reg_ver' => getPOST('reg_ver'),
-        // 'allow_reg' => getPOST('allow_reg'),
-        // 'reg_notification' => getPOST('reg_notification'),
-        'accounting_method'    => getPOST('accounting_method'),
-        'default_email'        => DEMO ? 'noreply@tecdiary.com' : getPOST('email'),
+        'site_name' => DEMO ? 'Stock Manager Advance' : getPost('site_name'),
+        'rows_per_page'  => getPost('rows_per_page'),
+        'dateformat'     => getPost('dateformat'),
+        'timezone'       => DEMO ? 'Asia/Kuala_Lumpur' : getPost('timezone'),
+        'mmode'          => trim(getPost('mmode')),
+        'iwidth'         => getPost('iwidth'),
+        'iheight'        => getPost('iheight'),
+        'twidth'         => getPost('twidth'),
+        'theight'        => getPost('theight'),
+        'watermark'      => getPost('watermark'),
+        // 'reg_ver' => getPost('reg_ver'),
+        // 'allow_reg' => getPost('allow_reg'),
+        // 'reg_notification' => getPost('reg_notification'),
+        'accounting_method'    => getPost('accounting_method'),
+        'default_email'        => DEMO ? 'noreply@tecdiary.com' : getPost('email'),
         'language'             => $lang,
-        'default_warehouse'    => getPOST('warehouse'),
-        'default_tax_rate'     => getPOST('tax_rate'),
-        'default_tax_rate2'    => getPOST('tax_rate2'),
-        'sales_prefix'         => getPOST('sales_prefix'),
-        'quote_prefix'         => getPOST('quote_prefix'),
-        'purchase_prefix'      => getPOST('purchase_prefix'),
-        'transfer_prefix'      => getPOST('transfer_prefix'),
-        'delivery_prefix'      => getPOST('delivery_prefix'),
-        'payment_prefix'       => getPOST('payment_prefix'),
-        'ppayment_prefix'      => getPOST('ppayment_prefix'),
-        'tpayment_prefix'      => getPOST('tpayment_prefix'),
-        'qa_prefix'            => getPOST('qa_prefix'),
-        'return_prefix'        => getPOST('return_prefix'),
-        'returnp_prefix'       => getPOST('returnp_prefix'),
-        'expense_prefix'       => getPOST('expense_prefix'),
-        'income_prefix'        => getPOST('income_prefix'),
-        'mutation_prefix'      => getPOST('mutation_prefix'),
-        'auto_detect_barcode'  => trim(getPOST('detect_barcode')),
-        'theme'                => trim(getPOST('theme')),
-        'product_serial'       => getPOST('product_serial'),
-        'customer_group'       => getPOST('customer_group'),
-        'product_expiry'       => getPOST('product_expiry'),
-        'product_discount'     => getPOST('product_discount'),
-        'default_currency'     => getPOST('currency'),
-        'bc_fix'               => getPOST('bc_fix'),
+        'default_warehouse'    => getPost('warehouse'),
+        'default_tax_rate'     => getPost('tax_rate'),
+        'default_tax_rate2'    => getPost('tax_rate2'),
+        'sales_prefix'         => getPost('sales_prefix'),
+        'quote_prefix'         => getPost('quote_prefix'),
+        'purchase_prefix'      => getPost('purchase_prefix'),
+        'transfer_prefix'      => getPost('transfer_prefix'),
+        'delivery_prefix'      => getPost('delivery_prefix'),
+        'payment_prefix'       => getPost('payment_prefix'),
+        'ppayment_prefix'      => getPost('ppayment_prefix'),
+        'tpayment_prefix'      => getPost('tpayment_prefix'),
+        'qa_prefix'            => getPost('qa_prefix'),
+        'return_prefix'        => getPost('return_prefix'),
+        'returnp_prefix'       => getPost('returnp_prefix'),
+        'expense_prefix'       => getPost('expense_prefix'),
+        'income_prefix'        => getPost('income_prefix'),
+        'mutation_prefix'      => getPost('mutation_prefix'),
+        'auto_detect_barcode'  => trim(getPost('detect_barcode')),
+        'theme'                => trim(getPost('theme')),
+        'product_serial'       => getPost('product_serial'),
+        'customer_group'       => getPost('customer_group'),
+        'product_expiry'       => getPost('product_expiry'),
+        'product_discount'     => getPost('product_discount'),
+        'default_currency'     => getPost('currency'),
+        'bc_fix'               => getPost('bc_fix'),
         'tax1'                 => $tax1,
         'tax2'                 => $tax2,
-        'overselling'          => getPOST('restrict_sale'),
-        'reference_format'     => getPOST('reference_format'),
-        'racks'                => getPOST('racks'),
-        'attributes'           => getPOST('attributes'),
-        'restrict_calendar'    => getPOST('restrict_calendar'),
-        'captcha'              => getPOST('captcha'),
-        'item_addition'        => getPOST('item_addition'),
-        'protocol'             => DEMO ? 'mail' : getPOST('protocol'),
-        'mailpath'             => getPOST('mailpath'),
-        'smtp_host'            => getPOST('smtp_host'),
-        'smtp_user'            => getPOST('smtp_user'),
-        'smtp_port'            => getPOST('smtp_port'),
-        'smtp_crypto'          => getPOST('smtp_crypto') ? getPOST('smtp_crypto') : null,
-        'decimals'             => getPOST('decimals'),
-        'decimals_sep'         => getPOST('decimals_sep'),
-        'thousands_sep'        => getPOST('thousands_sep'),
-        'default_biller'       => getPOST('biller'),
-        'invoice_view'         => getPOST('invoice_view'),
-        'rtl'                  => getPOST('rtl'),
-        'each_spent'           => getPOST('each_spent') ? getPOST('each_spent') : null,
-        'ca_point'             => getPOST('ca_point') ? getPOST('ca_point') : null,
-        'each_sale'            => getPOST('each_sale') ? getPOST('each_sale') : null,
-        'sa_point'             => getPOST('sa_point') ? getPOST('sa_point') : null,
-        'sac'                  => getPOST('sac'),
-        'qty_decimals'         => getPOST('qty_decimals'),
-        'display_all_products' => getPOST('display_all_products'),
-        'display_symbol'       => getPOST('display_symbol'),
-        'symbol'               => getPOST('symbol'),
-        'remove_expired'       => getPOST('remove_expired'),
-        'barcode_separator'    => getPOST('barcode_separator'),
-        'set_focus'            => getPOST('set_focus'),
-        'disable_editing'      => getPOST('disable_editing'),
-        'price_group'          => getPOST('price_group'),
-        'barcode_img'          => getPOST('barcode_renderer'),
-        'update_cost'          => getPOST('update_cost'),
-        'apis'                 => getPOST('apis'),
-        'pdf_lib'              => getPOST('pdf_lib'),
-        'state'                => getPOST('state'),
+        'overselling'          => getPost('restrict_sale'),
+        'reference_format'     => getPost('reference_format'),
+        'racks'                => getPost('racks'),
+        'attributes'           => getPost('attributes'),
+        'restrict_calendar'    => getPost('restrict_calendar'),
+        'captcha'              => getPost('captcha'),
+        'item_addition'        => getPost('item_addition'),
+        'protocol'             => DEMO ? 'mail' : getPost('protocol'),
+        'mailpath'             => getPost('mailpath'),
+        'smtp_host'            => getPost('smtp_host'),
+        'smtp_user'            => getPost('smtp_user'),
+        'smtp_port'            => getPost('smtp_port'),
+        'smtp_crypto'          => getPost('smtp_crypto') ? getPost('smtp_crypto') : null,
+        'decimals'             => getPost('decimals'),
+        'decimals_sep'         => getPost('decimals_sep'),
+        'thousands_sep'        => getPost('thousands_sep'),
+        'default_biller'       => getPost('biller'),
+        'invoice_view'         => getPost('invoice_view'),
+        'rtl'                  => getPost('rtl'),
+        'each_spent'           => getPost('each_spent') ? getPost('each_spent') : null,
+        'ca_point'             => getPost('ca_point') ? getPost('ca_point') : null,
+        'each_sale'            => getPost('each_sale') ? getPost('each_sale') : null,
+        'sa_point'             => getPost('sa_point') ? getPost('sa_point') : null,
+        'sac'                  => getPost('sac'),
+        'qty_decimals'         => getPost('qty_decimals'),
+        'display_all_products' => getPost('display_all_products'),
+        'display_symbol'       => getPost('display_symbol'),
+        'symbol'               => getPost('symbol'),
+        'remove_expired'       => getPost('remove_expired'),
+        'barcode_separator'    => getPost('barcode_separator'),
+        'set_focus'            => getPost('set_focus'),
+        'disable_editing'      => getPost('disable_editing'),
+        'price_group'          => getPost('price_group'),
+        'barcode_img'          => getPost('barcode_renderer'),
+        'update_cost'          => getPost('update_cost'),
+        'apis'                 => getPost('apis'),
+        'pdf_lib'              => getPost('pdf_lib'),
+        'state'                => getPost('state'),
         'settings_json'        => json_encode([
-          'min_dp'              => filterDecimal(getPOST('min_dp') ?? 0),
-          'min_dp_percent'      => filterDecimal(getPOST('min_dp_percent') ?? 0),
-          'safety_stock_period' => filterDecimal(getPOST('safety_stock_period') ?? 0),
-          'qms_expired_time'    => filterDecimal(getPOST('qms_expired_time') ?? 0)
+          'min_dp'              => filterDecimal(getPost('min_dp') ?? 0),
+          'min_dp_percent'      => filterDecimal(getPost('min_dp_percent') ?? 0),
+          'safety_stock_period' => filterDecimal(getPost('safety_stock_period') ?? 0),
+          'qms_expired_time'    => filterDecimal(getPost('qms_expired_time') ?? 0)
         ])
       ];
-      if (getPOST('smtp_pass')) {
-        $data['smtp_pass'] = getPOST('smtp_pass');
+      if (getPost('smtp_pass')) {
+        $data['smtp_pass'] = getPost('smtp_pass');
       }
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updateSetting($data)) {
       if (!DEMO && TIMEZONE != $data['timezone']) {
         if (!$this->write_index($data['timezone'])) {
-          $this->session->set_flashdata('error', lang('setting_updated_timezone_failed'));
+          XSession::set_flash('error', lang('setting_updated_timezone_failed'));
           admin_redirect('system_settings');
         }
       }
 
-      $this->session->set_flashdata('message', lang('setting_updated'));
+      XSession::set_flash('message', lang('setting_updated'));
       admin_redirect('system_settings');
     } else {
       $settings                      = $this->site->getSettings();
@@ -2483,11 +2483,11 @@ class system_settings extends MY_Controller
   public function install_update($file, $m_version, $version)
   {
     if (DEMO) {
-      $this->session->set_flashdata('warning', lang('disabled_in_demo'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('warning', lang('disabled_in_demo'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       admin_redirect('welcome');
     }
     $this->load->helper('update');
@@ -2496,13 +2496,13 @@ class system_settings extends MY_Controller
     if ($m_version) {
       $this->load->library('migration');
       if (!$this->migration->latest()) {
-        $this->session->set_flashdata('error', $this->migration->error_string());
+        XSession::set_flash('error', $this->migration->error_string());
         admin_redirect('system_settings/updates');
       }
     }
     $this->db->update('settings', ['version' => $version, 'update' => 0], ['setting_id' => 1]);
     unlink('./files/updates/' . $file . '.zip');
-    $this->session->set_flashdata('success', lang('update_done'));
+    XSession::set_flash('success', lang('update_done'));
     admin_redirect('system_settings/updates');
   }
 
@@ -2511,19 +2511,19 @@ class system_settings extends MY_Controller
     $this->form_validation->set_rules('active', $this->lang->line('activate'), 'trim');
 
     if ($this->form_validation->run() == true) {
-      $api_keys = getPOST('api_keys');
+      $api_keys = getPost('api_keys');
       $keys = [];
       foreach ($api_keys as $key) {
         if (!empty($key)) $keys[] = $key;
       }
       $data = [
-        'active'   => getPOST('active'),
+        'active'   => getPost('active'),
         'api_keys' => json_encode($keys)
       ];
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updateMutasibank($data)) {
-      $this->session->set_flashdata('message', lang('mutasibank_updated'));
+      XSession::set_flash('message', lang('mutasibank_updated'));
       admin_redirect('system_settings/mutasibank');
     } else {
       $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
@@ -2546,7 +2546,7 @@ class system_settings extends MY_Controller
   {
     $this->form_validation->set_rules('active', $this->lang->line('activate'), 'trim');
     $this->form_validation->set_rules('account_email', $this->lang->line('paypal_account_email'), 'trim|valid_email');
-    if (getPOST('active')) {
+    if (getPost('active')) {
       $this->form_validation->set_rules('account_email', $this->lang->line('paypal_account_email'), 'required');
     }
     $this->form_validation->set_rules('fixed_charges', $this->lang->line('fixed_charges'), 'trim');
@@ -2555,16 +2555,16 @@ class system_settings extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       $data = [
-        'active'         => getPOST('active'),
-        'account_email'       => getPOST('account_email'),
-        'fixed_charges'       => getPOST('fixed_charges'),
-        'extra_charges_my'    => getPOST('extra_charges_my'),
-        'extra_charges_other' => getPOST('extra_charges_other'),
+        'active'         => getPost('active'),
+        'account_email'       => getPost('account_email'),
+        'fixed_charges'       => getPost('fixed_charges'),
+        'extra_charges_my'    => getPost('extra_charges_my'),
+        'extra_charges_other' => getPost('extra_charges_other'),
       ];
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updatePaypal($data)) {
-      $this->session->set_flashdata('message', $this->lang->line('paypal_setting_updated'));
+      XSession::set_flash('message', $this->lang->line('paypal_setting_updated'));
       admin_redirect('system_settings/paypal');
     } else {
       $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
@@ -2584,172 +2584,172 @@ class system_settings extends MY_Controller
     $this->form_validation->set_rules('group', lang('group'), 'is_natural_no_zero');
     if ($this->form_validation->run() == true) {
       $data = [
-        'products-index'             => getPOST('products-index'),
-        'products-edit'              => getPOST('products-edit'),
-        'products-add'               => getPOST('products-add'),
-        'products-delete'            => getPOST('products-delete'),
-        'products-cost'              => getPOST('products-cost'),
-        'products-price'             => getPOST('products-price'),
-        'customers-index'            => getPOST('customers-index'),
-        'customers-edit'             => getPOST('customers-edit'),
-        'customers-add'              => getPOST('customers-add'),
-        'customers-delete'           => getPOST('customers-delete'),
-        'suppliers-index'            => getPOST('suppliers-index'),
-        'suppliers-edit'             => getPOST('suppliers-edit'),
-        'suppliers-add'              => getPOST('suppliers-add'),
-        'suppliers-delete'           => getPOST('suppliers-delete'),
-        'sales-index'                => getPOST('sales-index'),
-        'sales-edit'                 => getPOST('sales-edit'),
-        'sales-add'                  => getPOST('sales-add'),
-        'sales-delete'               => getPOST('sales-delete'),
-        'sales-email'                => getPOST('sales-email'),
-        'sales-pdf'                  => getPOST('sales-pdf'),
-        'purchases-index'            => getPOST('purchases-index'),
-        'purchases-edit'             => getPOST('purchases-edit'),
-        'purchases-add'              => getPOST('purchases-add'),
-        'purchases-delete'           => getPOST('purchases-delete'),
-        'purchases-email'            => getPOST('purchases-email'),
-        'purchases-pdf'              => getPOST('purchases-pdf'),
-        'transfers-index'            => getPOST('transfers-index'),
-        'transfers-edit'             => getPOST('transfers-edit'),
-        'transfers-add'              => getPOST('transfers-add'),
-        'transfers-delete'           => getPOST('transfers-delete'),
-        'transfers-email'            => getPOST('transfers-email'),
-        'transfers-pdf'              => getPOST('transfers-pdf'),
-        'reports-quantity_alerts'    => getPOST('reports-quantity_alerts'),
-        'reports-expiry_alerts'      => getPOST('reports-expiry_alerts'),
-        'reports-products'           => getPOST('reports-products'),
-        'reports-daily_sales'        => getPOST('reports-daily_sales'),
-        'reports-monthly_sales'      => getPOST('reports-monthly_sales'),
-        'reports-payments'           => getPOST('reports-payments'),
-        'reports-sales'              => getPOST('reports-sales'),
-        'reports-purchases'          => getPOST('reports-purchases'),
-        'reports-customers'          => getPOST('reports-customers'),
-        'reports-suppliers'          => getPOST('reports-suppliers'),
-        'sales-payments'             => getPOST('sales-payments'),
-        'purchases-payments'         => getPOST('purchases-payments'),
-        'purchases-expenses'         => getPOST('purchases-expenses'),
-        'products-adjustments'       => getPOST('products-adjustments'),
-        'bulk_actions'               => getPOST('bulk_actions'),
-        'customers-deposits'         => getPOST('customers-deposits'),
-        'customers-delete_deposit'   => getPOST('customers-delete_deposit'),
-        'products-barcode'           => getPOST('products-barcode'),
-        'purchases-return_purchases' => getPOST('purchases-return_purchases'),
-        'reports-expenses'           => getPOST('reports-expenses'),
-        'reports-daily_purchases'    => getPOST('reports-daily_purchases'),
-        'reports-monthly_purchases'  => getPOST('reports-monthly_purchases'),
-        'products-stock_count'       => getPOST('products-stock_count'),
-        'edit_price'                 => getPOST('edit_price'),
-        'reports-tax'                => getPOST('reports-tax'),
+        'products-index'             => getPost('products-index'),
+        'products-edit'              => getPost('products-edit'),
+        'products-add'               => getPost('products-add'),
+        'products-delete'            => getPost('products-delete'),
+        'products-cost'              => getPost('products-cost'),
+        'products-price'             => getPost('products-price'),
+        'customers-index'            => getPost('customers-index'),
+        'customers-edit'             => getPost('customers-edit'),
+        'customers-add'              => getPost('customers-add'),
+        'customers-delete'           => getPost('customers-delete'),
+        'suppliers-index'            => getPost('suppliers-index'),
+        'suppliers-edit'             => getPost('suppliers-edit'),
+        'suppliers-add'              => getPost('suppliers-add'),
+        'suppliers-delete'           => getPost('suppliers-delete'),
+        'sales-index'                => getPost('sales-index'),
+        'sales-edit'                 => getPost('sales-edit'),
+        'sales-add'                  => getPost('sales-add'),
+        'sales-delete'               => getPost('sales-delete'),
+        'sales-email'                => getPost('sales-email'),
+        'sales-pdf'                  => getPost('sales-pdf'),
+        'purchases-index'            => getPost('purchases-index'),
+        'purchases-edit'             => getPost('purchases-edit'),
+        'purchases-add'              => getPost('purchases-add'),
+        'purchases-delete'           => getPost('purchases-delete'),
+        'purchases-email'            => getPost('purchases-email'),
+        'purchases-pdf'              => getPost('purchases-pdf'),
+        'transfers-index'            => getPost('transfers-index'),
+        'transfers-edit'             => getPost('transfers-edit'),
+        'transfers-add'              => getPost('transfers-add'),
+        'transfers-delete'           => getPost('transfers-delete'),
+        'transfers-email'            => getPost('transfers-email'),
+        'transfers-pdf'              => getPost('transfers-pdf'),
+        'reports-quantity_alerts'    => getPost('reports-quantity_alerts'),
+        'reports-expiry_alerts'      => getPost('reports-expiry_alerts'),
+        'reports-products'           => getPost('reports-products'),
+        'reports-daily_sales'        => getPost('reports-daily_sales'),
+        'reports-monthly_sales'      => getPost('reports-monthly_sales'),
+        'reports-payments'           => getPost('reports-payments'),
+        'reports-sales'              => getPost('reports-sales'),
+        'reports-purchases'          => getPost('reports-purchases'),
+        'reports-customers'          => getPost('reports-customers'),
+        'reports-suppliers'          => getPost('reports-suppliers'),
+        'sales-payments'             => getPost('sales-payments'),
+        'purchases-payments'         => getPost('purchases-payments'),
+        'purchases-expenses'         => getPost('purchases-expenses'),
+        'products-adjustments'       => getPost('products-adjustments'),
+        'bulk_actions'               => getPost('bulk_actions'),
+        'customers-deposits'         => getPost('customers-deposits'),
+        'customers-delete_deposit'   => getPost('customers-delete_deposit'),
+        'products-barcode'           => getPost('products-barcode'),
+        'purchases-return_purchases' => getPost('purchases-return_purchases'),
+        'reports-expenses'           => getPost('reports-expenses'),
+        'reports-daily_purchases'    => getPost('reports-daily_purchases'),
+        'reports-monthly_purchases'  => getPost('reports-monthly_purchases'),
+        'products-stock_count'       => getPost('products-stock_count'),
+        'edit_price'                 => getPost('edit_price'),
+        'reports-tax'                => getPost('reports-tax'),
         'permissions_json'           => json_encode([ // Extended permissions.
-          'banks-add'                 => getPOST('banks-add'),
-          'banks-delete'              => getPOST('banks-delete'),
-          'banks-edit'                => getPOST('banks-edit'),
-          'banks-index'               => getPOST('banks-index'),
-          'banks-reconciliation'      => getPOST('banks-reconciliation'),
-          'reports-daily_performance' => getPOST('reports-daily_performance'),
-          'dashboard-chart'           => getPOST('dashboard-chart'),
-          'mutations-add'             => getPOST('mutations-add'),
-          'mutations-delete'          => getPOST('mutations-delete'),
-          'mutations-edit'            => getPOST('mutations-edit'),
-          'mutations-index'           => getPOST('mutations-index'),
-          'mutations-manual'          => getPOST('mutations-manual'),
-          'edit-system'               => getPOST('edit-system'),
-          'expenses-add'              => getPOST('expenses-add'),
-          'expenses-approval'         => getPOST('expenses-approval'),
-          'expenses-delete'           => getPOST('expenses-delete'),
-          'expenses-edit'             => getPOST('expenses-edit'),
-          'expenses-index'            => getPOST('expenses-index'),
-          'expenses-payment'          => getPOST('expenses-payment'),
-          'googlereview-add'          => getPOST('googlereview-add'),
-          'googlereview-delete'       => getPOST('googlereview-delete'),
-          'googlereview-edit'         => getPOST('googlereview-edit'),
-          'googlereview-view'         => getPOST('googlereview-view'),
-          'incomes-add'               => getPOST('incomes-add'),
-          'incomes-delete'            => getPOST('incomes-delete'),
-          'incomes-edit'              => getPOST('incomes-edit'),
-          'incomes-index'             => getPOST('incomes-index'),
-          'internal_uses-add'         => getPOST('internal_uses-add'),
-          'internal_uses-approval'    => getPOST('internal_uses-approval'),
-          'internal_uses-delete'      => getPOST('internal_uses-delete'),
-          'internal_uses-edit'        => getPOST('internal_uses-edit'),
-          'internal_uses-index'       => getPOST('internal_uses-index'),
-          'internal_uses-consumable'  => getPOST('internal_uses-consumable'),
-          'internal_uses-cmreport'    => getPOST('internal_uses-cmreport'),
-          'internal_uses-sparepart'   => getPOST('internal_uses-sparepart'),
-          'machine-assign'            => getPOST('machine-assign'),
-          'machine-report_delete'     => getPOST('machine-report_delete'),
-          'sales-add_qms_only'        => getPOST('sales-add_qms_only'),
-          'sales-edit_operator'       => getPOST('sales-edit_operator'),
-          'sales-edit_price'          => getPOST('sales-edit_price'),
-          'sales-item_status'         => getPOST('sales-item_status'),
-          'sales-skip_validation'     => getPOST('sales-skip_validation'),
-          'sales-tb'                  => getPOST('sales-tb'),
-          'notify-add'                => getPOST('notify-add'),
-          'notify-delete'             => getPOST('notify-delete'),
-          'notify-edit'               => getPOST('notify-edit'),
-          'notify-index'              => getPOST('notify-index'),
-          'operators-checkpoint'      => getPOST('operators-checkpoint'),
-          'operators-orders'          => getPOST('operators-orders'),
-          'trackingpod-add'           => getPOST('trackingpod-add'),
-          'trackingpod-delete'        => getPOST('trackingpod-delete'),
-          'trackingpod-edit'          => getPOST('trackingpod-edit'),
-          'trackingpod-index'         => getPOST('trackingpod-index'),
-          'transfers-add'             => getPOST('transfers-add'),
-          'transfers-approval'        => getPOST('transfers-approval'),
-          'transfers-delete'          => getPOST('transfers-delete'),
-          'transfers-edit'            => getPOST('transfers-edit'),
-          'transfers-index'           => getPOST('transfers-index'),
-          'transfers-payment'         => getPOST('transfers-payment'),
-          'transfers-received'        => getPOST('transfers-received'),
-          'transfers-sent'            => getPOST('transfers-sent'),
-          'purchases-add'             => getPOST('purchases-add'),
-          'purchases-approval'        => getPOST('purchases-approval'),
-          'purchases-delete'          => getPOST('purchases-delete'),
-          'purchases-edit'            => getPOST('purchases-edit'),
-          'purchases-index'           => getPOST('purchases-index'),
-          'purchases-other_warehouse' => getPOST('purchases-other_warehouse'),
-          'payments-add'              => getPOST('payments-add'),
-          'payments-delete'           => getPOST('payments-delete'),
-          'payments-edit'             => getPOST('payments-edit'),
-          'payments-index'            => getPOST('payments-index'),
-          'products-categories'       => getPOST('products-categories'),
-          'products-history'          => getPOST('products-history'),
-          'products-mutation_add'     => getPOST('products-mutation_add'),
-          'products-mutation_delete'  => getPOST('products-mutation_delete'),
-          'products-mutation_edit'    => getPOST('products-mutation_edit'),
-          'products-mutation_view'    => getPOST('products-mutation_view'),
-          'products-mutation_status'  => getPOST('products-mutation_status'),
-          'products-quantity'         => getPOST('products-quantity'),
-          'products-std_qty'          => getPOST('products-std_qty'),
-          'products-so_quantity'      => getPOST('products-so_quantity'),
-          'products-stock_opname'     => getPOST('products-stock_opname'),
-          'products-transfer_view'    => getPOST('products-transfer_view'),
-          'products-transfer_add'     => getPOST('products-transfer_add'),
-          'products-transfer_delete'  => getPOST('products-transfer_delete'),
-          'products-transfer_edit'    => getPOST('products-transfer_edit'),
-          'products-transfer_status'  => getPOST('products-transfer_status'),
-          'reports-income_statement'  => getPOST('reports-income_statement'),
-          'reports-inventory_balance' => getPOST('reports-inventory_balance'),
-          'reports-printerp'          => getPOST('reports-printerp'),
-          'users-edit'                => getPOST('users-edit'),
-          'validations-add'           => getPOST('validations-add'),
-          'validations-cancel'        => getPOST('validations-cancel'),
-          'validations-delete'        => getPOST('validations-delete'),
-          'validations-edit'          => getPOST('validations-edit'),
-          'validations-index'         => getPOST('validations-index'),
-          'validations-manual'        => getPOST('validations-manual'),
-          'warehouses-add'            => getPOST('warehouses-add'),
-          'warehouses-delete'         => getPOST('warehouses-delete'),
-          'warehouses-edit'           => getPOST('warehouses-edit'),
-          'warehouses-index'          => getPOST('warehouses-index'),
+          'banks-add'                 => getPost('banks-add'),
+          'banks-delete'              => getPost('banks-delete'),
+          'banks-edit'                => getPost('banks-edit'),
+          'banks-index'               => getPost('banks-index'),
+          'banks-reconciliation'      => getPost('banks-reconciliation'),
+          'reports-daily_performance' => getPost('reports-daily_performance'),
+          'dashboard-chart'           => getPost('dashboard-chart'),
+          'mutations-add'             => getPost('mutations-add'),
+          'mutations-delete'          => getPost('mutations-delete'),
+          'mutations-edit'            => getPost('mutations-edit'),
+          'mutations-index'           => getPost('mutations-index'),
+          'mutations-manual'          => getPost('mutations-manual'),
+          'edit-system'               => getPost('edit-system'),
+          'expenses-add'              => getPost('expenses-add'),
+          'expenses-approval'         => getPost('expenses-approval'),
+          'expenses-delete'           => getPost('expenses-delete'),
+          'expenses-edit'             => getPost('expenses-edit'),
+          'expenses-index'            => getPost('expenses-index'),
+          'expenses-payment'          => getPost('expenses-payment'),
+          'googlereview-add'          => getPost('googlereview-add'),
+          'googlereview-delete'       => getPost('googlereview-delete'),
+          'googlereview-edit'         => getPost('googlereview-edit'),
+          'googlereview-view'         => getPost('googlereview-view'),
+          'incomes-add'               => getPost('incomes-add'),
+          'incomes-delete'            => getPost('incomes-delete'),
+          'incomes-edit'              => getPost('incomes-edit'),
+          'incomes-index'             => getPost('incomes-index'),
+          'internal_uses-add'         => getPost('internal_uses-add'),
+          'internal_uses-approval'    => getPost('internal_uses-approval'),
+          'internal_uses-delete'      => getPost('internal_uses-delete'),
+          'internal_uses-edit'        => getPost('internal_uses-edit'),
+          'internal_uses-index'       => getPost('internal_uses-index'),
+          'internal_uses-consumable'  => getPost('internal_uses-consumable'),
+          'internal_uses-cmreport'    => getPost('internal_uses-cmreport'),
+          'internal_uses-sparepart'   => getPost('internal_uses-sparepart'),
+          'machine-assign'            => getPost('machine-assign'),
+          'machine-report_delete'     => getPost('machine-report_delete'),
+          'sales-add_qms_only'        => getPost('sales-add_qms_only'),
+          'sales-edit_operator'       => getPost('sales-edit_operator'),
+          'sales-edit_price'          => getPost('sales-edit_price'),
+          'sales-item_status'         => getPost('sales-item_status'),
+          'sales-skip_validation'     => getPost('sales-skip_validation'),
+          'sales-tb'                  => getPost('sales-tb'),
+          'notify-add'                => getPost('notify-add'),
+          'notify-delete'             => getPost('notify-delete'),
+          'notify-edit'               => getPost('notify-edit'),
+          'notify-index'              => getPost('notify-index'),
+          'operators-checkpoint'      => getPost('operators-checkpoint'),
+          'operators-orders'          => getPost('operators-orders'),
+          'trackingpod-add'           => getPost('trackingpod-add'),
+          'trackingpod-delete'        => getPost('trackingpod-delete'),
+          'trackingpod-edit'          => getPost('trackingpod-edit'),
+          'trackingpod-index'         => getPost('trackingpod-index'),
+          'transfers-add'             => getPost('transfers-add'),
+          'transfers-approval'        => getPost('transfers-approval'),
+          'transfers-delete'          => getPost('transfers-delete'),
+          'transfers-edit'            => getPost('transfers-edit'),
+          'transfers-index'           => getPost('transfers-index'),
+          'transfers-payment'         => getPost('transfers-payment'),
+          'transfers-received'        => getPost('transfers-received'),
+          'transfers-sent'            => getPost('transfers-sent'),
+          'purchases-add'             => getPost('purchases-add'),
+          'purchases-approval'        => getPost('purchases-approval'),
+          'purchases-delete'          => getPost('purchases-delete'),
+          'purchases-edit'            => getPost('purchases-edit'),
+          'purchases-index'           => getPost('purchases-index'),
+          'purchases-other_warehouse' => getPost('purchases-other_warehouse'),
+          'payments-add'              => getPost('payments-add'),
+          'payments-delete'           => getPost('payments-delete'),
+          'payments-edit'             => getPost('payments-edit'),
+          'payments-index'            => getPost('payments-index'),
+          'products-categories'       => getPost('products-categories'),
+          'products-history'          => getPost('products-history'),
+          'products-mutation_add'     => getPost('products-mutation_add'),
+          'products-mutation_delete'  => getPost('products-mutation_delete'),
+          'products-mutation_edit'    => getPost('products-mutation_edit'),
+          'products-mutation_view'    => getPost('products-mutation_view'),
+          'products-mutation_status'  => getPost('products-mutation_status'),
+          'products-quantity'         => getPost('products-quantity'),
+          'products-std_qty'          => getPost('products-std_qty'),
+          'products-so_quantity'      => getPost('products-so_quantity'),
+          'products-stock_opname'     => getPost('products-stock_opname'),
+          'products-transfer_view'    => getPost('products-transfer_view'),
+          'products-transfer_add'     => getPost('products-transfer_add'),
+          'products-transfer_delete'  => getPost('products-transfer_delete'),
+          'products-transfer_edit'    => getPost('products-transfer_edit'),
+          'products-transfer_status'  => getPost('products-transfer_status'),
+          'reports-income_statement'  => getPost('reports-income_statement'),
+          'reports-inventory_balance' => getPost('reports-inventory_balance'),
+          'reports-printerp'          => getPost('reports-printerp'),
+          'users-edit'                => getPost('users-edit'),
+          'validations-add'           => getPost('validations-add'),
+          'validations-cancel'        => getPost('validations-cancel'),
+          'validations-delete'        => getPost('validations-delete'),
+          'validations-edit'          => getPost('validations-edit'),
+          'validations-index'         => getPost('validations-index'),
+          'validations-manual'        => getPost('validations-manual'),
+          'warehouses-add'            => getPost('warehouses-add'),
+          'warehouses-delete'         => getPost('warehouses-delete'),
+          'warehouses-edit'           => getPost('warehouses-edit'),
+          'warehouses-index'          => getPost('warehouses-index'),
         ])
       ];
     }
 
     if ($this->form_validation->run() == true && $this->settings_model->updatePermissions($group_id, $data)) {
-      $this->session->set_flashdata('message', lang('group_permissions_updated'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('message', lang('group_permissions_updated'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     } else {
       $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
       $permissions = $this->settings_model->getGroupPermissions($group_id);
@@ -2815,7 +2815,7 @@ class system_settings extends MY_Controller
 
     if ($this->form_validation->run() == true) {
       if (DEMO) {
-        $this->session->set_flashdata('message', lang('disabled_in_demo'));
+        XSession::set_flash('message', lang('disabled_in_demo'));
         admin_redirect('welcome');
       }
 
@@ -2831,7 +2831,7 @@ class system_settings extends MY_Controller
 
         if (!$this->upload->do_upload()) {
           $error = $this->upload->display_errors();
-          $this->session->set_flashdata('error', $error);
+          XSession::set_flash('error', $error);
           admin_redirect('system_settings/group_product_prices/' . $group_id);
         }
 
@@ -2868,20 +2868,20 @@ class system_settings extends MY_Controller
               'price_group_id' => $group_id,
             ];
           } else {
-            $this->session->set_flashdata('message', lang('check_product_code') . ' (' . $csv_pr['code'] . '). ' . lang('code_x_exist') . ' ' . lang('line_no') . ' ' . $rw);
+            XSession::set_flash('message', lang('check_product_code') . ' (' . $csv_pr['code'] . '). ' . lang('code_x_exist') . ' ' . lang('line_no') . ' ' . $rw);
             admin_redirect('system_settings/group_product_prices/' . $group_id);
           }
           $rw++;
         }
       }
-    } elseif (getPOST('update_price')) {
-      $this->session->set_flashdata('error', validation_errors());
+    } elseif (getPost('update_price')) {
+      XSession::set_flash('error', validation_errors());
       admin_redirect('system_settings/group_product_prices/' . $group_id);
     }
 
     if ($this->form_validation->run() == true && !empty($data)) {
       $this->settings_model->updateGroupPrices($data);
-      $this->session->set_flashdata('message', lang('price_updated'));
+      XSession::set_flash('message', lang('price_updated'));
       admin_redirect('system_settings/group_product_prices/' . $group_id);
     } else {
       $this->data['userfile'] = [
@@ -2901,13 +2901,13 @@ class system_settings extends MY_Controller
       sendJSON(['status' => 0]);
     }
 
-    $product_id = getPOST('product_id', true);
-    $price      = getPOST('price', true);
-    $price2      = getPOST('price2', true);
-    $price3      = getPOST('price3', true);
-    $price4      = getPOST('price4', true);
-    $price5      = getPOST('price5', true);
-    $price6      = getPOST('price6', true);
+    $product_id = getPost('product_id', true);
+    $price      = getPost('price', true);
+    $price2      = getPost('price2', true);
+    $price3      = getPost('price3', true);
+    $price4      = getPost('price4', true);
+    $price5      = getPost('price5', true);
+    $price6      = getPost('price6', true);
 
     if (!empty($product_id) && !empty($price)) {
       if ($this->settings_model->setProductPriceForPriceGroup(
@@ -2930,17 +2930,17 @@ class system_settings extends MY_Controller
   public function updates()
   {
     if (DEMO) {
-      $this->session->set_flashdata('warning', lang('disabled_in_demo'));
-      redirect($_SERVER['HTTP_REFERER']);
+      XSession::set_flash('warning', lang('disabled_in_demo'));
+      redirect_to($_SERVER['HTTP_REFERER']);
     }
     if (!$this->Owner) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       admin_redirect('welcome');
     }
     $this->form_validation->set_rules('purchase_code', lang('purchase_code'), 'required');
     $this->form_validation->set_rules('envato_username', lang('envato_username'), 'required');
     if ($this->form_validation->run() == true) {
-      $this->db->update('settings', ['purchase_code' => getPOST('purchase_code', true), 'envato_username' => getPOST('envato_username', true)], ['setting_id' => 1]);
+      $this->db->update('settings', ['purchase_code' => getPost('purchase_code', true), 'envato_username' => getPost('envato_username', true)], ['setting_id' => 1]);
       admin_redirect('system_settings/updates');
     } else {
       $fields = ['version' => $this->Settings->version, 'code' => $this->Settings->purchase_code, 'username' => $this->Settings->envato_username, 'site' => base_url()];
@@ -2959,7 +2959,7 @@ class system_settings extends MY_Controller
   public function user_groups()
   {
     if (!$this->Owner) {
-      $this->session->set_flashdata('error', lang('access_denied'));
+      XSession::set_flash('error', lang('access_denied'));
       admin_redirect('auth');
     }
 
