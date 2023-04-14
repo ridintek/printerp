@@ -32,6 +32,9 @@ $(document).ready(function () {
       $('.todel').removeClass('display-none');
       $('.tointer').removeClass('display-none');
     }
+    if (iustatus == 'installed') {
+      $('.spec').prop('readonly', false);
+    }
   });
 
   if (iustatus = localStorage.getItem('iustatus')) {
@@ -407,8 +410,8 @@ $(document).ready(function () {
         if (item_iuse_type == 'consumable') item_price = item_markon_price;
 
         var newTr = $(`<tr id="row_${row_no}" data-item-id="${item_id}" data-row-id="${row_no}"></tr>`);
-        let display_none = (iustatus != 'need_approval' && iuse_mode == 'status' ? 'display-none' : '');
-        let readonly     = (iustatus != 'need_approval' && iustatus != 'completed' && iuse_mode == 'status' ? 'readonly="readonly"' : '');
+        let displayNone = (iustatus != 'need_approval' && iuse_mode == 'status' ? 'display-none' : '');
+        let readonly    = (iustatus != 'need_approval' && iustatus != 'completed' && iuse_mode == 'status' ? 'readonly' : '');
 
         // First Column Table
         tr_html = `<td>
@@ -439,14 +442,14 @@ $(document).ready(function () {
         tr_html += `<td class="text-center">${unit_name}</td>`;
 
         // Quantity
-        tr_html += `<td><input class="form-control text-center rquantity editor" name="quantity[]" type="text" value="${formatQuantity2(item_qty)}" ${readonly}></td>`;
+        tr_html += `<td><input class="form-control text-center editor rquantity" name="quantity[]" type="text" value="${formatQuantity2(item_qty)}" ${readonly}></td>`;
 
         // Source Stock
         tr_html += `<td class="text-right">${formatQuantity(source_stock)}</td>`;
 
         tr_html +=
           `<td class="text-center">
-            <i class="fa fa-times tip todel ${display_none}" id="${row_no}" title="Remove" style="cursor:pointer;"></i>
+            <i class="fa fa-times tip todel ${displayNone}" id="${row_no}" title="Remove" style="cursor:pointer;"></i>
           </td>`;
         newTr.html(tr_html);
         newTr.prependTo("#toTable");

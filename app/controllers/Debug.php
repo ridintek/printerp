@@ -882,7 +882,7 @@ class Debug extends MY_Controller
     $failedCount = 0;
     $successCount = 0;
 
-    $this->db->like('date', '0000-00-00', 'after');
+    $this->db->like('created_at', '0000-00-00', 'after');
     $q = $this->db->get('stocks');
 
     if ($q && $q->num_rows()) {
@@ -893,7 +893,7 @@ class Debug extends MY_Controller
         $sale = $this->site->getSaleByID($stock->sale_id);
 
         if ($sale) {
-          $this->site->updateStockQuantity(['sale_id' => $sale->id], ['date' => $sale->date]);
+          $this->site->updateStockQuantity(['sale_id' => $sale->id], ['date' => $sale->date, 'created_at' => $sale->date]);
           $successCount++;
         } else {
           $this->site->deleteStockQuantity(['sale_id' => $stock->sale_id]);

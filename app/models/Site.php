@@ -9473,6 +9473,7 @@ class Site extends MY_Model
 
       if (!empty($item['id']))              $stock_data['id']              = $item['id'];
       if (!empty($item['date']))            $stock_data['date']            = $item['date'];
+      if (!empty($item['created_at']))      $stock_data['created_at']      = $item['created_at'];
       if (!empty($item['adjustment_id']))   $stock_data['adjustment_id']   = $item['adjustment_id'];
       if (!empty($item['internal_use_id'])) $stock_data['internal_use_id'] = $item['internal_use_id'];
       if (!empty($item['purchase_id']))     $stock_data['purchase_id']     = $item['purchase_id'];
