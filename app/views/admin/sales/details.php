@@ -104,7 +104,7 @@
                 <td class=""><?= $operatorWarehouse ?></td>
               </tr>
               <tr>
-                <?php $status = ($saleItemJS->status ?? '-'); ?>
+                <?php $status = ($saleItem->status ?? '-'); ?>
                 <td class="bold">Status</td>
                 <?= renderStatus($status); ?>
               </tr>

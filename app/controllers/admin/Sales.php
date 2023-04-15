@@ -1635,8 +1635,8 @@ class Sales extends MY_Controller
             $excel->setCellValue('D' . $b, ($saleItemJS->due_date ?? ''));
             $excel->setCellValue('E' . $b, ($saleItemJS->completed_at ?? ''));
             $excel->setCellValue('F' . $b, $duration);
-            $excel->setCellValue('G' . $b, ($saleItemJS->status != 'need_payment' && $saleItemJS->status != 'draft' ? $timeleft : ''));
-            $excel->setCellValue('H' . $b, ($saleItemJS->status != 'need_payment' && $saleItemJS->status != 'draft' ? $overdue : ''));
+            $excel->setCellValue('G' . $b, ($saleItem->status != 'need_payment' && $saleItem->status != 'draft' ? $timeleft : ''));
+            $excel->setCellValue('H' . $b, ($saleItem->status != 'need_payment' && $saleItem->status != 'draft' ? $overdue : ''));
             $excel->setCellValue('I' . $b, strtoupper($op_username));
             $excel->setCellValue('J' . $b, $op_name);
             $excel->setCellValue('K' . $b, ($isOperator ? 'OP' : 'NON OP'));
@@ -1647,7 +1647,7 @@ class Sales extends MY_Controller
             $excel->setCellValue('P' . $b, $item->product_name);
             $excel->setCellValue('Q' . $b, $item->quantity);
             $excel->setCellValue('R' . $b, filterDecimal($item->subtotal));
-            $excel->setCellValue('S' . $b, lang($saleItemJS->status));
+            $excel->setCellValue('S' . $b, lang($saleItem->status));
 
             $b++;
           }

@@ -215,7 +215,7 @@ class Sale
           $product    = Product::getRow(['id' => $saleItem->product_id]);
           $productJS  = getJSON($product->json_data);
 
-          if (isCompleted($saleItemJS->status)) continue; // Ignore if already completed.
+          if (isCompleted($saleItem->status)) continue; // Ignore if already completed.
 
           // AUTOCOMPLETE ENGINE IF ANY PAID AND NOT WEB2PRINT TYPE.
           if (!isWeb2Print($sale->id) && !empty($productJS->autocomplete) && $productJS->autocomplete == 1) {
@@ -389,7 +389,7 @@ class Sale
 
       foreach ($saleItems as $saleItem) {
         $saleItemJS = getJSON($saleItem->json_data);
-        $saleItemStatus = $saleItemJS->status;
+        $saleItemStatus = $saleItem->status;
         $totalSaleItems++;
         $total += round($saleItem->price * $saleItem->quantity);
         $isItemFinished = ($saleItem->quantity == $saleItem->finished_qty ? true : false);

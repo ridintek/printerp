@@ -913,7 +913,7 @@ class Api extends MY_Controller
                   'area'         => floatval($saleItemJS->area),
                   'quantity'     => floatval($saleItemJS->sqty),
                   'spec'         => $saleItemJS->spec,
-                  'status'       => lang($saleItemJS->status),
+                  'status'       => lang($saleItem->status),
                   'due_date'     => ($saleItemJS->due_date ?? ''),
                   'completed_at' => ($saleItemJS->completed_at ?? ''),
                   'operator'     => $operatorName

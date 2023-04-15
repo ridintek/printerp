@@ -121,10 +121,17 @@ class Operators extends MY_Controller
       foreach ($product_ids as $product_id) {
         $item = $this->site->getSaleItemByID($product_id);
         if ($item) {
-          $status = json_decode($item->json_data)->status;
-          if ($status != 'waiting_production' && $status != 'completed_partial' && $status != 'in_production')
+          // $status = json_decode($item->json_data)->status;
+          $status = $item->status;
+
+          if ($status != 'waiting_production' && $status != 'completed_partial' && $status != 'in_production') {
             sendJSON(['error' => 1, 'msg' => 'Status harus ' . lang('waiting_production') . ' atau ' . lang('completed_partial')]);
-          if ($ostatus && $ostatus != $status) sendJSON(['error' => 1, 'msg' => 'Status tidak sama! Silakan pilih status yang sama.']);
+          }
+
+          if ($ostatus && $ostatus != $status) {
+            sendJSON(['error' => 1, 'msg' => 'Status tidak sama! Silakan pilih status yang sama.']);
+          }
+
           $ostatus = $status;
           $data_items[] = [
             'id' => $item->id,
