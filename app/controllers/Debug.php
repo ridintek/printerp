@@ -176,7 +176,7 @@ class Debug extends MY_Controller
         if ($sale->id == 18600) {
           // dbgprint($stock);die;
         }
-        if (!$stock && ($saleItemJS->status == 'completed' || $saleItemJS->status == 'completed_partial')) {
+        if (!$stock && ($saleItem->status == 'completed' || $saleItem->status == 'completed_partial')) {
           $this->site->completeSaleItem($saleItem->id, ['quantity' => $saleItem->finished_qty, 'created_by' => $saleItemJS->operator_id]);
           $success++;
         }
@@ -947,7 +947,7 @@ class Debug extends MY_Controller
 
           //   $saleItemJS = json_decode($saleItem->json_data);
 
-          //   if ($saleItemJS->status != 'completed' && $saleItemJS->status != 'delivered') continue;
+          //   if ($saleItem->status != 'completed' && $saleItem->status != 'delivered') continue;
 
           //   if ($this->site->deleteSaleItems(['id' => $saleItem->id])) {
           //     dbglog("Success delete sale item {$saleItem->id} for sale id {$saleItem->sale_id}");
@@ -978,9 +978,7 @@ class Debug extends MY_Controller
             if ($saleItem->unit_price) continue;
             if (strpos($saleItem->date, '2021-06-26 13') === FALSE) continue;
 
-            $saleItemJS = json_decode($saleItem->json_data);
-
-            if ($saleItemJS->status != 'completed' && $saleItemJS->status != 'delivered') continue;
+            if ($saleItem->status != 'completed' && $saleItem->status != 'delivered') continue;
 
             if ($this->site->deleteSaleItems(['id' => $saleItem->id])) {
               // dbglog("Success delete sale item {$saleItem->id} for sale id {$saleItem->sale_id}");
@@ -1009,7 +1007,7 @@ class Debug extends MY_Controller
           foreach ($saleItems as $saleItem) {
             $saleItemJS = json_decode($saleItem->json_data);
 
-            if (isCompleted($sale->status) && isCompleted($saleItemJS->status)) {
+            if (isCompleted($sale->status) && isCompleted($saleItem->status)) {
               $dueDate = ($saleItemJS->due_date ?? '2021-06-28 23:00:00');
               $completedAt = !empty($saleItemJS->updated_at) ? $saleItemJS->updated_at : date('Y-m-d H:i:s', strtotime('-3 hour', strtotime($dueDate)));
 
@@ -1022,7 +1020,7 @@ class Debug extends MY_Controller
                 'width'        => $saleItemJS->w,
                 'length'       => $saleItemJS->l,
                 'spec'         => $saleItemJS->spec,
-                'status'       => $saleItemJS->status,
+                'status'       => $saleItem->status,
                 'operator_id'  => $saleItemJS->operator_id,
                 'due_date'     => $saleItemJS->due_date,
                 'completed_at' => $completedAt

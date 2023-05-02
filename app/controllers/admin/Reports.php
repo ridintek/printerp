@@ -697,7 +697,7 @@ class Reports extends MY_Controller
         $saleItemJS = getJSON($saleItem->json_data);
         $customer = Customer::getRow(['id' => $sale->customer_id]);
 
-        if (!isset($saleItemJS->status)) {
+        if (!isset($saleItem->status)) {
           die("Something wrong for sale item id {$saleItem->id}");
         }
 
@@ -708,7 +708,7 @@ class Reports extends MY_Controller
         $overProduction = false;
 
         if (!empty($saleItemJS->due_date)) {
-          if (isCompleted($saleItemJS->status)) {
+          if (isCompleted($saleItem->status)) {
             if (strtotime($saleItemJS->completed_at) > strtotime($saleItemJS->due_date)) {
               $overProduction = true;
               $overComplete++;
@@ -735,7 +735,7 @@ class Reports extends MY_Controller
         $sheet->setCellValue("J{$r3}", ($saleItemJS->due_date ?? ''));
         $sheet->setCellValue("K{$r3}", ($saleItemJS->completed_at ?? $saleItemJS->updated_at ?? ''));
         $sheet->setCellValue("L{$r3}", $customer->name . ($customer->company ? " ({$customer->company})" : ''));
-        $sheet->setCellValue("M{$r3}", lang($saleItemJS->status));
+        $sheet->setCellValue("M{$r3}", lang($saleItem->status));
         $sheet->setCellValue("N{$r3}", ($overProduction ? lang('over_due') : ''));
         $sheet->setCellValue("O{$r3}", $sale->warehouse);
         $sheet->setCellValue("P{$r3}", $user->fullname);

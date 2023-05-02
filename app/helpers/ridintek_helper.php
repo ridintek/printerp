@@ -75,7 +75,10 @@ function addSaleDueDate($sale_id)
 
       $estCompleteDate = getWorkingDateTime(getLongestDateTime($dates));
 
-      if ($dates && $ci->site->updateSale($sale->id, ['est_complete_date' => $estCompleteDate])) {
+      if ($dates && $ci->site->updateSale($sale->id, [
+        'due_date'          => $estCompleteDate,
+        'est_complete_date' => $estCompleteDate
+        ])) {
         return true;
       }
     }
@@ -339,7 +342,7 @@ function dispatchW2PSale($saleId = null)
             'area'         => $saleItemJS->area,
             'quantity'     => $saleItemJS->sqty,
             'spec'         => $saleItemJS->spec,
-            'status'       => lang($saleItemJS->status),
+            'status'       => lang($saleItem->status),
             'due_date'     => ($saleItemJS->due_date ?? ''),
             'completed_at' => ($saleItemJS->completed_at ?? ''),
             'operator'     => $operatorName

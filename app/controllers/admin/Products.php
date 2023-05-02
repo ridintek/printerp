@@ -1285,10 +1285,11 @@ class Products extends MY_Controller
         <i class="fad fa-fw fa-edit"></i> ' . lang('edit_product') . '</a>
       </li>';
 
-    // if ($this->isAdmin || getPermission('products-history')) {
-    // History Product
-    $action .= "<li>{$history_link}</li>";
-    // }
+    // Update 2023-04-14 16:39:40 biar hanya admin yang bisa lihat history.
+    if ($this->isAdmin || getPermission('products-history')) {
+      // History Product
+      $action .= "<li>{$history_link}</li>";
+    }
 
     $action .= '<li class="divider"></li>';
     // Delete Product
@@ -4246,15 +4247,16 @@ class Products extends MY_Controller
     $user_id      = getGET('user');
     $warehouse_id = getGET('warehouse'); // warehouse_id
 
-    if ($warehouse_id) {
-      $user = $this->site->getUserByID($user_id);
-      $warehouse = $this->site->getWarehouseByID($warehouse_id);
+    $warehouse = $this->site->getWarehouseByID($warehouse_id);
 
-      $userJS = getJSON($user->json_data);
+    if ($warehouse) {
+      $user = $this->site->getUserByID($user_id);
 
       if (!$user) {
         sendJSON(['error' => 1, 'msg' => 'User not found.']);
       }
+
+      $userJS = getJSON($user->json_data);
 
       if (isset($userJS->so_cycle)) {
         $so_cycle = $userJS->so_cycle;

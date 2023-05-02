@@ -37,7 +37,7 @@ class SaleItem
       $completedQty = $data['quantity']; // Quantity to complete.
       $sale         = Sale::getRow(['id' => $saleItem->sale_id]);
       $saleItemJS   = getJSON($saleItem->json_data);
-      $status       = ($saleItemJS ? $saleItemJS->status : 'waiting_production'); // Default status.
+      $status       = $saleItem->status;
 
       if (empty($data['quantity'])) {
         setLastError("SaleItem::complete(): Quantity is missing?");

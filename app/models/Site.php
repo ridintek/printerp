@@ -1243,6 +1243,7 @@ class Site extends MY_Model
             }
 
             $saleItemJS->status = $item_status; // Last item status.
+            $sale_items_data['status'] = $item_status;
             $sale_items_data['json_data'] = json_encode($saleItemJS);
           }
 
@@ -1304,7 +1305,7 @@ class Site extends MY_Model
           $product = $this->getProductByID($saleItem->product_id);
           $productJS = getJSON($product->json_data);
 
-          if (isCompleted($saleItemJS->status)) continue; // Ignore if already completed.
+          if (isCompleted($saleItem->status)) continue; // Ignore if already completed.
 
           // AUTOCOMPLETE ENGINE IF ANY PAID AND NOT WEB2PRINT TYPE.
           if (!isWeb2Print($sale->id) && !empty($productJS->autocomplete) && $productJS->autocomplete == 1) {
@@ -1634,7 +1635,7 @@ class Site extends MY_Model
               'quantity'       => $item['first_qty']
             ];
           } else { // Status Checked.
-            if (empty($status)) $status = 'checked';
+            $status = 'checked';
           }
 
           $total_lost += $item['subtotal'];
@@ -2252,7 +2253,7 @@ class Site extends MY_Model
       $sale         = $this->getSaleByID($saleItem->sale_id);
       $saleItemData = [];
       $saleItemJS   = getJSON($saleItem->json_data);
-      $status       = ($saleItemJS ? $saleItemJS->status : 'waiting_production'); // Default status.
+      $status       = $saleItem->status;
       $date         = ($data['date'] ?? $data['created_at'] ?? date('Y-m-d H:i:s')); // Current complete date.
 
       if (empty($data['quantity'])) sendJSON(['error' => 1, 'msg' => 'Cannot complete zero (0) quantity.']);
@@ -7633,8 +7634,7 @@ class Site extends MY_Model
 
       foreach ($saleItems as $saleItem) {
         $saleItemData = [];
-        $saleItemJS = getJSON($saleItem->json_data);
-        $saleItemStatus = $saleItemJS->status;
+        $saleItemStatus = $saleItem->status;
         $totalSaleItems++;
         $grandTotal += round($saleItem->price * $saleItem->quantity);
         $isItemFinished = ($saleItem->quantity == $saleItem->finished_qty);
