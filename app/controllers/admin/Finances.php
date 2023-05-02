@@ -1597,10 +1597,10 @@ class Finances extends MY_Controller
     $banks = Bank::get(['active' => 1]);
 
     $biller_id = (XSession::get('biller_id') ?? NULL);
-    $this->data['billers']   = (!XSession::get('biller_id') ? Biller::get(['active' => 1]) : NULL);
-    $this->data['biller']    = $this->site->getBillerByID($biller_id);
-    $this->data['biller_id'] = $biller_id;
-    $this->data['banks']        = $banks;
+    $this->data['billers']    = (!XSession::get('biller_id') ? Biller::get(['active' => 1]) : NULL);
+    $this->data['biller']     = $this->site->getBillerByID($biller_id);
+    $this->data['biller_id']  = $biller_id;
+    $this->data['banks']      = $banks;
     $this->load->view($this->theme . 'finances/mutations/add', $this->data);
   }
 

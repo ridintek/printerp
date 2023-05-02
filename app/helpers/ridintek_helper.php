@@ -75,7 +75,10 @@ function addSaleDueDate($sale_id)
 
       $estCompleteDate = getWorkingDateTime(getLongestDateTime($dates));
 
-      if ($dates && $ci->site->updateSale($sale->id, ['est_complete_date' => $estCompleteDate])) {
+      if ($dates && $ci->site->updateSale($sale->id, [
+        'due_date'          => $estCompleteDate,
+        'est_complete_date' => $estCompleteDate
+        ])) {
         return true;
       }
     }

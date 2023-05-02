@@ -1635,7 +1635,7 @@ class Site extends MY_Model
               'quantity'       => $item['first_qty']
             ];
           } else { // Status Checked.
-            if (empty($status)) $status = 'checked';
+            $status = 'checked';
           }
 
           $total_lost += $item['subtotal'];
@@ -7634,7 +7634,6 @@ class Site extends MY_Model
 
       foreach ($saleItems as $saleItem) {
         $saleItemData = [];
-        $saleItemJS = getJSON($saleItem->json_data);
         $saleItemStatus = $saleItem->status;
         $totalSaleItems++;
         $grandTotal += round($saleItem->price * $saleItem->quantity);
