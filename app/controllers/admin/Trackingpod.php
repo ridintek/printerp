@@ -260,7 +260,7 @@ class Trackingpod extends MY_Controller
         (trackingpod.mc_reject + trackingpod.op_reject) AS total_reject,
         trackingpod.erp_click, trackingpod.balance, warehouses.name AS warehouse_name,
         trackingpod.created_at, users.fullname AS creator,
-        trackingpod.attachment_id")
+        trackingpod.attachment")
       ->from('trackingpod')
       ->join('products', 'products.id = trackingpod.pod_id', 'left')
       ->join('users', 'users.id = trackingpod.created_by', 'left')
@@ -287,10 +287,10 @@ class Trackingpod extends MY_Controller
             </a>
           </div>";
       })
-      ->editColumn('attachment_id', function ($data) {
+      ->editColumn('attachment', function ($data) {
         return "<div class=\"text-center\">
           <a href=\"#\" data-remote=\"" .
-          admin_url('gallery/attachment/' . $data['attachment_id'] . "?modal=1") . "\"
+          admin_url('gallery/attachment/' . $data['attachment'] . "?modal=1") . "\"
             data-toggle=\"modal\" data-modal-class=\"modal-lg\" data-target=\"#myModal\">
           <i class=\"fad fa-file-download\"></i>
         </a>
