@@ -53,6 +53,6 @@ class Warehouse
   public static function update(int $id, array $data)
   {
     DB::table('warehouses')->update($data, ['id' => $id]);
-    return DB::affectedRows();
+    return true;
   }
 }
