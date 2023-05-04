@@ -1316,18 +1316,22 @@ class system_settings extends MY_Controller
     }
   }
 
-  public function edit_warehouse($warehouse_id = null)
+  public function edit_warehouse($warehouseId = null)
   {
     $this->load->helper('security');
     $this->form_validation->set_rules('code', lang('code'), 'trim|required');
-    $wh_details = $this->settings_model->getWarehouseByID($warehouse_id);
-    if (getPost('code') != $wh_details->code) {
-      $this->form_validation->set_rules('code', lang('code'), 'required|is_unique[warehouses.code]');
-    }
     $this->form_validation->set_rules('address', lang('address'), 'required');
     $this->form_validation->set_rules('geolocation', lang('geolocation'), 'xss_clean');
 
     if ($this->form_validation->run() == true) {
+      $warehouse  = Warehouse::getRow(['id' => $warehouseId]);
+      $whJS       = getJSON($warehouse->json_data);
+
+      $whJS->cycle_transfer = getPost('cycle_transfer');
+      $whJS->delivery_time  = getPost('delivery_time');
+      $whJS->visit_days     = getPost('visit_days');
+      $whJS->visit_weeks    = getPost('visit_weeks');
+
       $data = [
         'code'           => getPost('code'),
         'name'           => getPost('name'),
@@ -1337,12 +1341,7 @@ class system_settings extends MY_Controller
         'geolocation'    => getPost('geolocation'),
         'price_group_id' => getPost('price_group'),
         'active'         => (getPost('active') ?? 0),
-        'json_data' => json_encode([
-          'cycle_transfer' => getPost('cycle_transfer'),
-          'delivery_time'  => getPost('delivery_time'),
-          'visit_days'     => getPost('visit_days'),
-          'visit_weeks'    => getPost('visit_weeks')
-        ])
+        'json_data'      => json_encode($whJS)
       ];
 
       // if ($_FILES['userfile']['size'] > 0) {
@@ -1388,14 +1387,14 @@ class system_settings extends MY_Controller
     }
 
     if ($this->form_validation->run()) {
-      if ($this->site->updateWarehouse(['id' => $warehouse_id], $data)) { //check to see if we are updateing the customer
+      if (Warehouse::update((int)$warehouseId, $data)) { //check to see if we are updateing the customer
         $update_ss = getPost('update_ss');
 
         if ($update_ss == 1) {
           $all_items    = $this->site->getProducts(['type' => 'standard']);
           $settingsJSON = $this->site->getSettingsJSON();
           $opt          = getPastMonthPeriod($settingsJSON->safety_stock_period);
-          $warehouse    = $this->site->getWarehouseByID($warehouse_id);
+          $warehouse    = $this->site->getWarehouseByID($warehouseId);
 
           foreach ($all_items as $item) {
             if (strcasecmp($item->iuse_type, 'sparepart') === 0) continue; // Ignore for sparepart.
@@ -1415,10 +1414,10 @@ class system_settings extends MY_Controller
     } else {
       $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
 
-      $this->data['warehouse']    = $this->settings_model->getWarehouseByID($warehouse_id);
+      $this->data['warehouse']    = $this->settings_model->getWarehouseByID($warehouseId);
       $this->data['warehouse_js'] = json_decode($this->data['warehouse']->json_data);
       $this->data['price_groups'] = $this->settings_model->getAllPriceGroups();
-      $this->data['id']           = $warehouse_id;
+      $this->data['id']           = $warehouseId;
       $this->load->view($this->theme . 'settings/edit_warehouse', $this->data);
     }
   }
