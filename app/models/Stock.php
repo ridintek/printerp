@@ -158,35 +158,31 @@ class Stock
   }
 
   /**
-   * (NEW) Get total quantity based by product and warehouse.
-   * 
+   * Get total quantity based by product and warehouse.
    * @param int $productId Product ID.
    * @param int $warehouseId Warehouse ID.
-   * @param array $opt [ start_date, end_date, order_by(column,ASC|DESC) ]
-   * @return float Return total quantity.
-   */
-  public static function totalQuantity_new(int $productId, int $warehouseId, $opt = [])
-  {
-    return (float)DB::table('stocks')->selectSum('quantity', 'total')
-      ->getRow(['product_id' => $productId, 'warehouse_id' => $warehouseId])->total;
-  }
-
-  /**
-   * (OLD) Get total quantity based by product and warehouse.
-   * @param int $productId Product ID.
-   * @param int $warehouseId Warehouse ID.
-   * @param array $opt [ start_date, end_date, order_by(column,ASC|DESC) ]
+   * @param array $opt [ start_date, end_date ]
    * @return float Return total quantity.
    */
   public static function totalQuantity(int $productId, int $warehouseId, $opt = [])
   {
+    $period = '';
+
+    if (isset($opt['start_date']) && isset($opt['end_date'])) {
+      $period = "AND date BETWEEN '{$opt['start_date']} 00:00:00' AND '{$opt['end_date']} 23:59:59'";
+    } else if (isset($opt['start_date'])) {
+      $period = "AND date >= '{$opt['start_date']} 00:00:00}'";
+    } else if (isset($opt['end_date'])) {
+      $period = "AND date <= '{$opt['end_date']} 23:59:50'";
+    }
+
     $result = DB::table('stocks')
       ->select('(COALESCE(stock_recv.total, 0) - COALESCE(stock_sent.total, 0)) AS total')
       ->join(
         "(
         SELECT product_id, SUM(quantity) total FROM stocks
         WHERE product_id = {$productId} AND warehouse_id = {$warehouseId}
-        AND status LIKE 'received') stock_recv",
+        AND status LIKE 'received' {$period}) stock_recv",
         'stock_recv.product_id = stocks.product_id',
         'left'
       )
@@ -194,7 +190,7 @@ class Stock
         "(
         SELECT product_id, SUM(quantity) total FROM stocks
         WHERE product_id = {$productId} AND warehouse_id = {$warehouseId}
-        AND status LIKE 'sent') stock_sent",
+        AND status LIKE 'sent' {$period}) stock_sent",
         'stock_sent.product_id = stocks.product_id',
         'left'
       )

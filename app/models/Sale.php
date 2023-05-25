@@ -312,6 +312,16 @@ class Sale
     return $items;
   }
 
+  /**
+   * Select _Template.
+   * @param string $columns Select columns.
+   * @param bool $escape Escape string (Default: TRUE).
+   */
+  public static function select(string $columns, $escape = TRUE)
+  {
+    return DB::table('sales')->select($columns, $escape);
+  }
+
   public static function sync($clause)
   {
     $sales = [];

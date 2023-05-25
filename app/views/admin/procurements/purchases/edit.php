@@ -46,7 +46,7 @@
           dataType: "json",
           data: {
             term: request.term,
-            supplier_id: $("#posupplier").val(),
+            supplier_id: $("#supplier").val(),
             warehouse_id: $('#powarehouse').val()
           },
           success: function(data) {
@@ -237,9 +237,9 @@
                 <div class="panel-body" style="padding: 5px;">
                   <div class="col-md-4">
                     <div class="form-group">
-                      <?= lang('supplier', 'posupplier'); ?>
+                      <?= lang('supplier', 'supplier'); ?>
                       <div class="input-group">
-                        <select name="supplier" id="posupplier" class="select2" style="width:100%;" data-placeholder="Select Supplier"></select>
+                        <select name="supplier" id="supplier" class="select2" data-placeholder="Select Supplier" style="width:100%"></select>
                         <div class="input-group-addon no-print" style="padding: 2px 5px; border-left: 0;">
                           <a href="#" id="view-supplier">
                             <i class="fad fa-user" id="addIcon"></i>

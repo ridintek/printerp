@@ -211,7 +211,9 @@ class Sales extends MY_Controller
       }
 
       // Double Sale Protection.
-      $last_sale = $this->site->getLastSaleByCreatorID($created_by); // Is this creator has last sale.
+      // Is this creator has last sale.
+      $last_sale = Sale::select('*')->where('created_by', $created_by)->orderBy('id', 'DESC')->getRow();
+
       if ($last_sale) {
         $time_difference = now() - strtotime($last_sale->date);
         if ($time_difference < 30) { // If time difference between last sale and this sale is less than 30s then canceled.

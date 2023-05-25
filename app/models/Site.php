@@ -455,7 +455,7 @@ class Site extends MY_Model
     }
     return FALSE;
   }
-  
+
   public function addMaintenanceLog($data)
   {
     $data = setCreatedBy($data);
@@ -1522,6 +1522,11 @@ class Site extends MY_Model
       $data['status'] = 'completed';
     }
 
+    if ($data['category'] != 'consumable' && $data['category'] != 'sparepart') {
+      setLastError("Category is {$data['category']}. Choose either 'consumable' or 'sparepart'.");
+      return false;
+    }
+
     $data = setCreatedBy($data);
 
     DB::table('internal_uses')->insert($data);
@@ -2072,7 +2077,7 @@ class Site extends MY_Model
 
         $adjustmentItems[] = [
           'product_id'     => $data['pod_id'],
-          'quantity'       => $data['mc_reject'] * -1
+          'quantity'       => $data['mc_reject'] * -1 // Return to plus.
         ];
 
         // Add adjustment.
@@ -9186,6 +9191,11 @@ class Site extends MY_Model
       }
 
       if ($items) {
+        if ($data['category'] != 'consumable' && $data['category'] != 'sparepart') {
+          setLastError("Category is {$data['category']}. Choose either 'consumable' or 'sparepart'.");
+          return false;
+        }
+
         $iuse = $this->getStockInternalUseByID($iuseId);
         $this->deleteStockQuantity(['internal_use_id' => $iuseId]);
 
@@ -9239,6 +9249,7 @@ class Site extends MY_Model
       $quantity   = filterDecimal($items[$a]['quantity']);
       $price      = filterDecimal($items[$a]['price']);
 
+      // $rest_qty = ($item_first_qty - $item_quantity) + $item_reject_qty (From addStockOpname)
       $rest_qty = (($last_qty - $quantity) + $reject_qty);
       $subtotal = ceil($rest_qty * $price);
 
@@ -9249,11 +9260,11 @@ class Site extends MY_Model
       $items[$a]['price']      = $price;
       $items[$a]['subtotal']   = $subtotal;
 
-      if ($subtotal < 0) {
+      if ($rest_qty < 0) {
         $total_lost += filterDecimal($subtotal);
       }
 
-      if ($subtotal > 0) {
+      if ($rest_qty > 0) {
         $total_plus += filterDecimal($subtotal);
       }
 
@@ -9275,6 +9286,7 @@ class Site extends MY_Model
     }
 
     $data['status'] = ($status ?? $data['status']);
+
     $data['total_lost'] = $total_lost;
     $data['total_plus'] = $total_plus;
 

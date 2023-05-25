@@ -295,10 +295,10 @@ $(document).ready(function (e) {
   });
 
   let oldDisc = 0;
-  $('#sldiscount').focus(function() {
+  $('#sldiscount').focus(function () {
     oldDisc = $(this).val();
     console.log('set old discount ' + oldDisc);
-  }).change(function() {
+  }).change(function () {
     console.log($(this).val());
     if (!isNumber($(this).val())) {
       $(this).val(oldDisc);
@@ -314,7 +314,7 @@ $(document).ready(function (e) {
 
     if (Object.keys(slitems).length > 0) {
       getUsersByWarehouseId($(this).val()).then((response) => {
-        if ( ! response.error) {
+        if (!response.error) {
 
           for (let x in slitems) {
             slitems[x].row.operators = response.users;
@@ -812,7 +812,7 @@ function loadItems() {
         item_sqty = item.row.sqty, // Sub-Quantity
         item_finished_qty = item.row.finished_qty,
         item_status = item.row.status,
-        item_qty  = item.row.qty,
+        item_qty = item.row.qty,
         item_aqty = item.row.quantity,
         item_name = item.row.name.replace(/"/g, '&#034;').replace(/'/g, '&#039;'),
         item_code = item.row.code,
@@ -866,7 +866,7 @@ function loadItems() {
       var newTr = $(`<tr id="row_${row_no}" class="row_${item_id}" data-item-id="${item_id}"></tr>`);
 
       let readonly = (edit_mode == 'operator' ? ' readonly' : '');
-      let hidden   = (edit_mode == 'operator' ? 'display-none' : '');
+      let hidden = (edit_mode == 'operator' ? 'display-none' : '');
       // GENERATE TABLE DATA
 
       // PRODUCT CODE - NAME
@@ -964,13 +964,15 @@ function loadItems() {
         let group_name = '';
 
         for (let operator of item_operators) {
-          // console.log(operator);
+          console.log(operator);
           if (!operator) continue;
           if (operator.id === item_operator) selected = ' selected';
 
+          if (!operator.group_name) continue;
+
           group_name = operator.group_name;
 
-          if (group_name.length > 2) group_name = group_name.substr(0, 2); // operator -> op
+          if (group_name.length > 2) group_name = group_name.substring(0, 2); // operator -> op
 
           tr_html +=
             `<option value="${operator.id}"${selected}>

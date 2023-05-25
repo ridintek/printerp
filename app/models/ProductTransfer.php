@@ -46,7 +46,7 @@ class ProductTransfer
         foreach ($items as $item) {
           $product = Product::getRow(['id' => $item['product_id']]);
 
-          $item['transfer_id']        = $insertId;
+          $item['transfer_id']  = $insertId;
           $item['product_code'] = $product->code;
           $item['status']       = 'packing';
 

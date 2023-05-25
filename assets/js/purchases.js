@@ -232,9 +232,9 @@ $(document).ready(function () {
     $('#ponote').redactor('set', ponote);
   }
   if (posupplier = localStorage.getItem('posupplier')) { // Pre-selected select2.
-    preSelectSupplier('#posupplier', posupplier);
+    preSelectSupplier('#supplier', posupplier);
   }
-  $('#posupplier').change(function (e) {
+  $('#supplier').change(function (e) {
     localStorage.setItem('posupplier', $(this).val());
     $('#supplier_id').val($(this).val());
   });
@@ -546,7 +546,7 @@ $(document).ready(function () {
     });
 
   $(document).on('click', '#removeReadonly', function () {
-    let supplier = $('#posupplier');
+    let supplier = $('#supplier');
     if (supplier.hasClass('lock')) {
       supplier.select2('readonly', false);
       $(this).html('<i class="fa fa-fw fa-unlock" id="unLock"></i>');
@@ -560,8 +560,8 @@ $(document).ready(function () {
   });
 
   if (typeof po_edit !== 'undefined' && po_edit) {
-    $('#posupplier').select2('readonly', true);
-    $('#posupplier').addClass('lock');
+    $('#supplier').select2('readonly', true);
+    $('#supplier').addClass('lock');
   }
 });
 

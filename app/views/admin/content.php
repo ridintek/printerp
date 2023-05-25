@@ -780,9 +780,7 @@
                             </li>
                           <?php } ?>
                           <?php if (
-                            $isAdmin ||
-                            ($GP['sales-add'] && !$GP['sales-add_qms_only']) ||
-                            ($GP['sales-add'] && XSession::get('biller_name') == 'Online')
+                            $isAdmin || $GP['sales-add']
                           ) : ?>
                             <li id="sales_add">
                               <a class="submenu" href="<?= admin_url('sales/add'); ?>">

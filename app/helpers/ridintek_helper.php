@@ -651,7 +651,7 @@ function generateInternalUseUniqueCode(string $category)
 
   $lastItem = DB::table('stocks')->isNotNull('internal_use_id')
     ->like('unique_code', $prefix[$category], 'right')
-    ->orderBy('internal_use_id', 'DESC')->getRow(); // Find Cxxxx or Sxxxx
+    ->orderBy('unique_code', 'DESC')->getRow(); // Find Cxxxx or Sxxxx
 
   if ($lastItem) {
     $lastUniqueCode = $lastItem->unique_code; // Ex. SA0001, CA0001

@@ -80,7 +80,7 @@ if ($filter = getGET('f')) {
         [25, 50, 100, "<?= lang('all') ?>"]
       ],
       order: [
-        [3, 'desc']
+        [1, 'asc']
       ],
       pageLength: <?= $Settings->rows_per_page ?>,
       rowCallback: function(row, data) {

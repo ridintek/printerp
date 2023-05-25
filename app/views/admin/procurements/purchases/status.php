@@ -35,7 +35,7 @@
           dataType: "json",
           data: {
             term: request.term,
-            supplier_id: $("#posupplier").val(),
+            supplier_id: $("#supplier").val(),
             warehouse_id: $('#powarehouse').val()
           },
           success: function (data) {
@@ -206,10 +206,10 @@
                 <div class="panel-body" style="padding: 5px;">
                   <div class="col-md-4">
                     <div class="form-group">
-                      <?= lang('supplier', 'posupplier'); ?>
+                      <?= lang('supplier', 'supplier'); ?>
                       <?php if ($Owner || $Admin || $GP['suppliers-add'] || $GP['suppliers-index']) { ?>
                       <div class="input-group"><?php } ?>
-                        <select name="supplier" id="posupplier" class="select2" data-placeholder="Select Supplier" style="width: 100%;">
+                        <select name="supplier" id="supplier" class="select2" data-placeholder="Select Supplier" style="width: 100%;">
                         <input type="hidden" name="supplier_id" value="" id="supplier_id" class="form-control">
                         <?php if ($Owner || $Admin || $GP['suppliers-index']) { ?>
                         <div class="input-group-addon no-print" style="padding: 2px 5px; border-left: 0;">

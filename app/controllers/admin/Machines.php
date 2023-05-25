@@ -165,9 +165,13 @@ class Machines extends MY_Controller
       $jsonData->maintenances = $g;
       unset($g);
 
+      $json = json_encode($jsonData);
+
       $warehouseData = [
-        'json_data' => json_encode($jsonData)
+        'json_data' => $json
       ];
+
+      DB::table('warehouse')->update(['id' => $warehouseId], ['json' => $json]); // New warehouse table.
 
       if ($this->site->updateWarehouse(['id' => $warehouseId], $warehouseData)) {
         $this->response(200, ['message' => 'Jadwal berhasil diubah.']);

@@ -4266,6 +4266,7 @@ class Products extends MY_Controller
         $userJS->so_cycle = $so_cycle;
 
         $userData = [
+          'json'      => json_encode($userJS),
           'json_data' => json_encode($userJS)
         ];
 
