@@ -401,14 +401,19 @@ class Api extends MY_Controller
   {
     $data = [];
 
-    $account = $this->http_get('https://mutasi.indoprinting.co.id/api/accounts_list', [
+    $account1 = $this->http_get('https://mutasi.indoprinting.co.id/api/accounts_list', [
       'Authorization: Bearer tikXCBSpl2JGVr49ILhme7dHfbaQuOPFYNozMEc6'
     ]);
 
-    $acc = json_decode($account);
+    $account2 = $this->http_get('https://mutasibank.co.id/api/v1/accounts', [
+      'Authorization: eExKRGtkRTNFYzVmUzNRTnQwV0RHa0V5OW1Zd0poVkNZRXZCYkI3a21MdWt2YTRtNFhYZzFMd0FCUmt5644c9272f1653'
+    ]);
 
-    if ($acc && $acc->status == TRUE) {
-      foreach ($acc->data as $row) {
+    $acc1 = json_decode($account1);
+    $acc2 = json_decode($account2);
+
+    if ($acc1 && $acc1->status == true) {
+      foreach ($acc1->data as $row) {
         $data[] = [
           'id'                => $row->id,
           'account_name'      => $row->account_name,
@@ -417,6 +422,20 @@ class Api extends MY_Controller
           'bank'              => $row->bank_name,
           'module'            => $row->module_name,
           'last_bot_activity' => $row->last_run
+        ];
+      }
+    }
+
+    if ($acc2 && $acc2->error == false) {
+      foreach ($acc2->data as $row) {
+        $data[] = [
+          'id'                => $row->id,
+          'account_name'      => $row->account_name,
+          'account_no'        => $row->account_no,
+          'balance'           => $row->balance,
+          'bank'              => $row->bank,
+          'module'            => $row->module,
+          'last_bot_activity' => $row->last_bot_activity
         ];
       }
     }
@@ -644,11 +663,12 @@ class Api extends MY_Controller
    */
   private function sales_add_transfer()
   {
-    $inv   = getPost('invoice');
-    $phone = getPost('phone');
+    $inv    = getPost('invoice');
+    $phone  = getPost('phone');
+    $amount = getPost('amount');
 
-    $customer = $this->site->getCustomerByPhone($phone);
-    $sale     = $this->site->getSaleByReference($inv);
+    $customer = Customer::getRow(['phone' => $phone]);
+    $sale     = Sale::getRow(['reference' => $inv]);
 
     if (!$customer) sendJSON(['error' => 1, 'msg' => 'Customer not found.']);
 
@@ -663,7 +683,7 @@ class Api extends MY_Controller
         'expired_date'  => date('Y-m-d H:i:s', $expired_date),
         'reference'     => $sale->reference,
         'sale_id'       => $sale->id,
-        'amount'        => $sale->grand_total,
+        'amount'        => ($amount > 0 ? $amount : $sale->grand_total),
         'created_by'    => $sale->created_by,
         'biller_id'     => $sale->biller_id,
       ];
@@ -672,7 +692,7 @@ class Api extends MY_Controller
         $this->site->updateSale($sale->id, ['payment_status' => 'waiting_transfer']);
 
         sendJSON(['error' => 0, 'msg' => 'Payment Validation has been added.', 'data' => [
-          'url' => "https://indoprinting.co.id/trackorder?inv={$sale->reference}&phone={$customer->phone}&submit=1"
+          'url' => "https://indoprinting.co.id/trackorder?inv={$sale->reference}&phone={$customer->phone}"
         ]]);
       }
       sendJSON(['error' => 1, 'msg' => 'Failed to add payment validation.']);
